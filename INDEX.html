@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estimation des travaux de rénovation</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #222; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #2c3e50; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #2c3e50; color: white; }
+    input[type=number] { width: 80px; padding: 5px; }
+    .total { font-size: 1.3em; font-weight: bold; text-align: right; margin-top: 20px; color: #2c3e50; }
+    .maj { text-align: center; font-size: 0.85em; color: #777; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Estimation des travaux</h1>
+    <table>
+      <thead>
+        <tr><th>Prestation</th><th>Prix unitaire (CHF)</th><th>Quantité</th><th>Total (CHF)</th></tr>
+      </thead>
+      <tbody id="lignes"></tbody>
+    </table>
+    <div class="total">Total estimé : <span id="total">0</span> CHF</div>
+    <div class="maj" id="maj"></div>
+  </div>
+
+  <script>
+    let tarifs = [];
+
+    async function chargerTarifs() {
+      const reponse = await fetch('tarifs.json?v=' + Date.now());
+      const donnees = await reponse.json();
+      tarifs = donnees.prestations;
+      document.getElementById('maj').textContent = 'Tarifs mis à jour le : ' + donnees.derniere_mise_a_jour;
+      afficherLignes();
+    }
+
+    function afficherLignes() {
+      const corps = document.getElementById('lignes');
+      corps.innerHTML = '';
+      tarifs.forEach((t, i) => {
+        corps.innerHTML += `
+          <tr>
+            <td>${t.nom}</td>
+            <td>${t.prix.toFixed(2)}</td>
+            <td><input type="number" min="0" value="0" data-index="${i}" oninput="calculer()"></td>
+            <td id="ligne-${i}">0.00</td>
+          </tr>`;
+      });
+    }
+
+    function calculer() {
+      let total = 0;
+      tarifs.forEach((t, i) => {
+        const qte = parseFloat(document.querySelector(`input[data-index="${i}"]`).value) || 0;
+        const sous = qte * t.prix;
+        document.getElementById('ligne-' + i).textContent = sous.toFixed(2);
+        total += sous;
+      });
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+
+    chargerTarifs();
+  </script>
+</body>
+</html>

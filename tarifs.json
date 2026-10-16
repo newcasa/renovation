@@ -1,0 +1,11 @@
+{
+  "tarifs": {
+    "sol_parquet": [35, 120],
+    "sol_carrelage": [40, 120],
+    "mur_plafonnage": [40, 85],
+    "mur_carrelage": [40, 120],
+    "pl": [40, 85],
+    "meu_cuisine": [5000, 25000],
+    "meu_sdb": [7000, 20000]
+  }
+}
