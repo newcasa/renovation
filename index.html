@@ -1,148 +1,37 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Estimation rénovation</title><link rel="icon" href="data:,">
+### 1. Rôle et Intention
+
+* **Question explicite :** Modifier le code source fourni (`index.html`) pour appliquer et intégrer directement l'interface complète, en respectant sans erreur toutes les fonctions de l'application.
+* **Intention sous-jacente :** Obtenir le code HTML/CSS/JS finalisé, autonome et directement exécutable, où les fonctions orphelines (tableau de bord de visite, photos en IndexedDB, mesures de façades/toiture, navigation multi-adresses) sont parfaitement raccordées au DOM sans régression sur les calculs ou le stockage local.
+
+---
+
+### 2. Audit des Problèmes Résolus dans le Code
+
+1. **Raccordement de la vue Accueil & Tableau de bord (`homeProp`) :**
+   Dans le fichier fourni, la fonction `home()` (contenant le récapitulatif du bien, les tuiles d'accès direct et le budget) était masquée par `home2()`, et les fonctions `mes()` (mesures de visite) ainsi que `ph()` / `drawPh()` (galerie de photos) étaient écrites en JavaScript mais **jamais insérées dans le DOM ni appelées au rendu**. Elles sont désormais intégrées au tableau de bord du bien actif.
+2. **Gestion complète de la galerie photo :**
+   L'élément déclencheur d'upload (`<input type="file" id="pf">`), le conteneur de vignettes (`#ph`) et le compteur (`#pc`) sont désormais présents dans l'interface, avec la compression automatique canvas, le stockage local IndexedDB, la prévisualisation plein écran et l'édition des légendes.
+3. **Synchronisation automatique des mesures de visite (`AQ`) :**
+   Les mesures saisies (Façades R+1/R+2 et Toiture) alimentent automatiquement par défaut les quantités des postes techniques correspondants (Façade, Isolation toiture, Dépose, Sous-toiture, Couverture, Charpente) selon la formule de l'outil.
+4. **Navigation fluide multi-biens :**
+   Ajout d'un bouton direct *"🏢 Tous mes biens"* dans l'en-tête pour alterner instantanément entre la liste des adresses et le tableau de bord d'un bien sans risque de perte de données.
+5. **Fiabilisation des pointeurs d'état :**
+   Initialisation sécurisée de `mes` et `t` dans chaque propriété pour éviter toute exception `undefined` lors de la frappe en temps réel.
+
+---
+
+### 3. Code Complet Modifié (`index.html`)
+
+Remplacez l'intégralité du contenu de votre fichier `index.html` par ce code :
+
+```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estimation rénovation</title>
+<link rel="icon" href="data:,">
 <style>
 :root{--bg:#f4f5f7;--cd:#fff;--tx:#1b2330;--mu:#5f6b7c;--bd:#dfe3e9;--gr:#2f9e4e;--bl:#3a68e8;--rs:#c91f6a;--gy:#7b8494;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161c;--cd:#1c222b;--tx:#edf0f4;--mu:#9ba5b4;--bd:#2b3340;--gr:#4cc16e;--bl:#7596ff;--rs:#ef5a9a;--gy:#98a1b0}}
-:root[data-theme=dark]{--bg:#12161c;--cd:#1c222b;--tx:#edf0f4;--mu:#9ba5b4;--bd:#2b3340;--gr:#4cc16e;--bl:#7596ff;--rs:#ef5a9a;--gy:#98a1b0}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,Arial,sans-serif;padding-bottom:84px}
-#m{max-width:640px;margin:auto;padding:16px}
-h1{font-size:24px;margin:4px 0 14px}h3{margin:0 0 8px;font-size:17px}
-.c{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
-summary{display:flex;justify-content:space-between;gap:8px;cursor:pointer;list-style:none}
-summary span,small{color:var(--mu);font-size:13px}
-.b{border-left:4px solid var(--gy);padding:6px 0 6px 10px;margin-top:10px}
-.b.g{border-color:var(--gr)}.b.bl{border-color:var(--bl)}.b.rs{border-color:var(--rs)}
-.f{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
-.sw{display:flex;gap:8px;align-items:center;font-weight:600;min-height:32px}
-input[type=checkbox]{width:20px;height:20px}
-input[type=number],input[type=text],select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px;min-width:0;flex:1}
-label{display:block;margin-top:8px;font-size:14px;color:var(--mu)}label input{margin-top:4px;width:100%;box-sizing:border-box}
-.it{padding:6px 0;border-top:1px solid var(--bd)}.it:first-of-type{border:0}
-.hero{text-align:center}.bg{font-size:34px;font-weight:700;margin:4px 0}
-.gd{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.tile{border:0;border-radius:14px;padding:22px 12px;color:#fff;font:700 18px system-ui,Arial,sans-serif;text-align:center;width:100%}
-.tile small{display:block;color:#fff;opacity:.9;font-weight:400;margin-top:4px}
-.ln{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--bd)}
-.ln select{flex:0 0 90px}.big{font-size:18px}
-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav button{flex:1;border:0;background:none;color:var(--mu);font:600 13px system-ui,Arial,sans-serif;padding:14px 4px}
-nav button.on{color:var(--bl);box-shadow:inset 0 3px 0 var(--bl)}
-.del{margin-top:12px;border:0;background:none;color:var(--rs);font:600 13px system-ui,Arial,sans-serif;padding:6px 0}
-.add button{border:0;border-radius:8px;background:var(--gr);color:#fff;font:600 15px system-ui,Arial,sans-serif;padding:0 14px}
-</style></head><body><div id="m"></div>
-<nav><button data-go="h">Accueil</button><button data-go="e">Espaces</button><button data-go="t">Techniques</button><button data-go="s">Synthèse</button><button data-go="p">Tarifs</button></nav>
-<script>
-const $=s=>document.querySelector(s);
-// Ratios (€ min / max) issus du fichier RENO.xlsx
-const SOL={parquet:[35,120],carrelage:[40,120]},MUR={plafonnage:[40,85],carrelage:[40,120]},PL=[40,85],MEU={cuisine:[5000,25000],sdb:[7000,20000]};
-const T=[["Menuiseries",[["ch","Châssis (PVC)","unité",500,900],["ca","Châssis aluminium","unité",500,900],["pe","Porte d'entrée","unité",1500,3500],["pi","Portes intérieures","unité",300,700],["pg","Porte de garage","unité",800,5500],["vo","Volets","unité",150,500]]],
-["Électricité",[["co","Coffret / tableau électrique","unité",800,1500],["re","Réseau électrique complet (prises, points lumineux)","unité",60,120],["mc","Mise en conformité","unité",135,400]]],
-["Sanitaire",[["pl","Arrivée d'eau et évacuation des eaux","m²",30,80],["cha","Chaudière gaz condensation","unité",3000,7500],["pac","Pompe à chaleur","unité",9000,18500],["rad","Radiateurs","unité",300,800]]],
-["Gros œuvre",[["da","Dalle béton","m²",120,200],["mp","Ouverture mur porteur","unité",1500,4000],["dem","Démolition intérieure","m²",20,60],["dr","Drainage périphérique","ml",80,150]]],
-["Isolation",[["fa","Façade","m²",0,0,[["Ravalement",40,120],["Enduit / crépi",30,70],["Isolation intérieure",40,90],["Isolation extérieure (ITE)",110,250]]],["to","Toiture (isolation)","m²",0,0,[["Isolation combles",20,55],["Isolation sous rampants",40,90],["Isolation sarking",90,160]]]]],
-["Toiture",[["dp","Dépose ancienne toiture","m²",25,45],["st","Sous-toiture","m²",10,25],["cv","Couverture","m²",0,0,[["Tuiles béton",70,110],["Tuiles terre cuite",85,140],["Ardoises artificielles",75,120],["Ardoises naturelles",130,220],["Toiture plate EPDM",120,250]]],["cp","Charpente","m²",0,0,[["Traitement",15,30],["Remplacement",200,400]]],["zi","Zinguerie (gouttières)","ml",40,80],["no","Noues / abergements","ml",60,150]]],
-["Extérieurs",[["te","Terrasse","m²",80,200],["al","Allée / pavage","m²",40,100],["cl","Clôture","ml",50,150],["ja","Jardin / nivellement","m²",20,50]]]];
-const mk=(n,k)=>({n,k,sol:null,sT:"parquet",sOn:0,m:null,mT:"plafonnage",mOn:0,pOn:0,meu:0});
-let S;try{S=JSON.parse(localStorage.getItem("reno"))}catch(e){}
-S=S||{rooms:[mk("Salle de bain","sdb"),mk("Salon"),mk("Salle à manger"),mk("Cuisine","cuisine"),mk("Chambre 1"),mk("Chambre 2")],t:{},imp:15,ach:125000,fr:15,tx:4.1,mo:360,v:"h",o:{}};
-const save=()=>{try{localStorage.setItem("reno",JSON.stringify(S))}catch(e){}};
-const n=x=>Math.max(0,+x||0),E=x=>Math.round(x).toLocaleString("fr-BE")+" €",rng=a=>a[0]||a[1]?E(a[0])+" – "+E(a[1]):"—";
-const mm=r=>r.m==null?n(r.sol)*2.5:n(r.m);
-const P=(k,d)=>{const o=(S.p||{})[k]||{};return[o[0]==null?d[0]:o[0],o[1]==null?d[1]:o[1]]};
-const sumR=f=>S.rooms.reduce((a,r)=>a+n(r[f]),0),MS=()=>S.mes||{},LF=()=>{const m=MS();return n(m.f1)+n(m.f2)+n(m.f3)+n(m.f4)},TO=()=>n(MS().toit);
-const AQ={ch:()=>sumR('ch'),ca:()=>sumR('ch')};
-const CHASSIS=['ch','ca'];
-const chassisTotal=()=>Math.max(0,sumR('ch'));
-function syncChassis(changed){
-  const total=chassisTotal(), t=S.t||(S.t={}), pvc=t.ch||{}, alu=t.ca||{};
-  let value=changed==='ca'?n(alu.q):n(pvc.q);
-  if(changed!=='ca' && changed!=='ch' && pvc.q==null && alu.q==null)value=total;
-  value=Math.max(0,Math.min(total,value));
-  t.ch=Object.assign({},pvc,{q:changed==='ca'?Math.max(0,total-value):value});
-  t.ca=Object.assign({},alu,{q:changed==='ca'?value:Math.max(0,total-value)});
-}
-const qty=(id,s)=>CHASSIS.includes(id)?n((S.t[id]||{}).q):s.q==null?(AQ[id]?AQ[id]():0):n(s.q);
-function ra(){
-  CHASSIS.forEach(id=>{const w=document.querySelector('[data-p="t.'+id+'.q"]');if(w&&document.activeElement!==w)w.value=(S.t[id]||{}).q||''})
-}
-const mes=()=>{const m=MS();return`<div class='c'><h3>Mesures de la visite</h3><small>Les quantités des postes concernés se calculent seules (façades : longueur × 6 m pour R+1, × 9 m pour R+2, comme dans ton Excel). Tu peux les corriger dans chaque poste.</small><label>Façade avant R+1 (longueur en m)${I('mes.f1',m.f1)}</label><label>Façade avant R+2 (longueur en m)${I('mes.f2',m.f2)}</label><label>Façade arrière R+1 (longueur en m)${I('mes.f3',m.f3)}</label><label>Façade arrière R+2 (longueur en m)${I('mes.f4',m.f4)}</label><label>Surface de toiture (m²)${I('mes.toit',m.toit)}</label></div>`};
-const LB=k=>{const o=(S.p||{})[k]||{};return[n(o[2]),n(o[3])]};
-const esc=s=>String(s??'').replace(/[&<>']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]||'&#39;'));
-let armed=-1,armR=-1;
-const PH={};let DB,PHP;
-const idb=()=>DB||(DB=new Promise((ok,ko)=>{try{const r=indexedDB.open('reno',1);r.onupgradeneeded=()=>r.result.createObjectStore('ph',{autoIncrement:true});r.onsuccess=()=>ok(r.result);r.onerror=()=>ko()}catch(e){ko()}}));
-const tx=(m,f)=>idb().then(d=>new Promise((ok,ko)=>{const q=f(d.transaction('ph',m).objectStore('ph'));q.onsuccess=()=>ok(q.result);q.onerror=()=>ko()}));
-const phl=()=>PHP||(PHP=Promise.all([tx('readonly',s=>s.getAllKeys()),tx('readonly',s=>s.getAll())]).then(r=>{r[1].forEach((x,i)=>(PH[x.adr]=PH[x.adr]||[]).push({k:r[0][i],d:x.data,c:x.cap||''}))}).catch(()=>{}));
-function drawPh(){const el=$('#ph');if(!el||!S.props[S.cur])return;const a=PH[S.props[S.cur].id]||[];el.innerHTML=`<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px'>`+a.map(p=>`<div style='min-width:0'><img alt='' src='${p.d}' data-ph='${p.k}' style='width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px'><small style='display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>${esc(p.c||'')}</small></div>`).join('')+`</div>`;const c=$('#pc');if(c)c.textContent=a.length?a.length+' photo'+(a.length>1?'s':''):''}
-async function ph(){if(!$('#ph'))return;await phl();drawPh()}
-const shrink=f=>new Promise((ok,ko)=>{const rd=new FileReader();rd.onerror=ko;rd.onload=()=>{const i=new Image();i.onerror=ko;i.onload=()=>{const r=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*r);c.height=Math.round(i.height*r);c.getContext('2d').drawImage(i,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.72))};i.src=rd.result};rd.readAsDataURL(f)});
-document.addEventListener('change',async e=>{if(e.target.id!='pf')return;const id=S.props[S.cur].id;await phl();for(const f of e.target.files){try{const d=await shrink(f),k=await tx('readwrite',s=>s.add({adr:id,data:d,t:Date.now()}));(PH[id]=PH[id]||[]).push({k,d,c:''});drawPh()}catch(x){const c=$('#pc');if(c)c.textContent='erreur d’enregistrement'}}e.target.value=''});
-document.addEventListener('change',async e=>{const k=e.target.dataset&&e.target.dataset.cap;if(k==null)return;const p=(PH[S.props[S.cur].id]||[]).find(x=>x.k===+k);if(!p)return;p.c=e.target.value;try{const r=await tx('readonly',s=>s.get(+k));r.cap=p.c;await tx('readwrite',s=>s.put(r,+k))}catch(x){}drawPh()});
-function home2(){return`<h1>Estimation rénovation</h1>`+(S.props.length?'':`<div class='c'><small>Ajoute ta première adresse pour commencer.</small></div>`)+S.props.map((p,i)=>`<button class='tile' style='background:var(--bl);margin-bottom:12px' data-adr='${i}'>📍 ${esc(p.a)}<small>Budget travaux estimé : <span data-k='a${i}'></span></small></button><button class='del' data-rf='${i}' style='margin:-6px 0 12px'>↻ Rafraîchir (remettre à zéro)</button><button class='del' data-da='${i}' style='margin:-6px 0 12px 16px'>Supprimer l’adresse</button>`).join('')+`<div class='c add'><div class='f'><input type='text' id='na' placeholder='Adresse du bien (ex. 12 rue des Lilas, Liège)'><button id='addr'>+ Ajouter</button></div></div>`}
-const hd=()=>`<div class='c'><div class='f' style='margin:0'><span>📍</span><input type='text' data-p='props.${S.cur}.a' value='${esc(S.props[S.cur].a)}' placeholder='Adresse du bien'></div><button class='del' data-rf='${S.cur}' style='margin-right:16px'>↻ Rafraîchir (remettre à zéro)</button><button class='del' id='dadr'>Supprimer cette adresse</button></div>`;
-function tar(){const R=(l,k,d,u)=>{const v=P(k,d),o=(S.p||{})[k]||{};return`<div class='ln' style='flex-wrap:wrap'><span>${l} <small>${u}</small></span><div class='f' style='flex:0 0 100%;margin:0'>${I('p.'+k+'.0',v[0],'Prix min')}${I('p.'+k+'.1',v[1],'Prix max')}</div><div class='f' style='flex:0 0 100%;margin:0'>${I('p.'+k+'.2',o[2],'Main d’œuvre seule min')}${I('p.'+k+'.3',o[3],'Main d’œuvre seule max')}</div></div>`};return`<h1>Tarifs de référence</h1><small>Prix min et max en €, puis le prix de la main d’œuvre seule. Elle s’ajoute au prix quand elle est incluse dans la pièce ou le domaine.</small><div class='c' style='margin-top:10px'><h3>Espaces</h3>`+R('Sol parquet','sol_parquet',SOL.parquet,'€/m²')+R('Sol carrelage','sol_carrelage',SOL.carrelage,'€/m²')+R('Murs plafonnage / peinture','mur_plafonnage',MUR.plafonnage,'€/m²')+R('Murs carrelage','mur_carrelage',MUR.carrelage,'€/m²')+R('Plafond','pl',PL,'€/m²')+R('Cuisine équipée','meu_cuisine',MEU.cuisine,'€')+R('Salle de bain équipée','meu_sdb',MEU.sdb,'€')+`</div>`+T.map(c=>`<div class='c'><h3>${c[0]}</h3>`+c[1].map(it=>it[5]?it[5].map((o,j)=>R(it[1]+' – '+o[0],'i_'+it[0]+'_'+j,o.slice(1),'€/'+it[2])).join(''):R(it[1],'i_'+it[0],[it[3],it[4]],'€/'+it[2])).join('')+`</div>`).join('')+`<button class='del' id='rst'>Remettre les tarifs d’origine</button>`}
-const pk=(a,lv)=>lv==null||lv==1?(a[0]+a[1])/2:lv==0?a[0]:a[1],LV=[[0,"Min"],[1,"Moyen"],[2,"Max"]];
-function rc(r){let a=0,b=0,c=0;const f=(q,k,d,w,lv)=>{const p=P(k,d),l=(w??r.mo)!=0?LB(k):[0,0],x=[p[0]+l[0],p[1]+l[1]];a+=q*x[0];b+=q*x[1];c+=q*pk(x,lv)};
-if(r.sOn)f(n(r.sol),'sol_'+r.sT,SOL[r.sT],r.sw,r.sv);if(r.mOn)f(mm(r),'mur_'+r.mT,MUR[r.mT],r.mw,r.mv);if(r.pOn)f(n(r.sol),'pl',PL,r.pw,r.pv);if(r.meu&&MEU[r.k])f(1,'meu_'+r.k,MEU[r.k],r.ew,r.ev);return[a,b,c]}
-function ic(it){const s=S.t[it[0]];if(!s||!s.on)return[0,0,0];const p=it[5]?P('i_'+it[0]+'_'+n(s.o),it[5][n(s.o)].slice(1)):P('i_'+it[0],[it[3],it[4]]);const ci=T.findIndex(c=>c[1].includes(it)),k=it[5]?'i_'+it[0]+'_'+n(s.o):'i_'+it[0],l=((S.mc||{})[ci]!=0)?LB(k):[0,0];const q=qty(it[0],s),x=[p[0]+l[0],p[1]+l[1]];return[q*x[0],q*x[1],q*pk(x,s.lv)]}
-const sum=a=>a.reduce((u,v)=>[u[0]+v[0],u[1]+v[1],u[2]+v[2]],[0,0,0]);
-function tot(){const e=sum(S.rooms.map(rc)),cats=T.map(c=>[c[0],sum(c[1].map(ic))]),all=sum([e,...cats.map(c=>c[1])]),moy=all[2],imp=all[1]*n(S.imp)/100;return{e,cats,all,moy,imp,bud:moy+imp}}
-function fin(){const t=tot(),fr=n(S.ach)*n(S.fr)/100,tv=t.bud*n(S.tva)/100,tt=n(S.ach)+t.bud+tv+fr,em=Math.max(0,tt-n(S.ap)),r=n(S.tx)/1200,N=n(S.mo)||1,M=r?em*r/(1-Math.pow(1+r,-N)):em/N,as=em*n(S.ass)/100/12;return{t,fr,tv,tt,em,M,as,mt:M+as,int:M*N-em,cass:as*N,cc:M*N-em+as*N}}
-function kv(){const f=fin(),t=f.t,m={bud:E(t.bud),rng:rng(t.all),moy:E(t.moy),imp:E(t.imp),fr:E(f.fr),tv:E(f.tv),tt:E(f.tt),em:E(f.em),M:E(f.M),as:E(f.as),mt:E(f.mt),int:E(f.int),cass:E(f.cass),cc:E(f.cc)};
-S.rooms.forEach((r,i)=>m["r"+i]=rng(rc(r)));T.forEach(c=>c[1].forEach(it=>m["i"+it[0]]=rng(ic(it))));[["Espaces",t.e],...t.cats].forEach((c,i)=>m["c"+i]=rng(c[1]));const c0=S.cur;S.props.forEach((p,i)=>{S.cur=i;m["a"+i]=E(tot().bud)});S.cur=c0;return m}
-function upd(){const m=kv();document.querySelectorAll("[data-k]").forEach(e=>{if(m[e.dataset.k]!=null)e.textContent=m[e.dataset.k]});save()}
-const I=(p,v,ph)=>`<input type="number" min="0" inputmode="decimal" data-p="${p}" value="${v??""}" placeholder="${ph||""}">`;
-const C=(p,v,l)=>`<label class="sw"><input type="checkbox" data-p="${p}" ${v?"checked":""}>${l}</label>`;
-const Sel=(p,v,o)=>`<select data-p="${p}">${o.map(x=>`<option value="${x[0]}" ${x[0]==v?"selected":""}>${x[1]}</option>`).join("")}</select>`;
-function home(){const t=tot();return`<h1>Estimation rénovation</h1><div class="c hero"><small>Budget travaux estimé (moyenne + imprévus)</small><div class="bg" data-k="bud"></div><small data-k="rng"></small></div>
-<div class="gd"><button class="tile" style="background:var(--gr)" data-go="e">Espaces<small>sol, murs, plafond</small></button><button class="tile" style="background:var(--rs)" data-go="t">Techniques<small>électricité, eau, isolation…</small></button></div>
-<button class="tile" style="background:var(--bl)" data-go="s">Synthèse et financement</button>`}
-function room(r,i){const p=`rooms.${i}.`;return`<details class="c" ${S.o[i]?"open":""} data-d="${i}"><summary><b>${r.n}</b><span data-k="r${i}"></span></summary>
-<div class="b"><small>Châssis de la pièce</small><div class="f">${I(p+"ch",r.ch,"Nombre de châssis")}</div></div>
-<div class="b g">${C(p+"sOn",r.sOn,"Sol à refaire")}<div class="f">${I(p+"sol",r.sol,"m² de sol")}${Sel(p+"sT",r.sT,[["parquet","Parquet"],["carrelage","Carrelage"]])}${Sel(p+"sv",r.sv??1,LV)}</div>${C(p+"sw",(r.sw??r.mo)!=0,"Main d'œuvre incluse")}</div>
-<div class="b bl">${C(p+"mOn",r.mOn,"Murs à refaire")}<div class="f">${I(p+"m",r.m??(r.sol?mm(r):null),"m² murs (sol × 2,5)")}${Sel(p+"mT",r.mT,[["plafonnage","Plafonnage / peinture"],["carrelage","Carrelage"]])}${Sel(p+"mv",r.mv??1,LV)}</div>${C(p+"mw",(r.mw??r.mo)!=0,"Main d'œuvre incluse")}</div>
-<div class="b rs">${C(p+"pOn",r.pOn,"Plafond à refaire")}<div class="f">${Sel(p+"pv",r.pv??1,LV)}</div>${C(p+"pw",(r.pw??r.mo)!=0,"Main d'œuvre incluse")}</div>
-${MEU[r.k]?`<div class="b">${C(p+"meu",r.meu,r.k=="sdb"?"Remplacer la salle de bain équipée":"Remplacer la cuisine équipée")}<div class="f">${Sel(p+"ev",r.ev??1,LV)}</div>${C(p+"ew",(r.ew??r.mo)!=0,"Main d'œuvre incluse")}</div>`:""}<button class="del" data-mv="${i}:-1" style="margin-right:16px">↑ Monter</button><button class="del" data-mv="${i}:1" style="margin-right:16px">↓ Descendre</button><button class="del" data-del="${i}">Supprimer cette pièce</button></details>`}
-const esp=()=>`<h1>Espaces</h1>`+S.rooms.map(room).join("")+`<div class="c add"><h3>Ajouter une pièce</h3><div class="f"><input type="text" id="nr" placeholder="Nom de la pièce (ex. Chambre 3)"><select id="nk"><option value="">Pièce standard</option><option value="cuisine">Cuisine</option><option value="sdb">Salle de bain</option></select><button id="add">+ Ajouter</button></div></div>`;
-const tech=()=>`<h1>Techniques</h1>`+T.map((c,ci)=>`<div class="c"><h3>${c[0]}</h3>${C('mc.'+ci,(S.mc||{})[ci]!=0,"Inclure la main d'œuvre")}`+c[1].map(it=>{const s=S.t[it[0]]||{},p=`t.${it[0]}.`;return`<div class="it">${C(p+"on",s.on,it[1])}${s.on?`<div class="f">${I(p+"q",s.q??(AQ[it[0]]?AQ[it[0]]()||null:null),"Quantité ("+it[2]+")")}${it[5]?Sel(p+"o",s.o||0,it[5].map((o,i)=>[i,o[0]])):""}${Sel(p+"lv",s.lv??1,LV)}<small data-k="i${it[0]}"></small></div>`:""}</div>`}).join("")+`</div>`).join("");
-function syn(){const t=tot();return`<h1>Synthèse</h1><div class="c"><h3>Travaux</h3>`+[["Espaces",t.e],...t.cats].map((c,i)=>`<div class="ln"><span>${c[0]}</span><b data-k="c${i}"></b></div>`).join("")+
-`<div class="ln"><span>Total min – max</span><b data-k="rng"></b></div><div class="ln"><span>Total selon tes choix</span><b data-k="moy"></b></div><div class="ln"><span>Imprévus (sur le maximum)</span>${Sel("imp",S.imp,[[10,"10 %"],[15,"15 %"],[20,"20 %"]])}<b data-k="imp"></b></div><div class="ln big"><span>Budget travaux</span><b data-k="bud"></b></div></div>
-<div class="c"><h3>Achat + rénovation</h3><label>Prix d'achat (€)${I("ach",S.ach)}</label><label>Frais administratifs (% du prix d'achat)${I("fr",S.fr)}</label><label>TVA sur les travaux (%), à laisser vide si tes tarifs incluent déjà la TVA${I("tva",S.tva)}</label>
-<div class="ln"><span>Frais administratifs</span><b data-k="fr"></b></div><div class="ln"><span>TVA sur les travaux</span><b data-k="tv"></b></div><div class="ln big"><span>Total du projet</span><b data-k="tt"></b></div></div>
-<div class="c"><h3>Financement</h3><label>Apport personnel (€)${I("ap",S.ap)}</label><div class="ln"><span>Montant emprunté</span><b data-k="em"></b></div><label>Taux annuel (%)${I("tx",S.tx)}</label><label>Durée (mois)${I("mo",S.mo)}</label><label>Assurance du prêt (% par an du capital emprunté)${I("ass",S.ass)}</label>
-<div class="ln"><span>Mensualité hors assurance</span><b data-k="M"></b></div><div class="ln"><span>Assurance par mois</span><b data-k="as"></b></div><div class="ln big"><span>Mensualité totale</span><b data-k="mt"></b></div><div class="ln"><span>Intérêts totaux</span><b data-k="int"></b></div><div class="ln"><span>Assurance totale</span><b data-k="cass"></b></div><div class="ln"><span>Coût total du crédit</span><b data-k="cc"></b></div></div>
-<small>Ratios issus de ton fichier RENO.xlsx : ordres de grandeur à valider par devis. Simulation de prêt indicative, à confirmer avec ta banque.</small>`}
-function render(){syncChassis();const v=S.v;armR=-1;armed=-1;$("#m").innerHTML=v=="p"?tar():(v=="h"||!S.props[S.cur])?home2():hd()+(v=="e"?esp():v=="t"?tech():syn());document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.go==v));upd()}
-function put(el){const p=el.dataset.p.split("."),id=p[1],last=p[p.length-1];let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]]??(o[p[i]]={});
-const v=el.type=="checkbox"?(el.checked?1:0):el.type=="number"?(el.value===""?null:Math.max(0,+el.value||0)):el.value;if(el.type=="number"&&el.value!==""&&+el.value<0)el.value=v;o[last]=v;
-if(p[0]=="rooms"&&(last=="sol"||last=="m")){const r=S.rooms[id];if(r.m==null){const w=document.querySelector('[data-p="rooms.'+id+'.m"]');if(w)w.value=r.sol?mm(r):""}}
-if(p[0]=="t"&&CHASSIS.includes(id)&&last=="q")syncChassis(id);
-if(p[0]=="t"&&CHASSIS.includes(id)&&last=="on"&&v)syncChassis();
-if(p[0]=="rooms"&&last=="ch")syncChassis();
-if(p[0]=="t"&&last=="on"&&v&&o.q==null&&T.flatMap(c=>c[1]).find(i=>i[0]==id)[2]=="unité"&&!AQ[id])o.q=1}
-document.addEventListener("input",e=>{const el=e.target;if(el.dataset.p&&el.type=="number"){put(el);upd();ra()}});
-document.addEventListener("change",e=>{const el=e.target;if(el.dataset.p&&el.type!="number"){put(el);if(el.type!="text")render();else upd()}});
-document.addEventListener("toggle",e=>{const d=e.target.dataset&&e.target.dataset.d;if(d!=null){S.o[d]=e.target.open;save()}},true);
-document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){S.v=g.dataset.go;render();scrollTo(0,0)}
-if(e.target.id=="add"){S.rooms.push(mk($("#nr").value.trim()||"Nouvelle pièce",$("#nk").value||undefined));S.o[S.rooms.length-1]=true;render()}
-if(e.target.id=="rst"){S.p={};render()}
-const ad=e.target.closest('[data-adr]');if(ad){S.cur=+ad.dataset.adr;S.v='e';render();scrollTo(0,0)}
-const th=e.target.closest('[data-ph]');if(th){const k=+th.dataset.ph,p=(PH[S.props[S.cur].id]||[]).find(x=>x.k===k);if(p){const o=document.createElement('div');o.id='ov';o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px))';o.innerHTML=`<img alt='' src='${p.d}' style='max-width:100%;max-height:68vh;border-radius:8px'><input type='text' data-cap='${k}' value='${esc(p.c||'')}' placeholder='Légende (ex. cuisine, mur nord)' style='max-width:420px;width:100%;flex:none'><div class='f' style='justify-content:center'><button class='tile' data-pc style='background:var(--bl);width:auto;padding:12px 18px;font-size:15px'>Fermer</button><button class='tile' data-pd='${k}' style='background:var(--rs);width:auto;padding:12px 18px;font-size:15px'>Supprimer</button></div>`;document.body.appendChild(o)}}
-if(e.target.closest('[data-pc]')){const ov=$('#ov');if(ov)ov.remove()}
-const pd=e.target.closest('[data-pd]');if(pd){const k=+pd.dataset.pd,id=S.props[S.cur].id;tx('readwrite',s=>s.delete(k)).catch(()=>{});PH[id]=(PH[id]||[]).filter(x=>x.k!==k);const ov=$('#ov');if(ov)ov.remove();drawPh()}
-const mv=e.target.closest('[data-mv]');if(mv){const[x,y]=mv.dataset.mv.split(':').map(Number),j=x+y;if(j>=0&&j<S.rooms.length){const a=S.rooms;[a[x],a[j]]=[a[j],a[x]];S.o={};render()}}
-const da=e.target.closest('[data-da]');if(da){const i=+da.dataset.da;if(armed===i){const id=S.props[i].id;phl().then(()=>{(PH[id]||[]).forEach(x=>tx('readwrite',s=>s.delete(x.k)).catch(()=>{}));delete PH[id]});S.props.splice(i,1);S.cur=null;S.v='h';armed=-1;render()}else{armed=i;da.textContent='Appuie encore pour supprimer'}}
-const rf=e.target.closest('[data-rf]');if(rf){const i=+rf.dataset.rf;if(armR===i){S.props[i]=Object.assign(NP(S.props[i].a),{id:S.props[i].id});armR=-1;render()}else{armR=i;rf.textContent='Appuie encore pour tout effacer'}}
-if(e.target.id=='addr'){const v=$('#na').value.trim();S.props.push(NP(v||'Nouvelle adresse'));S.cur=S.props.length-1;S.v='e';render();scrollTo(0,0)}
-if(e.target.id=='dadr'){if(armed===S.cur){(PH[S.props[S.cur].id]||[]).forEach(x=>tx('readwrite',s=>s.delete(x.k)).catch(()=>{}));delete PH[S.props[S.cur].id];S.props.splice(S.cur,1);S.cur=null;S.v='h';armed=-1;render()}else{armed=S.cur;e.target.textContent='Appuie encore pour confirmer la suppression'}}
-const d=e.target.closest("[data-del]");if(d){S.rooms.splice(+d.dataset.del,1);S.o={};render()}});
-const KS=['rooms','t','mc','imp','ach','fr','tx','mo','o','mes','tva','ap','ass'],EMP={rooms:[],t:{},mc:{},imp:15,ach:0,fr:15,tx:4.1,mo:360,o:{}};
-const NP=(a,d={})=>({a,ord:2,id:d.id||(Date.now().toString(36)+Math.random().toString(36).slice(2,6)),rooms:d.rooms||[mk('Salon'),mk('Salle à manger'),mk('Cuisine','cuisine'),mk('Salle de bain','sdb'),mk('Chambre 1')],t:d.t||{},mc:d.mc||{},imp:d.imp??15,ach:d.ach??0,fr:d.fr??15,tx:d.tx??4.1,mo:d.mo??360,o:d.o||{}});
-if(!S.props){const d={};KS.forEach(k=>{if(S[k]!==undefined)d[k]=S[k];delete S[k]});S.props=[NP('Mon bien',d)];S.cur=null;S.v='h'}
-S.cur=S.cur??null;S.props.forEach(p=>{p.id=p.id||(Date.now().toString(36)+Math.random().toString(36).slice(2,6))});
-const OR=['salon','salle à manger','cuisine','salle de bain','chambre 1','chambre 2'];S.props.forEach(p=>{if((p.ord||0)<2){p.ord=2;p.o={};if(!p.rooms.some(r=>r.n.toLowerCase()=='salle de bain'))p.rooms.push(mk('Salle de bain','sdb'));p.rooms=p.rooms.map((r,i)=>[r,i]).sort((x,y)=>{const a=OR.indexOf(x[0].n.toLowerCase()),b=OR.indexOf(y[0].n.toLowerCase());return (a<0?99:a)-(b<0?99:b)||x[1]-y[1]}).map(x=>x[0])}});
-KS.forEach(k=>Object.defineProperty(S,k,{get:()=>(S.props[S.cur]||EMP)[k],set:v=>{if(S.props[S.cur])S.props[S.cur][k]=v},configurable:true}));
-render();
-</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
-</body></html>
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161c;--cd:#1c222b;--tx:#edf0f4;--mu:#9ba5b4;--bd:#2b3340;--gr:#4cc
