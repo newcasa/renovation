@@ -85,15 +85,6 @@ dialog.perf::backdrop{background:rgba(8,12,20,.55)}
 .perf table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
 .perf td,.perf th{text-align:left;padding:5px 6px;border-bottom:1px solid var(--bd)}
 .perf .tableau{overflow-x:auto}
-.estimation{background:var(--carte);border-radius:16px;box-shadow:var(--ombre);padding:16px;display:grid;gap:12px;border-top:4px solid #ff6fae}
-.estimation h2{margin:0;font-size:17px}
-.formulaire{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
-.formulaire label{display:grid;gap:4px;font-size:13px;color:var(--mu)}
-.formulaire input,.formulaire select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:8px;min-width:0}
-.resultat{display:grid;gap:8px}
-.resultat .prix{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
-.resultat .fourchette{font-size:15px;color:var(--mu);font-variant-numeric:tabular-nums}
-.resultat ul{margin:0;padding-left:18px;font-size:13px;color:var(--mu)}
 
 /* Scène 3D */
 @keyframes clignote{50%{opacity:.25}}
@@ -148,24 +139,6 @@ dialog.perf::backdrop{background:rgba(8,12,20,.55)}
     <div class="tete"><h2 id="perfTitre">Performances</h2><button type="button" id="perfFermer" aria-label="Fermer">Fermer</button></div>
     <div class="corps" id="perfCorps"></div>
   </dialog>
-  <section class="estimation" id="estimation" aria-labelledby="titreEstimation">
-    <h2 id="titreEstimation">Estimer un bien</h2>
-    <p class="petit">Basé sur les <b>prix de vente réels</b> publiés par Statbel (actes notariés), commune par commune. <span id="statbelInfo"></span></p>
-    <form class="formulaire" id="formEstimation">
-      <label>Commune<input id="eCommune" list="listeCommunes" placeholder="ex. Liège, Seraing, Namur" required autocomplete="off"></label>
-      <label>Rue (facultatif)<input id="eRue" placeholder="ex. rue de la Station"></label>
-      <label>Type de bien<select id="eType">
-        <option value="maisons_2_3_facades">Maison 2-3 façades</option>
-        <option value="maisons_4_facades">Maison 4 façades (villa)</option>
-        <option value="appartements">Appartement</option>
-        <option value="maisons">Maison (façades inconnues)</option></select></label>
-      <label>Surface habitable (m²)<input id="eSurface" type="number" min="15" max="1500" step="1" placeholder="ex. 140"></label>
-      <label>Classe PEB<select id="ePeb"><option value="">Inconnue</option><option>A</option><option>B</option><option>C</option><option selected>D</option><option>E</option><option>F</option><option>G</option></select></label>
-      <label>&nbsp;<button class="p" type="submit">Estimer</button></label>
-    </form>
-    <datalist id="listeCommunes"></datalist>
-    <div class="resultat" id="resultatEstimation" aria-live="polite"></div>
-  </section>
   <p class="erreur" id="erreur" hidden></p>
   <p class="petit">Mise à jour automatique toutes les minutes. Un agent « au travail » est en train de tourner sur GitHub ; « terminé » veut dire que son dernier passage a réussi.</p>
 </div>
@@ -522,56 +495,10 @@ async function charger() {
   }
 }
 
-/* ---------- Estimation d'un bien (données Statbel) ---------- */
-// Hypothèses affichées à l'utilisateur : surface type par type de bien, effet atténué de la surface, correction PEB autour de D.
+/* ---------- Données Statbel (fiche de l'agent Estimateur) ---------- */
+// Le fichier est volumineux et ne change qu'une fois par mois : on le garde après le premier chargement.
 let STATBEL = null;
-const SURFACE_TYPE = {maisons_2_3_facades: 150, maisons_4_facades: 200, appartements: 90, maisons: 160};
-const PEB = {A: 1.10, B: 1.06, C: 1.03, D: 1, E: 0.97, F: 0.94, G: 0.90};
-const MIN_VENTES = 10;
-const sansAccent = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-const euros = n => Math.round(n).toLocaleString("fr-FR") + " €";
-function chargerStatbel(s) {
-  if (!s || STATBEL) return;
-  STATBEL = s;
-  // Statbel écrit les communes en majuscules sans accents (« LIEGE ») : on les affiche en minuscules lisibles
-  for (const c of s.communes) c.affiche = c.nom.toLowerCase().replace(/(^|[\s'-])\p{L}/gu, m => m.toUpperCase());
-  // Deux communes peuvent avoir le même nom (Saint-Nicolas à Liège et en Flandre) : on ajoute l'arrondissement
-  const doublons = s.communes.filter(c => s.communes.filter(x => x.nom === c.nom).length > 1);
-  for (const c of doublons) c.affiche += ` (${(s.arrondissements[c.arrondissement]?.nom || "").replace(/^ARRONDISSEMENT D[E']\s*/i, "").toLowerCase().replace(/(^|[\s'-])\p{L}/gu, m => m.toUpperCase())})`;
-  document.getElementById("listeCommunes").innerHTML = s.communes.map(c => `<option value="${c.affiche.replace(/"/g, "&quot;")}">`).join("");
-  document.getElementById("statbelInfo").textContent = `Période : ${s.periode} · ${s.communes.length} communes.`;
-}
-document.getElementById("formEstimation").addEventListener("submit", e => {
-  e.preventDefault();
-  const sortie = document.getElementById("resultatEstimation");
-  if (!STATBEL) { sortie.innerHTML = `<p class="erreur">Les données Statbel ne sont pas encore chargées : connecte le bureau avec ton jeton, ou lance l'agent Estimateur.</p>`; return; }
-  const saisie = sansAccent(document.getElementById("eCommune").value);
-  const commune = STATBEL.communes.find(c => sansAccent(c.affiche) === saisie) || STATBEL.communes.find(c => sansAccent(c.nom) === saisie) || STATBEL.communes.find(c => sansAccent(c.affiche).startsWith(saisie));
-  if (!commune) { sortie.innerHTML = `<p class="erreur">Commune introuvable dans Statbel : choisis-la dans la liste proposée.</p>`; return; }
-  const type = document.getElementById("eType").value, libelleType = document.getElementById("eType").selectedOptions[0].text;
-  let ref = commune.types[type], zone = commune.affiche;
-  if (!ref || ref.ventes < MIN_VENTES) {
-    const arr = STATBEL.arrondissements[commune.arrondissement];
-    if (arr?.types[type]) { ref = arr.types[type]; zone = `${arr.nom.toLowerCase().replace(/^\p{L}/u, m => m.toUpperCase())} (trop peu de ventes à ${commune.affiche})`; }
-  }
-  if (!ref) { sortie.innerHTML = `<p class="erreur">Pas assez de ventes de ce type de bien à ${commune.affiche} ni dans son arrondissement.</p>`; return; }
-  const surface = Number(document.getElementById("eSurface").value) || 0, peb = document.getElementById("ePeb").value, rue = document.getElementById("eRue").value.trim();
-  const fSurface = surface ? Math.min(1.6, Math.max(0.6, Math.pow(surface / SURFACE_TYPE[type], 0.6))) : 1;
-  const fPeb = PEB[peb] || 1;
-  const probable = ref.mediane * fSurface * fPeb;
-  const bas = Math.min(probable, Math.max(ref.q1 * 0.75, probable * 0.9)), haut = Math.max(probable, Math.min(ref.q3 * 1.25, probable * 1.1));
-  const arr1000 = n => Math.round(n / 1000) * 1000;
-  sortie.innerHTML = `
-    <div class="prix">${euros(arr1000(probable))}</div>
-    <div class="fourchette">Fourchette : ${euros(arr1000(bas))} – ${euros(arr1000(haut))}</div>
-    <ul>
-      <li>Prix médian réel des ventes de « ${libelleType.toLowerCase()} » à <b>${zone}</b> : ${euros(ref.mediane)} (${ref.ventes} ventes, ${STATBEL.periode}) ; la moitié des ventes entre ${euros(ref.q1)} et ${euros(ref.q3)}.</li>
-      <li>Surface : ${surface ? `${surface} m² pour une surface type de ${SURFACE_TYPE[type]} m² → ×${fSurface.toFixed(2)}` : "non renseignée, pas de correction"}.</li>
-      <li>PEB : ${peb ? `classe ${peb} → ×${fPeb.toFixed(2)}` : "inconnue, pas de correction"}.</li>
-      ${rue ? `<li>Rue « ${rue.replace(/[<>&]/g, "")} » notée : Statbel ne publie pas les prix à la rue, le calcul se fait à la commune.</li>` : ""}
-      <li>Estimation indicative, basée sur des statistiques publiques : elle ne remplace pas l'avis d'un notaire ou d'un agent immobilier.</li>
-    </ul>`;
-});
+function chargerStatbel(s) { if (s && !STATBEL) STATBEL = s; }
 
 /* ---------- Performances d'un agent ---------- */
 // Passages des 30 derniers jours (API GitHub) : nombre, taux de réussite, durée, dernier échec, graphique des durées.
