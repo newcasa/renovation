@@ -84,11 +84,13 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
 .hud{position:absolute;inset:0;pointer-events:none;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#bfe8ff}
 .hud .coin{position:absolute;top:12px;left:14px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
 .hud .coin b{display:block;font-size:22px;letter-spacing:.04em;color:#e8f7ff}
-.etiquette{position:absolute;transform:translate(-50%,-100%);white-space:nowrap;text-align:center;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+.etiquette{position:absolute;transform:translate(-50%,-100%);}
+.etiquette.bas{transform:translate(-50%,0)}
+.etiquette{white-space:nowrap;text-align:center;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
   padding:4px 9px;border-radius:6px;background:rgba(6,14,26,.72);border:1px solid var(--c,#4aa3ff);color:#e8f7ff;box-shadow:0 0 12px -2px var(--c,#4aa3ff)}
 .etiquette i{display:block;font-style:normal;font-size:10px;color:var(--c,#4aa3ff)}
 .etiquette .court{display:none}
-@media (max-width:640px){.etiquette{font-size:9px;padding:2px 6px}.etiquette .long,.etiquette i{display:none}.etiquette .court{display:inline}}
+@media (max-width:640px){.etiquette{font-size:8px;padding:2px 4px;letter-spacing:.03em}.etiquette .long,.etiquette i{display:none}.etiquette .court{display:inline}}
 .sans3d{position:absolute;inset:0;display:grid;place-items:center;color:#bfe8ff;font-size:14px;padding:16px;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
@@ -154,7 +156,7 @@ const CLE_JETON = "bureauAgents.jeton";
 /* ---------- Scène 3D ---------- */
 // Un open space à l'américaine : quatre box séparés par des cloisons, un androïde par box. Chaque agent a sa couleur ;
 // son état (travail, ok, repos, alerte) pilote ses gestes, sa lumière et l'anneau au sol.
-const COULEURS = {robot: 0x4aa3ff, classement: 0xb07cff, moyennes: 0x3ee08a, kozi: 0xffb340, estimateur: 0xff6fae};
+const COULEURS = {robot: 0x4aa3ff, classement: 0xb07cff, moyennes: 0x3ee08a, kozi: 0xffb340, estimateur: 0xff6fae, gardien: 0x2ad1c9, veille: 0xd4e157, rapport: 0x9aa8ff};
 const COULEUR_ETAT = {travail: 0x4aa3ff, ok: 0x3ee08a, repos: 0x5a6b85, alerte: 0xff4d5e};
 const Scene3D = (() => {
   const conteneur = document.getElementById("scene"), hud = document.getElementById("hud");
@@ -180,28 +182,31 @@ const Scene3D = (() => {
   const place = (mesh, x, y, z) => { mesh.position.set(x, y, z); return mesh; };
   const sol = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), mat(0x46506a)); sol.rotation.x = -Math.PI / 2; scene.add(sol);
   const allee = new THREE.Mesh(new THREE.PlaneGeometry(40, 2.2), mat(0x8a7a66)); allee.rotation.x = -Math.PI / 2; allee.position.set(0, 0.005, 3.2); scene.add(allee);
-  scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(40, 5), mat(0xd9dde3)), 0, 2.5, -4.2));
+  scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(40, 5), mat(0xd9dde3)), 0, 2.5, -7.6));
+  // Estrade de la rangée du fond
+  scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(16, 1.1, 3.6), mat(0x3d465d)), 0, 0.55, -3.7));
+  scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(16, 0.03, 0.04), new THREE.MeshBasicMaterial({color: 0x7fd4ff})), 0, 1.1, -1.88));
   const plafond = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), mat(0xe9ecef)); plafond.rotation.x = Math.PI / 2; plafond.position.y = 4.4; scene.add(plafond);
   // Baies vitrées sur la ville
   for (let k = -4; k <= 4; k++) {
-    scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.2), new THREE.MeshBasicMaterial({color: 0x7fb6e8})), k * 2.9, 2.5, -4.19));
+    scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.2), new THREE.MeshBasicMaterial({color: 0x7fb6e8})), k * 2.9, 2.5, -7.59));
     for (let b = 0; b < 4; b++) {
       const h = 0.5 + ((k * 7 + b * 13 + 70) % 9) / 9 * 1.3;
-      scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(0.42, h), new THREE.MeshBasicMaterial({color: 0x4a6788})), k * 2.9 - 0.85 + b * 0.55, 1.4 + h / 2, -4.18));
+      scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(0.42, h), new THREE.MeshBasicMaterial({color: 0x4a6788})), k * 2.9 - 0.85 + b * 0.55, 1.4 + h / 2, -7.58));
     }
-    scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.4, 0.08), mat(0x8c96a3, {metalness: 0.6, roughness: 0.4})), k * 2.9 + 1.45, 2.5, -4.15));
+    scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.4, 0.08), mat(0x8c96a3, {metalness: 0.6, roughness: 0.4})), k * 2.9 + 1.45, 2.5, -7.55));
   }
   // Dalles lumineuses au plafond
-  for (let x = -7.5; x <= 7.5; x += 3) for (const z of [-1.5]) {
+  for (let x = -7.5; x <= 7.5; x += 3) for (const z of [-1.5, -5]) {
     const dalle = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.7), new THREE.MeshBasicMaterial({color: 0xfffdf5})); dalle.rotation.x = Math.PI / 2; dalle.position.set(x, 4.39, z); scene.add(dalle);
   }
   // Plantes en bout de rangée et fontaine à eau
-  for (const x of [-9.7, 9.7]) {
+  for (const x of [-8.2, 8.2]) {
     scene.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.5, 20), mat(0xf2f2f2)), x, 0.25, 0.4));
     for (let f = 0; f < 5; f++) scene.add(place(new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), mat(0x3f8f4f)), x + Math.sin(f * 1.3) * 0.2, 0.75 + f * 0.17, 0.4 + Math.cos(f * 1.3) * 0.2));
   }
-  scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.0, 0.45), mat(0xeeeeee)), 10.6, 0.5, -3.3));
-  scene.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.5, 18), new THREE.MeshStandardMaterial({color: 0x8fd0ff, transparent: true, opacity: 0.7})), 10.6, 1.25, -3.3));
+  scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.0, 0.45), mat(0xeeeeee)), 8.8, 0.5, -6.6));
+  scene.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.5, 18), new THREE.MeshStandardMaterial({color: 0x8fd0ff, transparent: true, opacity: 0.7})), 8.8, 1.25, -6.6));
 
   const neon = (c, o = 1) => new THREE.MeshBasicMaterial({color: c, transparent: o < 1, opacity: o});
   const metal = c => new THREE.MeshStandardMaterial({color: c, metalness: 0.75, roughness: 0.28});
@@ -209,9 +214,11 @@ const Scene3D = (() => {
 
   // Un poste : bureau, écran holographique, androïde, anneau d'état, balise d'alerte
   const postes = {};
-  ["robot", "classement", "moyennes", "kozi", "estimateur"].forEach((id, n) => {
+  ["robot", "classement", "moyennes", "kozi", "estimateur", "gardien", "veille", "rapport"].forEach((id, n) => {
     const c = COULEURS[id], g = new THREE.Group();
-    g.position.set(-7.2 + n * 3.6, 0, 0);
+    // Deux rangées de quatre box ; la rangée du fond est sur l'estrade
+    const col = n % 4, fond = n >= 4;
+    g.position.set(-5.4 + col * 3.6, fond ? 1.1 : 0, fond ? -3.6 : 0);
     scene.add(g);
 
     // Box à l'américaine : cloisons en tissu avec rail en aluminium, plaque nominative, lampe et dossiers
@@ -222,7 +229,7 @@ const Scene3D = (() => {
     };
     panneau(3.55, 1.5, 0, -1.3);
     panneau(2.7, 1.5, -1.78, 0.05, Math.PI / 2);
-    if (n === 4) panneau(2.7, 1.5, 1.78, 0.05, Math.PI / 2);
+    if (col === 3) panneau(2.7, 1.5, 1.78, 0.05, Math.PI / 2);
     g.add(place(new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshBasicMaterial({color: c})), -1.1, 1.3, -1.25));
     g.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), rail), 0.85, 1.21, 0.35));
     const abatJour = place(new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.18, 16, 1, true), mat(0x2b3240, {side: THREE.DoubleSide})), 0.85, 1.45, 0.35); abatJour.rotation.x = Math.PI; g.add(abatJour);
@@ -270,9 +277,9 @@ const Scene3D = (() => {
     const balise = new THREE.Mesh(new THREE.OctahedronGeometry(0.16), neon(0xff4d5e)); balise.position.y = 2.75; balise.visible = false; droide.add(balise);
 
     const etiquette = document.createElement("div");
-    etiquette.className = "etiquette"; etiquette.style.setProperty("--c", "#" + c.toString(16).padStart(6, "0"));
+    etiquette.className = fond ? "etiquette" : "etiquette bas"; etiquette.style.setProperty("--c", "#" + c.toString(16).padStart(6, "0"));
     hud.appendChild(etiquette);
-    postes[id] = {g, droide, tete, bras, barres, visiere, antenne, propulseur, lumiere, anneau, halo, balise, vitre, etiquette, etat: "repos", decalage: n * 1.7};
+    postes[id] = {devant: !fond, g, droide, tete, bras, barres, visiere, antenne, propulseur, lumiere, anneau, halo, balise, vitre, etiquette, etat: "repos", decalage: n * 1.7};
   });
 
   // Flux de données entre postes voisins : des sphères lumineuses suivent un arc
@@ -294,7 +301,7 @@ const Scene3D = (() => {
   const taille = () => {
     const l = conteneur.clientWidth, h = conteneur.clientHeight;
     rendu.setSize(l, h, false); camera.aspect = l / h;
-    camera.fov = l < 640 ? 58 : 44; camera.updateProjectionMatrix();
+    camera.fov = l < 640 ? 60 : 44; camera.updateProjectionMatrix();
   };
   new ResizeObserver(taille).observe(conteneur); taille();
 
@@ -303,9 +310,9 @@ const Scene3D = (() => {
     const t = horlogeT.getElapsedTime();
     if (!glisse && !calme) cible = Math.sin(t * 0.12) * 0.35;
     angle += (cible - angle) * 0.06;
-    const r = conteneur.clientWidth < 640 ? 15.5 : 11;
-    camera.position.set(Math.sin(angle) * r, 3.7, Math.cos(angle) * r);
-    camera.lookAt(0, 1.35, 0);
+    const r = conteneur.clientWidth < 640 ? 15 : 13;
+    camera.position.set(Math.sin(angle) * r, 6.4, Math.cos(angle) * r);
+    camera.lookAt(0, 1.4, -1.8);
 
 
     for (const id of ids) {
@@ -326,7 +333,7 @@ const Scene3D = (() => {
       p.balise.visible = e === "alerte"; p.balise.rotation.y = t * 3; p.balise.position.y = 2.75 + Math.sin(t * 5) * 0.05;
 
       // Étiquette au-dessus de la tête
-      p.droide.localToWorld(v.set(0, 2.55, 0)); v.project(camera);
+      p.droide.localToWorld(v.set(0, p.devant ? -0.05 : 2.55, p.devant ? 1.2 : 0)); v.project(camera);
       const x = (v.x * 0.5 + 0.5) * conteneur.clientWidth, y = (-v.y * 0.5 + 0.5) * conteneur.clientHeight;
       p.etiquette.style.left = x + "px"; p.etiquette.style.top = y + "px";
       p.etiquette.style.display = v.z < 1 && x > -60 && x < conteneur.clientWidth + 60 ? "" : "none";
@@ -348,7 +355,7 @@ const Scene3D = (() => {
       const p = postes[id]; if (!p) return;
       p.etat = etat;
       p.anneau.material.color.setHex(COULEUR_ETAT[etat]); p.halo.material.color.setHex(COULEUR_ETAT[etat]);
-      p.etiquette.innerHTML = `<span class="long">${nom}</span><span class="court">${nom.replace(/^(Agent|Robot) /, "")}</span><i>${texte}</i>`;
+      p.etiquette.innerHTML = `<span class="long">${nom}</span><span class="court">${nom.replace(/^(Agent|Robot) /, "").split(" ")[0]}</span><i>${texte}</i>`;
     },
     flux(n, actif) { if (flux[n]) flux[n].actif = actif; }
   };
@@ -360,7 +367,10 @@ const AGENTS = [
   {id: "classement", nom: "Agent Classement", role: "L'archiviste : range par région et par métier", workflow: "classement.yml", frequence: "chaque jour vers 7h"},
   {id: "moyennes", nom: "Agent Moyennes", role: "L'analyste : prix moyens par province", workflow: "moyennes.yml", frequence: "après chaque classement"},
   {id: "kozi", nom: "Agent Kozi", role: "Le chef de chantier : met à jour les prix de Kozi", workflow: "kozi.yml", frequence: "chaque lundi"},
-  {id: "estimateur", nom: "Agent Estimateur", role: "L'expert immobilier : prix de vente réels Statbel", workflow: "estimateur.yml", frequence: "chaque mois"}
+  {id: "estimateur", nom: "Agent Estimateur", role: "L'expert immobilier : prix de vente réels Statbel", workflow: "estimateur.yml", frequence: "chaque mois"},
+  {id: "gardien", nom: "Agent Gardien", role: "Le contrôleur : vérifie Kozi et les agents", workflow: "gardien.yml", frequence: "chaque jour vers 11h"},
+  {id: "veille", nom: "Agent Veille primes", role: "Le veilleur : primes et aides à la rénovation", workflow: "veille.yml", frequence: "chaque mercredi"},
+  {id: "rapport", nom: "Agent Rapport", role: "Le secrétaire : résumé de la semaine", workflow: "rapport.yml", frequence: "chaque lundi"}
 ];
 
 AGENTS.forEach(a => Scene3D.etat(a.id, "repos", a.nom, "Connexion…"));
@@ -380,6 +390,7 @@ const fichier = chemin => api(`/contents/${chemin}`, {headers: {Accept: "applica
 
 /* ---------- Mise en forme ---------- */
 const nb = n => (n ?? 0).toLocaleString("fr-FR");
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const quand = iso => {
   if (!iso) return "jamais";
   const min = Math.round((Date.now() - new Date(iso)) / 60000);
@@ -421,9 +432,10 @@ async function charger() {
   const zoneErreur = document.getElementById("erreur");
   try {
     const runs = await Promise.all(AGENTS.map(a => api(`/actions/workflows/${a.workflow}/runs?per_page=1`).then(r => r?.workflow_runs?.[0] || null)));
-    const [donnees, etatRobot, classement, moyennes, kozi, koziEtat, statbel] = await Promise.all([
+    const [donnees, etatRobot, classement, moyennes, kozi, koziEtat, statbel, gardien, veille, rapport] = await Promise.all([
       fichier("robot-factures/donnees.json"), fichier("robot-factures/etat.json"), fichier("agent-classement/classement.json"),
-      fichier("agent-moyennes/moyennes.json"), fichier("agent-kozi/derniere-mise-a-jour.json"), fichier("agent-kozi/etat.json"), STATBEL || fichier("agent-estimateur/statbel.json")]);
+      fichier("agent-moyennes/moyennes.json"), fichier("agent-kozi/derniere-mise-a-jour.json"), fichier("agent-kozi/etat.json"), STATBEL || fichier("agent-estimateur/statbel.json"),
+      fichier("agent-gardien/rapport.json"), fichier("agent-veille/veille.json"), fichier("agent-rapport/dernier.json")]);
     chargerStatbel(statbel);
 
     // Robot factures
@@ -447,7 +459,13 @@ async function charger() {
       fiche(AGENTS[3], runs[3], [[nb(kozi?.modifies?.length), "prix changés (dernier passage)"], [nb(kozi?.signales?.length), "propositions bloquées"]],
         [`Indice ABEX de référence : <b>${koziEtat?.abex?.indice ?? "non renseigné"}</b>`, kozi ? `Dernier rapport : <b>${quand(kozi.date)}</b> (${kozi.mode})` : "Pas encore de rapport"]),
       fiche(AGENTS[4], runs[4], [[nb(statbel?.communes?.length), "communes"], [nb(statbel?.communes?.reduce((n, c) => n + (c.types.maisons?.ventes || 0) + (c.types.appartements?.ventes || 0), 0)), "ventes réelles"]],
-        [statbel ? `Période : <b>${statbel.periode}</b>` : "Pas encore de données Statbel", statbel ? `Mise à jour : <b>${new Date(statbel.maj).toLocaleDateString("fr-FR")}</b>` : ""])
+        [statbel ? `Période : <b>${statbel.periode}</b>` : "Pas encore de données Statbel", statbel ? `Mise à jour : <b>${new Date(statbel.maj).toLocaleDateString("fr-FR")}</b>` : ""]),
+      fiche(AGENTS[5], runs[5], [[nb(gardien?.controles?.filter(c => c.ok).length), "contrôles réussis"], [nb(gardien?.controles?.filter(c => !c.ok).length), "alertes"]],
+        gardien ? gardien.controles.filter(c => !c.ok).slice(0, 3).map(c => `${c.critique ? "🔴" : "🟠"} <b>${esc(c.nom)}</b> : ${esc(c.detail)}`).concat(gardien.controles.every(c => c.ok) ? ["Tout fonctionne."] : []) : ["Pas encore de contrôle"]),
+      fiche(AGENTS[6], runs[6], [[nb(veille?.aides?.length), "aides suivies"], [nb(veille?.nouveautes?.length), "nouveautés"]],
+        veille ? [esc(veille.resume)] : ["Pas encore de veille"]),
+      fiche(AGENTS[7], runs[7], [[rapport ? (rapport.envoye ? "Envoyé" : "Non envoyé") : "—", "dernier rapport"]],
+        [rapport ? `Dernier rapport : <b>${quand(rapport.date)}</b> (${rapport.mode})` : "Pas encore de rapport", "Destinataire : <b>kozireno2027@gmail.com</b>"])
     ];
     document.getElementById("fiches").innerHTML = html.join("");
 
