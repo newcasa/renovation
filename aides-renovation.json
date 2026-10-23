@@ -1,0 +1,33 @@
+{
+ "date": "2026-10-23T16:56:00.482Z",
+ "resume": "En Wallonie, les primes Habitation ont pris fin le 30 septembre 2026 et ont été remplacées le 1er octobre par deux prêts, le Rénopack (prêt à taux zéro avec réduction de remboursement) et le Rénoprêt. Une mesure transitoire, annoncée le 24 septembre 2026, permet sous conditions de demander les anciennes primes jusqu'au 30 septembre 2027. Bruxelles, la Flandre et le fédéral (TVA 6 %) n'ont pas pu être vérifiés sur des sources officielles lors de cette veille et sont donc exclus.",
+ "aides": [
+  {
+   "region": "Wallonie",
+   "nom": "Rénopack (prêt à taux zéro avec réduction du montant à rembourser)",
+   "montant": "Prêt à 0 % avec réduction assimilable à une subvention ; plafonds et pourcentages non confirmés par source officielle",
+   "conditions": "Ménages des catégories C1, C2 et C3 ; droit réel sur le logement ; occupation au plus tard 24 mois après l'octroi ; multipropriétaires exclus ; logements à faible label PEB ; en vigueur depuis le 1er octobre 2026",
+   "source": "https://www.wallonie.be/fr/actualites/renovation-energetique-le-nouveau-regime-de-soutien-entre-en-vigueur-le-1er-octobre"
+  }
+ ],
+ "nouveautes": [
+  {
+   "region": "Wallonie",
+   "titre": "Entrée en vigueur du Rénopack et du Rénoprêt le 1er octobre 2026",
+   "detail": "Le nouveau régime de soutien à la rénovation énergétique est entré en vigueur le 1er octobre 2026 et cible les logements à faible label PEB. Deux types de prêt : Rénopack (taux zéro avec réduction de remboursement) et Rénoprêt (conditions non lues).",
+   "source": "https://www.wallonie.be/fr/actualites/renovation-energetique-le-nouveau-regime-de-soutien-entre-en-vigueur-le-1er-octobre"
+  },
+  {
+   "region": "Wallonie",
+   "titre": "Fin du régime temporaire des primes Habitation 2025-2026 le 30 septembre 2026",
+   "detail": "Le régime temporaire n'a pas été modifié et est resté valable jusqu'au 30 septembre 2026.",
+   "source": "https://energie.wallonie.be/actualite/primes-a-la-renovation-nouvelles-mesures-transitoires"
+  },
+  {
+   "region": "Wallonie",
+   "titre": "Mesures transitoires corrigées le 24 septembre 2026",
+   "detail": "Les ménages qui avaient engagé leur projet avant le 14 février 2025 peuvent, sous conditions, demander les anciens régimes de primes jusqu'au 30 septembre 2027. Les nouvelles dispositions entrent en vigueur après publication au Moniteur belge.",
+   "source": "https://energie.wallonie.be/actualite/primes-a-la-renovation-nouvelles-mesures-transitoires"
+  }
+ ]
+}
