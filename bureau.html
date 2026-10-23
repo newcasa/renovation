@@ -67,29 +67,21 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
 .petit{font-size:13px;color:var(--mu)}
 [hidden]{display:none!important}
 
-/* Animations des personnages */
+/* Scène 3D */
 @keyframes clignote{50%{opacity:.25}}
-@keyframes tape{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-@keyframes respire{0%,100%{transform:translateY(0)}50%{transform:translateY(1.5px)}}
-@keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(10px,-22px)}}
-@keyframes vapeur{0%{opacity:0;transform:translateY(0)}40%{opacity:.7}100%{opacity:0;transform:translateY(-12px)}}
-@keyframes ecran{0%,100%{opacity:.55}50%{opacity:1}}
-@keyframes saute{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-@keyframes feuille{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(var(--dx));opacity:0}}
-.agent .bras{transform-box:fill-box;transform-origin:top center}
-.agent .corps{animation:respire 3.2s ease-in-out infinite}
-.agent[data-etat="travail"] .bras{animation:tape .28s ease-in-out infinite}
-.agent[data-etat="travail"] .bras.d{animation-delay:.14s}
-.agent[data-etat="travail"] .lueur{animation:ecran .6s ease-in-out infinite}
-.agent .zz,.agent .bulle-alerte,.agent .tasse-vapeur{opacity:0}
-.agent[data-etat="repos"] .zz text{animation:zz 2.4s ease-in infinite}
-.agent[data-etat="repos"] .zz text:nth-child(2){animation-delay:.8s}
-.agent[data-etat="repos"] .zz{opacity:1}
-.agent[data-etat="ok"] .tasse-vapeur{opacity:1}
-.agent[data-etat="ok"] .tasse-vapeur path{animation:vapeur 2s ease-out infinite}
-.agent[data-etat="alerte"] .bulle-alerte{opacity:1;animation:saute .8s ease-in-out infinite}
-.flux .f{opacity:0}
-.flux .f.actif{animation:feuille 2.2s linear infinite}
+.scene{position:relative;background:#05070d;height:440px;touch-action:pan-y;cursor:grab}
+.scene:active{cursor:grabbing}
+.scene canvas{display:block;width:100%!important;height:100%!important}
+@media (max-width:640px){.scene{height:330px}}
+.hud{position:absolute;inset:0;pointer-events:none;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#bfe8ff}
+.hud .coin{position:absolute;top:12px;left:14px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.hud .coin b{display:block;font-size:22px;letter-spacing:.04em;color:#e8f7ff}
+.etiquette{position:absolute;transform:translate(-50%,-100%);white-space:nowrap;text-align:center;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  padding:4px 9px;border-radius:6px;background:rgba(6,14,26,.72);border:1px solid var(--c,#4aa3ff);color:#e8f7ff;box-shadow:0 0 12px -2px var(--c,#4aa3ff)}
+.etiquette i{display:block;font-style:normal;font-size:10px;color:var(--c,#4aa3ff)}
+.etiquette .court{display:none}
+@media (max-width:640px){.etiquette{font-size:9px;padding:2px 6px}.etiquette .long,.etiquette i{display:none}.etiquette .court{display:inline}}
+.sans3d{position:absolute;inset:0;display:grid;place-items:center;color:#bfe8ff;font-size:14px;padding:16px;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -102,42 +94,8 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
     <button id="bJeton" type="button">Jeton</button>
   </header>
 
-  <section class="scene" aria-label="Le bureau : chaque personnage est un agent">
-    <svg viewBox="0 0 1200 380" role="img" aria-labelledby="titreScene">
-      <title id="titreScene">Quatre agents à leur bureau : facteur, archiviste, analyste et chef de chantier Kozi</title>
-      <defs>
-        <g id="feuille"><rect x="-9" y="-11" width="18" height="22" rx="2" fill="#fff" stroke="#c9ced8"/><path d="M-5 -5h10M-5 0h10M-5 5h7" stroke="#9aa3b2" stroke-width="1.5"/></g>
-      </defs>
-      <!-- Pièce -->
-      <rect width="1200" height="270" fill="var(--mur)"/>
-      <rect y="270" width="1200" height="110" fill="var(--sol)"/>
-      <path d="M0 270H1200" stroke="var(--bureau2)" stroke-opacity=".35" stroke-width="3"/>
-      <!-- Fenêtres et horloge -->
-      <g fill="#bfe0ff" stroke="var(--bureau2)" stroke-opacity=".4" stroke-width="4">
-        <rect x="120" y="30" width="150" height="95" rx="6"/><rect x="930" y="30" width="150" height="95" rx="6"/>
-      </g>
-      <path d="M195 30v95M120 77h150M1005 30v95M930 77h150" stroke="var(--bureau2)" stroke-opacity=".4" stroke-width="3"/>
-      <g transform="translate(600 72)">
-        <circle r="34" fill="#fff" stroke="var(--bureau2)" stroke-opacity=".5" stroke-width="4"/>
-        <line id="aiguilleH" x1="0" y1="0" x2="0" y2="-17" stroke="#333" stroke-width="4" stroke-linecap="round"/>
-        <line id="aiguilleM" x1="0" y1="0" x2="0" y2="-26" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>
-        <circle r="3" fill="#333"/>
-      </g>
-      <text x="600" y="128" text-anchor="middle" font-size="13" fill="var(--mu)" id="heureScene"></text>
-
-      <!-- Flux de documents entre les bureaux -->
-      <g class="flux">
-        <g transform="translate(250 205)"><use href="#feuille" class="f" id="flux1" style="--dx:260px"/></g>
-        <g transform="translate(550 205)"><use href="#feuille" class="f" id="flux2" style="--dx:260px"/></g>
-        <g transform="translate(850 205)"><use href="#feuille" class="f" id="flux3" style="--dx:260px"/></g>
-      </g>
-
-      <!-- Agents : chaque <g class="agent"> reçoit data-etat = travail | ok | repos | alerte -->
-      <g id="scene-robot" class="agent" data-etat="repos" transform="translate(150 0)"></g>
-      <g id="scene-classement" class="agent" data-etat="repos" transform="translate(450 0)"></g>
-      <g id="scene-moyennes" class="agent" data-etat="repos" transform="translate(750 0)"></g>
-      <g id="scene-kozi" class="agent" data-etat="repos" transform="translate(1050 0)"></g>
-    </svg>
+  <section class="scene" id="scene" aria-label="Le bureau en 3D : chaque androïde est un agent. Fais glisser pour tourner autour.">
+    <div class="hud" id="hud"><div class="coin">Bureau des agents<b id="heureScene">--:--</b></div></div>
   </section>
 
   <section class="note" id="connexion" hidden>
@@ -160,65 +118,197 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
   <p class="petit">Mise à jour automatique toutes les minutes. Un agent « au travail » est en train de tourner sur GitHub ; « terminé » veut dire que son dernier passage a réussi.</p>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 "use strict";
 const DEPOT = "newcasa/agents-ia";
 const API = `https://api.github.com/repos/${DEPOT}`;
 const CLE_JETON = "bureauAgents.jeton";
 
-/* ---------- Personnages (SVG) ---------- */
-// Corps commun ; seuls la tenue, l'accessoire et l'écran changent.
-function personnage({peau, cheveux, haut, accessoire, ecran}) {
-  return `
-  <ellipse cx="0" cy="335" rx="120" ry="12" fill="#000" opacity=".08"/>
-  <!-- chaise -->
-  <rect x="-34" y="190" width="68" height="78" rx="10" fill="#3d4656"/>
-  <rect x="-6" y="268" width="12" height="40" fill="#555f70"/><path d="M-30 312h60" stroke="#555f70" stroke-width="7" stroke-linecap="round"/>
-  <g class="corps">
-    <rect x="-30" y="205" width="60" height="70" rx="22" fill="${haut}"/>
-    <rect x="-9" y="182" width="18" height="18" rx="6" fill="${peau}"/>
-    <circle cx="0" cy="165" r="27" fill="${peau}"/>
-    ${cheveux}
-    <circle cx="-9" cy="167" r="3" fill="#2b2b2b"/><circle cx="9" cy="167" r="3" fill="#2b2b2b"/>
-    <path d="M-8 178q8 6 16 0" stroke="#7a3d2a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    ${accessoire}
-  </g>
-  <!-- bureau -->
-  <rect x="-110" y="250" width="220" height="16" rx="4" fill="var(--bureau)"/>
-  <rect x="-100" y="266" width="14" height="70" fill="var(--bureau2)"/><rect x="86" y="266" width="14" height="70" fill="var(--bureau2)"/>
-  <!-- bras qui tapent -->
-  <g class="bras g"><rect x="-38" y="214" width="15" height="34" rx="7" fill="${haut}" transform="rotate(-38 -30 216)"/></g>
-  <g class="bras d"><rect x="23" y="214" width="15" height="34" rx="7" fill="${haut}" transform="rotate(38 30 216)"/></g>
-  <!-- écran -->
-  <rect x="-58" y="196" width="72" height="50" rx="5" fill="var(--ecran)" transform="translate(70 0)"/>
-  <g class="lueur" transform="translate(70 0)">${ecran}</g>
-  <rect x="-28" y="246" width="12" height="6" fill="#59616f" transform="translate(70 0)"/>
-  <rect x="-60" y="244" width="60" height="7" rx="2" fill="#cfd5df"/>
-  <!-- tasse, bulles d'état -->
-  <g transform="translate(-85 236)"><rect x="-9" y="0" width="18" height="16" rx="3" fill="#fff" stroke="#c9ced8"/><path d="M9 4q7 4 0 9" stroke="#c9ced8" stroke-width="2" fill="none"/>
-    <g class="tasse-vapeur"><path d="M-3 -4q-4 -6 0 -12" stroke="#b9c0cc" stroke-width="2" fill="none"/><path d="M4 -4q-4 -6 0 -12" stroke="#b9c0cc" stroke-width="2" fill="none"/></g></g>
-  <g class="zz" font-size="18" font-weight="700" fill="var(--mu)"><text x="26" y="132">z</text><text x="36" y="118">Z</text></g>
-  <g class="bulle-alerte"><circle cx="34" cy="120" r="16" fill="var(--alerte)"/><text x="34" y="127" text-anchor="middle" font-size="22" font-weight="800" fill="#fff">!</text></g>`;
-}
-const PERSONNAGES = {
-  robot: personnage({peau: "#f2c7a5", haut: "#2f6fe0",
-    cheveux: `<path d="M-28 158q2-26 28-27q26 1 28 27q-6-9-14-11h-28q-8 2-14 11z" fill="#6b4b33"/><path d="M-30 152h60l-6-14h-48z" fill="#1d4fb3"/><rect x="-36" y="150" width="30" height="6" rx="3" fill="#1d4fb3"/>`,
-    accessoire: `<g transform="translate(-58 238)"><rect x="-14" y="-10" width="28" height="18" rx="2" fill="#fff" stroke="#c9ced8"/><path d="M-14 -10l14 10l14-10" stroke="#c9ced8" fill="none"/></g>`,
-    ecran: `<rect x="-50" y="204" width="56" height="8" rx="2" fill="#4aa3ff"/><rect x="-50" y="216" width="40" height="6" rx="2" fill="#9cc9ff"/><rect x="-50" y="226" width="48" height="6" rx="2" fill="#9cc9ff"/>`}),
-  classement: personnage({peau: "#c98f6a", haut: "#8a5cc7",
-    cheveux: `<path d="M-27 162q-2-32 27-33q29 1 27 33q-5-14-27-16q-22 2-27 16z" fill="#1f1b18"/><circle cx="-9" cy="167" r="8" fill="none" stroke="#333" stroke-width="2"/><circle cx="9" cy="167" r="8" fill="none" stroke="#333" stroke-width="2"/><path d="M-1 167h2" stroke="#333" stroke-width="2"/>`,
-    accessoire: `<g transform="translate(-64 214)"><rect x="-16" y="0" width="30" height="8" fill="#e0a43c"/><rect x="-14" y="9" width="30" height="8" fill="#5bb37a"/><rect x="-16" y="18" width="30" height="8" fill="#d06464"/></g>`,
-    ecran: `<rect x="-50" y="204" width="14" height="34" rx="2" fill="#e0a43c"/><rect x="-32" y="204" width="14" height="34" rx="2" fill="#5bb37a"/><rect x="-14" y="204" width="14" height="34" rx="2" fill="#d06464"/>`}),
-  moyennes: personnage({peau: "#f5d2b8", haut: "#2f9e5b",
-    cheveux: `<path d="M-29 172q-6-44 29-44q35 0 29 44q-3-22-29-26q-26 4-29 26z" fill="#c2611f"/><path d="M-29 172q-3 20 4 30M29 172q3 20-4 30" stroke="#c2611f" stroke-width="8" stroke-linecap="round"/>`,
-    accessoire: `<g transform="translate(-62 226)"><rect x="-11" y="-6" width="22" height="28" rx="3" fill="#3d4656"/><rect x="-8" y="-3" width="16" height="7" fill="#b9f0c9"/><g fill="#cfd5df"><rect x="-8" y="7" width="4" height="4"/><rect x="-2" y="7" width="4" height="4"/><rect x="4" y="7" width="4" height="4"/><rect x="-8" y="13" width="4" height="4"/><rect x="-2" y="13" width="4" height="4"/><rect x="4" y="13" width="4" height="4"/></g></g>`,
-    ecran: `<path d="M-50 236l14-12l12 6l14-18l14 8" stroke="#4cc77b" stroke-width="3" fill="none"/><path d="M-50 240h56" stroke="#5d6b7d"/>`}),
-  kozi: personnage({peau: "#e3ad85", haut: "#e08a2f",
-    cheveux: `<path d="M-31 156q0-30 31-30q31 0 31 30z" fill="#f2c230"/><rect x="-36" y="152" width="72" height="8" rx="4" fill="#d9a81c"/>`,
-    accessoire: `<g transform="translate(-62 230)"><rect x="-4" y="-18" width="8" height="34" rx="2" fill="#7c8696" transform="rotate(-30)"/><rect x="-12" y="-24" width="24" height="10" rx="2" fill="#4d5563" transform="rotate(-30)"/></g>`,
-    ecran: `<path d="M-46 236l18-16l18 16z" fill="#e08a2f"/><rect x="-40" y="228" width="24" height="10" fill="#e08a2f"/><rect x="-2" y="206" width="8" height="30" rx="2" fill="#f2c230"/>`})
-};
-for (const [id, svg] of Object.entries(PERSONNAGES)) document.getElementById(`scene-${id}`).innerHTML = svg;
+/* ---------- Scène 3D ---------- */
+// Quatre androïdes flottants à des postes holographiques. Chaque agent a sa couleur ;
+// son état (travail, ok, repos, alerte) pilote ses gestes, sa lumière et l'anneau au sol.
+const COULEURS = {robot: 0x4aa3ff, classement: 0xb07cff, moyennes: 0x3ee08a, kozi: 0xffb340};
+const COULEUR_ETAT = {travail: 0x4aa3ff, ok: 0x3ee08a, repos: 0x5a6b85, alerte: 0xff4d5e};
+const Scene3D = (() => {
+  const conteneur = document.getElementById("scene"), hud = document.getElementById("hud");
+  if (!window.THREE || !(() => { try { return !!document.createElement("canvas").getContext("webgl"); } catch (e) { return false; } })()) {
+    conteneur.insertAdjacentHTML("beforeend", '<div class="sans3d">La vue 3D n\'est pas disponible sur cet appareil. Les chiffres de tes agents restent affichés ci-dessous.</div>');
+    return {etat() {}, flux() {}};
+  }
+  const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x05070d, 0.045);
+  const camera = new THREE.PerspectiveCamera(42, 2, 0.1, 100);
+  const rendu = new THREE.WebGLRenderer({antialias: true});
+  rendu.setPixelRatio(Math.min(devicePixelRatio, 2));
+  rendu.setClearColor(0x05070d);
+  conteneur.prepend(rendu.domElement);
+
+  // Lumières
+  scene.add(new THREE.AmbientLight(0x6080ff, 0.35));
+  const haut = new THREE.DirectionalLight(0xcfe6ff, 0.6); haut.position.set(2, 8, 6); scene.add(haut);
+
+  // Sol quadrillé néon, murs de verre
+  const grille = new THREE.GridHelper(40, 40, 0x1e90ff, 0x0d2b4a); grille.material.transparent = true; grille.material.opacity = 0.55; scene.add(grille);
+  const sol = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({color: 0x070b14, metalness: 0.6, roughness: 0.35}));
+  sol.rotation.x = -Math.PI / 2; sol.position.y = -0.01; scene.add(sol);
+  const mur = new THREE.Mesh(new THREE.PlaneGeometry(26, 7), new THREE.MeshBasicMaterial({color: 0x0a1a33, transparent: true, opacity: 0.55}));
+  mur.position.set(0, 3.5, -4.5); scene.add(mur);
+  for (let k = -6; k <= 6; k++) {
+    const bande = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 7), new THREE.MeshBasicMaterial({color: 0x1e90ff, transparent: true, opacity: 0.25}));
+    bande.position.set(k * 2, 3.5, -4.49); scene.add(bande);
+  }
+  // Anneau central : le « cœur » des données
+  const coeur = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.035, 12, 80), new THREE.MeshBasicMaterial({color: 0x7fd4ff}));
+  coeur.position.set(0, 3.7, -3.6); scene.add(coeur);
+  const coeur2 = coeur.clone(); coeur2.scale.setScalar(0.65); scene.add(coeur2);
+
+  // Particules d'ambiance
+  const nbP = 260, pos = new Float32Array(nbP * 3);
+  for (let k = 0; k < nbP; k++) { pos[k * 3] = (Math.random() - 0.5) * 22; pos[k * 3 + 1] = Math.random() * 6; pos[k * 3 + 2] = (Math.random() - 0.5) * 12; }
+  const geoP = new THREE.BufferGeometry(); geoP.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const poussiere = new THREE.Points(geoP, new THREE.PointsMaterial({color: 0x7fd4ff, size: 0.035, transparent: true, opacity: 0.6}));
+  scene.add(poussiere);
+
+  const neon = (c, o = 1) => new THREE.MeshBasicMaterial({color: c, transparent: o < 1, opacity: o});
+  const metal = c => new THREE.MeshStandardMaterial({color: c, metalness: 0.75, roughness: 0.28});
+  const contour = (geo, c, o = 0.9) => new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({color: c, transparent: true, opacity: o}));
+
+  // Un poste : bureau, écran holographique, androïde, anneau d'état, balise d'alerte
+  const postes = {};
+  ["robot", "classement", "moyennes", "kozi"].forEach((id, n) => {
+    const c = COULEURS[id], g = new THREE.Group();
+    g.position.set(-5.4 + n * 3.6, 0, 0);
+    g.rotation.y = (1.5 - n) * 0.12;
+    scene.add(g);
+
+    const geoBureau = new THREE.BoxGeometry(2.3, 0.08, 1.1);
+    const bureau = new THREE.Mesh(geoBureau, metal(0x1a2233)); bureau.position.set(0, 0.95, 0.55); g.add(bureau);
+    const arete = contour(geoBureau, c); arete.position.copy(bureau.position); g.add(arete);
+    const pied = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.18, 0.95, 16), metal(0x2a3448)); pied.position.set(0, 0.47, 0.55); g.add(pied);
+    const clavier = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.3), neon(c, 0.35)); clavier.rotation.x = -Math.PI / 2; clavier.position.set(0, 1.0, 0.75); g.add(clavier);
+
+    // Écran holographique et ses barres de données
+    const ecran = new THREE.Group(); ecran.position.set(0, 1.33, 0.95); ecran.rotation.y = Math.PI; g.add(ecran);
+    const geoEcran = new THREE.PlaneGeometry(1.3, 0.62);
+    const vitre = new THREE.Mesh(geoEcran, new THREE.MeshBasicMaterial({color: c, transparent: true, opacity: 0.12, side: THREE.DoubleSide})); ecran.add(vitre);
+    ecran.add(contour(geoEcran, c));
+    const barres = [];
+    for (let k = 0; k < 6; k++) {
+      const b = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.5), neon(c, 0.7));
+      b.position.set(-0.5 + k * 0.2, -0.1, 0.01); b.material.side = THREE.DoubleSide; ecran.add(b); barres.push(b);
+    }
+
+    // Androïde flottant (derrière le bureau, face à la caméra)
+    const droide = new THREE.Group(); droide.position.set(0, 0, -0.35); g.add(droide);
+    const corps = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.75, 24), metal(0xdfe8f5)); corps.position.y = 1.35; droide.add(corps);
+    const torse = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.06, 0.02), neon(c)); torse.position.set(0, 1.5, 0.29); droide.add(torse);
+    const tete = new THREE.Group(); tete.position.y = 2.0; droide.add(tete);
+    tete.add(new THREE.Mesh(new THREE.SphereGeometry(0.27, 32, 24), metal(0xeef3fb)));
+    const visiere = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.09, 0.08), neon(c)); visiere.position.set(0, 0.02, 0.23); tete.add(visiere);
+    const antenne = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 12), neon(c)); antenne.position.y = 0.36; tete.add(antenne);
+    const tige = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.12), metal(0x9aa8bd)); tige.position.y = 0.29; tete.add(tige);
+    const bras = [-1, 1].map(cote => {
+      const epaule = new THREE.Group(); epaule.position.set(cote * 0.36, 1.62, 0); droide.add(epaule);
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.55, 12), metal(0xc9d4e4)); b.position.y = -0.27; epaule.add(b);
+      const main = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 12), neon(c)); main.position.y = -0.56; epaule.add(main);
+      epaule.rotation.x = -0.9; epaule.rotation.z = cote * 0.15;
+      return epaule;
+    });
+    const propulseur = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.3, 20), neon(c, 0.55)); propulseur.rotation.x = Math.PI; propulseur.position.y = 0.85; droide.add(propulseur);
+    const lumiere = new THREE.PointLight(c, 1.2, 4.5); lumiere.position.set(0, 1.8, 0.9); g.add(lumiere);
+
+    const anneau = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.025, 8, 80), neon(COULEUR_ETAT.repos)); anneau.rotation.x = Math.PI / 2; anneau.position.y = 0.02; g.add(anneau);
+    const halo = new THREE.Mesh(new THREE.CircleGeometry(1.25, 48), neon(COULEUR_ETAT.repos, 0.08)); halo.rotation.x = -Math.PI / 2; halo.position.y = 0.015; g.add(halo);
+    const balise = new THREE.Mesh(new THREE.OctahedronGeometry(0.16), neon(0xff4d5e)); balise.position.y = 2.75; balise.visible = false; droide.add(balise);
+
+    const etiquette = document.createElement("div");
+    etiquette.className = "etiquette"; etiquette.style.setProperty("--c", "#" + c.toString(16).padStart(6, "0"));
+    hud.appendChild(etiquette);
+    postes[id] = {g, droide, tete, bras, barres, visiere, antenne, propulseur, lumiere, anneau, halo, balise, vitre, etiquette, etat: "repos", decalage: n * 1.7};
+  });
+
+  // Flux de données entre postes voisins : des sphères lumineuses suivent un arc
+  const flux = [];
+  const ids = Object.keys(postes);
+  for (let n = 0; n < 3; n++) {
+    const a = postes[ids[n]].g.position, b = postes[ids[n + 1]].g.position;
+    const courbe = new THREE.QuadraticBezierCurve3(new THREE.Vector3(a.x, 1.9, 0.6), new THREE.Vector3((a.x + b.x) / 2, 3.3, 0.6), new THREE.Vector3(b.x, 1.9, 0.6));
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(courbe, 40, 0.01, 6), neon(0x7fd4ff, 0.18)); scene.add(tube);
+    const billes = [0, 0.33, 0.66].map(t => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), neon(0x9fe3ff)); m.visible = false; scene.add(m); return {m, t}; });
+    flux.push({courbe, billes, tube, actif: false});
+  }
+
+  // Caméra : orbite lente, glisser pour tourner
+  let angle = 0, cible = 0, glisse = null;
+  conteneur.addEventListener("pointerdown", e => { glisse = {x: e.clientX, a: cible}; conteneur.setPointerCapture(e.pointerId); });
+  conteneur.addEventListener("pointermove", e => { if (glisse) cible = Math.max(-0.9, Math.min(0.9, glisse.a - (e.clientX - glisse.x) / 300)); });
+  conteneur.addEventListener("pointerup", () => { glisse = null; });
+  const taille = () => {
+    const l = conteneur.clientWidth, h = conteneur.clientHeight;
+    rendu.setSize(l, h, false); camera.aspect = l / h;
+    camera.fov = l < 640 ? 58 : 44; camera.updateProjectionMatrix();
+  };
+  new ResizeObserver(taille).observe(conteneur); taille();
+
+  const v = new THREE.Vector3(), horlogeT = new THREE.Clock();
+  function boucle() {
+    const t = horlogeT.getElapsedTime();
+    if (!glisse && !calme) cible = Math.sin(t * 0.12) * 0.35;
+    angle += (cible - angle) * 0.06;
+    const r = conteneur.clientWidth < 640 ? 12.5 : 9;
+    camera.position.set(Math.sin(angle) * r, 3.4, Math.cos(angle) * r);
+    camera.lookAt(0, 1.45, 0);
+
+    coeur.rotation.y = t * 0.6; coeur.rotation.x = t * 0.3; coeur2.rotation.y = -t * 0.9; coeur2.rotation.z = t * 0.4;
+    poussiere.rotation.y = t * 0.02;
+
+    for (const id of ids) {
+      const p = postes[id], e = p.etat, d = t + p.decalage;
+      const vivant = e === "travail";
+      p.droide.position.y = Math.sin(d * (vivant ? 3 : 1.2)) * (vivant ? 0.05 : 0.08);
+      p.propulseur.material.opacity = vivant ? 0.5 + Math.sin(d * 20) * 0.25 : 0.25;
+      p.bras.forEach((b, k) => { b.rotation.x = vivant ? -1.15 + Math.sin(d * 14 + k * Math.PI) * 0.18 : (e === "repos" ? -0.25 : -0.9); });
+      p.tete.rotation.x = e === "repos" ? 0.35 : vivant ? Math.sin(d * 2) * 0.05 : 0;
+      p.tete.rotation.y = e === "ok" ? Math.sin(d * 0.8) * 0.4 : 0;
+      p.barres.forEach((b, k) => { const h = vivant ? 0.25 + Math.abs(Math.sin(d * 4 + k)) * 0.75 : e === "repos" ? 0.15 : 0.45 + k * 0.08; b.scale.y = h * 0.8; b.position.y = -0.28 + h * 0.2; });
+      p.vitre.material.opacity = vivant ? 0.14 + Math.abs(Math.sin(d * 6)) * 0.1 : e === "repos" ? 0.05 : 0.12;
+      p.visiere.material.color.setHex(e === "alerte" ? 0xff4d5e : e === "repos" ? 0x34445c : COULEURS[id]);
+      p.lumiere.intensity = vivant ? 1.6 + Math.sin(d * 8) * 0.4 : e === "repos" ? 0.35 : 1.0;
+      const pulse = e === "alerte" ? 0.5 + Math.abs(Math.sin(d * 5)) * 0.5 : vivant ? 0.7 + Math.sin(d * 4) * 0.3 : 1;
+      p.anneau.scale.setScalar(e === "alerte" || vivant ? 1 + Math.sin(d * 3) * 0.04 : 1);
+      p.halo.material.opacity = 0.05 + 0.12 * pulse;
+      p.balise.visible = e === "alerte"; p.balise.rotation.y = t * 3; p.balise.position.y = 2.75 + Math.sin(t * 5) * 0.05;
+
+      // Étiquette au-dessus de la tête
+      p.droide.localToWorld(v.set(0, 2.55, 0)); v.project(camera);
+      const x = (v.x * 0.5 + 0.5) * conteneur.clientWidth, y = (-v.y * 0.5 + 0.5) * conteneur.clientHeight;
+      p.etiquette.style.left = x + "px"; p.etiquette.style.top = y + "px";
+      p.etiquette.style.display = v.z < 1 && x > -60 && x < conteneur.clientWidth + 60 ? "" : "none";
+    }
+    for (const f of flux) {
+      f.tube.material.opacity = f.actif ? 0.35 : 0.1;
+      for (const b of f.billes) {
+        b.m.visible = f.actif;
+        if (f.actif) { b.t = (b.t + 0.006) % 1; f.courbe.getPoint(b.t, b.m.position); }
+      }
+    }
+    rendu.render(scene, camera);
+    requestAnimationFrame(boucle);
+  }
+  requestAnimationFrame(boucle);
+
+  return {
+    etat(id, etat, nom, texte) {
+      const p = postes[id]; if (!p) return;
+      p.etat = etat;
+      p.anneau.material.color.setHex(COULEUR_ETAT[etat]); p.halo.material.color.setHex(COULEUR_ETAT[etat]);
+      p.etiquette.innerHTML = `<span class="long">${nom}</span><span class="court">${nom.replace(/^(Agent|Robot) /, "")}</span><i>${texte}</i>`;
+    },
+    flux(n, actif) { if (flux[n]) flux[n].actif = actif; }
+  };
+})();
 
 /* ---------- Agents ---------- */
 const AGENTS = [
@@ -227,6 +317,8 @@ const AGENTS = [
   {id: "moyennes", nom: "Agent Moyennes", role: "L'analyste : prix moyens par province", workflow: "moyennes.yml", frequence: "après chaque classement"},
   {id: "kozi", nom: "Agent Kozi", role: "Le chef de chantier : met à jour les prix de Kozi", workflow: "kozi.yml", frequence: "chaque lundi"}
 ];
+
+AGENTS.forEach(a => Scene3D.etat(a.id, "repos", a.nom, "Connexion…"));
 
 /* ---------- Accès GitHub ---------- */
 let jeton = "";
@@ -312,8 +404,8 @@ async function charger() {
     document.getElementById("fiches").innerHTML = html.join("");
 
     // Scène
-    AGENTS.forEach((a, i) => document.getElementById(`scene-${a.id}`).dataset.etat = etatDe(runs[i]));
-    ["flux1", "flux2", "flux3"].forEach((f, i) => document.getElementById(f).classList.toggle("actif", etatDe(runs[i]) === "travail" || etatDe(runs[i + 1]) === "travail"));
+    AGENTS.forEach((a, i) => Scene3D.etat(a.id, etatDe(runs[i]), a.nom, ETATS[etatDe(runs[i])]));
+    [0, 1, 2].forEach(i => Scene3D.flux(i, etatDe(runs[i]) === "travail" || etatDe(runs[i + 1]) === "travail"));
 
     document.getElementById("maj").textContent = "Mis à jour à " + new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
     zoneErreur.hidden = true;
@@ -360,12 +452,7 @@ document.getElementById("bEnregistrer").onclick = async () => {
 };
 
 /* ---------- Horloge ---------- */
-function horloge() {
-  const d = new Date(), h = d.getHours() % 12 + d.getMinutes() / 60, m = d.getMinutes();
-  document.getElementById("aiguilleH").setAttribute("transform", `rotate(${h * 30})`);
-  document.getElementById("aiguilleM").setAttribute("transform", `rotate(${m * 6})`);
-  document.getElementById("heureScene").textContent = d.toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
-}
+function horloge() { document.getElementById("heureScene").textContent = new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"}); }
 horloge(); setInterval(horloge, 20000);
 charger(); setInterval(charger, 60000);
 </script>
