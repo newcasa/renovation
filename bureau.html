@@ -343,10 +343,17 @@ document.getElementById("bRafraichir").onclick = charger;
 document.getElementById("bJeton").onclick = () => { document.getElementById("connexion").hidden = false; document.getElementById("jeton").focus(); };
 document.getElementById("bAnnuler").onclick = () => { document.getElementById("connexion").hidden = true; };
 document.getElementById("bEnregistrer").onclick = async () => {
-  const v = document.getElementById("jeton").value.trim(), err = document.getElementById("erreurJeton");
+  // Un copier-coller ajoute parfois des espaces ou un retour à la ligne : on les retire.
+  const v = document.getElementById("jeton").value.replace(/\s+/g, ""), err = document.getElementById("erreurJeton");
   if (!v) return;
+  const montre = m => { err.textContent = m; err.hidden = false; };
+  if (!/^(github_pat_|ghp_)/.test(v)) return montre("Ce n'est pas un jeton GitHub : il doit commencer par « github_pat_ ». Recopie-le avec l'icône de copie.");
   jeton = v;
-  try { await api(""); } catch (e) { err.textContent = e.message; err.hidden = false; return; }
+  try {
+    if (!(await api(""))) return montre("Le jeton est valide mais n'a pas accès au dépôt agents-ia : dans GitHub, vérifie « Resource owner : newcasa » et « Only select repositories : agents-ia ».");
+  } catch (e) {
+    return montre("GitHub refuse ce jeton. Causes fréquentes : il a été régénéré depuis (seul le dernier code marche), il a été copié incomplètement, ou il a été supprimé. Régénère-le et colle le nouveau code.");
+  }
   try { localStorage.setItem(CLE_JETON, v); } catch (e) {}
   err.hidden = true; document.getElementById("connexion").hidden = true; document.getElementById("jeton").value = "";
   charger();
