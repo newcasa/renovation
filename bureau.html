@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bureau des agents</title>
+<link rel="icon" href="data:,">
+<style>
+/* Plateau de bureau vu de face : scène SVG en haut, fiches chiffrées des agents dessous */
+:root{
+  --bg:#eef1f6;--carte:#ffffff;--tx:#1d2433;--mu:#667085;--bd:#dfe4ec;
+  --mur:#f6efe4;--sol:#d9c7ad;--bureau:#a0764e;--bureau2:#865f3c;--ecran:#22303f;
+  --ok:#2f9e5b;--travail:#2f6fe0;--alerte:#d14343;--repos:#8a94a6;--accent:#e08a2f;
+  --ombre:0 6px 18px rgba(30,45,80,.09);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161e;--carte:#1b212c;--tx:#e9edf3;--mu:#98a2b3;--bd:#2c3442;
+  --mur:#2a2622;--sol:#3b3226;--bureau:#6e5036;--bureau2:#5a4029;--ecran:#0d141c;
+  --ok:#4cc77b;--travail:#6f9dff;--alerte:#ff6b6b;--repos:#7d8798;--accent:#f0a24e;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161e;--carte:#1b212c;--tx:#e9edf3;--mu:#98a2b3;--bd:#2c3442;
+  --mur:#2a2622;--sol:#3b3226;--bureau:#6e5036;--bureau2:#5a4029;--ecran:#0d141c;
+  --ok:#4cc77b;--travail:#6f9dff;--alerte:#ff6b6b;--repos:#7d8798;--accent:#f0a24e;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) 32px max(16px,env(safe-area-inset-left,0px))}
+.page{max-width:1180px;margin:0 auto;display:grid;gap:16px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:22px;margin:0;flex:1;min-width:200px;text-wrap:balance}
+.etat-maj{color:var(--mu);font-size:13px;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:var(--carte);border:1px solid var(--bd);border-radius:10px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--travail)}
+button:focus-visible{outline:2px solid var(--travail);outline-offset:2px}
+button.p{background:var(--travail);border-color:var(--travail);color:#fff}
+.scene{background:var(--carte);border-radius:18px;box-shadow:var(--ombre);overflow:hidden}
+.scene{overflow-x:auto}
+.scene svg{display:block;width:100%;height:auto;min-width:720px}
+.agents{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:980px){.agents{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.agents{grid-template-columns:1fr}}
+.fiche{background:var(--carte);border-radius:16px;box-shadow:var(--ombre);padding:14px;display:grid;gap:10px;min-width:0;border-top:4px solid var(--repos)}
+.fiche[data-etat="travail"]{border-top-color:var(--travail)}
+.fiche[data-etat="ok"]{border-top-color:var(--ok)}
+.fiche[data-etat="alerte"]{border-top-color:var(--alerte)}
+.fiche h2{margin:0;font-size:16px}
+.role{color:var(--mu);font-size:13px;margin-top:-6px}
+.pastille{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;background:color-mix(in srgb,var(--repos) 16%,transparent);color:var(--repos);width:fit-content}
+.pastille::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+[data-etat="travail"] .pastille{color:var(--travail);background:color-mix(in srgb,var(--travail) 15%,transparent)}
+[data-etat="travail"] .pastille::before{animation:clignote 1s infinite}
+[data-etat="ok"] .pastille{color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}
+[data-etat="alerte"] .pastille{color:var(--alerte);background:color-mix(in srgb,var(--alerte) 15%,transparent)}
+.chiffres{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.chiffre{background:var(--bg);border-radius:10px;padding:7px 9px;min-width:0}
+.chiffre b{display:block;font-size:20px;font-variant-numeric:tabular-nums;line-height:1.2}
+.chiffre span{font-size:12px;color:var(--mu)}
+.lignes{font-size:13px;color:var(--mu);display:grid;gap:2px}
+.lignes b{color:var(--tx);font-weight:600;font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions a{color:var(--travail);font-size:13px;align-self:center}
+.note{background:var(--carte);border-radius:16px;box-shadow:var(--ombre);padding:16px;display:grid;gap:10px}
+.note h2{margin:0;font-size:17px}
+.note ol{margin:0;padding-left:20px}
+.note input{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:9px;width:100%}
+.erreur{color:var(--alerte);font-size:14px}
+.petit{font-size:13px;color:var(--mu)}
+[hidden]{display:none!important}
+
+/* Animations des personnages */
+@keyframes clignote{50%{opacity:.25}}
+@keyframes tape{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes respire{0%,100%{transform:translateY(0)}50%{transform:translateY(1.5px)}}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(10px,-22px)}}
+@keyframes vapeur{0%{opacity:0;transform:translateY(0)}40%{opacity:.7}100%{opacity:0;transform:translateY(-12px)}}
+@keyframes ecran{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes saute{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes feuille{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(var(--dx));opacity:0}}
+.agent .bras{transform-box:fill-box;transform-origin:top center}
+.agent .corps{animation:respire 3.2s ease-in-out infinite}
+.agent[data-etat="travail"] .bras{animation:tape .28s ease-in-out infinite}
+.agent[data-etat="travail"] .bras.d{animation-delay:.14s}
+.agent[data-etat="travail"] .lueur{animation:ecran .6s ease-in-out infinite}
+.agent .zz,.agent .bulle-alerte,.agent .tasse-vapeur{opacity:0}
+.agent[data-etat="repos"] .zz text{animation:zz 2.4s ease-in infinite}
+.agent[data-etat="repos"] .zz text:nth-child(2){animation-delay:.8s}
+.agent[data-etat="repos"] .zz{opacity:1}
+.agent[data-etat="ok"] .tasse-vapeur{opacity:1}
+.agent[data-etat="ok"] .tasse-vapeur path{animation:vapeur 2s ease-out infinite}
+.agent[data-etat="alerte"] .bulle-alerte{opacity:1;animation:saute .8s ease-in-out infinite}
+.flux .f{opacity:0}
+.flux .f.actif{animation:feuille 2.2s linear infinite}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Bureau des agents</h1>
+    <span class="etat-maj" id="maj">—</span>
+    <button id="bRafraichir" type="button">Actualiser</button>
+    <button id="bJeton" type="button">Jeton</button>
+  </header>
+
+  <section class="scene" aria-label="Le bureau : chaque personnage est un agent">
+    <svg viewBox="0 0 1200 380" role="img" aria-labelledby="titreScene">
+      <title id="titreScene">Quatre agents à leur bureau : facteur, archiviste, analyste et chef de chantier Kozi</title>
+      <defs>
+        <g id="feuille"><rect x="-9" y="-11" width="18" height="22" rx="2" fill="#fff" stroke="#c9ced8"/><path d="M-5 -5h10M-5 0h10M-5 5h7" stroke="#9aa3b2" stroke-width="1.5"/></g>
+      </defs>
+      <!-- Pièce -->
+      <rect width="1200" height="270" fill="var(--mur)"/>
+      <rect y="270" width="1200" height="110" fill="var(--sol)"/>
+      <path d="M0 270H1200" stroke="var(--bureau2)" stroke-opacity=".35" stroke-width="3"/>
+      <!-- Fenêtres et horloge -->
+      <g fill="#bfe0ff" stroke="var(--bureau2)" stroke-opacity=".4" stroke-width="4">
+        <rect x="120" y="30" width="150" height="95" rx="6"/><rect x="930" y="30" width="150" height="95" rx="6"/>
+      </g>
+      <path d="M195 30v95M120 77h150M1005 30v95M930 77h150" stroke="var(--bureau2)" stroke-opacity=".4" stroke-width="3"/>
+      <g transform="translate(600 72)">
+        <circle r="34" fill="#fff" stroke="var(--bureau2)" stroke-opacity=".5" stroke-width="4"/>
+        <line id="aiguilleH" x1="0" y1="0" x2="0" y2="-17" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+        <line id="aiguilleM" x1="0" y1="0" x2="0" y2="-26" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>
+        <circle r="3" fill="#333"/>
+      </g>
+      <text x="600" y="128" text-anchor="middle" font-size="13" fill="var(--mu)" id="heureScene"></text>
+
+      <!-- Flux de documents entre les bureaux -->
+      <g class="flux">
+        <g transform="translate(250 205)"><use href="#feuille" class="f" id="flux1" style="--dx:260px"/></g>
+        <g transform="translate(550 205)"><use href="#feuille" class="f" id="flux2" style="--dx:260px"/></g>
+        <g transform="translate(850 205)"><use href="#feuille" class="f" id="flux3" style="--dx:260px"/></g>
+      </g>
+
+      <!-- Agents : chaque <g class="agent"> reçoit data-etat = travail | ok | repos | alerte -->
+      <g id="scene-robot" class="agent" data-etat="repos" transform="translate(150 0)"></g>
+      <g id="scene-classement" class="agent" data-etat="repos" transform="translate(450 0)"></g>
+      <g id="scene-moyennes" class="agent" data-etat="repos" transform="translate(750 0)"></g>
+      <g id="scene-kozi" class="agent" data-etat="repos" transform="translate(1050 0)"></g>
+    </svg>
+  </section>
+
+  <section class="note" id="connexion" hidden>
+    <h2>Connecter le bureau à tes agents</h2>
+    <p class="petit">Ton dépôt <b>newcasa/agents-ia</b> est privé : la page a besoin d'un jeton GitHub <b>en lecture seule</b>. Il reste dans ce navigateur et n'est envoyé qu'à api.github.com.</p>
+    <ol class="petit">
+      <li>Ouvre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
+      <li>Nom : <b>bureau</b> · Resource owner : <b>newcasa</b> · Repository access : <b>Only select repositories</b> → <b>agents-ia</b></li>
+      <li>Permissions : <b>Actions : Read-only</b> et <b>Contents : Read-only</b> (ajoute <b>Actions : Read and write</b> si tu veux les boutons « Lancer »)</li>
+      <li>Generate token, copie le code <b>github_pat_…</b> et colle-le ici :</li>
+    </ol>
+    <label for="jeton" class="petit">Jeton GitHub</label>
+    <input id="jeton" type="password" autocomplete="off" placeholder="github_pat_…">
+    <div class="actions"><button class="p" id="bEnregistrer" type="button">Connecter</button><button id="bAnnuler" type="button">Annuler</button></div>
+    <p class="erreur" id="erreurJeton" hidden></p>
+  </section>
+
+  <section class="agents" id="fiches" aria-live="polite"></section>
+  <p class="erreur" id="erreur" hidden></p>
+  <p class="petit">Mise à jour automatique toutes les minutes. Un agent « au travail » est en train de tourner sur GitHub ; « terminé » veut dire que son dernier passage a réussi.</p>
+</div>
+
+<script>
+"use strict";
+const DEPOT = "newcasa/agents-ia";
+const API = `https://api.github.com/repos/${DEPOT}`;
+const CLE_JETON = "bureauAgents.jeton";
+
+/* ---------- Personnages (SVG) ---------- */
+// Corps commun ; seuls la tenue, l'accessoire et l'écran changent.
+function personnage({peau, cheveux, haut, accessoire, ecran}) {
+  return `
+  <ellipse cx="0" cy="335" rx="120" ry="12" fill="#000" opacity=".08"/>
+  <!-- chaise -->
+  <rect x="-34" y="190" width="68" height="78" rx="10" fill="#3d4656"/>
+  <rect x="-6" y="268" width="12" height="40" fill="#555f70"/><path d="M-30 312h60" stroke="#555f70" stroke-width="7" stroke-linecap="round"/>
+  <g class="corps">
+    <rect x="-30" y="205" width="60" height="70" rx="22" fill="${haut}"/>
+    <rect x="-9" y="182" width="18" height="18" rx="6" fill="${peau}"/>
+    <circle cx="0" cy="165" r="27" fill="${peau}"/>
+    ${cheveux}
+    <circle cx="-9" cy="167" r="3" fill="#2b2b2b"/><circle cx="9" cy="167" r="3" fill="#2b2b2b"/>
+    <path d="M-8 178q8 6 16 0" stroke="#7a3d2a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    ${accessoire}
+  </g>
+  <!-- bureau -->
+  <rect x="-110" y="250" width="220" height="16" rx="4" fill="var(--bureau)"/>
+  <rect x="-100" y="266" width="14" height="70" fill="var(--bureau2)"/><rect x="86" y="266" width="14" height="70" fill="var(--bureau2)"/>
+  <!-- bras qui tapent -->
+  <g class="bras g"><rect x="-38" y="214" width="15" height="34" rx="7" fill="${haut}" transform="rotate(-38 -30 216)"/></g>
+  <g class="bras d"><rect x="23" y="214" width="15" height="34" rx="7" fill="${haut}" transform="rotate(38 30 216)"/></g>
+  <!-- écran -->
+  <rect x="-58" y="196" width="72" height="50" rx="5" fill="var(--ecran)" transform="translate(70 0)"/>
+  <g class="lueur" transform="translate(70 0)">${ecran}</g>
+  <rect x="-28" y="246" width="12" height="6" fill="#59616f" transform="translate(70 0)"/>
+  <rect x="-60" y="244" width="60" height="7" rx="2" fill="#cfd5df"/>
+  <!-- tasse, bulles d'état -->
+  <g transform="translate(-85 236)"><rect x="-9" y="0" width="18" height="16" rx="3" fill="#fff" stroke="#c9ced8"/><path d="M9 4q7 4 0 9" stroke="#c9ced8" stroke-width="2" fill="none"/>
+    <g class="tasse-vapeur"><path d="M-3 -4q-4 -6 0 -12" stroke="#b9c0cc" stroke-width="2" fill="none"/><path d="M4 -4q-4 -6 0 -12" stroke="#b9c0cc" stroke-width="2" fill="none"/></g></g>
+  <g class="zz" font-size="18" font-weight="700" fill="var(--mu)"><text x="26" y="132">z</text><text x="36" y="118">Z</text></g>
+  <g class="bulle-alerte"><circle cx="34" cy="120" r="16" fill="var(--alerte)"/><text x="34" y="127" text-anchor="middle" font-size="22" font-weight="800" fill="#fff">!</text></g>`;
+}
+const PERSONNAGES = {
+  robot: personnage({peau: "#f2c7a5", haut: "#2f6fe0",
+    cheveux: `<path d="M-28 158q2-26 28-27q26 1 28 27q-6-9-14-11h-28q-8 2-14 11z" fill="#6b4b33"/><path d="M-30 152h60l-6-14h-48z" fill="#1d4fb3"/><rect x="-36" y="150" width="30" height="6" rx="3" fill="#1d4fb3"/>`,
+    accessoire: `<g transform="translate(-58 238)"><rect x="-14" y="-10" width="28" height="18" rx="2" fill="#fff" stroke="#c9ced8"/><path d="M-14 -10l14 10l14-10" stroke="#c9ced8" fill="none"/></g>`,
+    ecran: `<rect x="-50" y="204" width="56" height="8" rx="2" fill="#4aa3ff"/><rect x="-50" y="216" width="40" height="6" rx="2" fill="#9cc9ff"/><rect x="-50" y="226" width="48" height="6" rx="2" fill="#9cc9ff"/>`}),
+  classement: personnage({peau: "#c98f6a", haut: "#8a5cc7",
+    cheveux: `<path d="M-27 162q-2-32 27-33q29 1 27 33q-5-14-27-16q-22 2-27 16z" fill="#1f1b18"/><circle cx="-9" cy="167" r="8" fill="none" stroke="#333" stroke-width="2"/><circle cx="9" cy="167" r="8" fill="none" stroke="#333" stroke-width="2"/><path d="M-1 167h2" stroke="#333" stroke-width="2"/>`,
+    accessoire: `<g transform="translate(-64 214)"><rect x="-16" y="0" width="30" height="8" fill="#e0a43c"/><rect x="-14" y="9" width="30" height="8" fill="#5bb37a"/><rect x="-16" y="18" width="30" height="8" fill="#d06464"/></g>`,
+    ecran: `<rect x="-50" y="204" width="14" height="34" rx="2" fill="#e0a43c"/><rect x="-32" y="204" width="14" height="34" rx="2" fill="#5bb37a"/><rect x="-14" y="204" width="14" height="34" rx="2" fill="#d06464"/>`}),
+  moyennes: personnage({peau: "#f5d2b8", haut: "#2f9e5b",
+    cheveux: `<path d="M-29 172q-6-44 29-44q35 0 29 44q-3-22-29-26q-26 4-29 26z" fill="#c2611f"/><path d="M-29 172q-3 20 4 30M29 172q3 20-4 30" stroke="#c2611f" stroke-width="8" stroke-linecap="round"/>`,
+    accessoire: `<g transform="translate(-62 226)"><rect x="-11" y="-6" width="22" height="28" rx="3" fill="#3d4656"/><rect x="-8" y="-3" width="16" height="7" fill="#b9f0c9"/><g fill="#cfd5df"><rect x="-8" y="7" width="4" height="4"/><rect x="-2" y="7" width="4" height="4"/><rect x="4" y="7" width="4" height="4"/><rect x="-8" y="13" width="4" height="4"/><rect x="-2" y="13" width="4" height="4"/><rect x="4" y="13" width="4" height="4"/></g></g>`,
+    ecran: `<path d="M-50 236l14-12l12 6l14-18l14 8" stroke="#4cc77b" stroke-width="3" fill="none"/><path d="M-50 240h56" stroke="#5d6b7d"/>`}),
+  kozi: personnage({peau: "#e3ad85", haut: "#e08a2f",
+    cheveux: `<path d="M-31 156q0-30 31-30q31 0 31 30z" fill="#f2c230"/><rect x="-36" y="152" width="72" height="8" rx="4" fill="#d9a81c"/>`,
+    accessoire: `<g transform="translate(-62 230)"><rect x="-4" y="-18" width="8" height="34" rx="2" fill="#7c8696" transform="rotate(-30)"/><rect x="-12" y="-24" width="24" height="10" rx="2" fill="#4d5563" transform="rotate(-30)"/></g>`,
+    ecran: `<path d="M-46 236l18-16l18 16z" fill="#e08a2f"/><rect x="-40" y="228" width="24" height="10" fill="#e08a2f"/><rect x="-2" y="206" width="8" height="30" rx="2" fill="#f2c230"/>`})
+};
+for (const [id, svg] of Object.entries(PERSONNAGES)) document.getElementById(`scene-${id}`).innerHTML = svg;
+
+/* ---------- Agents ---------- */
+const AGENTS = [
+  {id: "robot", nom: "Robot factures", role: "Le facteur : lit tes mails, relève factures et devis", workflow: "robot-factures.yml", frequence: "toutes les 30 min"},
+  {id: "classement", nom: "Agent Classement", role: "L'archiviste : range par région et par métier", workflow: "classement.yml", frequence: "chaque jour vers 7h"},
+  {id: "moyennes", nom: "Agent Moyennes", role: "L'analyste : prix moyens par province", workflow: "moyennes.yml", frequence: "après chaque classement"},
+  {id: "kozi", nom: "Agent Kozi", role: "Le chef de chantier : met à jour les prix de Kozi", workflow: "kozi.yml", frequence: "chaque lundi"}
+];
+
+/* ---------- Accès GitHub ---------- */
+let jeton = "";
+try { jeton = localStorage.getItem(CLE_JETON) || ""; } catch (e) {}
+const entetes = (extra = {}) => ({Authorization: `Bearer ${jeton}`, "X-GitHub-Api-Version": "2022-11-28", ...extra});
+async function api(chemin, opts = {}) {
+  const r = await fetch(API + chemin, {...opts, headers: entetes(opts.headers)});
+  if (r.status === 401) throw new Error("Jeton refusé par GitHub : vérifie-le avec le bouton « Jeton ».");
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`GitHub a répondu ${r.status}.`);
+  return r.status === 204 ? true : r.json();
+}
+const fichier = chemin => api(`/contents/${chemin}`, {headers: {Accept: "application/vnd.github.raw+json"}}).catch(e => { if (/Jeton/.test(e.message)) throw e; return null; });
+
+/* ---------- Mise en forme ---------- */
+const nb = n => (n ?? 0).toLocaleString("fr-FR");
+const quand = iso => {
+  if (!iso) return "jamais";
+  const min = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (min < 1) return "à l'instant";
+  if (min < 60) return `il y a ${min} min`;
+  if (min < 1440) return `il y a ${Math.round(min / 60)} h`;
+  return new Date(iso).toLocaleDateString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+};
+const ETATS = {travail: "Au travail", ok: "Terminé", repos: "En attente", alerte: "Problème"};
+function etatDe(run) {
+  if (!run) return "repos";
+  if (run.status !== "completed") return "travail";
+  if (run.conclusion === "success") return (Date.now() - new Date(run.updated_at)) < 20 * 60000 ? "ok" : "repos";
+  if (run.conclusion === "cancelled" || run.conclusion === "skipped") return "repos";
+  return "alerte";
+}
+
+function fiche(a, run, chiffres, lignes) {
+  const etat = etatDe(run);
+  return `<article class="fiche" data-etat="${etat}" aria-label="${a.nom}">
+    <h2>${a.nom}</h2><div class="role">${a.role}</div>
+    <span class="pastille">${ETATS[etat]}${etat === "travail" ? " depuis " + quand(run.run_started_at).replace("il y a ", "") : ""}</span>
+    <div class="chiffres">${chiffres.map(([v, l]) => `<div class="chiffre"><b>${v}</b><span>${l}</span></div>`).join("")}</div>
+    <div class="lignes">
+      <div>Dernier passage : <b>${run ? quand(run.updated_at) : "jamais"}</b></div>
+      <div>Rythme : <b>${a.frequence}</b></div>
+      ${lignes.map(l => `<div>${l}</div>`).join("")}
+    </div>
+    <div class="actions">
+      <button type="button" data-lancer="${a.workflow}" data-nom="${a.nom}">Lancer maintenant</button>
+      ${run ? `<a href="${run.html_url}" target="_blank" rel="noopener">Voir le détail</a>` : ""}
+    </div>
+  </article>`;
+}
+
+/* ---------- Chargement ---------- */
+async function charger() {
+  if (!jeton) { document.getElementById("connexion").hidden = false; return; }
+  const zoneErreur = document.getElementById("erreur");
+  try {
+    const runs = await Promise.all(AGENTS.map(a => api(`/actions/workflows/${a.workflow}/runs?per_page=1`).then(r => r?.workflow_runs?.[0] || null)));
+    const [donnees, etatRobot, classement, moyennes, kozi, koziEtat] = await Promise.all([
+      fichier("robot-factures/donnees.json"), fichier("robot-factures/etat.json"), fichier("agent-classement/classement.json"),
+      fichier("agent-moyennes/moyennes.json"), fichier("agent-kozi/derniere-mise-a-jour.json"), fichier("agent-kozi/etat.json")]);
+
+    // Robot factures
+    const docs = Object.values(donnees || {}).flatMap(e => e.factures);
+    const devis = docs.filter(f => f.type_document === "devis").length;
+    const lignesRobot = docs.reduce((n, f) => n + f.lignes.length + (f.main_oeuvre?.length || 0) + (f.transport?.length || 0), 0);
+    const aSupprimer = Object.keys(etatRobot?.traitees || {}).length;
+    const reel = aSupprimer > 0 || Object.keys(etatRobot?.vus || {}).length > 0;
+    // Moyennes
+    const provinces = moyennes?.provinces || [];
+    const articles = provinces.reduce((n, p) => n + p.metiers.reduce((m, x) => m + x.materiaux.length + x.main_oeuvre.length, 0), 0);
+    const moMo = provinces.reduce((n, p) => n + p.metiers.reduce((m, x) => m + x.main_oeuvre.length, 0), 0);
+
+    const html = [
+      fiche(AGENTS[0], runs[0], [[nb(docs.length - devis), "factures relevées"], [nb(devis), "devis relevés"], [nb(lignesRobot), "prix extraits"], [nb(aSupprimer), "factures à supprimer"]],
+        [`Mode : <b>${reel ? "réel" : "simulation"}</b>`]),
+      fiche(AGENTS[1], runs[1], [[nb(classement?.factures), "documents (3 mois)"], [nb(classement?.regions?.length), "régions"]],
+        [classement ? `Période : <b>${new Date(classement.du).toLocaleDateString("fr-FR")} → ${new Date(classement.au).toLocaleDateString("fr-FR")}</b>` : "Pas encore de classement"]),
+      fiche(AGENTS[2], runs[2], [[nb(provinces.length), "provinces"], [nb(articles), "articles moyennés"], [nb(moyennes?.prix_utilises), "prix utilisés"], [nb(moMo), "postes main-d'œuvre"]],
+        [provinces[0] ? `Province la plus fournie : <b>${provinces[0].province}</b>` : "Pas encore de moyennes"]),
+      fiche(AGENTS[3], runs[3], [[nb(kozi?.modifies?.length), "prix changés (dernier passage)"], [nb(kozi?.signales?.length), "propositions bloquées"]],
+        [`Indice ABEX de référence : <b>${koziEtat?.abex?.indice ?? "non renseigné"}</b>`, kozi ? `Dernier rapport : <b>${quand(kozi.date)}</b> (${kozi.mode})` : "Pas encore de rapport"])
+    ];
+    document.getElementById("fiches").innerHTML = html.join("");
+
+    // Scène
+    AGENTS.forEach((a, i) => document.getElementById(`scene-${a.id}`).dataset.etat = etatDe(runs[i]));
+    ["flux1", "flux2", "flux3"].forEach((f, i) => document.getElementById(f).classList.toggle("actif", etatDe(runs[i]) === "travail" || etatDe(runs[i + 1]) === "travail"));
+
+    document.getElementById("maj").textContent = "Mis à jour à " + new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
+    zoneErreur.hidden = true;
+  } catch (e) {
+    zoneErreur.textContent = e.message === "Failed to fetch" ? "Impossible de joindre GitHub (connexion internet ?)." : e.message;
+    zoneErreur.hidden = false;
+  }
+}
+
+/* ---------- Actions ---------- */
+document.getElementById("fiches").addEventListener("click", async e => {
+  const b = e.target.closest("[data-lancer]");
+  if (!b) return;
+  if (b.dataset.confirme !== "1") { b.dataset.confirme = "1"; b.textContent = "Confirmer le lancement"; setTimeout(() => { b.dataset.confirme = ""; b.textContent = "Lancer maintenant"; }, 4000); return; }
+  b.disabled = true; b.textContent = "Envoi…";
+  try {
+    // Le robot factures est toujours lancé en simulation depuis le bureau : le mode réel reste réglé dans GitHub.
+    const inputs = b.dataset.lancer === "robot-factures.yml" || b.dataset.lancer === "kozi.yml" ? {mode: "simulation"} : {};
+    const r = await fetch(`${API}/actions/workflows/${b.dataset.lancer}/dispatches`, {method: "POST", headers: entetes({"Content-Type": "application/json"}), body: JSON.stringify({ref: "main", inputs})});
+    if (r.status === 403) throw new Error("Ce jeton ne permet pas de lancer les agents (il faut Actions : Read and write).");
+    if (!r.ok) throw new Error(`GitHub a répondu ${r.status}.`);
+    b.textContent = "Lancé ✓";
+    setTimeout(charger, 5000);
+  } catch (err) { b.textContent = "Échec"; document.getElementById("erreur").textContent = err.message; document.getElementById("erreur").hidden = false; }
+});
+document.getElementById("bRafraichir").onclick = charger;
+document.getElementById("bJeton").onclick = () => { document.getElementById("connexion").hidden = false; document.getElementById("jeton").focus(); };
+document.getElementById("bAnnuler").onclick = () => { document.getElementById("connexion").hidden = true; };
+document.getElementById("bEnregistrer").onclick = async () => {
+  const v = document.getElementById("jeton").value.trim(), err = document.getElementById("erreurJeton");
+  if (!v) return;
+  jeton = v;
+  try { await api(""); } catch (e) { err.textContent = e.message; err.hidden = false; return; }
+  try { localStorage.setItem(CLE_JETON, v); } catch (e) {}
+  err.hidden = true; document.getElementById("connexion").hidden = true; document.getElementById("jeton").value = "";
+  charger();
+};
+
+/* ---------- Horloge ---------- */
+function horloge() {
+  const d = new Date(), h = d.getHours() % 12 + d.getMinutes() / 60, m = d.getMinutes();
+  document.getElementById("aiguilleH").setAttribute("transform", `rotate(${h * 30})`);
+  document.getElementById("aiguilleM").setAttribute("transform", `rotate(${m * 6})`);
+  document.getElementById("heureScene").textContent = d.toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
+}
+horloge(); setInterval(horloge, 20000);
+charger(); setInterval(charger, 60000);
+</script>
+</body>
+</html>
