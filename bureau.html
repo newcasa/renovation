@@ -69,7 +69,7 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
 
 /* Scène 3D */
 @keyframes clignote{50%{opacity:.25}}
-.scene{position:relative;background:#05070d;height:440px;touch-action:pan-y;cursor:grab}
+.scene{position:relative;background:#1c2230;height:440px;touch-action:pan-y;cursor:grab}
 .scene:active{cursor:grabbing}
 .scene canvas{display:block;width:100%!important;height:100%!important}
 @media (max-width:640px){.scene{height:330px}}
@@ -94,7 +94,7 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
     <button id="bJeton" type="button">Jeton</button>
   </header>
 
-  <section class="scene" id="scene" aria-label="Le bureau en 3D : chaque androïde est un agent. Fais glisser pour tourner autour.">
+  <section class="scene" id="scene" aria-label="L’open space en 3D : chaque androïde travaille dans son box. Fais glisser pour tourner autour.">
     <div class="hud" id="hud"><div class="coin">Bureau des agents<b id="heureScene">--:--</b></div></div>
   </section>
 
@@ -126,7 +126,7 @@ const API = `https://api.github.com/repos/${DEPOT}`;
 const CLE_JETON = "bureauAgents.jeton";
 
 /* ---------- Scène 3D ---------- */
-// Quatre androïdes flottants à des postes holographiques. Chaque agent a sa couleur ;
+// Un open space à l'américaine : quatre box séparés par des cloisons, un androïde par box. Chaque agent a sa couleur ;
 // son état (travail, ok, repos, alerte) pilote ses gestes, sa lumière et l'anneau au sol.
 const COULEURS = {robot: 0x4aa3ff, classement: 0xb07cff, moyennes: 0x3ee08a, kozi: 0xffb340};
 const COULEUR_ETAT = {travail: 0x4aa3ff, ok: 0x3ee08a, repos: 0x5a6b85, alerte: 0xff4d5e};
@@ -138,38 +138,44 @@ const Scene3D = (() => {
   }
   const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x05070d, 0.045);
+  scene.fog = new THREE.Fog(0x1c2230, 14, 30);
   const camera = new THREE.PerspectiveCamera(42, 2, 0.1, 100);
   const rendu = new THREE.WebGLRenderer({antialias: true});
   rendu.setPixelRatio(Math.min(devicePixelRatio, 2));
-  rendu.setClearColor(0x05070d);
+  rendu.setClearColor(0x1c2230);
   conteneur.prepend(rendu.domElement);
 
-  // Lumières
-  scene.add(new THREE.AmbientLight(0x6080ff, 0.35));
-  const haut = new THREE.DirectionalLight(0xcfe6ff, 0.6); haut.position.set(2, 8, 6); scene.add(haut);
+  // Lumière de bureau : ambiance chaude + plafonniers
+  scene.add(new THREE.HemisphereLight(0xfff4e0, 0x3a4458, 0.75));
+  const soleil = new THREE.DirectionalLight(0xfff0d8, 0.55); soleil.position.set(-4, 9, 5); scene.add(soleil);
 
-  // Sol quadrillé néon, murs de verre
-  const grille = new THREE.GridHelper(40, 40, 0x1e90ff, 0x0d2b4a); grille.material.transparent = true; grille.material.opacity = 0.55; scene.add(grille);
-  const sol = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({color: 0x070b14, metalness: 0.6, roughness: 0.35}));
-  sol.rotation.x = -Math.PI / 2; sol.position.y = -0.01; scene.add(sol);
-  const mur = new THREE.Mesh(new THREE.PlaneGeometry(26, 7), new THREE.MeshBasicMaterial({color: 0x0a1a33, transparent: true, opacity: 0.55}));
-  mur.position.set(0, 3.5, -4.5); scene.add(mur);
-  for (let k = -6; k <= 6; k++) {
-    const bande = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 7), new THREE.MeshBasicMaterial({color: 0x1e90ff, transparent: true, opacity: 0.25}));
-    bande.position.set(k * 2, 3.5, -4.49); scene.add(bande);
+  // Moquette, murs, plafond
+  const mat = (c, o = {}) => new THREE.MeshStandardMaterial({color: c, roughness: 0.9, metalness: 0, ...o});
+  const place = (mesh, x, y, z) => { mesh.position.set(x, y, z); return mesh; };
+  const sol = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), mat(0x46506a)); sol.rotation.x = -Math.PI / 2; scene.add(sol);
+  const allee = new THREE.Mesh(new THREE.PlaneGeometry(40, 2.2), mat(0x8a7a66)); allee.rotation.x = -Math.PI / 2; allee.position.set(0, 0.005, 3.2); scene.add(allee);
+  scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(40, 5), mat(0xd9dde3)), 0, 2.5, -4.2));
+  const plafond = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), mat(0xe9ecef)); plafond.rotation.x = Math.PI / 2; plafond.position.y = 4.4; scene.add(plafond);
+  // Baies vitrées sur la ville
+  for (let k = -3; k <= 3; k++) {
+    scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.2), new THREE.MeshBasicMaterial({color: 0x7fb6e8})), k * 2.9, 2.5, -4.19));
+    for (let b = 0; b < 4; b++) {
+      const h = 0.5 + ((k * 7 + b * 13 + 70) % 9) / 9 * 1.3;
+      scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(0.42, h), new THREE.MeshBasicMaterial({color: 0x4a6788})), k * 2.9 - 0.85 + b * 0.55, 1.4 + h / 2, -4.18));
+    }
+    scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.4, 0.08), mat(0x8c96a3, {metalness: 0.6, roughness: 0.4})), k * 2.9 + 1.45, 2.5, -4.15));
   }
-  // Anneau central : le « cœur » des données
-  const coeur = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.035, 12, 80), new THREE.MeshBasicMaterial({color: 0x7fd4ff}));
-  coeur.position.set(0, 3.7, -3.6); scene.add(coeur);
-  const coeur2 = coeur.clone(); coeur2.scale.setScalar(0.65); scene.add(coeur2);
-
-  // Particules d'ambiance
-  const nbP = 260, pos = new Float32Array(nbP * 3);
-  for (let k = 0; k < nbP; k++) { pos[k * 3] = (Math.random() - 0.5) * 22; pos[k * 3 + 1] = Math.random() * 6; pos[k * 3 + 2] = (Math.random() - 0.5) * 12; }
-  const geoP = new THREE.BufferGeometry(); geoP.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  const poussiere = new THREE.Points(geoP, new THREE.PointsMaterial({color: 0x7fd4ff, size: 0.035, transparent: true, opacity: 0.6}));
-  scene.add(poussiere);
+  // Dalles lumineuses au plafond
+  for (let x = -6; x <= 6; x += 3) for (const z of [-1.5]) {
+    const dalle = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.7), new THREE.MeshBasicMaterial({color: 0xfffdf5})); dalle.rotation.x = Math.PI / 2; dalle.position.set(x, 4.39, z); scene.add(dalle);
+  }
+  // Plantes en bout de rangée et fontaine à eau
+  for (const x of [-7.9, 7.9]) {
+    scene.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.5, 20), mat(0xf2f2f2)), x, 0.25, 0.4));
+    for (let f = 0; f < 5; f++) scene.add(place(new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), mat(0x3f8f4f)), x + Math.sin(f * 1.3) * 0.2, 0.75 + f * 0.17, 0.4 + Math.cos(f * 1.3) * 0.2));
+  }
+  scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.0, 0.45), mat(0xeeeeee)), 8.6, 0.5, -3.3));
+  scene.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.5, 18), new THREE.MeshStandardMaterial({color: 0x8fd0ff, transparent: true, opacity: 0.7})), 8.6, 1.25, -3.3));
 
   const neon = (c, o = 1) => new THREE.MeshBasicMaterial({color: c, transparent: o < 1, opacity: o});
   const metal = c => new THREE.MeshStandardMaterial({color: c, metalness: 0.75, roughness: 0.28});
@@ -180,12 +186,26 @@ const Scene3D = (() => {
   ["robot", "classement", "moyennes", "kozi"].forEach((id, n) => {
     const c = COULEURS[id], g = new THREE.Group();
     g.position.set(-5.4 + n * 3.6, 0, 0);
-    g.rotation.y = (1.5 - n) * 0.12;
     scene.add(g);
 
+    // Box à l'américaine : cloisons en tissu avec rail en aluminium, plaque nominative, lampe et dossiers
+    const tissu = mat(0x9aa3b0), rail = mat(0xc7ccd3, {metalness: 0.7, roughness: 0.35});
+    const panneau = (l, h, x, z, ry = 0) => {
+      const pan = new THREE.Mesh(new THREE.BoxGeometry(l, h, 0.08), tissu); pan.position.set(x, h / 2, z); pan.rotation.y = ry; g.add(pan);
+      const r = new THREE.Mesh(new THREE.BoxGeometry(l + 0.04, 0.05, 0.12), rail); r.position.set(x, h + 0.02, z); r.rotation.y = ry; g.add(r);
+    };
+    panneau(3.55, 1.5, 0, -1.3);
+    panneau(2.7, 1.5, -1.78, 0.05, Math.PI / 2);
+    if (n === 3) panneau(2.7, 1.5, 1.78, 0.05, Math.PI / 2);
+    g.add(place(new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshBasicMaterial({color: c})), -1.1, 1.3, -1.25));
+    g.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), rail), 0.85, 1.21, 0.35));
+    const abatJour = place(new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.18, 16, 1, true), mat(0x2b3240, {side: THREE.DoubleSide})), 0.85, 1.45, 0.35); abatJour.rotation.x = Math.PI; g.add(abatJour);
+    g.add(place(new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), new THREE.MeshBasicMaterial({color: 0xfff1c4})), 0.85, 1.38, 0.35));
+    for (let k = 0; k < 3; k++) { const d = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.3), mat([0xe0a43c, 0x5bb37a, 0xd06464][k])); d.position.set(-0.85, 1.02 + k * 0.055, 0.4); d.rotation.y = k * 0.2; g.add(d); }
+
     const geoBureau = new THREE.BoxGeometry(2.3, 0.08, 1.1);
-    const bureau = new THREE.Mesh(geoBureau, metal(0x1a2233)); bureau.position.set(0, 0.95, 0.55); g.add(bureau);
-    const arete = contour(geoBureau, c); arete.position.copy(bureau.position); g.add(arete);
+    const bureau = new THREE.Mesh(geoBureau, mat(0xa47a52, {roughness: 0.6})); bureau.position.set(0, 0.95, 0.55); g.add(bureau);
+    const arete = contour(geoBureau, c, 0.6); arete.position.copy(bureau.position); g.add(arete);
     const pied = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.18, 0.95, 16), metal(0x2a3448)); pied.position.set(0, 0.47, 0.55); g.add(pied);
     const clavier = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.3), neon(c, 0.35)); clavier.rotation.x = -Math.PI / 2; clavier.position.set(0, 1.0, 0.75); g.add(clavier);
 
@@ -219,8 +239,8 @@ const Scene3D = (() => {
     const propulseur = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.3, 20), neon(c, 0.55)); propulseur.rotation.x = Math.PI; propulseur.position.y = 0.85; droide.add(propulseur);
     const lumiere = new THREE.PointLight(c, 1.2, 4.5); lumiere.position.set(0, 1.8, 0.9); g.add(lumiere);
 
-    const anneau = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.025, 8, 80), neon(COULEUR_ETAT.repos)); anneau.rotation.x = Math.PI / 2; anneau.position.y = 0.02; g.add(anneau);
-    const halo = new THREE.Mesh(new THREE.CircleGeometry(1.25, 48), neon(COULEUR_ETAT.repos, 0.08)); halo.rotation.x = -Math.PI / 2; halo.position.y = 0.015; g.add(halo);
+    const anneau = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.03, 8, 80), neon(COULEUR_ETAT.repos)); anneau.rotation.x = Math.PI / 2; anneau.position.set(0, 0.02, 0.2); g.add(anneau);
+    const halo = new THREE.Mesh(new THREE.CircleGeometry(1.05, 48), neon(COULEUR_ETAT.repos, 0.08)); halo.rotation.x = -Math.PI / 2; halo.position.set(0, 0.015, 0.2); g.add(halo);
     const balise = new THREE.Mesh(new THREE.OctahedronGeometry(0.16), neon(0xff4d5e)); balise.position.y = 2.75; balise.visible = false; droide.add(balise);
 
     const etiquette = document.createElement("div");
@@ -258,11 +278,9 @@ const Scene3D = (() => {
     if (!glisse && !calme) cible = Math.sin(t * 0.12) * 0.35;
     angle += (cible - angle) * 0.06;
     const r = conteneur.clientWidth < 640 ? 12.5 : 9;
-    camera.position.set(Math.sin(angle) * r, 3.4, Math.cos(angle) * r);
-    camera.lookAt(0, 1.45, 0);
+    camera.position.set(Math.sin(angle) * r, 3.7, Math.cos(angle) * r);
+    camera.lookAt(0, 1.35, 0);
 
-    coeur.rotation.y = t * 0.6; coeur.rotation.x = t * 0.3; coeur2.rotation.y = -t * 0.9; coeur2.rotation.z = t * 0.4;
-    poussiere.rotation.y = t * 0.02;
 
     for (const id of ids) {
       const p = postes[id], e = p.etat, d = t + p.decalage;
