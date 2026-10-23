@@ -36,8 +36,7 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
 .scene{background:var(--carte);border-radius:18px;box-shadow:var(--ombre);overflow:hidden}
 .scene{overflow-x:auto}
 .scene svg{display:block;width:100%;height:auto;min-width:720px}
-.agents{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-@media (max-width:980px){.agents{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.agents{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
 @media (max-width:560px){.agents{grid-template-columns:1fr}}
 .fiche{background:var(--carte);border-radius:16px;box-shadow:var(--ombre);padding:14px;display:grid;gap:10px;min-width:0;border-top:4px solid var(--repos)}
 .fiche[data-etat="travail"]{border-top-color:var(--travail)}
@@ -66,6 +65,15 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
 .erreur{color:var(--alerte);font-size:14px}
 .petit{font-size:13px;color:var(--mu)}
 [hidden]{display:none!important}
+.estimation{background:var(--carte);border-radius:16px;box-shadow:var(--ombre);padding:16px;display:grid;gap:12px;border-top:4px solid #ff6fae}
+.estimation h2{margin:0;font-size:17px}
+.formulaire{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.formulaire label{display:grid;gap:4px;font-size:13px;color:var(--mu)}
+.formulaire input,.formulaire select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:8px;min-width:0}
+.resultat{display:grid;gap:8px}
+.resultat .prix{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.resultat .fourchette{font-size:15px;color:var(--mu);font-variant-numeric:tabular-nums}
+.resultat ul{margin:0;padding-left:18px;font-size:13px;color:var(--mu)}
 
 /* Scène 3D */
 @keyframes clignote{50%{opacity:.25}}
@@ -114,6 +122,24 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
   </section>
 
   <section class="agents" id="fiches" aria-live="polite"></section>
+  <section class="estimation" id="estimation" aria-labelledby="titreEstimation">
+    <h2 id="titreEstimation">Estimer un bien</h2>
+    <p class="petit">Basé sur les <b>prix de vente réels</b> publiés par Statbel (actes notariés), commune par commune. <span id="statbelInfo"></span></p>
+    <form class="formulaire" id="formEstimation">
+      <label>Commune<input id="eCommune" list="listeCommunes" placeholder="ex. Liège, Seraing, Namur" required autocomplete="off"></label>
+      <label>Rue (facultatif)<input id="eRue" placeholder="ex. rue de la Station"></label>
+      <label>Type de bien<select id="eType">
+        <option value="maisons_2_3_facades">Maison 2-3 façades</option>
+        <option value="maisons_4_facades">Maison 4 façades (villa)</option>
+        <option value="appartements">Appartement</option>
+        <option value="maisons">Maison (façades inconnues)</option></select></label>
+      <label>Surface habitable (m²)<input id="eSurface" type="number" min="15" max="1500" step="1" placeholder="ex. 140"></label>
+      <label>Classe PEB<select id="ePeb"><option value="">Inconnue</option><option>A</option><option>B</option><option>C</option><option selected>D</option><option>E</option><option>F</option><option>G</option></select></label>
+      <label>&nbsp;<button class="p" type="submit">Estimer</button></label>
+    </form>
+    <datalist id="listeCommunes"></datalist>
+    <div class="resultat" id="resultatEstimation" aria-live="polite"></div>
+  </section>
   <p class="erreur" id="erreur" hidden></p>
   <p class="petit">Mise à jour automatique toutes les minutes. Un agent « au travail » est en train de tourner sur GitHub ; « terminé » veut dire que son dernier passage a réussi.</p>
 </div>
@@ -128,7 +154,7 @@ const CLE_JETON = "bureauAgents.jeton";
 /* ---------- Scène 3D ---------- */
 // Un open space à l'américaine : quatre box séparés par des cloisons, un androïde par box. Chaque agent a sa couleur ;
 // son état (travail, ok, repos, alerte) pilote ses gestes, sa lumière et l'anneau au sol.
-const COULEURS = {robot: 0x4aa3ff, classement: 0xb07cff, moyennes: 0x3ee08a, kozi: 0xffb340};
+const COULEURS = {robot: 0x4aa3ff, classement: 0xb07cff, moyennes: 0x3ee08a, kozi: 0xffb340, estimateur: 0xff6fae};
 const COULEUR_ETAT = {travail: 0x4aa3ff, ok: 0x3ee08a, repos: 0x5a6b85, alerte: 0xff4d5e};
 const Scene3D = (() => {
   const conteneur = document.getElementById("scene"), hud = document.getElementById("hud");
@@ -157,7 +183,7 @@ const Scene3D = (() => {
   scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(40, 5), mat(0xd9dde3)), 0, 2.5, -4.2));
   const plafond = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), mat(0xe9ecef)); plafond.rotation.x = Math.PI / 2; plafond.position.y = 4.4; scene.add(plafond);
   // Baies vitrées sur la ville
-  for (let k = -3; k <= 3; k++) {
+  for (let k = -4; k <= 4; k++) {
     scene.add(place(new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.2), new THREE.MeshBasicMaterial({color: 0x7fb6e8})), k * 2.9, 2.5, -4.19));
     for (let b = 0; b < 4; b++) {
       const h = 0.5 + ((k * 7 + b * 13 + 70) % 9) / 9 * 1.3;
@@ -166,16 +192,16 @@ const Scene3D = (() => {
     scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.4, 0.08), mat(0x8c96a3, {metalness: 0.6, roughness: 0.4})), k * 2.9 + 1.45, 2.5, -4.15));
   }
   // Dalles lumineuses au plafond
-  for (let x = -6; x <= 6; x += 3) for (const z of [-1.5]) {
+  for (let x = -7.5; x <= 7.5; x += 3) for (const z of [-1.5]) {
     const dalle = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.7), new THREE.MeshBasicMaterial({color: 0xfffdf5})); dalle.rotation.x = Math.PI / 2; dalle.position.set(x, 4.39, z); scene.add(dalle);
   }
   // Plantes en bout de rangée et fontaine à eau
-  for (const x of [-7.9, 7.9]) {
+  for (const x of [-9.7, 9.7]) {
     scene.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.5, 20), mat(0xf2f2f2)), x, 0.25, 0.4));
     for (let f = 0; f < 5; f++) scene.add(place(new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), mat(0x3f8f4f)), x + Math.sin(f * 1.3) * 0.2, 0.75 + f * 0.17, 0.4 + Math.cos(f * 1.3) * 0.2));
   }
-  scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.0, 0.45), mat(0xeeeeee)), 8.6, 0.5, -3.3));
-  scene.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.5, 18), new THREE.MeshStandardMaterial({color: 0x8fd0ff, transparent: true, opacity: 0.7})), 8.6, 1.25, -3.3));
+  scene.add(place(new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.0, 0.45), mat(0xeeeeee)), 10.6, 0.5, -3.3));
+  scene.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.5, 18), new THREE.MeshStandardMaterial({color: 0x8fd0ff, transparent: true, opacity: 0.7})), 10.6, 1.25, -3.3));
 
   const neon = (c, o = 1) => new THREE.MeshBasicMaterial({color: c, transparent: o < 1, opacity: o});
   const metal = c => new THREE.MeshStandardMaterial({color: c, metalness: 0.75, roughness: 0.28});
@@ -183,9 +209,9 @@ const Scene3D = (() => {
 
   // Un poste : bureau, écran holographique, androïde, anneau d'état, balise d'alerte
   const postes = {};
-  ["robot", "classement", "moyennes", "kozi"].forEach((id, n) => {
+  ["robot", "classement", "moyennes", "kozi", "estimateur"].forEach((id, n) => {
     const c = COULEURS[id], g = new THREE.Group();
-    g.position.set(-5.4 + n * 3.6, 0, 0);
+    g.position.set(-7.2 + n * 3.6, 0, 0);
     scene.add(g);
 
     // Box à l'américaine : cloisons en tissu avec rail en aluminium, plaque nominative, lampe et dossiers
@@ -196,7 +222,7 @@ const Scene3D = (() => {
     };
     panneau(3.55, 1.5, 0, -1.3);
     panneau(2.7, 1.5, -1.78, 0.05, Math.PI / 2);
-    if (n === 3) panneau(2.7, 1.5, 1.78, 0.05, Math.PI / 2);
+    if (n === 4) panneau(2.7, 1.5, 1.78, 0.05, Math.PI / 2);
     g.add(place(new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshBasicMaterial({color: c})), -1.1, 1.3, -1.25));
     g.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), rail), 0.85, 1.21, 0.35));
     const abatJour = place(new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.18, 16, 1, true), mat(0x2b3240, {side: THREE.DoubleSide})), 0.85, 1.45, 0.35); abatJour.rotation.x = Math.PI; g.add(abatJour);
@@ -277,7 +303,7 @@ const Scene3D = (() => {
     const t = horlogeT.getElapsedTime();
     if (!glisse && !calme) cible = Math.sin(t * 0.12) * 0.35;
     angle += (cible - angle) * 0.06;
-    const r = conteneur.clientWidth < 640 ? 12.5 : 9;
+    const r = conteneur.clientWidth < 640 ? 15.5 : 11;
     camera.position.set(Math.sin(angle) * r, 3.7, Math.cos(angle) * r);
     camera.lookAt(0, 1.35, 0);
 
@@ -333,7 +359,8 @@ const AGENTS = [
   {id: "robot", nom: "Robot factures", role: "Le facteur : lit tes mails, relève factures et devis", workflow: "robot-factures.yml", frequence: "toutes les 30 min"},
   {id: "classement", nom: "Agent Classement", role: "L'archiviste : range par région et par métier", workflow: "classement.yml", frequence: "chaque jour vers 7h"},
   {id: "moyennes", nom: "Agent Moyennes", role: "L'analyste : prix moyens par province", workflow: "moyennes.yml", frequence: "après chaque classement"},
-  {id: "kozi", nom: "Agent Kozi", role: "Le chef de chantier : met à jour les prix de Kozi", workflow: "kozi.yml", frequence: "chaque lundi"}
+  {id: "kozi", nom: "Agent Kozi", role: "Le chef de chantier : met à jour les prix de Kozi", workflow: "kozi.yml", frequence: "chaque lundi"},
+  {id: "estimateur", nom: "Agent Estimateur", role: "L'expert immobilier : prix de vente réels Statbel", workflow: "estimateur.yml", frequence: "chaque mois"}
 ];
 
 AGENTS.forEach(a => Scene3D.etat(a.id, "repos", a.nom, "Connexion…"));
@@ -394,9 +421,10 @@ async function charger() {
   const zoneErreur = document.getElementById("erreur");
   try {
     const runs = await Promise.all(AGENTS.map(a => api(`/actions/workflows/${a.workflow}/runs?per_page=1`).then(r => r?.workflow_runs?.[0] || null)));
-    const [donnees, etatRobot, classement, moyennes, kozi, koziEtat] = await Promise.all([
+    const [donnees, etatRobot, classement, moyennes, kozi, koziEtat, statbel] = await Promise.all([
       fichier("robot-factures/donnees.json"), fichier("robot-factures/etat.json"), fichier("agent-classement/classement.json"),
-      fichier("agent-moyennes/moyennes.json"), fichier("agent-kozi/derniere-mise-a-jour.json"), fichier("agent-kozi/etat.json")]);
+      fichier("agent-moyennes/moyennes.json"), fichier("agent-kozi/derniere-mise-a-jour.json"), fichier("agent-kozi/etat.json"), STATBEL || fichier("agent-estimateur/statbel.json")]);
+    chargerStatbel(statbel);
 
     // Robot factures
     const docs = Object.values(donnees || {}).flatMap(e => e.factures);
@@ -417,7 +445,9 @@ async function charger() {
       fiche(AGENTS[2], runs[2], [[nb(provinces.length), "provinces"], [nb(articles), "articles moyennés"], [nb(moyennes?.prix_utilises), "prix utilisés"], [nb(moMo), "postes main-d'œuvre"]],
         [provinces[0] ? `Province la plus fournie : <b>${provinces[0].province}</b>` : "Pas encore de moyennes"]),
       fiche(AGENTS[3], runs[3], [[nb(kozi?.modifies?.length), "prix changés (dernier passage)"], [nb(kozi?.signales?.length), "propositions bloquées"]],
-        [`Indice ABEX de référence : <b>${koziEtat?.abex?.indice ?? "non renseigné"}</b>`, kozi ? `Dernier rapport : <b>${quand(kozi.date)}</b> (${kozi.mode})` : "Pas encore de rapport"])
+        [`Indice ABEX de référence : <b>${koziEtat?.abex?.indice ?? "non renseigné"}</b>`, kozi ? `Dernier rapport : <b>${quand(kozi.date)}</b> (${kozi.mode})` : "Pas encore de rapport"]),
+      fiche(AGENTS[4], runs[4], [[nb(statbel?.communes?.length), "communes"], [nb(statbel?.communes?.reduce((n, c) => n + (c.types.maisons?.ventes || 0) + (c.types.appartements?.ventes || 0), 0)), "ventes réelles"]],
+        [statbel ? `Période : <b>${statbel.periode}</b>` : "Pas encore de données Statbel", statbel ? `Mise à jour : <b>${new Date(statbel.maj).toLocaleDateString("fr-FR")}</b>` : ""])
     ];
     document.getElementById("fiches").innerHTML = html.join("");
 
@@ -432,6 +462,54 @@ async function charger() {
     zoneErreur.hidden = false;
   }
 }
+
+/* ---------- Estimation d'un bien (données Statbel) ---------- */
+// Hypothèses affichées à l'utilisateur : surface type par type de bien, effet atténué de la surface, correction PEB autour de D.
+let STATBEL = null;
+const SURFACE_TYPE = {maisons_2_3_facades: 150, maisons_4_facades: 200, appartements: 90, maisons: 160};
+const PEB = {A: 1.10, B: 1.06, C: 1.03, D: 1, E: 0.97, F: 0.94, G: 0.90};
+const MIN_VENTES = 10;
+const sansAccent = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const euros = n => Math.round(n).toLocaleString("fr-FR") + " €";
+function chargerStatbel(s) {
+  if (!s || STATBEL) return;
+  STATBEL = s;
+  // Statbel écrit les communes en majuscules sans accents (« LIEGE ») : on les affiche en minuscules lisibles
+  for (const c of s.communes) c.affiche = c.nom.toLowerCase().replace(/(^|[\s'-])\p{L}/gu, m => m.toUpperCase());
+  document.getElementById("listeCommunes").innerHTML = s.communes.map(c => `<option value="${c.affiche.replace(/"/g, "&quot;")}">`).join("");
+  document.getElementById("statbelInfo").textContent = `Période : ${s.periode} · ${s.communes.length} communes.`;
+}
+document.getElementById("formEstimation").addEventListener("submit", e => {
+  e.preventDefault();
+  const sortie = document.getElementById("resultatEstimation");
+  if (!STATBEL) { sortie.innerHTML = `<p class="erreur">Les données Statbel ne sont pas encore chargées : connecte le bureau avec ton jeton, ou lance l'agent Estimateur.</p>`; return; }
+  const saisie = sansAccent(document.getElementById("eCommune").value);
+  const commune = STATBEL.communes.find(c => sansAccent(c.nom) === saisie) || STATBEL.communes.find(c => sansAccent(c.nom).startsWith(saisie));
+  if (!commune) { sortie.innerHTML = `<p class="erreur">Commune introuvable dans Statbel : choisis-la dans la liste proposée.</p>`; return; }
+  const type = document.getElementById("eType").value, libelleType = document.getElementById("eType").selectedOptions[0].text;
+  let ref = commune.types[type], zone = commune.affiche;
+  if (!ref || ref.ventes < MIN_VENTES) {
+    const arr = STATBEL.arrondissements[commune.arrondissement];
+    if (arr?.types[type]) { ref = arr.types[type]; zone = `${arr.nom.toLowerCase().replace(/^\p{L}/u, m => m.toUpperCase())} (trop peu de ventes à ${commune.affiche})`; }
+  }
+  if (!ref) { sortie.innerHTML = `<p class="erreur">Pas assez de ventes de ce type de bien à ${commune.affiche} ni dans son arrondissement.</p>`; return; }
+  const surface = Number(document.getElementById("eSurface").value) || 0, peb = document.getElementById("ePeb").value, rue = document.getElementById("eRue").value.trim();
+  const fSurface = surface ? Math.min(1.6, Math.max(0.6, Math.pow(surface / SURFACE_TYPE[type], 0.6))) : 1;
+  const fPeb = PEB[peb] || 1;
+  const probable = ref.mediane * fSurface * fPeb;
+  const bas = Math.min(probable, Math.max(ref.q1 * 0.75, probable * 0.9)), haut = Math.max(probable, Math.min(ref.q3 * 1.25, probable * 1.1));
+  const arr1000 = n => Math.round(n / 1000) * 1000;
+  sortie.innerHTML = `
+    <div class="prix">${euros(arr1000(probable))}</div>
+    <div class="fourchette">Fourchette : ${euros(arr1000(bas))} – ${euros(arr1000(haut))}</div>
+    <ul>
+      <li>Prix médian réel des ventes de « ${libelleType.toLowerCase()} » à <b>${zone}</b> : ${euros(ref.mediane)} (${ref.ventes} ventes, ${STATBEL.periode}) ; la moitié des ventes entre ${euros(ref.q1)} et ${euros(ref.q3)}.</li>
+      <li>Surface : ${surface ? `${surface} m² pour une surface type de ${SURFACE_TYPE[type]} m² → ×${fSurface.toFixed(2)}` : "non renseignée, pas de correction"}.</li>
+      <li>PEB : ${peb ? `classe ${peb} → ×${fPeb.toFixed(2)}` : "inconnue, pas de correction"}.</li>
+      ${rue ? `<li>Rue « ${rue.replace(/[<>&]/g, "")} » notée : Statbel ne publie pas les prix à la rue, le calcul se fait à la commune.</li>` : ""}
+      <li>Estimation indicative, basée sur des statistiques publiques : elle ne remplace pas l'avis d'un notaire ou d'un agent immobilier.</li>
+    </ul>`;
+});
 
 /* ---------- Actions ---------- */
 document.getElementById("fiches").addEventListener("click", async e => {
