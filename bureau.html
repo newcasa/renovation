@@ -476,6 +476,9 @@ function chargerStatbel(s) {
   STATBEL = s;
   // Statbel écrit les communes en majuscules sans accents (« LIEGE ») : on les affiche en minuscules lisibles
   for (const c of s.communes) c.affiche = c.nom.toLowerCase().replace(/(^|[\s'-])\p{L}/gu, m => m.toUpperCase());
+  // Deux communes peuvent avoir le même nom (Saint-Nicolas à Liège et en Flandre) : on ajoute l'arrondissement
+  const doublons = s.communes.filter(c => s.communes.filter(x => x.nom === c.nom).length > 1);
+  for (const c of doublons) c.affiche += ` (${(s.arrondissements[c.arrondissement]?.nom || "").replace(/^ARRONDISSEMENT D[E']\s*/i, "").toLowerCase().replace(/(^|[\s'-])\p{L}/gu, m => m.toUpperCase())})`;
   document.getElementById("listeCommunes").innerHTML = s.communes.map(c => `<option value="${c.affiche.replace(/"/g, "&quot;")}">`).join("");
   document.getElementById("statbelInfo").textContent = `Période : ${s.periode} · ${s.communes.length} communes.`;
 }
@@ -484,7 +487,7 @@ document.getElementById("formEstimation").addEventListener("submit", e => {
   const sortie = document.getElementById("resultatEstimation");
   if (!STATBEL) { sortie.innerHTML = `<p class="erreur">Les données Statbel ne sont pas encore chargées : connecte le bureau avec ton jeton, ou lance l'agent Estimateur.</p>`; return; }
   const saisie = sansAccent(document.getElementById("eCommune").value);
-  const commune = STATBEL.communes.find(c => sansAccent(c.nom) === saisie) || STATBEL.communes.find(c => sansAccent(c.nom).startsWith(saisie));
+  const commune = STATBEL.communes.find(c => sansAccent(c.affiche) === saisie) || STATBEL.communes.find(c => sansAccent(c.nom) === saisie) || STATBEL.communes.find(c => sansAccent(c.affiche).startsWith(saisie));
   if (!commune) { sortie.innerHTML = `<p class="erreur">Commune introuvable dans Statbel : choisis-la dans la liste proposée.</p>`; return; }
   const type = document.getElementById("eType").value, libelleType = document.getElementById("eType").selectedOptions[0].text;
   let ref = commune.types[type], zone = commune.affiche;
