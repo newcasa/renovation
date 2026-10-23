@@ -65,6 +65,26 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
 .erreur{color:var(--alerte);font-size:14px}
 .petit{font-size:13px;color:var(--mu)}
 [hidden]{display:none!important}
+.fiche{cursor:pointer}
+.fiche:hover{box-shadow:0 8px 24px rgba(30,45,80,.16)}
+dialog.perf{border:0;border-radius:18px;padding:0;background:var(--carte);color:var(--tx);width:min(720px,calc(100% - 32px));max-height:88vh;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog.perf::backdrop{background:rgba(8,12,20,.55)}
+.perf .tete{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--bd);border-top:5px solid var(--c,#4aa3ff)}
+.perf .tete h2{margin:0;font-size:18px;flex:1}
+.perf .corps{padding:16px 18px;display:grid;gap:14px;overflow:auto;max-height:calc(88vh - 70px)}
+.perf .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.perf .kpi{background:var(--bg);border-radius:12px;padding:9px 11px}
+.perf .kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.perf .kpi span{font-size:12px;color:var(--mu)}
+.perf h3{margin:0;font-size:14px}
+.perf .graphe{position:relative}
+.perf .graphe svg{display:block;width:100%;height:auto}
+.perf .legende{display:flex;gap:14px;font-size:12px;color:var(--mu)}
+.perf .legende i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.perf .bulle{position:absolute;pointer-events:none;background:var(--tx);color:var(--carte);font-size:12px;padding:5px 8px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-110%)}
+.perf table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.perf td,.perf th{text-align:left;padding:5px 6px;border-bottom:1px solid var(--bd)}
+.perf .tableau{overflow-x:auto}
 .estimation{background:var(--carte);border-radius:16px;box-shadow:var(--ombre);padding:16px;display:grid;gap:12px;border-top:4px solid #ff6fae}
 .estimation h2{margin:0;font-size:17px}
 .formulaire{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
@@ -124,6 +144,10 @@ button.p{background:var(--travail);border-color:var(--travail);color:#fff}
   </section>
 
   <section class="agents" id="fiches" aria-live="polite"></section>
+  <dialog class="perf" id="perf" aria-labelledby="perfTitre">
+    <div class="tete"><h2 id="perfTitre">Performances</h2><button type="button" id="perfFermer" aria-label="Fermer">Fermer</button></div>
+    <div class="corps" id="perfCorps"></div>
+  </dialog>
   <section class="estimation" id="estimation" aria-labelledby="titreEstimation">
     <h2 id="titreEstimation">Estimer un bien</h2>
     <p class="petit">Basé sur les <b>prix de vente réels</b> publiés par Statbel (actes notariés), commune par commune. <span id="statbelInfo"></span></p>
@@ -162,7 +186,7 @@ const Scene3D = (() => {
   const conteneur = document.getElementById("scene"), hud = document.getElementById("hud");
   if (!window.THREE || !(() => { try { return !!document.createElement("canvas").getContext("webgl"); } catch (e) { return false; } })()) {
     conteneur.insertAdjacentHTML("beforeend", '<div class="sans3d">La vue 3D n\'est pas disponible sur cet appareil. Les chiffres de tes agents restent affichés ci-dessous.</div>');
-    return {etat() {}, flux() {}};
+    return {etat() {}, flux() {}, clic() {}};
   }
   const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const scene = new THREE.Scene();
@@ -279,6 +303,7 @@ const Scene3D = (() => {
     const etiquette = document.createElement("div");
     etiquette.className = fond ? "etiquette" : "etiquette bas"; etiquette.style.setProperty("--c", "#" + c.toString(16).padStart(6, "0"));
     hud.appendChild(etiquette);
+    g.userData.agent = id;
     postes[id] = {devant: !fond, g, droide, tete, bras, barres, visiere, antenne, propulseur, lumiere, anneau, halo, balise, vitre, etiquette, etat: "repos", decalage: n * 1.7};
   });
 
@@ -295,9 +320,22 @@ const Scene3D = (() => {
 
   // Caméra : orbite lente, glisser pour tourner
   let angle = 0, cible = 0, glisse = null;
-  conteneur.addEventListener("pointerdown", e => { glisse = {x: e.clientX, a: cible}; conteneur.setPointerCapture(e.pointerId); });
+  conteneur.addEventListener("pointerdown", e => { glisse = {x: e.clientX, y: e.clientY, a: cible}; conteneur.setPointerCapture(e.pointerId); });
   conteneur.addEventListener("pointermove", e => { if (glisse) cible = Math.max(-0.9, Math.min(0.9, glisse.a - (e.clientX - glisse.x) / 300)); });
-  conteneur.addEventListener("pointerup", () => { glisse = null; });
+  // Un clic (sans glisser) sur un box ouvre les performances de l'agent
+  const rayon = new THREE.Raycaster(), souris = new THREE.Vector2();
+  let surClic = null;
+  conteneur.addEventListener("pointerup", e => {
+    const clic = glisse && Math.hypot(e.clientX - glisse.x, e.clientY - glisse.y) < 6;
+    glisse = null;
+    if (!clic || !surClic) return;
+    const b = rendu.domElement.getBoundingClientRect();
+    souris.set(((e.clientX - b.left) / b.width) * 2 - 1, -((e.clientY - b.top) / b.height) * 2 + 1);
+    rayon.setFromCamera(souris, camera);
+    const touche = rayon.intersectObjects(Object.values(postes).map(p => p.g), true)[0];
+    if (!touche) return;
+    for (let o = touche.object; o; o = o.parent) if (o.userData.agent) return surClic(o.userData.agent);
+  });
   const taille = () => {
     const l = conteneur.clientWidth, h = conteneur.clientHeight;
     rendu.setSize(l, h, false); camera.aspect = l / h;
@@ -357,7 +395,8 @@ const Scene3D = (() => {
       p.anneau.material.color.setHex(COULEUR_ETAT[etat]); p.halo.material.color.setHex(COULEUR_ETAT[etat]);
       p.etiquette.innerHTML = `<span class="long">${nom}</span><span class="court">${nom.replace(/^(Agent|Robot) /, "").split(" ")[0]}</span><i>${texte}</i>`;
     },
-    flux(n, actif) { if (flux[n]) flux[n].actif = actif; }
+    flux(n, actif) { if (flux[n]) flux[n].actif = actif; },
+    clic(fn) { surClic = fn; }
   };
 })();
 
@@ -408,9 +447,11 @@ function etatDe(run) {
   return "alerte";
 }
 
+const FICHES = {};
 function fiche(a, run, chiffres, lignes) {
   const etat = etatDe(run);
-  return `<article class="fiche" data-etat="${etat}" aria-label="${a.nom}">
+  FICHES[a.id] = {chiffres, lignes};
+  return `<article class="fiche" data-etat="${etat}" data-agent="${a.id}" tabindex="0" aria-label="${a.nom} : clique pour voir ses performances">
     <h2>${a.nom}</h2><div class="role">${a.role}</div>
     <span class="pastille">${ETATS[etat]}${etat === "travail" ? " depuis " + quand(run.run_started_at).replace("il y a ", "") : ""}</span>
     <div class="chiffres">${chiffres.map(([v, l]) => `<div class="chiffre"><b>${v}</b><span>${l}</span></div>`).join("")}</div>
@@ -532,10 +573,75 @@ document.getElementById("formEstimation").addEventListener("submit", e => {
     </ul>`;
 });
 
+/* ---------- Performances d'un agent ---------- */
+// Passages des 30 derniers jours (API GitHub) : nombre, taux de réussite, durée, dernier échec, graphique des durées.
+const duree = s => s < 60 ? `${Math.round(s)} s` : `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, "0")} s`;
+async function performances(id) {
+  const a = AGENTS.find(x => x.id === id); if (!a) return;
+  const dlg = document.getElementById("perf"), corps = document.getElementById("perfCorps");
+  document.getElementById("perfTitre").textContent = `Performances — ${a.nom}`;
+  dlg.style.setProperty("--c", "#" + COULEURS[id].toString(16).padStart(6, "0"));
+  corps.innerHTML = `<p class="petit">Chargement des passages…</p>`;
+  if (!dlg.open) dlg.showModal();
+  try {
+    const depuis = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+    const r = await api(`/actions/workflows/${a.workflow}/runs?per_page=100&created=%3E%3D${depuis}`);
+    const runs = (r?.workflow_runs || []).filter(x => x.status === "completed" && ["success", "failure"].includes(x.conclusion)).reverse();
+    const ok = runs.filter(x => x.conclusion === "success"), ko = runs.filter(x => x.conclusion === "failure");
+    const sec = x => Math.max(0, (new Date(x.updated_at) - new Date(x.run_started_at || x.created_at)) / 1000);
+    const moy = ok.length ? ok.reduce((t, x) => t + sec(x), 0) / ok.length : 0;
+    const dernierKo = ko.at(-1);
+    const f = FICHES[id];
+    // Graphique : une barre par passage (hauteur = durée), réussite / échec
+    const L = 640, H = 170, bas = 140, n = runs.length, larg = n ? Math.min(18, (L - 66) / n - 2) : 0;
+    const max = Math.max(60, ...runs.map(sec)), y = v => bas - (v / max) * (bas - 14);
+    const graduations = [0, max / 2, max].map(v => `<line x1="60" x2="${L}" y1="${y(v)}" y2="${y(v)}" stroke="var(--bd)" stroke-width="1"/><text x="56" y="${y(v) + 4}" text-anchor="end" font-size="10" fill="var(--mu)">${duree(v)}</text>`).join("");
+    const barres = runs.map((x, i) => {
+      const xx = 66 + i * (larg + 2), h = Math.max(3, bas - y(sec(x)));
+      const c = x.conclusion === "success" ? "var(--ok)" : "var(--alerte)";
+      const info = `${new Date(x.run_started_at).toLocaleString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"})} · ${duree(sec(x))} · ${x.conclusion === "success" ? "réussi" : "échec"}`;
+      return `<g class="b" data-info="${info}" data-x="${xx + larg / 2}" data-y="${bas - h}"><rect x="${xx - 1}" y="10" width="${larg + 2}" height="${bas - 10}" fill="transparent"/><path d="M${xx} ${bas}V${bas - h + 3}q0 -3 3 -3h${Math.max(0, larg - 6)}q3 0 3 3V${bas}z" fill="${c}"/></g>`;
+    }).join("");
+    corps.innerHTML = `
+      <div class="kpis">
+        <div class="kpi"><b>${runs.length}</b><span>passages (30 jours)</span></div>
+        <div class="kpi"><b>${runs.length ? Math.round(ok.length / runs.length * 100) + " %" : "—"}</b><span>taux de réussite</span></div>
+        <div class="kpi"><b>${ok.length ? duree(moy) : "—"}</b><span>durée moyenne</span></div>
+        <div class="kpi"><b>${ko.length}</b><span>échec(s)</span></div>
+      </div>
+      ${f ? `<div><h3>Ses chiffres</h3><div class="kpis" style="margin-top:8px">${f.chiffres.map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("")}</div></div>` : ""}
+      <div><h3>Durée de chaque passage</h3>
+        ${n ? `<div class="graphe" id="graphe"><svg viewBox="0 0 ${L} ${H}" role="img" aria-label="Durée des ${n} derniers passages">${graduations}<line x1="60" x2="${L}" y1="${bas}" y2="${bas}" stroke="var(--mu)" stroke-width="1"/>${barres}
+          <text x="66" y="${H - 8}" font-size="10" fill="var(--mu)">${new Date(runs[0].run_started_at).toLocaleDateString("fr-FR")}</text><text x="${L}" y="${H - 8}" text-anchor="end" font-size="10" fill="var(--mu)">${new Date(runs.at(-1).run_started_at).toLocaleDateString("fr-FR")}</text></svg>
+          <div class="bulle" id="bulle" hidden></div></div>
+          <div class="legende"><span><i style="background:var(--ok)"></i>✓ réussi</span><span><i style="background:var(--alerte)"></i>✗ échec</span></div>`
+        : `<p class="petit">Aucun passage terminé ces 30 derniers jours.</p>`}
+      </div>
+      ${dernierKo ? `<p class="petit">Dernier échec : <b>${new Date(dernierKo.run_started_at).toLocaleString("fr-FR")}</b> — <a href="${dernierKo.html_url}" target="_blank" rel="noopener">voir ce qui s'est passé</a></p>` : ""}
+      ${n ? `<details><summary class="petit">Voir le tableau des passages</summary><div class="tableau"><table><thead><tr><th>Date</th><th>Durée</th><th>Résultat</th><th>Déclenché par</th></tr></thead><tbody>
+        ${runs.slice().reverse().map(x => `<tr><td>${new Date(x.run_started_at).toLocaleString("fr-FR")}</td><td>${duree(sec(x))}</td><td>${x.conclusion === "success" ? "✓ réussi" : "✗ échec"}</td><td>${{schedule: "planning", workflow_dispatch: "à la main", workflow_run: "agent précédent"}[x.event] || x.event}</td></tr>`).join("")}</tbody></table></div></details>` : ""}
+      <p class="petit">Rythme : <b>${a.frequence}</b> · <a href="https://github.com/${DEPOT}/actions/workflows/${a.workflow}" target="_blank" rel="noopener">historique complet sur GitHub</a></p>`;
+    const g = document.getElementById("graphe");
+    if (g) {
+      const bulle = document.getElementById("bulle"), svg = g.querySelector("svg");
+      g.addEventListener("pointermove", e => {
+        const b = e.target.closest(".b"); if (!b) { bulle.hidden = true; return; }
+        const k = svg.clientWidth / L;
+        bulle.textContent = b.dataset.info; bulle.style.left = b.dataset.x * k + "px"; bulle.style.top = b.dataset.y * k + "px"; bulle.hidden = false;
+      });
+      g.addEventListener("pointerleave", () => { bulle.hidden = true; });
+    }
+  } catch (err) { corps.innerHTML = `<p class="erreur">${esc(err.message)}</p>`; }
+}
+document.getElementById("perfFermer").onclick = () => document.getElementById("perf").close();
+document.getElementById("perf").addEventListener("click", e => { if (e.target.id === "perf") e.target.close(); });
+document.getElementById("fiches").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.classList.contains("fiche")) performances(e.target.dataset.agent); });
+Scene3D.clic?.(performances);
+
 /* ---------- Actions ---------- */
 document.getElementById("fiches").addEventListener("click", async e => {
   const b = e.target.closest("[data-lancer]");
-  if (!b) return;
+  if (!b) { const f = e.target.closest(".fiche"); if (f && !e.target.closest("a")) performances(f.dataset.agent); return; }
   if (b.dataset.confirme !== "1") { b.dataset.confirme = "1"; b.textContent = "Confirmer le lancement"; setTimeout(() => { b.dataset.confirme = ""; b.textContent = "Lancer maintenant"; }, 4000); return; }
   b.disabled = true; b.textContent = "Envoi…";
   try {
