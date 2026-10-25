@@ -621,5 +621,46 @@ Object.assign(DICT,{"Fonction réservée à la version Premium.":["Functie voorb
 Object.assign(DICT,{"Attention : un prix élevé ne veut pas toujours dire un matériel de bonne qualité.":["Opgelet: een hoge prijs betekent niet altijd dat het materiaal van goede kwaliteit is.","Careful: a high price doesn’t always mean good-quality materials."]});
 Object.assign(DICT,{"Renseigne les informations importantes du bien. Tout est facultatif, sauf l'adresse.":["Vul de belangrijkste gegevens van het pand in. Alles is optioneel, behalve het adres.","Fill in the property’s key details. Everything is optional except the address."],"Surface totale (m²)":["Totale oppervlakte (m²)","Total area (m²)"],"Surface totale":["Totale oppervlakte","Total area"],"Terrain (m²)":["Perceel (m²)","Plot (m²)"],"Détails du bien":["Gegevens van het pand","Property details"]});
 Object.assign(DICT,{"Version Premium":["Premium-versie","Premium version"]});
+/* ===== Espace professionnel : agence, artisan, négociant ===== */
+const PRO_T={
+agence:{n:"Agence immobilière",i:"🏢",b:"b0",d:"Publie tes biens et reçois des demandes d’estimation.",
+ cat:{t:"Services proposés",o:["Vente","Location","Estimation","Gestion locative","Viager","Biens commerciaux"]},
+ sw:[["pub","Publier mes annonces sur Kozi"],["est","Recevoir des demandes d’estimation"],["logo","Afficher mon logo sur mes annonces"],["vis","Proposer des visites en ligne"]],
+ nb:[["hon","Honoraires de vente (%)"]]},
+artisan:{n:"Artisan",i:"🔨",b:"b1",d:"Reçois des demandes de devis pour les travaux chiffrés dans Kozi.",
+ cat:{t:"Mes métiers",o:["Électricité","Plomberie","Chauffage","Toiture","Châssis","Carrelage","Parquet","Peinture","Plafonnage","Isolation","Maçonnerie","Cuisine","Salle de bain"]},
+ sw:[["dev","Recevoir des demandes de devis"],["prix","Afficher mes tarifs indicatifs"],["agr","Entrepreneur agréé (primes régionales)"],["urg","Interventions urgentes"]],
+ nb:[["th","Taux horaire (€ HTVA)"]],dispo:1},
+negociant:{n:"Négociant en matériaux",i:"🧱",b:"b2",d:"Propose tes matériaux aux particuliers et artisans qui rénovent.",
+ cat:{t:"Catégories de matériaux",o:["Gros œuvre","Isolation","Carrelage","Parquet","Peinture","Sanitaire","Électricité","Menuiseries","Toiture","Cuisine","Outillage"]},
+ sw:[["liv","Livraison sur chantier"],["ret","Retrait en magasin"],["prix","Afficher mes prix dans Kozi"],["pro","Tarifs réservés aux professionnels"]],
+ nb:[["km","Rayon de livraison (km)"],["rem","Remise professionnelle (%)"]]}};
+const PRO_PROV=["Bruxelles","Brabant wallon","Brabant flamand","Anvers","Limbourg","Liège","Namur","Hainaut","Luxembourg","Flandre-Occidentale","Flandre-Orientale"];
+const PRO_DISPO=[["","—"],["now","Immédiate"],["1m","Moins d’un mois"],["3m","1 à 3 mois"],["+","Plus de 3 mois"]];
+function proP(){S.pro=S.pro||{p:{}};const k=S.pro.type;if(!k)return null;return S.pro.p[k]=S.pro.p[k]||{on:false,o:{},cat:[],zone:[]}}
+const proE=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+function proView(){S.pro=S.pro||{p:{}};const k=S.pro.type,top=`<div class="hbar"><button type="button" class="hbk" id="pro-bk">‹ Intro</button>${k?`<button type="button" class="hbk" id="pro-ch">Changer de profil</button>`:""}</div>`;
+if(!k)return top+`<h1>Espace professionnel</h1><p class="sub">Quel type de professionnel es-tu ?</p><div class="rl">${Object.entries(PRO_T).map(([id,t])=>`<button type="button" class="adr p${["agence","artisan","negociant"].indexOf(id)}" data-prot="${id}" style="border:0;width:100%;text-align:left;font:inherit"><span class="ico">${t.i}</span><span class="tx"><b>${t.n}</b><small>${t.d}</small></span><span class="chev">›</span></button>`).join("")}</div><div class="tip"><span>ℹ️</span><div><b>Version d’essai</b><small>Tes réglages sont enregistrés sur cet appareil. La validation des comptes professionnels arrivera plus tard.</small></div></div>`;
+const t=PRO_T[k],p=proP(),f=(id,l,ty)=>`<label>${l}<input type="${ty||"text"}" data-pf="${id}" value="${proE(p[id])}"></label>`;
+return top+`<div class="bn ${t.b}"><span class="em">${t.i}</span><h2>${t.n}</h2><small>${proE(p.nom)||"Mon espace professionnel"}</small></div>
+<div class="c"><label class="sw" style="margin:0;color:var(--tx);font-size:16px"><input type="checkbox" data-pon="1"${p.on?" checked":""}> Profil visible dans Kozi</label><small>${p.on?"Ta fiche apparaît auprès des utilisateurs de Kozi.":"Ta fiche est masquée. Active-la quand tout est prêt."}</small></div>
+<div class="c"><h3>Mes informations</h3>${f("nom","Nom de la société")}${f("bce","Numéro d’entreprise (BCE)")}${f("tel","Téléphone","tel")}${f("mail","E-mail de contact","email")}${f("web","Site internet","url")}</div>
+<div class="c"><h3>${t.cat.t}</h3><div class="chips">${t.cat.o.map(c=>`<button type="button" class="chip${p.cat.includes(c)?" on":""}" data-pc="${proE(c)}">${c}</button>`).join("")}</div></div>
+<div class="c"><h3>Zone d’activité</h3><div class="chips">${PRO_PROV.map(c=>`<button type="button" class="chip${p.zone.includes(c)?" on":""}" data-pz="${c}">${c}</button>`).join("")}</div></div>
+<div class="c"><h3>Mes options</h3>${t.sw.map(([id,l])=>`<label class="ar"><input type="checkbox" data-po="${id}"${p.o[id]?" checked":""}><span><b>${l}</b></span></label>`).join("")}${t.nb.map(([id,l])=>f(id,l,"number")).join("")}${t.dispo?`<label>Disponibilité<select data-pf="dispo" style="width:100%;margin-top:4px">${PRO_DISPO.map(d=>`<option value="${d[0]}"${p.dispo==d[0]?" selected":""}>${d[1]}</option>`).join("")}</select></label>`:""}</div>
+<div class="c"><h3>Aperçu de ma fiche</h3><div class="b ${p.on?"g":""}"><b>${t.i} ${proE(p.nom)||t.n}</b><small style="display:block">${p.cat.length?p.cat.join(" · "):"Aucune catégorie choisie"}</small><small style="display:block">📍 ${p.zone.length?p.zone.join(", "):"Zone non précisée"}</small>${p.tel?`<small style="display:block">📞 ${proE(p.tel)}</small>`:""}<small style="display:block;margin-top:4px">${p.on?"✅ Visible":"⏸️ Masquée"}</small></div></div>`}
+{const _render=render;render=function(){const pv=S.v=="pro";document.body.classList.toggle("prov",pv);if(!pv)return _render();$("#m").dataset.v="pro";$("#m").innerHTML=proView()};
+const st=document.createElement("style");st.textContent="body.prov nav{display:none}body.prov{padding-bottom:16px}@media(min-width:1024px){body.prov{padding-left:0}}#m input[data-pf]{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:8px}#pro{border:0;background:none;color:#3a68e8;font:700 15px system-ui,Arial,sans-serif;padding:6px 10px;cursor:pointer;animation:ip .7s .4s ease both}";document.head.appendChild(st);
+const go=document.getElementById("go"),b=document.createElement("button");b.id="pro";b.type="button";b.textContent="💼 Je suis un professionnel";go.after(b);
+b.onclick=()=>{go.click();setTimeout(()=>{S.v="pro";save();render();scrollTo(0,0)},0)};
+const rr=()=>{save();render()};
+document.addEventListener("click",e=>{if(S.v!="pro")return;const x=e.target.closest("[data-prot],[data-pc],[data-pz],#pro-bk,#pro-ch");if(!x)return;
+ if(x.id=="pro-bk"){window._introShow&&window._introShow();return}
+ if(x.id=="pro-ch"){S.pro.type=null;rr();scrollTo(0,0);return}
+ if(x.dataset.prot){S.pro.type=x.dataset.prot;proP();rr();scrollTo(0,0);return}
+ const p=proP(),a=x.dataset.pc?p.cat:p.zone,v=x.dataset.pc||x.dataset.pz,i=a.indexOf(v);i<0?a.push(v):a.splice(i,1);rr()});
+document.addEventListener("change",e=>{if(S.v!="pro")return;const x=e.target,p=proP();if(!p)return;
+ if(x.dataset.pon){p.on=x.checked;rr()}else if(x.dataset.po){p.o[x.dataset.po]=x.checked;save()}else if(x.dataset.pf){p[x.dataset.pf]=x.value;rr()}})}
+Object.assign(DICT,{"💼 Je suis un professionnel":["💼 Ik ben een professional","💼 I am a professional"],"Espace professionnel":["Professionele ruimte","Professional area"],"Quel type de professionnel es-tu ?":["Welk soort professional ben je?","What kind of professional are you?"],"Agence immobilière":["Vastgoedkantoor","Real estate agency"],"Artisan":["Vakman","Tradesperson"],"Négociant en matériaux":["Bouwmaterialenhandel","Building materials supplier"],"Changer de profil":["Profiel wijzigen","Change profile"],"Version d’essai":["Testversie","Trial version"],"Profil visible dans Kozi":["Profiel zichtbaar in Kozi","Profile visible in Kozi"],"Mes informations":["Mijn gegevens","My details"],"Nom de la société":["Bedrijfsnaam","Company name"],"Numéro d’entreprise (BCE)":["Ondernemingsnummer (KBO)","Company number (CBE)"],"Téléphone":["Telefoon","Phone"],"E-mail de contact":["Contact-e-mail","Contact e-mail"],"Site internet":["Website","Website"],"Zone d’activité":["Werkgebied","Area of activity"],"Mes options":["Mijn opties","My options"],"Aperçu de ma fiche":["Voorbeeld van mijn fiche","Preview of my listing"],"Mes métiers":["Mijn vakgebieden","My trades"],"Services proposés":["Aangeboden diensten","Services offered"],"Catégories de matériaux":["Materiaalcategorieën","Material categories"],"Disponibilité":["Beschikbaarheid","Availability"],"Mon espace professionnel":["Mijn professionele ruimte","My professional area"]});
 render();
 </script></body></html>
