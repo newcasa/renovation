@@ -745,10 +745,10 @@ document.addEventListener("click",e=>{if(S.v!="pro"||!S.pro||S.pro.type!="agence
  if(x.dataset.agback){if(x.dataset.agback=="home")S.pro.ai=null;S.pro.le=null;rr();scrollTo(0,0);return}
  const[a,l]=cur();
  if(x.id=="al-new"&&a){const n={id:agId(),sta:"dispo",pub:false,vues:0,adrs:0,tr:"Vente",zone:"",dt:Date.now()};(a.an=a.an||[]).unshift(n);S.pro.le=n.id;rr();scrollTo(0,0);return}
- if(x.dataset.agdel){const g=agFind(x.dataset.agdel);if(g&&confirm(tr("Supprimer cette agence et toutes ses annonces ?"))){(g.an||[]).forEach(q=>delPh(q.id));p.ag=p.ag.filter(q=>q!==g);S.pro.ai=null;S.pro.le=null;rr();scrollTo(0,0)}return}
+ if(x.dataset.agdel){const g=agFind(x.dataset.agdel);if(g)kzAsk("Supprimer cette agence et toutes ses annonces ?","Supprimer l’agence").then(ok=>{if(!ok)return;(g.an||[]).forEach(q=>delPh(q.id));p.ag=p.ag.filter(q=>q!==g);S.pro.ai=null;S.pro.le=null;rr();scrollTo(0,0);toast(tr("Agence supprimée."))});return}
  if(!a)return;
  if(x.dataset.lpub){const q=agL(a,x.dataset.lpub);if(!q)return;if(!q.pub&&(!q.ti||!q.prix)){toast(tr("Ajoute au moins un titre et un prix avant de publier."));return}q.pub=!q.pub;if(q.pub)q.dp=Date.now();toast(tr(q.pub?(a.on?"Annonce publiée sur l’appli.":"Annonce publiée. Coche l’agence pour la rendre visible."):"Annonce retirée de l’appli."));rr();return}
- if(x.dataset.ldel){const q=agL(a,x.dataset.ldel);if(q&&confirm(tr("Supprimer définitivement cette annonce ?"))){delPh(q.id);a.an=a.an.filter(z=>z!==q);if(S.pro.le==q.id)S.pro.le=null;rr()}return}
+ if(x.dataset.ldel){const q=agL(a,x.dataset.ldel);if(q)kzAsk("Supprimer définitivement cette annonce ?","Supprimer l’annonce").then(ok=>{if(!ok)return;delPh(q.id);a.an=a.an.filter(z=>z!==q);if(S.pro.le==q.id){S.pro.le=null;scrollTo(0,0)}rr();toast(tr("Annonce supprimée."))});return}
  if(x.dataset.lst&&l){l.sta=x.dataset.lst;rr();return}
  if(x.dataset.phx&&l){const k=+x.dataset.phx;tx("readwrite",s=>s.delete(k)).catch(()=>{});PH["pa|"+l.id]=agPh(l.id).filter(q=>q.k!==k);render();return}});
 document.addEventListener("change",async e=>{if(S.v!="pro"||!S.pro||S.pro.type!="agence")return;const x=e.target,d=x.dataset||{};const[a,l]=cur();
@@ -759,6 +759,7 @@ document.addEventListener("change",async e=>{if(S.v!="pro"||!S.pro||S.pro.type!=
  if(d.lc&&l){l[d.lc]=x.checked;save();return}
  if(x.id=="al-ph"&&l){const fs=[...x.files];x.value="";await phl();const key="pa|"+l.id;PH[key]=PH[key]||[];for(const f of fs){try{const dd=await shrink(f),k=await tx("readwrite",s=>s.add({adr:key,data:dd,t:Date.now()}));PH[key].push({k,d:dd,c:""})}catch(er){}}render()}});}
 /* ----- côté utilisateur : annonces publiées par les agences Kozi ----- */
+function kzAsk(msg,yes){return new Promise(ok=>{const d=document.createElement("div");d.id="kza";d.innerHTML=`<div class="kzb" role="dialog" aria-modal="true"><b>${tr(msg)}</b><small>${tr("Cette action est définitive.")}</small><div class="kzr"><button type="button" class="kzn">${tr("Annuler")}</button><button type="button" class="kzy">${tr(yes||"Supprimer")}</button></div></div>`;const end=v=>{d.remove();ok(v)};d.onclick=e=>{if(e.target===d||e.target.closest(".kzn"))end(false);else if(e.target.closest(".kzy"))end(true)};document.body.appendChild(d);d.querySelector(".kzn").focus()})}
 const KZV=new Set();
 function agPubList(){const p=S.pro&&S.pro.p&&S.pro.p.agence;if(!p||!p.ag)return[];return p.ag.flatMap(a=>(a.an||[]).filter(l=>agVis(a,l)).map(l=>({a,l}))).filter(o=>!AZ||!o.l.zone||o.l.zone==AZ).sort((x,y)=>(y.l.dp||0)-(x.l.dp||0))}
 function agPubSec(){const L=agPubList();if(!L.length)return"";const g=(k,v)=>v===""||v==null?"":`<div><small>${k}</small><b>${v}</b></div>`;
@@ -787,6 +788,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-kc]");if(!
 .kst .kt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.kt>div{background:var(--bg);border-radius:14px;padding:10px 6px;text-align:center}.kt b{display:block;font-family:var(--hf);font-size:24px;color:var(--bl)}.kt small{font-size:11.5px}
 .kag{margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)}.kah{display:flex;justify-content:space-between;align-items:center;gap:8px}.kah b{font-family:var(--hf);font-size:16px}
 .krow{margin-top:10px}.knum{flex:none;text-align:right}.knum b{display:block;font-size:14px}.knum small{font-size:12px}.kbar{display:block;height:5px;border-radius:5px;background:var(--bd);margin-top:5px;overflow:hidden}.kbar i{display:block;height:100%;background:var(--bl);border-radius:5px}
+#kza{position:fixed;inset:0;z-index:600;background:rgba(35,25,15,.5);display:flex;align-items:center;justify-content:center;padding:20px}.kzb{width:100%;max-width:360px;background:var(--cd);color:var(--tx);border-radius:20px;padding:20px;box-shadow:0 12px 34px rgba(0,0,0,.3)}.kzb b{display:block;font-family:var(--hf);font-size:18px;margin-bottom:6px}.kzr{display:flex;gap:10px;margin-top:18px}.kzr button{flex:1;border:0;border-radius:14px;padding:13px;font:700 15px system-ui,Arial,sans-serif;cursor:pointer;background:var(--bd);color:var(--tx)}.kzr .kzy{background:var(--rs);color:#fff}
 .kgal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:4px}.kgal img{flex:0 0 100%;width:100%;height:220px;object-fit:cover;scroll-snap-align:start}
 .kcb{display:block;width:100%;margin:12px 0 0;padding:12px 14px;border:0;border-radius:12px;background:var(--bl);color:#fff;font:700 15px system-ui,Arial,sans-serif;cursor:pointer}.kmail{display:block;margin:8px 0 0;padding:11px 14px;border-radius:12px;background:var(--bd);color:var(--tx);text-align:center;text-decoration:none;font-weight:700;font-size:14px}
 @media(min-width:1024px){.phg{grid-template-columns:repeat(5,1fr)}.g2{grid-template-columns:repeat(3,1fr)}}`;document.head.appendChild(st)}
