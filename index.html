@@ -916,6 +916,10 @@ function delRoom(i){if(!S.rooms[i])return;const x=snapS(),nm=S.rooms[i].n;S.room
 function delPh(k){const id=pk(),a=PH[id]||[],ix=a.findIndex(x=>x.k===k),it=a[ix];PH[id]=a.filter(x=>x.k!==k);const ov=$("#ov");if(ov)ov.remove();drawPh();if(!it)return;
  undoable(tr("Photo supprimée"),()=>{(PH[id]=PH[id]||[]).splice(ix,0,it)},()=>tx("readwrite",s=>s.delete(k)).catch(()=>{}))}
 addEventListener("pagehide",ubCommit);
+/* --- Une seule fenêtre ouverte à la fois dans une pièce (Sol, Murs, Plafond…) --- */
+document.addEventListener("toggle",e=>{const d=e.target;if(!d.matches||!d.matches("details.rw")||!d.open)return;
+ const c=d.parentElement;if(c)c.querySelectorAll("details.rw[open]").forEach(x=>{if(x!==d)x.open=false});
+ const s=d.querySelector("summary");if(s)setTimeout(()=>s.scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"}),0)},true);
 /* --- Traductions des nouveaux textes --- */
 Object.assign(DICT,{"Je fais moi-même":["Ik doe het zelf","I do it myself"],"Artisan":["Vakman","Contractor"],
 "Matériaux achetés soi-même : TVA à 21 % au lieu de 6 %, primes parfois perdues, pas de garantie sur les travaux.":["Zelf gekochte materialen: 21 % btw in plaats van 6 %, premies soms verloren, geen garantie op de werken.","Materials bought yourself: 21% VAT instead of 6%, grants may be lost, no warranty on the work."],
