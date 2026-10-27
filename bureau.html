@@ -153,7 +153,7 @@ const CLE_JETON = "bureauAgents.jeton";
 /* ---------- Scène 3D ---------- */
 // Un open space à l'américaine : quatre box séparés par des cloisons, un androïde par box. Chaque agent a sa couleur ;
 // son état (travail, ok, repos, alerte) pilote ses gestes, sa lumière et l'anneau au sol.
-const COULEURS = {robot: 0x4aa3ff, classement: 0xb07cff, moyennes: 0x3ee08a, kozi: 0xffb340, estimateur: 0xff6fae, gardien: 0x2ad1c9, veille: 0xd4e157, rapport: 0x9aa8ff};
+const COULEURS = {robot: 0x4aa3ff, classement: 0xb07cff, moyennes: 0x3ee08a, kozi: 0xffb340, gardien: 0x2ad1c9, veille: 0xd4e157, rapport: 0x9aa8ff};
 const COULEUR_ETAT = {travail: 0x4aa3ff, ok: 0x3ee08a, repos: 0x5a6b85, alerte: 0xff4d5e};
 const Scene3D = (() => {
   const conteneur = document.getElementById("scene"), hud = document.getElementById("hud");
@@ -211,11 +211,12 @@ const Scene3D = (() => {
 
   // Un poste : bureau, écran holographique, androïde, anneau d'état, balise d'alerte
   const postes = {};
-  ["robot", "classement", "moyennes", "kozi", "estimateur", "gardien", "veille", "rapport"].forEach((id, n) => {
+  const ids = ["robot", "classement", "moyennes", "kozi", "gardien", "veille", "rapport"];
+  ids.forEach((id, n) => {
     const c = COULEURS[id], g = new THREE.Group();
-    // Deux rangées de quatre box ; la rangée du fond est sur l'estrade
+    // Quatre box devant, trois au fond sur l'estrade (centrées)
     const col = n % 4, fond = n >= 4;
-    g.position.set(-5.4 + col * 3.6, fond ? 1.1 : 0, fond ? -3.6 : 0);
+    g.position.set(-5.4 + col * 3.6 + (fond ? 1.8 : 0), fond ? 1.1 : 0, fond ? -3.6 : 0);
     scene.add(g);
 
     // Box à l'américaine : cloisons en tissu avec rail en aluminium, plaque nominative, lampe et dossiers
@@ -226,7 +227,7 @@ const Scene3D = (() => {
     };
     panneau(3.55, 1.5, 0, -1.3);
     panneau(2.7, 1.5, -1.78, 0.05, Math.PI / 2);
-    if (col === 3) panneau(2.7, 1.5, 1.78, 0.05, Math.PI / 2);
+    if (col === 3 || n === ids.length - 1) panneau(2.7, 1.5, 1.78, 0.05, Math.PI / 2);
     g.add(place(new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshBasicMaterial({color: c})), -1.1, 1.3, -1.25));
     g.add(place(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), rail), 0.85, 1.21, 0.35));
     const abatJour = place(new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.18, 16, 1, true), mat(0x2b3240, {side: THREE.DoubleSide})), 0.85, 1.45, 0.35); abatJour.rotation.x = Math.PI; g.add(abatJour);
@@ -379,7 +380,6 @@ const AGENTS = [
   {id: "classement", nom: "Agent Classement", role: "L'archiviste : range par région et par métier", workflow: "classement.yml", frequence: "chaque jour vers 7h"},
   {id: "moyennes", nom: "Agent Moyennes", role: "L'analyste : prix moyens par province", workflow: "moyennes.yml", frequence: "après chaque classement"},
   {id: "kozi", nom: "Agent Kozi", role: "Le chef de chantier : met à jour les prix de Kozi", workflow: "kozi.yml", frequence: "chaque lundi"},
-  {id: "estimateur", nom: "Agent Estimateur", role: "L'expert immobilier : prix de vente réels Statbel", workflow: "estimateur.yml", frequence: "chaque mois"},
   {id: "gardien", nom: "Agent Gardien", role: "Le contrôleur : vérifie Kozi et les agents", workflow: "gardien.yml", frequence: "chaque jour vers 11h"},
   {id: "veille", nom: "Agent Veille primes", role: "Le veilleur : primes et aides à la rénovation", workflow: "veille.yml", frequence: "chaque mercredi"},
   {id: "rapport", nom: "Agent Rapport", role: "Le secrétaire : résumé de la semaine", workflow: "rapport.yml", frequence: "chaque lundi"}
@@ -446,11 +446,10 @@ async function charger() {
   const zoneErreur = document.getElementById("erreur");
   try {
     const runs = await Promise.all(AGENTS.map(a => api(`/actions/workflows/${a.workflow}/runs?per_page=1`).then(r => r?.workflow_runs?.[0] || null)));
-    const [donnees, etatRobot, classement, moyennes, kozi, koziEtat, statbel, gardien, veille, rapport] = await Promise.all([
+    const [donnees, etatRobot, classement, moyennes, kozi, koziEtat, gardien, veille, rapport] = await Promise.all([
       fichier("robot-factures/donnees.json"), fichier("robot-factures/etat.json"), fichier("agent-classement/classement.json"),
-      fichier("agent-moyennes/moyennes.json"), fichier("agent-kozi/derniere-mise-a-jour.json"), fichier("agent-kozi/etat.json"), STATBEL || fichier("agent-estimateur/statbel.json"),
+      fichier("agent-moyennes/moyennes.json"), fichier("agent-kozi/derniere-mise-a-jour.json"), fichier("agent-kozi/etat.json"),
       fichier("agent-gardien/rapport.json"), fichier("agent-veille/veille.json"), fichier("agent-rapport/dernier.json")]);
-    chargerStatbel(statbel);
 
     // Robot factures
     const docs = Object.values(donnees || {}).flatMap(e => e.factures);
@@ -472,13 +471,11 @@ async function charger() {
         [provinces[0] ? `Province la plus fournie : <b>${provinces[0].province}</b>` : "Pas encore de moyennes"]),
       fiche(AGENTS[3], runs[3], [[nb(kozi?.modifies?.length), "prix changés (dernier passage)"], [nb(kozi?.signales?.length), "propositions bloquées"]],
         [`Indice ABEX de référence : <b>${koziEtat?.abex?.indice ?? "non renseigné"}</b>`, kozi ? `Dernier rapport : <b>${quand(kozi.date)}</b> (${kozi.mode})` : "Pas encore de rapport"]),
-      fiche(AGENTS[4], runs[4], [[nb(statbel?.communes?.length), "communes"], [nb(statbel?.communes?.reduce((n, c) => n + (c.types.maisons?.ventes || 0) + (c.types.appartements?.ventes || 0), 0)), "ventes réelles"]],
-        [statbel ? `Période : <b>${statbel.periode}</b>` : "Pas encore de données Statbel", statbel ? `Mise à jour : <b>${new Date(statbel.maj).toLocaleDateString("fr-FR")}</b>` : ""]),
-      fiche(AGENTS[5], runs[5], [[nb(gardien?.controles?.filter(c => c.ok).length), "contrôles réussis"], [nb(gardien?.controles?.filter(c => !c.ok).length), "alertes"]],
+      fiche(AGENTS[4], runs[4], [[nb(gardien?.controles?.filter(c => c.ok).length), "contrôles réussis"], [nb(gardien?.controles?.filter(c => !c.ok).length), "alertes"]],
         gardien ? gardien.controles.filter(c => !c.ok).slice(0, 3).map(c => `${c.critique ? "🔴" : "🟠"} <b>${esc(c.nom)}</b> : ${esc(c.detail)}`).concat(gardien.controles.every(c => c.ok) ? ["Tout fonctionne."] : []) : ["Pas encore de contrôle"]),
-      fiche(AGENTS[6], runs[6], [[nb(veille?.aides?.length), "aides suivies"], [nb(veille?.nouveautes?.length), "nouveautés"]],
+      fiche(AGENTS[5], runs[5], [[nb(veille?.aides?.length), "aides suivies"], [nb(veille?.nouveautes?.length), "nouveautés"]],
         veille ? [esc(veille.resume)] : ["Pas encore de veille"]),
-      fiche(AGENTS[7], runs[7], [[rapport ? (rapport.envoye ? "Envoyé" : "Non envoyé") : "—", "dernier rapport"]],
+      fiche(AGENTS[6], runs[6], [[rapport ? (rapport.envoye ? "Envoyé" : "Non envoyé") : "—", "dernier rapport"]],
         [rapport ? `Dernier rapport : <b>${quand(rapport.date)}</b> (${rapport.mode})` : "Pas encore de rapport", "Destinataire : <b>kozireno2027@gmail.com</b>"])
     ];
     document.getElementById("fiches").innerHTML = html.join("");
@@ -494,11 +491,6 @@ async function charger() {
     zoneErreur.hidden = false;
   }
 }
-
-/* ---------- Données Statbel (fiche de l'agent Estimateur) ---------- */
-// Le fichier est volumineux et ne change qu'une fois par mois : on le garde après le premier chargement.
-let STATBEL = null;
-function chargerStatbel(s) { if (s && !STATBEL) STATBEL = s; }
 
 /* ---------- Performances d'un agent ---------- */
 // Passages des 30 derniers jours (API GitHub) : nombre, taux de réussite, durée, dernier échec, graphique des durées.
