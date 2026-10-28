@@ -799,7 +799,7 @@ ${agPick(a,l)}<div class="c"><h3>Photos (${ph.length})</h3><div class="phg">${ph
 <div class="c"><h3>Description</h3><textarea data-lf="desc" rows="6" placeholder="Décris le bien : situation, pièces, points forts, travaux à prévoir…">${proE(l.desc)}</textarea></div>
 ${docsCard(l.id)}<div class="agpub"><button type="button" class="pbtn" data-lpub="${l.id}">${l.pub?"↩︎ Retirer de l’appli":"🚀 Publier l’annonce"}</button><button type="button" class="del" data-ldel="${l.id}">🗑 Supprimer l’annonce</button></div>`}
 {const _pv=proView;proView=function(){if(S.pro&&S.pro.type=="agence"){const top=`<div class="hbar"><button type="button" class="hbk" id="pro-ch">‹ Retour à l’atelier</button></div>`;return top+agView()}return _pv()};
-const _r=render;render=function(){_r();if(S.v=="pro"&&!AGPL){AGPL=1;phl().then(()=>{if(S.v=="pro")_r()})}};}
+const _r=render;render=function(){_r();if(S.v=="pro"&&!AGPL){AGPL=1;phl().then(()=>{if(S.v=="pro")render()})}};}
 {const rr=()=>{save();render()},cur=()=>{const a=S.pro.type=="agence"?agFind(S.pro.ai):AGO();return[a,a&&agL(a,S.pro.le)]},delPh=id=>{agPh(id).forEach(q=>tx("readwrite",s=>s.delete(q.k)).catch(()=>{}));delete PH["pa|"+id]};
 document.addEventListener("click",e=>{if(S.v!="pro"||!S.pro||!AGK())return;const x=e.target.closest("#agi-ed,#agi-ok,#agi-no,#ag-new,#ag-cancel,#ag-save,[data-ago],[data-agle],[data-agback],#al-new,[data-lpub],[data-ldel],[data-agdel],[data-lst],[data-phx]");if(!x)return;const p=agD();
  if(x.id=="agi-ed"){AGED=S.pro.ai;render();const i=document.querySelector("[data-af=nom]");if(i)i.focus();return}
@@ -1411,6 +1411,26 @@ Object.assign(DICT,{"Équipements":["Uitrusting","Equipment"],"Neuf":["Nieuw","N
 /* --- Mode Vendre : pas d'onglet Partenaires --- */
 {const _r=render;render=function(){if(KV()&&S.v=="a")S.v="e";_r()}}
 {const st=document.createElement("style");st.textContent='body.kv nav [data-go="a"]{display:none}';document.head.appendChild(st)}
+/* --- Pros : ouvrir le projet complet d'un vendeur depuis « Vendeurs qui t'ont choisi » (lecture seule) --- */
+function pjView(x){const P=x.P,i=S.props.indexOf(P);if(i<0)return"";const c=S.cur;S.cur=i;let h="";try{
+ const bdg=v=>v?`<span class="etb2 et-${v}">${etL(v)}</span>`:`<span class="etb2">—</span>`,phs=k=>(PH[k]||[]).map(q=>`<img class="pjt" alt="" src="${q.d}" data-pjz>`).join(""),m=x.me||{},dk=docs("sell|"+(P.id||i));
+ h=`<div class="pjb"><button type="button" class="hbk" id="pjv-x">‹ Fermer</button><span class="dsb">${(DST.find(s=>s[0]==x.st)||DST[0])[1]}</span></div>
+<h1 style="margin-top:6px">${esc(P.a)}</h1><p class="sub">Projet reçu le ${new Date(x.d).toLocaleDateString(LOC())}</p>
+<div class="c"><h3>👤 Vendeur</h3><div class="ln"><span>Nom</span><b>${esc(m.nom||"—")}</b></div>${m.tel?`<div class="ln"><span>Téléphone</span><a href="tel:${esc(m.tel.replace(/\s/g,""))}">${esc(m.tel)}</a></div>`:""}${m.mail?`<div class="ln"><span>E-mail</span><a href="mailto:${esc(m.mail)}">${esc(m.mail)}</a></div>`:""}</div>
+${typeof impCard=="function"?impCard():""}${typeof detCard=="function"?detCard():""}
+<div class="c"><h3>🏠 État des pièces</h3>${P.rooms.map(r=>{const[a,b]=etCount(r),ph=phs(P.id+"|"+rid(r));return`<details class="aidd"${a||ph?" open":""}><summary><span><b>${esc(r.n)}</b> <small>${a}/${b} renseigné${a>1?"s":""}</small></span><span class="chev">›</span></summary>${etEls(r).map(([k,l])=>`<div class="ln"><span>${l}</span>${bdg((r.et||{})[k])}</div>`).join("")}${ph?`<div class="pjg">${ph}</div>`:""}</details>`}).join("")}</div>
+<div class="c"><h3>🔧 État des équipements</h3>${EQ.map(([k,l])=>{const ph=phs("eq|"+P.id+"|"+k);return`<div class="ln"><span>${l}</span>${bdg((P.etT||{})[k])}</div>${ph?`<div class="pjg">${ph}</div>`:""}`}).join("")}</div>
+<div class="c"><h3>📎 Documents (${dk.length})</h3>${dk.length?dk.map(d=>`<div class="ln dcl"><a href="${d.d}" download="${proE(d.c||"document")}" target="_blank" rel="noopener">📄 ${proE(d.c||"document")}</a></div>`).join(""):"<small>Aucun document joint.</small>"}</div>`}finally{S.cur=c}return h}
+function pjOpen(id){const x=demList(S.pro.type).find(d=>d.id==id);if(!x)return;if(x.st=="nouveau"){setSt(x.id,"vu");x.st="vu"}let o=document.getElementById("pjv");if(!o){o=document.createElement("div");o.id="pjv";document.body.appendChild(o)}
+ phl().then(()=>{o.innerHTML=`<div class="pjw">${pjView(x)}</div>`;o.scrollTop=0;document.documentElement.classList.add("pjo")})}
+function pjClose(){const o=document.getElementById("pjv");if(o)o.remove();document.documentElement.classList.remove("pjo");render()}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-pjv]");if(b){pjOpen(b.dataset.pjv);return}
+ if(e.target.closest("#pjv-x")){pjClose();return}
+ const z=e.target.closest("[data-pjz]");if(z){const l=document.createElement("div");l.id="pjz";l.innerHTML=`<img alt="" src="${z.src}">`;l.onclick=()=>l.remove();document.body.appendChild(l)}});
+document.addEventListener("keydown",e=>{if(e.key!="Escape")return;const l=document.getElementById("pjz");if(l){l.remove();return}if(document.getElementById("pjv"))pjClose()});
+{const _v=vdCard;vdCard=function(k){return _v(k).split('<div class="chips dmc">').map((part,n,all)=>{if(!n)return part;const m=part.match(/data-dst="([^"]+)\|/);return(m?`<button type="button" class="mini pri dmv" data-pjv="${m[1]}">📂 Voir le projet</button>`:"")+'<div class="chips dmc">'+part}).join("")}}
+{const st=document.createElement("style");st.textContent=`#pjv{position:fixed;inset:0;z-index:450;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}.pjw{max-width:640px;margin:auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0px))}.pjb{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;padding:6px 0;background:var(--bg);z-index:2}html.pjo,html.pjo body{overflow:hidden}.pjg{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.pjt{width:84px;height:84px;object-fit:cover;border-radius:12px;cursor:zoom-in}#pjz{position:fixed;inset:0;z-index:460;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;cursor:zoom-out}#pjz img{max-width:96vw;max-height:92vh;border-radius:8px}.dmv{display:inline-block;margin-top:10px}#pjv a,body.prov .dmd a{color:#8fb0ff;font-weight:600}`;document.head.appendChild(st)}
+Object.assign(DICT,{"📂 Voir le projet":["📂 Het project bekijken","📂 View the project"],"‹ Fermer":["‹ Sluiten","‹ Close"],"👤 Vendeur":["👤 Verkoper","👤 Seller"],"Nom":["Naam","Name"],"🏠 État des pièces":["🏠 Staat van de ruimtes","🏠 Condition of the rooms"],"🔧 État des équipements":["🔧 Staat van de uitrusting","🔧 Condition of the equipment"],"📎 Documents":["📎 Documenten","📎 Documents"],"Aucun document joint.":["Geen bijgevoegd document.","No attached document."]});
 render();
 /* =================== fin VERSION 14 =================== */
 
