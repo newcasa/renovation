@@ -1172,7 +1172,10 @@ render();
 /* nom de l'appli dans les textes traduits (PDF compris) */
 if(window.__brand){const _tr0=tr;tr=function(x){return window.__brand(_tr0(x))}}
 /* appli installable : service worker (uniquement en https) */
-if("serviceWorker" in navigator&&location.protocol==="https:"){addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}
+if("serviceWorker" in navigator&&location.protocol==="https:"){const had=!!navigator.serviceWorker.controller;let done=0;
+ /* nouvelle version en ligne : le nouveau service worker prend la main et la page se recharge une fois */
+ navigator.serviceWorker.addEventListener("controllerchange",()=>{if(had&&!done){done=1;location.reload()}});
+ addEventListener("load",()=>{navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{r.update().catch(()=>{});document.addEventListener("visibilitychange",()=>{if(!document.hidden)r.update().catch(()=>{})})}).catch(()=>{})})}
 
 /* ===================== VERSION 13 : corrections ===================== */
 /* --- Prix de référence alignés sur la grille réaliste v1 (Belgique, 2026, artisans) ---
