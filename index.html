@@ -1520,6 +1520,17 @@ UTOUR.splice(0,UTOUR.length,
 Object.assign(DICT,{"🏠 Particulier":["🏠 Particulier","🏠 Individual"],"💼 Professionnel":["💼 Professional","💼 Professional"]});
 /* --- Bannières : le style du champ e-mail de l'intro (.em) ne s'applique pas à l'icône des bannières --- */
 {const st=document.createElement("style");st.textContent=`.bn .em{width:auto;display:block;gap:0;animation:none;left:auto}.bn h2,.bn small{padding-right:84px}`;document.head.appendChild(st)}
+/* --- Adresses séparées : celles d'« Acheter » et celles de « Vendre » ne se mélangent plus --- */
+const MDK=()=>KV()?"vendre":"acheter";
+S.props.forEach(P=>{if(!P.md)P.md=(P.sell&&(P.sell.sent||P.sell.open||(P.sell.sel||[]).length))||P.etT||(P.rooms||[]).some(r=>r.et&&Object.keys(r.et).length)?"vendre":"acheter"});
+function mdFix(){const m=MDK();S.props.forEach(P=>{if(!P.md)P.md=m});const c=S.props[S.cur];if(c&&c.md!=m){const i=S.props.findIndex(P=>P.md==m);S.cur=i<0?null:i;S.rm=null}}
+{const _r=render;render=function(){if(S.v!="pro"&&!TACT)mdFix();_r();if(S.v!="h")return;const m=MDK();document.querySelectorAll("#m .rg [data-adr]").forEach(a=>{const P=S.props[+a.dataset.adr],w=a.closest(".rcw");if(w)w.hidden=!!P&&P.md!=m})}}
+{const _h=home2;home2=function(){let h=_h();const m=MDK();if(S.props.length&&!S.props.some(P=>P.md==m))h=h.replace('<div class="st">',`<div class='c'><small>${KV()?"Ajoute l’adresse du bien que tu vends.":"Ajoute ta première adresse pour commencer."}</small></div><div class="st">`);return h}}
+{const _c=cmpCard;cmpCard=function(){const m=MDK(),o=S.props.filter(P=>P.md!=m).map(P=>P.id);S.cmp=(S.cmp||[]).filter(id=>!o.includes(id));let h=_c();o.forEach(id=>{h=h.replace(new RegExp(`<button type="button" class="chip[^"]*" data-cmp="${id}">[^<]*</button>`),"")});return h}}
+document.addEventListener("click",e=>{if(e.target.closest("[data-mode]"))setTimeout(()=>{mdFix();save();render()},0)});
+/* page d'intro : plus de bouton « Première utilisation » (le didacticiel démarre seul la première fois et reste dans ⚙️) */
+{const t=document.getElementById("tuto");if(t)t.hidden=true;const st=document.createElement("style");st.textContent="#tuto{display:none!important}";document.head.appendChild(st)}
+Object.assign(DICT,{"Ajoute l’adresse du bien que tu vends.":["Voeg het adres toe van het pand dat je verkoopt.","Add the address of the property you are selling."]});
 render();
 /* =================== fin VERSION 14 =================== */
 
