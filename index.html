@@ -283,7 +283,9 @@ S=S||{rooms:[mk("Salon"),mk("Salle à manger"),mk("Cuisine","cuisine"),mk("Salle
 const save=()=>{S._ts=Date.now();try{localStorage.setItem("reno",JSON.stringify(S))}catch(e){}if(typeof syncPush=="function")syncPush()};
 function LOC(){return({fr:"fr-BE",nl:"nl-BE",en:"en-GB"})[(S&&S.lang)||"fr"]}
 const n=x=>Math.max(0,+x||0),E=x=>Math.round(x).toLocaleString(LOC())+" €",rng=a=>a[0]||a[1]?E(a[0])+" – "+E(a[1]):"—";
-const ch=a=>a[0]||a[1]?E(a[2]):"—",pick=(lo,hi,v)=>(v=v||S.gm||(S.def||{}).gm||"moy",v=="min"?lo:v=="max"?hi:(lo+hi)/2),LV=[["min","Tarif mini"],["moy","Tarif moyen"],["max","Tarif maxi"]];
+/* Prix plus précis : le mini est relevé de 5 % et le maxi baissé de 5 % (le moyen ne change pas) */
+const PMG=.05;
+const ch=a=>a[0]||a[1]?E(a[2]):"—",pick=(lo,hi,v)=>(v=v||S.gm||(S.def||{}).gm||"moy",v=="min"?lo*(1+PMG):v=="max"?hi*(1-PMG):(lo+hi)/2),LV=[["min","Tarif mini"],["moy","Tarif moyen"],["max","Tarif maxi"]];
 const mm=r=>r.m==null?n(r.sol)*2.5:n(r.m);
 const P=(k,d)=>{const o=S.tm?(S.p||{})[k]||{}:{};return[o[0]==null?d[0]:o[0],o[1]==null?d[1]:o[1]]};
 const chOn=r=>r.cr==null?n(r.ch)>0:r.cr!=0,sumCh=()=>S.rooms.reduce((a,r)=>a+(chOn(r)?n(r.ch):0),0);
@@ -317,7 +319,7 @@ function ic(it){const s=S.t[it[0]];if(!s||!s.on)return[0,0,0];const p=it[5]?P('i
 const sum=a=>a.reduce((u,v)=>[u[0]+v[0],u[1]+v[1],u[2]+v[2]],[0,0,0]);
 function tot(){const _q=qkTot();if(_q)return _q;const rr=S.rooms.map(r=>rc(r)),pk=k=>sum(rr.map(x=>x.p[k])),e=pk('b'),w=pk('w'),d=pk('d'),ku=pk('k'),inst=sum(T.find(c=>c[0]=='Sanitaire')[1].map(ic)),cats=T.map(c=>[c[0],c[0]=='Sanitaire'?sum([inst,w,d]):sum(c[1].map(ic))]).concat([['Cuisine équipée',ku]]),all=sum([e,...cats.map(c=>c[1])]),moy=(all[0]+all[1])/2,sel=all[2],imp=sel*n(S.imp)/100;return{e,cats,all,moy,sel,imp,bud:sel+imp,det:{inst,w,d}}}
 function fin(){const t=tot(),fr=n(S.ach)*n(S.fr)/100,tv=t.bud*n(S.tva)/100,tt=n(S.ach)+t.bud+tv+fr,em=Math.max(0,tt-n(S.ap)),r=n(S.tx)/1200,N=n(S.mo)||1,M=r?em*r/(1-Math.pow(1+r,-N)):em/N,as=em*n(S.ass)/100/12;return{t,fr,tv,tt,em,M,as,mt:M+as,int:M*N-em,cass:as*N,cc:M*N-em+as*N}}
-function kv(){const f=fin(),t=f.t,m={bud:E(t.bud),rng:rng(t.all),moy:E(t.moy),sel:E(t.sel),imp:E(t.imp),fr:E(f.fr),tv:E(f.tv),tt:E(f.tt),em:E(f.em),M:E(f.M),as:E(f.as),mt:E(f.mt),int:E(f.int),cass:E(f.cass),cc:E(f.cc)};m.qkr=t.qk?rng(t.all):"—";if(t.qk){m.bud+=" "+tr("(rapide)");m.sel+=" "+tr("(rapide)")}
+function kv(){const f=fin(),t=f.t,m={bud:E(t.bud),rng:rng([t.all[0]*(1+PMG),t.all[1]*(1-PMG)]),moy:E(t.moy),sel:E(t.sel),imp:E(t.imp),fr:E(f.fr),tv:E(f.tv),tt:E(f.tt),em:E(f.em),M:E(f.M),as:E(f.as),mt:E(f.mt),int:E(f.int),cass:E(f.cass),cc:E(f.cc)};m.qkr=t.qk?rng(t.all):"—";if(t.qk){m.bud+=" "+tr("(rapide)");m.sel+=" "+tr("(rapide)")}
 m.ssan=ch(t.det.inst);m.swc=ch(t.det.w);m.ssdb=ch(t.det.d);S.rooms.forEach((r,i)=>m["r"+i]=ch(rc(r)));T.forEach(c=>c[1].forEach(it=>m["i"+it[0]]=ch(ic(it))));[["Espaces",t.e],...t.cats].forEach((c,i)=>m["c"+i]=ch(c[1]));const c0=S.cur;let tb=0;S.props.forEach((p,i)=>{S.cur=i;const b=tot().bud;tb+=b;m["a"+i]=E(b)+(isQ()&&b?" ⚡":"")});m.tb=E(tb);S.cur=c0;m.es_m="≈ "+Math.round(14*qty("es",S.t.es||{}))+" marches";return m}
 function upd(){const m=kv();document.querySelectorAll("[data-k]").forEach(e=>{if(m[e.dataset.k]!=null)e.textContent=m[e.dataset.k]});save()}
 const I=(p,v,ph)=>`<input type="number" inputmode="decimal" data-p="${p}" value="${v??""}" placeholder="${ph||""}">`;
@@ -1431,11 +1433,6 @@ document.addEventListener("keydown",e=>{if(e.key!="Escape")return;const l=docume
 {const _v=vdCard;vdCard=function(k){return _v(k).split('<div class="chips dmc">').map((part,n,all)=>{if(!n)return part;const m=part.match(/data-dst="([^"]+)\|/);return(m?`<button type="button" class="mini pri dmv" data-pjv="${m[1]}">📂 Voir le projet</button>`:"")+'<div class="chips dmc">'+part}).join("")}}
 {const st=document.createElement("style");st.textContent=`#pjv{position:fixed;inset:0;z-index:450;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}.pjw{max-width:640px;margin:auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0px))}.pjb{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;padding:6px 0;background:var(--bg);z-index:2}html.pjo,html.pjo body{overflow:hidden}.pjg{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.pjt{width:84px;height:84px;object-fit:cover;border-radius:12px;cursor:zoom-in}#pjz{position:fixed;inset:0;z-index:460;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;cursor:zoom-out}#pjz img{max-width:96vw;max-height:92vh;border-radius:8px}.dmv{display:inline-block;margin-top:10px}#pjv a,body.prov .dmd a{color:#8fb0ff;font-weight:600}`;document.head.appendChild(st)}
 Object.assign(DICT,{"📂 Voir le projet":["📂 Het project bekijken","📂 View the project"],"‹ Fermer":["‹ Sluiten","‹ Close"],"👤 Vendeur":["👤 Verkoper","👤 Seller"],"Nom":["Naam","Name"],"🏠 État des pièces":["🏠 Staat van de ruimtes","🏠 Condition of the rooms"],"🔧 État des équipements":["🔧 Staat van de uitrusting","🔧 Condition of the equipment"],"📎 Documents":["📎 Documenten","📎 Documents"],"Aucun document joint.":["Geen bijgevoegd document.","No attached document."]});
-/* --- Fourchette ± 5 % autour du prix de la gamme choisie (Économique = mini, Standard = moyen, Haut de gamme = maxi) --- */
-const F5=.05,f5=v=>v?E(v*(1-F5))+" – "+E(v*(1+F5)):"—";
-{const _k=kv;kv=function(){const m=_k(),t=fin().t;m.f5=f5(t.bud);return m}}
-{const _s=syn;syn=function(){return _s().replace('<b data-k="bud"></b></div>','<b data-k="bud"></b></div><div class="ln"><span>'+tr("Fourchette ± 5 %")+'</span><b data-k="f5"></b></div>')}}
-Object.assign(DICT,{"Fourchette ± 5 %":["Vork ± 5 %","Range ± 5 %"]});
 render();
 /* =================== fin VERSION 14 =================== */
 
