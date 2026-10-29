@@ -1431,6 +1431,11 @@ document.addEventListener("keydown",e=>{if(e.key!="Escape")return;const l=docume
 {const _v=vdCard;vdCard=function(k){return _v(k).split('<div class="chips dmc">').map((part,n,all)=>{if(!n)return part;const m=part.match(/data-dst="([^"]+)\|/);return(m?`<button type="button" class="mini pri dmv" data-pjv="${m[1]}">📂 Voir le projet</button>`:"")+'<div class="chips dmc">'+part}).join("")}}
 {const st=document.createElement("style");st.textContent=`#pjv{position:fixed;inset:0;z-index:450;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}.pjw{max-width:640px;margin:auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0px))}.pjb{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;padding:6px 0;background:var(--bg);z-index:2}html.pjo,html.pjo body{overflow:hidden}.pjg{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.pjt{width:84px;height:84px;object-fit:cover;border-radius:12px;cursor:zoom-in}#pjz{position:fixed;inset:0;z-index:460;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;cursor:zoom-out}#pjz img{max-width:96vw;max-height:92vh;border-radius:8px}.dmv{display:inline-block;margin-top:10px}#pjv a,body.prov .dmd a{color:#8fb0ff;font-weight:600}`;document.head.appendChild(st)}
 Object.assign(DICT,{"📂 Voir le projet":["📂 Het project bekijken","📂 View the project"],"‹ Fermer":["‹ Sluiten","‹ Close"],"👤 Vendeur":["👤 Verkoper","👤 Seller"],"Nom":["Naam","Name"],"🏠 État des pièces":["🏠 Staat van de ruimtes","🏠 Condition of the rooms"],"🔧 État des équipements":["🔧 Staat van de uitrusting","🔧 Condition of the equipment"],"📎 Documents":["📎 Documenten","📎 Documents"],"Aucun document joint.":["Geen bijgevoegd document.","No attached document."]});
+/* --- Fourchette ± 5 % autour du prix de la gamme choisie (Économique = mini, Standard = moyen, Haut de gamme = maxi) --- */
+const F5=.05,f5=v=>v?E(v*(1-F5))+" – "+E(v*(1+F5)):"—";
+{const _k=kv;kv=function(){const m=_k(),t=fin().t;m.f5=f5(t.bud);return m}}
+{const _s=syn;syn=function(){return _s().replace('<b data-k="bud"></b></div>','<b data-k="bud"></b></div><div class="ln"><span>'+tr("Fourchette ± 5 %")+'</span><b data-k="f5"></b></div>')}}
+Object.assign(DICT,{"Fourchette ± 5 %":["Vork ± 5 %","Range ± 5 %"]});
 render();
 /* =================== fin VERSION 14 =================== */
 
