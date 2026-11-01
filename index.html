@@ -1871,6 +1871,12 @@ Object.assign(DICT,{"Équipements":["Uitrusting","Equipment"],"Acheter, vendre, 
 /* les clés avec apostrophe typographique doivent aussi exister avec l’apostrophe droite */
 Object.keys(DICT).forEach(k=>{const n=nkey(k);if(n!==k&&!DICT[n])DICT[n]=DICT[k]});
 if(S.lang&&S.lang!="fr"&&typeof retr=="function")setTimeout(retr,0);
+/* --- Projet : une erreur dans une carte n'empêche plus la page de s'ouvrir ; elle s'affiche pour qu'on puisse la corriger --- */
+const pjErr=(w,er)=>{try{console.error(w,er)}catch(x){}return`<div class="c" style="border-left:4px solid #c4511a"><b>⚠️ ${tr("Une partie du projet n’a pas pu s’afficher.")}</b><small style="display:block;margin-top:4px">${esc(w)} : ${esc(String(er&&er.message||er))}</small><small style="display:block;margin-top:4px">${tr("Fais une capture de ce message et envoie-la.")}</small></div>`};
+{const _s=syn;syn=function(){try{return _s()}catch(er){return`<h1>${tr("Projet")}</h1>`+pjErr("syn",er)}}}
+{const _c=sellCard;sellCard=function(){try{return _c()}catch(er){return pjErr("sellCard",er)}}}
+if(typeof etSyn=="function"){const _e=etSyn;etSyn=function(){try{return _e()}catch(er){return`<h1>${tr("Projet")}</h1>`+pjErr("etSyn",er)}}}
+Object.assign(DICT,{"Une partie du projet n’a pas pu s’afficher.":["Een deel van het project kon niet worden weergegeven.","Part of the project could not be displayed."],"Fais une capture de ce message et envoie-la.":["Maak een schermafbeelding van dit bericht en stuur ze door.","Take a screenshot of this message and send it."]});
 render();
 /* =================== fin VERSION 18 =================== */
 </script></body></html>
