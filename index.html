@@ -1877,6 +1877,9 @@ const pjErr=(w,er)=>{try{console.error(w,er)}catch(x){}return`<div class="c" sty
 {const _c=sellCard;sellCard=function(){try{return _c()}catch(er){return pjErr("sellCard",er)}}}
 if(typeof etSyn=="function"){const _e=etSyn;etSyn=function(){try{return _e()}catch(er){return`<h1>${tr("Projet")}</h1>`+pjErr("etSyn",er)}}}
 Object.assign(DICT,{"Une partie du projet n’a pas pu s’afficher.":["Een deel van het project kon niet worden weergegeven.","Part of the project could not be displayed."],"Fais une capture de ce message et envoie-la.":["Maak een schermafbeelding van dit bericht en stuur ze door.","Take a screenshot of this message and send it."]});
+/* --- Visites : données d'une ancienne version (pas une liste) remises au bon format --- */
+function visFix(){if(Array.isArray(S.vis))return;const v=S.vis;S.vis=v&&typeof v=="object"?Object.values(v).filter(q=>q&&typeof q=="object"&&q.to&&q.slot&&q.slot.id):[];save()}
+visFix();{const _r=render;render=function(){visFix();_r()}}
 render();
 /* =================== fin VERSION 18 =================== */
 </script></body></html>
