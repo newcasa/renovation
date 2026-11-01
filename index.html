@@ -1871,11 +1871,6 @@ Object.assign(DICT,{"Équipements":["Uitrusting","Equipment"],"Acheter, vendre, 
 /* les clés avec apostrophe typographique doivent aussi exister avec l’apostrophe droite */
 Object.keys(DICT).forEach(k=>{const n=nkey(k);if(n!==k&&!DICT[n])DICT[n]=DICT[k]});
 if(S.lang&&S.lang!="fr"&&typeof retr=="function")setTimeout(retr,0);
-/* --- Espaces, Équipements et Projet : sans adresse sélectionnée, ouvre la dernière adresse du mode en cours --- */
-{const _r=render;render=function(){const P=S.props[S.cur];if(P&&P.md){S.lc=S.lc||{};S.lc[P.md]=P.id}_r()}}
-window.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest("[data-go]");if(!g||!["e","t","s"].includes(g.dataset.go)||S.props[S.cur]||S.v=="pro")return;const m=typeof MDK=="function"?MDK():"acheter",id=(S.lc||{})[m];let i=S.props.findIndex(P=>P.id==id&&(P.md||"acheter")==m);if(i<0)i=S.props.findIndex(P=>(P.md||"acheter")==m);if(i>=0){S.cur=i;S.rm=null}else{e.stopImmediatePropagation();e.preventDefault();toast(tr(KV()?"Ajoute d’abord l’adresse du bien que tu vends.":"Ajoute d’abord une adresse sur l’accueil."))}},true);
-{const _r=render;render=function(){_r();document.querySelectorAll("nav button").forEach(b=>{if(["e","t","s"].includes(b.dataset.go)&&!S.props[S.cur]&&S.props.some(P=>(P.md||"acheter")==(typeof MDK=="function"?MDK():"acheter")))b.classList.remove("lock")})}}
-Object.assign(DICT,{"Ajoute d’abord l’adresse du bien que tu vends.":["Voeg eerst het adres toe van het pand dat je verkoopt.","First add the address of the property you are selling."],"Ajoute d’abord une adresse sur l’accueil.":["Voeg eerst een adres toe op de startpagina.","First add an address on the home page."]});
 render();
 /* =================== fin VERSION 18 =================== */
 </script></body></html>
