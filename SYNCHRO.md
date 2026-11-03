@@ -18,14 +18,11 @@ Tant que le fichier `kozi-config.json` n'existe pas, Kozi reste 100 % local, com
 2. Copie tout le contenu du fichier `supabase/kozi.sql` de ce dépôt, colle-le, puis **Run**.
 3. Tu dois voir « Success ».
 
-## 3. Recevoir un code à 6 chiffres par e-mail
-1. Menu **Authentication** → **Emails** (ou *Email Templates*) → modèle **Magic Link**.
-2. Remplace le contenu par par exemple :
-   ```
-   <h2>Ton code Kozi</h2>
-   <p>Entre ce code dans Kozi pour te connecter : <b>{{ .Token }}</b></p>
-   ```
-3. Enregistre. (Fais pareil pour le modèle **Confirm signup** si tu le vois.)
+## 3. Dire à Supabase où renvoyer le lien de connexion
+Kozi se connecte avec le **lien** de l'e-mail standard « Your sign-in link » (pas besoin de modifier le modèle d'e-mail).
+1. Menu **Authentication** → **URL Configuration**.
+2. **Site URL** : `https://newcasa.github.io/renovation/` → **Save**.
+3. **Redirect URLs** → **Add URL** : `https://newcasa.github.io/renovation/**` → **Save**.
 
 ## 4. Brancher Kozi
 1. Dans Supabase : **Project Settings** → **API** (ou *Data API*) : note
@@ -39,8 +36,8 @@ Tant que le fichier `kozi-config.json` n'existe pas, Kozi reste 100 % local, com
 3. **Commit changes** sur la branche `main`. Une minute après, c'est en ligne.
 
 ## 5. Se connecter
-Sur chaque appareil : ⚙️ **Paramètres** → **👤 Compte** → ton e-mail → **Recevoir mon code**
-→ entre le code reçu → **Se connecter**. Un ☁️ apparaît en haut : tout est synchronisé.
+Sur chaque appareil : ⚙️ **Paramètres** → **👤 Compte** → ton e-mail → **Recevoir mon lien de connexion**
+→ ouvre l'e-mail « Your sign-in link » sur **le même appareil** et touche **Log In** : Kozi s'ouvre connecté. Un ☁️ apparaît en haut : tout est synchronisé.
 
 ## Bon à savoir
 - **Testeurs** : ceux qui ne se connectent pas restent en local et ne voient rien de ta session ;
