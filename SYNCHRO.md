@@ -30,7 +30,7 @@ Tant que le fichier `kozi-config.json` n'existe pas, Kozi reste 100 % local, com
 ## 4. Brancher Kozi
 1. Dans Supabase : **Project Settings** → **API** (ou *Data API*) : note
    - l'**URL du projet** (`https://xxxx.supabase.co`)
-   - la clé **anon / publishable** (publique).
+   - la clé **publishable** (publique, commence par `sb_publishable_`) — ou l’ancienne clé **anon**.
 2. Sur GitHub, dans le dépôt `newcasa/renovation` → **Add file** → **Create new file**,
    nom : `kozi-config.json`, contenu :
    ```json
