@@ -1,0 +1,11 @@
+{
+  "places_max_par_zone": 3,
+  "devise": "€",
+  "duree_reservation_paiement_minutes": 15,
+  "prix": {
+    "couleur":  { "7": 9,  "15": 15 },
+    "commune":  { "7": 19, "15": 32 },
+    "region":   { "7": 39, "15": 65 },
+    "national": { "7": 79, "15": 129 }
+  }
+}
