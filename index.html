@@ -802,6 +802,7 @@ const proE=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;"
 function proView0(){S.pro=S.pro||{p:{}};const k=S.pro.type,top=`<div class="hbar">${k?`<button type="button" class="hbk" id="pro-ch">‹ Retour à l’atelier</button>`:`<button type="button" class="hbk" id="pro-bk">‹ Retour</button>`}</div>`;
 if(!k)return top+`<h1>Espace professionnel</h1><p class="sub">Quel type de professionnel es-tu ?</p><div class="rl">${Object.entries(PRO_T).map(([id,t])=>`<button type="button" class="adr p${Object.keys(PRO_T).indexOf(id)%4}" data-prot="${id}" style="border:0;width:100%;text-align:left;font:inherit"><span class="ico">${t.i}</span><span class="tx"><b>${t.n}</b><small>${t.d}</small></span><span class="chev">›</span></button>`).join("")}</div><div class="tip"><span>ℹ️</span><div><b>Version d’essai</b><small>Tes réglages sont enregistrés sur cet appareil. La validation des comptes professionnels arrivera plus tard.</small></div></div>`;
 const t=PRO_T[k],p=proP(),f=(id,l,ty)=>`<label>${l}<input type="${ty||"text"}" data-pf="${id}" value="${proE(p[id])}"></label>`;
+if(!t)return top; /* v34 : profil défini plus loin (ex. notaire) — évite l’arrêt du chargement */
 return top+`<div class="bn ${t.b}"><span class="em">${t.i}</span><h2>${t.n}</h2><small>${proE(p.nom)||"Mon espace professionnel"}</small></div>
 <div class="c"><label class="sw" style="margin:0;color:var(--tx);font-size:16px"><input type="checkbox" data-pon="1"${p.on?" checked":""}> Profil visible dans Hoono</label><small>${p.on?"Ta fiche apparaît auprès des utilisateurs de Hoono.":"Ta fiche est masquée. Active-la quand tout est prêt."}</small></div>
 <div class="c"><h3>Mes informations</h3>${f("nom",t.nl||"Nom de la société")}${t.fx?t.fx.map(a=>f(a[0],a[1])+(a[0]=="tva"?tvaChk(p.tva):"")).join(""):f("bce","Numéro d’entreprise (BCE)")}${f("tel","Téléphone","tel")}${f("mail","E-mail de contact","email")}${f("web","Site internet","url")}</div>
@@ -2530,6 +2531,13 @@ if(m=c.match(/^Supprimer le profil « (.+) » \?$/))return e?"Delete the profile
 if(m=c.match(/^Supprimer le point de vente « (.+) » \?$/))return e?"Delete the outlet « "+m[1]+" »?":"Het verkooppunt « "+m[1]+" » verwijderen?";
 if(m=c.match(/^Devis envoyé : (.+) TVAC$/))return (e?"Quote sent: ":"Offerte verstuurd: ")+m[1]+(e?" incl. VAT":" incl. btw");
 if(m=c.match(/^version (\d+)$/))return (e?"version ":"versie ")+m[1];
+return c}}
+Object.assign(DICT,{"Lundi":["Maandag","Monday"],"Mardi":["Dinsdag","Tuesday"],"Mercredi":["Woensdag","Wednesday"],"Jeudi":["Donderdag","Thursday"],"Vendredi":["Vrijdag","Friday"],"Samedi":["Zaterdag","Saturday"],"Dimanche":["Zondag","Sunday"],"Filtrer par agence":["Filteren op kantoor","Filter by agency"],"📷 Ajouter le logo":["📷 Het logo toevoegen","📷 Add the logo"],"Colle le lien iCal (.ics) de ton agenda.":["Plak de iCal-link (.ics) van je agenda.","Paste the iCal (.ics) link of your calendar."]});
+{const _trc=trc;trc=function(c,lg){const r=_trc(c,lg);if(r!==c)return r;const e=lg!="nl";let m;
+if(m=c.match(/^📍 (.+)$/)){const x=_trc(m[1],lg);if(x!==m[1])return "📍 "+x}
+if(m=c.match(/^Toutes les agences \((\d+) annonces?\)$/))return (e?"All agencies (":"Alle kantoren (")+m[1]+" "+(e?(m[1]==1?"listing":"listings"):(m[1]==1?"advertentie":"advertenties"))+")";
+if(m=c.match(/^Budget travaux : (.+)$/))return (e?"Works budget: ":"Budget werken: ")+m[1];
+if(m=c.match(/^(\d+) autres? disponibles?$/))return m[1]+" "+(e?"more available":"andere beschikbaar");
 return c}}
 /* =================== fin VERSION 34 =================== */
 
