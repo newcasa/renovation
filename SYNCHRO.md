@@ -1,9 +1,9 @@
-# Synchroniser Hoono entre ton téléphone et ton ordinateur
+# Synchroniser Woopr entre ton téléphone et ton ordinateur
 
-Hoono utilise **Supabase** (offre gratuite) pour les comptes et la synchronisation.
-Tant que le fichier `kozi-config.json` n'existe pas, Hoono reste 100 % local, comme avant.
+Woopr utilise **Supabase** (offre gratuite) pour les comptes et la synchronisation.
+Tant que le fichier `kozi-config.json` n'existe pas, Woopr reste 100 % local, comme avant.
 
-> 🔒 **Ne partage jamais** la clé `service_role` (secrète). La seule clé à mettre dans Hoono
+> 🔒 **Ne partage jamais** la clé `service_role` (secrète). La seule clé à mettre dans Woopr
 > est la clé **publique** (`anon` / `publishable`) : elle est faite pour être dans une appli
 > et ne donne accès qu'aux données de la personne connectée.
 
@@ -19,12 +19,12 @@ Tant que le fichier `kozi-config.json` n'existe pas, Hoono reste 100 % local, co
 3. Tu dois voir « Success ».
 
 ## 3. Dire à Supabase où renvoyer le lien de connexion
-Hoono se connecte avec le **lien** de l'e-mail standard « Your sign-in link » (pas besoin de modifier le modèle d'e-mail).
+Woopr se connecte avec le **lien** de l'e-mail standard « Your sign-in link » (pas besoin de modifier le modèle d'e-mail).
 1. Menu **Authentication** → **URL Configuration**.
 2. **Site URL** : `https://newcasa.github.io/renovation/` → **Save**.
 3. **Redirect URLs** → **Add URL** : `https://newcasa.github.io/renovation/**` → **Save**.
 
-## 4. Brancher Hoono
+## 4. Brancher Woopr
 1. Dans Supabase : **Project Settings** → **API** (ou *Data API*) : note
    - l'**URL du projet** (`https://xxxx.supabase.co`)
    - la clé **publishable** (publique, commence par `sb_publishable_`) — ou l’ancienne clé **anon**.
@@ -37,7 +37,7 @@ Hoono se connecte avec le **lien** de l'e-mail standard « Your sign-in link » 
 
 ## 5. Se connecter
 Sur chaque appareil : ⚙️ **Paramètres** → **👤 Compte** → ton e-mail → **Recevoir mon lien de connexion**
-→ ouvre l'e-mail « Your sign-in link » sur **le même appareil** et touche **Log In** : Hoono s'ouvre connecté. Un ☁️ apparaît en haut : tout est synchronisé.
+→ ouvre l'e-mail « Your sign-in link » sur **le même appareil** et touche **Log In** : Woopr s'ouvre connecté. Un ☁️ apparaît en haut : tout est synchronisé.
 
 ## Bon à savoir
 - **Testeurs** : ceux qui ne se connectent pas restent en local et ne voient rien de ta session ;
@@ -45,5 +45,5 @@ Sur chaque appareil : ⚙️ **Paramètres** → **👤 Compte** → ton e-mail 
 - **Limite d'e-mails** : le service d'e-mail intégré de Supabase n'envoie que quelques e-mails
   par heure (prévu pour les tests). Pour beaucoup d'utilisateurs, il faudra brancher un service
   d'envoi (Brevo, Resend…) dans *Authentication → SMTP*.
-- **Conflit** : si tu as modifié les deux appareils sans connexion, Hoono te demande quelle version garder.
+- **Conflit** : si tu as modifié les deux appareils sans connexion, Woopr te demande quelle version garder.
 - **Espace gratuit** : 500 Mo de base de données, largement assez pour tester (les photos sont réduites).
