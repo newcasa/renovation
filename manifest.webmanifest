@@ -1,14 +1,14 @@
 {
-  "name": "Woopr – Acheter, vendre, rénover",
-  "short_name": "Woopr",
+  "name": "Valou – Acheter, vendre, rénover",
+  "short_name": "Valou",
   "description": "Achète, vends et rénove ton bien en Belgique, avec les bons professionnels.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f4f6f9",
-  "theme_color": "#f4f6f9",
+  "background_color": "#F5EFE3",
+  "theme_color": "#F5EFE3",
   "icons": [
     {
       "src": "icone-192.png",
