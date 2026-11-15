@@ -489,7 +489,7 @@ head=x=>{const z=10.5*s,h=z*1.9;need(h+30*s);y-=7*s;pg().push(`0.93 0.95 0.99 rg
 im=(i,x,yy,w,h)=>pg().push(`q ${w.toFixed(1)} 0 0 ${h.toFixed(1)} ${x.toFixed(1)} ${yy.toFixed(1)} cm /I${i} Do Q\n`);
 const hb=46*s,lh=26*s,lw=lh*IM[0].w/IM[0].h;im(0,MG,y-hb+(hb-lh)/2,lw,lh);T("Synthèse du projet",MG+lw+14*s,y-hb*.42,17*s,2,DK);T((P.a||"")+" · "+new Date().toLocaleDateString(LOC()),MG+lw+14*s,y-hb*.8,9.5*s,1,MU);y-=hb+6*s;
 head("Travaux");travRows(t).forEach(r=>row((r[3]?"   ":"")+r[0]+(r[1]?" ("+r[1]+")":""),m[r[2]]));row("Total min – max",m.rng);row("Moyenne (tous les tarifs)",m.moy);row("Selon les choix de tarif",m.sel);row("Imprévus ("+pc(S.imp)+")",m.imp);row("Budget travaux",m.bud,1);if(P.imp&&typeof P.imp=="object"){head("Annonce d’origine");impRows(P).forEach(a=>row(a[0],a[1]))}if(P.det){const dr=detRows(P);if(dr.length){head("Détails du bien");dr.forEach(a=>row(a[0],a[1]))}}head("Totaux et quantités");met().forEach(a=>row(a[0],a[1]));{const e=anEst(P);if(e){head("Estimation du bien");estRows(e).forEach(a=>row(a[0],a[1],a[2]))}}
-head("Achat + rénovation");row("Prix d’achat",E(n(S.ach)));row("Frais administratifs ("+pc(S.fr)+")",m.fr);row("TVA sur les travaux ("+pc(S.tva)+")",m.tv);row("Total du projet",m.tt,1);
+head("Achat + rénovation");row("Prix d’achat",E(n(S.ach)));row("Frais administratifs ("+pc(S.fr)+")",m.fr);row("TVA sur les travaux (artisans "+vatA()+" %, moi-même 21 %)",m.tv);row("Total du projet",m.tt,1);
 head("Financement");{const b=BKS.find(x=>x[0]==P.bk);if(b)row("Banque partenaire",b[1])}row("Apport personnel",E(n(S.ap)));row("Montant emprunté",m.em);row("Taux annuel / durée",pc(S.tx)+" / "+(n(S.mo)||0)+" mois");row("Mensualité hors assurance",m.M);row("Assurance par mois ("+pc(S.ass)+" par an)",m.as);row("Mensualité totale",m.mt,1);{const z=7.5*s;need(z*2.4);T("Conditions indicatives : cela ne constitue pas une offre de crédit et reste une estimation, à confirmer avec la banque.",MG+4,y-z-2,z,3,MU);y-=z*2}
 if(ch.length){head("Annonces choisies ("+ch.length+")");ch.forEach(c=>{const z=9*s,h=Math.max(z*4.4,c.ix>=0?40*s+4:0);need(h);const tx0=c.ix>=0?MG+4+52*s+8:MG+4;if(c.ix>=0)im(c.ix,MG+4,y-40*s-2,52*s,40*s);T(c.ag,tx0,y-z-1,z,2);T((c.t?c.t+" · ":"")+Math.round(c.m)+" m² · "+c.z,tx0,y-z*2.2-1,z,1,MU);T(E(c.p)+" · "+E(c.p/c.m)+"/m²",tx0,y-z*3.4-1,z,1);if(!c.mine)T(c.tel+" · "+c.em,tx0,y-z*4.6-1,z,1,MU);y-=Math.max(z*(c.mine?4.2:5.4),c.ix>=0?40*s+6:0)})}
 if(ar.length){head("Artisans retenus ("+ar.length+")");ar.forEach(a=>{const z=9*s;need(z*2.9);T(a[1]+" · "+a[2]+" · "+a[3],MG+4,y-z-1,z,2);T(a[4]+" · "+a[5],MG+4,y-z*2.2-1,z,1,MU);y-=z*2.9})}
@@ -2669,14 +2669,14 @@ function vcDraw(){let el=document.getElementById("vcx");if(!VC){if(el)el.remove(
   return`<div class="vcp${ed?" ed":""}" data-vck="${p.k}"><div class="vch"><b>${esc(p.lab)}</b><span class="vcs vcs-${s.c}">${esc(s.t)}</span></div>
   <div class="vcf"><span>Quantité</span><b>${c.q?hbN(c.q)+" "+(u.includes("m²")?"m²":u.includes("/ml")?"m":u.includes("unité")?"unité(s)":""):"—"}</b>
   <span>Matériel</span><b>${vcR(c.m[0],c.m[1],u)}</b><span>Main-d'œuvre</span><b>${vcR(c.l[0],c.l[1],u)}</b></div>${how}
-  ${c.q?`<div class="vcres">= <b>${vcR(c.lo,c.hi)}</b> · retenu dans le budget : <b>${E(c.ch)}</b></div>`:""}
+  ${c.q?`<div class="vcres">= <b>${vcR(c.lo,c.hi)}</b> · retenu dans le budget : <b>${E(c.ch)}</b> HTVA${c.tva?` <small class="mu">(+ TVA ${E(c.tva)} : ${c.chA&&c.chD?`${vatA()} % artisan, 21 % moi-même`:c.chA?`${vatA()} %, artisan`:"21 % sur le matériel, moi-même"})</small>`:""}</div>`:""}
   <div class="vcact"><label>Prix appliqué<select data-vcart="${p.k}"><option value="">${S.tm?"Mes prix / Valou":"Prix Valou"}</option>${S.collab.map(a=>`<option value="${a.id}"${a.id==cid?" selected":""}>👷 ${esc(a.nom)}${a.p&&a.p[p.k]?"":" (à encoder)"}</option>`).join("")}</select></label><button type="button" class="vcb" data-vced="${p.k}">✏️ Modifier les prix</button></div>
   ${ed?vcForm(p,c,cid):""}</div>`};
  el.innerHTML=`<div class="vcw"><div class="vctop"><button type="button" class="vcb" data-vcclose>‹ Retour</button><b>🧮 Comment Valou calcule</b></div>
  <div class="c vcexp"><h3>Le principe</h3>
   <div class="vcfx">Pour chaque poste : <b>Quantité × (Matériel + Main-d'œuvre)</b></div>
   <div>• Chaque prix est une <b>fourchette mini – maxi</b>. Le montant retenu dépend de ton choix de tarif : mini, moyen (le milieu) ou maxi.</div>
-  <div>• Si tu coches <b>« je fais moi-même »</b>, la main-d'œuvre n'est pas comptée.</div><div>• Tous les prix sont <b>hors TVA</b> : la TVA sur les travaux (${n(S.tva)} %) est ajoutée à la fin, dans « Achat + rénovation ».</div>
+  <div>• Si tu coches <b>« je fais moi-même »</b>, la main-d'œuvre n'est pas comptée.</div><div>• Tous les prix sont <b>hors TVA</b>. La TVA est ajoutée à la fin (« Achat + rénovation ») : <b>${vatA()} %</b> sur les postes faits par un artisan (taux choisi dans le projet), <b>21 %</b> sur le matériel des postes que tu fais toi-même.</div>
   <div>• Le <b>budget travaux</b> = la somme des postes + <b>${n(S.imp)} % d'imprévus</b>${t&&t.bud?` = <b>${E(t.bud)}</b>`:""}.</div>
   <div>• <b>Quel prix est utilisé ?</b> 1) le prix de l'artisan choisi pour le poste, sinon 2) tes propres prix, sinon 3) les prix de référence Valou.</div></div>
  <div class="c"><h3>👷 Mes artisans collaborateurs</h3><small class="mu">Encode les prix de chaque artisan avec qui tu travailles, puis choisis-le sur les postes qu'il réalise. Ses prix sont gardés pour tes autres projets.</small>
@@ -2689,7 +2689,7 @@ function vcDraw(){let el=document.getElementById("vcx");if(!VC){if(el)el.remove(
 function vcForm(p,c,cid){const a=cid&&vcC(cid),cur=a&&a.p&&a.p[p.k]?a.p[p.k]:[c.m[0],c.m[1],c.l[0],c.l[1]],u=p.u,I=(i,l)=>`<label>${l} <small>(${u})</small><input type="number" inputmode="decimal" step="0.01" data-vcv="${i}" value="${cur[i]??""}"></label>`;
  return`<div class="vcform"><div class="vcfor">${a?`Prix de <b>👷 ${esc(a.nom)}</b> pour ce poste (gardés pour tes autres projets)`:`<b>Mes propres prix</b> pour ce poste (utilisés dans tous tes projets)`}</div>
  <div class="vcgrid">${I(0,"Matériel mini")}${I(1,"Matériel maxi")}${I(2,"Main-d'œuvre mini")}${I(3,"Main-d'œuvre maxi")}</div>
- <small class="mu">Prix de référence Valou : matériel ${vcR(p.d[0],p.d[1],u)}, main-d'œuvre ${vcR((LABD[p.k]||[0,0])[0],(LABD[p.k]||[0,0])[1],u)}. Pour un prix unique, mets la même valeur en mini et en maxi. Prix <b>hors TVA</b> : la TVA est ajoutée sur le total (Achat + rénovation).</small>
+ <small class="mu">Prix de référence Valou : matériel ${vcR(p.d[0],p.d[1],u)}, main-d'œuvre ${vcR((LABD[p.k]||[0,0])[0],(LABD[p.k]||[0,0])[1],u)}. Pour un prix unique, mets la même valeur en mini et en maxi. Prix <b>hors TVA</b> : la TVA est ajoutée à la fin (artisan : taux du projet ; moi-même : 21 %).</small>
  <div class="vcbtns"><button type="button" class="vcb" data-vcreset="${p.k}">Remettre les prix ${a?"de Valou pour cet artisan":"Valou"}</button><button type="button" class="vcb pri" data-vcsave="${p.k}">Enregistrer</button></div></div>`}
 const vcRefresh=()=>{save();const y=(document.querySelector("#vcx")||{}).scrollTop||0;vcDraw();const el=document.querySelector("#vcx");if(el)el.scrollTop=y};
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-vcopen],[data-vcclose],[data-vced],[data-vcsave],[data-vcreset],[data-vcnew],[data-vcdel],[data-vcimp]");if(!b)return;e.preventDefault();e.stopPropagation();const Pp=vcPrj();
@@ -2724,6 +2724,33 @@ document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closes
 .vcact{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;justify-content:space-between;margin-top:10px}.vcact label{display:grid;gap:3px;font-size:12px;color:var(--mu);flex:1;min-width:180px}
 .vcform{margin-top:10px;padding:10px;border-radius:12px;background:var(--bg)}.vcfor{font-size:13px;margin-bottom:8px}.vcgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vcgrid label{display:grid;gap:3px;font-size:12px}
 .vcbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:10px}`;document.head.appendChild(st)}
+
+/* ===================== Valou v43 : prix des matériaux hors TVA, TVA ajoutée poste par poste ===================== */
+/* Les prix de référence des matériaux étaient TVA 21 % comprise : on les ramène hors TVA (÷ 1,21).
+   TVA ajoutée ensuite : 21 % sur le matériel des postes faits soi-même ; taux choisi dans le projet (6 % ou 21 %) pour les postes faits par un artisan. */
+const VAT_DIY=21;
+if(!window.__htva){window.__htva=1;const h=v=>Math.round(n(v)/1.21*100)/100,h2=a=>{a[0]=h(a[0]);a[1]=h(a[1])};
+ Object.values(SOL).forEach(h2);Object.values(MUR).forEach(h2);h2(PL);Object.values(MEU).forEach(h2);
+ WCI.forEach(it=>{it[2]=h(it[2]);it[3]=h(it[3])});
+ T.forEach(c=>c[1].forEach(it=>{if(it[5])it[5].forEach(o=>{o[1]=h(o[1]);o[2]=h(o[2])});else{it[3]=h(it[3]);it[4]=h(it[4])}}))}
+const vatA=()=>S.tva==null||S.tva===""?21:n(S.tva);
+/* répartition du montant retenu : postes avec artisan / postes faits soi-même */
+{const _vc=vcCalc;vcCalc=function(p){const c=_vc(p);c.chA=0;c.chD=0;vcCtx(()=>{const m0=P(p.k,p.d),l0=LB(p.k);
+ if(p.rows)p.rows.forEach(x=>{const lab=(x.w??x.r.mo)!=0,mul=x.x&&!lab?1.1:1,a=m0[0]*mul+(lab?l0[0]:0),b=m0[1]*mul+(lab?l0[1]:0),v=x.q*pick(a,b,x.v);if(lab)c.chA+=v;else c.chD+=v});
+ else if(p.eq&&p.eq.act){if(c.det[0]&&c.det[0].lab)c.chA=c.ch;else c.chD=c.ch}});c.tva=c.chA*vatA()/100+c.chD*VAT_DIY/100;return c}}
+function vatSplit(t){if(!t||t.qk)return{a:t?t.bud:0,d:0,tv:t?t.bud*vatA()/100:0};let a=0,d=0;vcPostes(0).forEach(p=>{const c=vcCalc(p);a+=c.chA;d+=c.chD});
+ const s=a+d||1,ia=t.imp*a/s,id=t.imp*d/s;return{a:a+ia,d:d+id,tv:(a+ia)*vatA()/100+(d+id)*VAT_DIY/100}}
+fin=function(){const t=tot(),fr=n(S.ach)*n(S.fr)/100,tv=vatSplit(t).tv,tt=n(S.ach)+t.bud+tv+fr,em=Math.max(0,tt-n(S.ap)),r=n(S.tx)/1200,N=n(S.mo)||1,M=r?em*r/(1-Math.pow(1+r,-N)):em/N,as=em*n(S.ass)/100/12;return{t,fr,tv,tt,em,M,as,mt:M+as,int:M*N-em,cass:as*N,cc:M*N-em+as*N}};
+/* choix du taux pour les artisans, dans « Achat + rénovation » */
+{const _syn=syn;syn=function(){let h=_syn.apply(this,arguments);const t=tot(),v=vatSplit(t),r=vatA();
+ h=h.replace(/<label>TVA sur les travaux \(%\), à laisser vide si tes tarifs incluent déjà la TVA[\s\S]*?<\/label>/,`<div class="vat"><b>TVA sur les travaux</b><small>Les prix de Valou sont hors TVA. La TVA est ajoutée selon qui fait le travail :</small>
+  <div class="vatr"><span>👷 Postes faits par un artisan</span><div class="segb"><button type="button" data-vat="6" class="${r==6?"on":""}">6 %</button><button type="button" data-vat="21" class="${r==21?"on":""}">21 %</button></div></div>
+  <small class="mu">6 % : rénovation d'un logement de plus de 10 ans, facturée par l'entrepreneur (conditions à vérifier avec lui). Sinon 21 %.</small>
+  <div class="vatr"><span>🙋 Postes que je fais moi-même</span><b>21 % sur le matériel</b></div>
+  ${t&&!t.qk?`<small class="mu">Postes artisans : ${E(v.a)} × ${r} % = ${E(v.a*r/100)} · Moi-même : ${E(v.d)} × 21 % = ${E(v.d*VAT_DIY/100)}</small>`:""}</div>`);
+ return h.replace("<div>• Tous les prix sont <b>hors TVA</b>","<div>• Tous les prix sont <b>hors TVA</b>")}}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-vat]");if(!b)return;e.preventDefault();S.tva=+b.dataset.vat;save();render()},true);
+{const st=document.createElement("style");st.textContent=`.vat{display:grid;gap:6px;margin:8px 0 10px;padding:12px;border-radius:12px;background:var(--bg)}.vat small{font-size:12.5px;color:var(--mu)}.vatr{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font-size:14px}`;document.head.appendChild(st)}
 
 render();
 /* =================== fin VERSION 26 =================== */
