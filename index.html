@@ -2627,6 +2627,103 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 .vhm{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:10px;background:var(--bg)}.vhx{border:0;background:transparent;font-size:16px;cursor:pointer;color:var(--mu)}
 .vhnw{display:grid;gap:6px}.vhadd{justify-self:end;border:0;border-radius:999px;background:var(--bl);color:#F5EFE3;padding:8px 18px;font-weight:700;cursor:pointer}.vhsrc{font-size:12px;margin-top:10px}`;document.head.appendChild(st)}
 
+/* ===================== Valou v42 : comprendre et ajuster les calculs, poste par poste, avec ses artisans collaborateurs ===================== */
+/* Priorité des prix pour un poste : 1) l'artisan choisi pour ce poste dans ce projet, 2) « Mes propres prix », 3) les prix de référence Valou. */
+const vcC=id=>(S.collab||[]).find(c=>c.id==id);
+const vcPrj=()=>S.props[S.cur]||null;
+function vcMerged(){const Pp=vcPrj(),a=(Pp&&Pp.cpa)||{},base=S.tm?(S.p||{}):{};const ks=Object.keys(a).filter(k=>{const c=vcC(a[k]);return c&&c.p&&c.p[k]});if(!ks.length)return null;
+ const m=Object.assign({},base);ks.forEach(k=>{const c=vcC(a[k]).p[k],b=base[k]||{},L=LABD[k]||[0,0],v=(x,y)=>x!=null&&x!==""?x:y;m[k]={0:v(c[0],b[0]),1:v(c[1],b[1]),2:v(c[2],v(b[2],L[0])),3:v(c[3],v(b[3],L[1]))}});return m}
+function vcCtx(fn){const m=vcMerged();if(!m)return fn();const p=S.p,t=S.tm;S.p=m;S.tm=1;try{return fn()}finally{S.p=p;S.tm=t}}
+{const _rc=rc;rc=function(r){return vcCtx(()=>_rc(r))}}
+{const _ic=ic;ic=function(it){return vcCtx(()=>_ic(it))}}
+/* --- liste des postes, avec la quantité et d'où elle vient --- */
+const VCL={sol_parquet:["Sol – parquet","€/m²"],sol_carrelage:["Sol – carrelage","€/m²"],mur_plafonnage:["Murs – plafonnage","€/m²"],mur_peinture:["Murs – peinture","€/m²"],mur_carrelage:["Murs – carrelage","€/m²"],pl:["Plafonds","€/m²"],meu_cuisine:["Cuisine équipée","€"],meu_sdb:["Salle de bain équipée","€"]};
+const VCD=()=>({sol_parquet:SOL.parquet,sol_carrelage:SOL.carrelage,mur_plafonnage:MUR.plafonnage,mur_peinture:MUR.peinture,mur_carrelage:MUR.carrelage,pl:PL,meu_cuisine:MEU.cuisine,meu_sdb:MEU.sdb});
+function vcPostes(all){const R=S.rooms||[],D=VCD(),out=[],nm=r=>r.n||"pièce";
+ const room=(k,grp,each)=>{const L=[];R.forEach(r=>{const x=each(r);if(x)L.push(Object.assign({r},x))});if(L.length||all)out.push({k,grp,lab:VCL[k][0],u:VCL[k][1],d:D[k],rows:L})};
+ room("sol_parquet","Espaces",r=>r.sOn&&r.sT=="parquet"&&{q:n(r.sol),w:r.sw,v:r.sl,x:r.sX,src:nm(r)});
+ room("sol_carrelage","Espaces",r=>r.sOn&&r.sT=="carrelage"&&{q:n(r.sol),w:r.sw,v:r.sl,x:r.sX,src:nm(r)});
+ room("mur_plafonnage","Espaces",r=>r.pfOn&&{q:mm(r),w:r.pfw,v:r.pfv,x:r.mX,src:nm(r)});
+ room("mur_peinture","Espaces",r=>r.peOn&&{q:mm(r),w:r.pew,v:r.pev,x:r.mX,src:nm(r)});
+ room("mur_carrelage","Espaces",r=>r.caOn&&{q:mm(r),w:r.caw,v:r.cav,x:r.mX,src:nm(r)});
+ room("pl","Espaces",r=>r.pOn&&{q:n(r.sol),w:r.pw,v:r.pq,x:r.pX,src:nm(r)});
+ ["cuisine","sdb"].forEach(t=>room("meu_"+t,"Espaces",r=>r.meu&&r.k==t&&{q:1,w:r.ew,v:r.el,src:nm(r)}));
+ WCI.forEach(it=>{const L=R.filter(r=>wcR(r)&&(r.wi||[]).includes(it[0])).map(r=>({r,q:1,w:r.wcw,src:nm(r)}));if(L.length||all)out.push({k:"wc_"+it[0],grp:"Espaces",lab:"WC – "+it[1],u:"€",d:[it[2],it[3]],rows:L})});
+ T.forEach((c,ci)=>c[1].forEach(it=>{const s=(S.t||{})[it[0]],on=!!(s&&s.on);const opts=it[5]?it[5].map((o,j)=>({k:"i_"+it[0]+"_"+j,lab:it[1]+" – "+o[0],d:[o[1],o[2]],j})):[{k:"i_"+it[0],lab:it[1],d:[it[3],it[4]]}];
+  opts.forEach(o=>{const act=on&&(!it[5]||n(s.o)==o.j);if(!act&&!all)return;out.push({k:o.k,grp:c[0],lab:o.lab,u:it[2]=="unité"?"€/unité":"€/"+it[2],d:o.d,eq:{it,ci,s,act}})})}));
+ return out}
+/* même calcul que l'appli, poste par poste */
+function vcCalc(p){return vcCtx(()=>{const m0=P(p.k,p.d),l0=LB(p.k);let lo=0,hi=0,ch=0,q=0;const det=[];
+ if(p.rows){p.rows.forEach(x=>{const lab=(x.w??x.r.mo)!=0,mul=x.x&&!lab?1.1:1,a=m0[0]*mul+(lab?l0[0]:0),b=m0[1]*mul+(lab?l0[1]:0);q+=x.q;lo+=x.q*a;hi+=x.q*b;ch+=x.q*pick(a,b,x.v);det.push({src:x.src,q:x.q,lab,mul,v:x.v})})}
+ else if(p.eq&&p.eq.act){const{it,ci,s}=p.eq,G=(S.rooms||[]).filter(g=>/garage/i.test(g.n)||g.k=="garage"),lab=(S.mc||{})[ci]!=0&&!(it[0]=="pg"&&G.length&&G.every(g=>g.pgw==0));q=qty(it[0],s);const a=m0[0]+(lab?l0[0]:0),b=m0[1]+(lab?l0[1]:0);lo=q*a;hi=q*b;ch=pick(lo,hi,s.lv);det.push({src:"Équipements",q,lab,v:s.lv})}
+ return{m:m0,l:l0,lo,hi,ch,q,det}})}
+function vcSrc(k){const Pp=vcPrj(),cid=Pp&&Pp.cpa&&Pp.cpa[k],c=cid&&vcC(cid);if(c&&c.p&&c.p[k])return{t:"👷 "+c.nom,c:"art"};if(c)return{t:"👷 "+c.nom+" (prix pas encore encodés : Valou)",c:"val"};const o=(S.p||{})[k];if(S.tm&&o&&[0,1,2,3].some(i=>o[i]!=null&&o[i]!==""))return{t:"✏️ Mes prix",c:"me"};return{t:"Valou (référence)",c:"val"}}
+const vcR=(a,b,u)=>{const x=u?u.replace(/^€\s*/,""):"";return a==b?`${E(a)}${x}`:`${E(a)} à ${E(b)}${x}`};
+const VLV={min:"tarif mini",moy:"tarif moyen",max:"tarif maxi"};
+let VC=null,VCE=null,VCA=0;
+function vcDraw(){let el=document.getElementById("vcx");if(!VC){if(el)el.remove();return}if(!el){el=document.createElement("div");el.id="vcx";document.body.appendChild(el)}
+ const Pp=vcPrj();if(!Pp){VC=null;el.remove();return}Pp.cpa=Pp.cpa||{};S.collab=S.collab||[];const L=vcPostes(VCA),g=[...new Set(L.map(p=>p.grp))],t=tot();
+ const card=p=>{const c=vcCalc(p),s=vcSrc(p.k),u=p.u,cid=Pp.cpa[p.k]||"",ed=VCE==p.k;
+  const how=c.det.length?c.det.map(d=>`<div class="vcd">• ${esc(d.src)} : ${hbN(d.q)} ${u.includes("m²")?"m²":u.includes("/ml")?"m":u.includes("unité")?"unité(s)":"× 1"}${d.lab?"":` · <i>je fais moi-même</i> (main-d'œuvre 0${d.mul>1?", matériel +10 %":""})`}${d.v?` · ${VLV[d.v]||""}`:""}</div>`).join(""):`<div class="vcd mu">Pas utilisé dans ce projet.</div>`;
+  return`<div class="vcp${ed?" ed":""}" data-vck="${p.k}"><div class="vch"><b>${esc(p.lab)}</b><span class="vcs vcs-${s.c}">${esc(s.t)}</span></div>
+  <div class="vcf"><span>Quantité</span><b>${c.q?hbN(c.q)+" "+(u.includes("m²")?"m²":u.includes("/ml")?"m":u.includes("unité")?"unité(s)":""):"—"}</b>
+  <span>Matériel</span><b>${vcR(c.m[0],c.m[1],u)}</b><span>Main-d'œuvre</span><b>${vcR(c.l[0],c.l[1],u)}</b></div>${how}
+  ${c.q?`<div class="vcres">= <b>${vcR(c.lo,c.hi)}</b> · retenu dans le budget : <b>${E(c.ch)}</b></div>`:""}
+  <div class="vcact"><label>Prix appliqué<select data-vcart="${p.k}"><option value="">${S.tm?"Mes prix / Valou":"Prix Valou"}</option>${S.collab.map(a=>`<option value="${a.id}"${a.id==cid?" selected":""}>👷 ${esc(a.nom)}${a.p&&a.p[p.k]?"":" (à encoder)"}</option>`).join("")}</select></label><button type="button" class="vcb" data-vced="${p.k}">✏️ Modifier les prix</button></div>
+  ${ed?vcForm(p,c,cid):""}</div>`};
+ el.innerHTML=`<div class="vcw"><div class="vctop"><button type="button" class="vcb" data-vcclose>‹ Retour</button><b>🧮 Comment Valou calcule</b></div>
+ <div class="c vcexp"><h3>Le principe</h3>
+  <div class="vcfx">Pour chaque poste : <b>Quantité × (Matériel + Main-d'œuvre)</b></div>
+  <div>• Chaque prix est une <b>fourchette mini – maxi</b>. Le montant retenu dépend de ton choix de tarif : mini, moyen (le milieu) ou maxi.</div>
+  <div>• Si tu coches <b>« je fais moi-même »</b>, la main-d'œuvre n'est pas comptée.</div>
+  <div>• Le <b>budget travaux</b> = la somme des postes + <b>${n(S.imp)} % d'imprévus</b>${t&&t.bud?` = <b>${E(t.bud)}</b>`:""}.</div>
+  <div>• <b>Quel prix est utilisé ?</b> 1) le prix de l'artisan choisi pour le poste, sinon 2) tes propres prix, sinon 3) les prix de référence Valou.</div></div>
+ <div class="c"><h3>👷 Mes artisans collaborateurs</h3><small class="mu">Encode les prix de chaque artisan avec qui tu travailles, puis choisis-le sur les postes qu'il réalise. Ses prix sont gardés pour tes autres projets.</small>
+  ${S.collab.map(a=>{const nb=Object.keys(a.p||{}).length,us=Object.values(Pp.cpa).filter(x=>x==a.id).length;return`<div class="vcar"><span><b>${esc(a.nom)}</b>${a.met?` · ${esc(a.met)}`:""}<small>${nb} poste${nb>1?"s":""} encodé${nb>1?"s":""} · utilisé sur ${us} poste${us>1?"s":""} de ce projet</small></span><button type="button" class="vcx" data-vcdel="${a.id}" aria-label="Supprimer">🗑</button></div>`}).join("")}
+  <div class="vcadd"><input id="vc-n" placeholder="Nom de l'artisan ou de l'entreprise"><input id="vc-m" placeholder="Métier (ex. carreleur)"><button type="button" class="vcb pri" data-vcnew>+ Ajouter</button></div>
+  ${(()=>{const A=(typeof AR!="undefined"?AR:[]).filter(a=>(Pp.pa||[]).includes(a[0])&&!S.collab.some(c=>c.src==a[0]));return A.length?`<div class="vcimp"><small>Artisans retenus pour ce projet :</small>${A.map(a=>`<button type="button" class="vcb" data-vcimp="${a[0]}">+ ${esc(a[1])}</button>`).join("")}</div>`:""})()}</div>
+ <div class="vctg"><label class="ar"><input type="checkbox" data-vcall${VCA?" checked":""}><span>Afficher aussi les postes non utilisés dans ce projet</span></label></div>
+ ${L.length?g.map(x=>`<h3 class="vcg">${esc(x)}</h3>`+L.filter(p=>p.grp==x).map(card).join("")).join(""):`<div class="c mu">Aucun poste utilisé pour l'instant : ajoute des pièces (Espaces) ou des équipements, ou coche « afficher aussi les postes non utilisés ».</div>`}
+ </div>`}
+function vcForm(p,c,cid){const a=cid&&vcC(cid),cur=a&&a.p&&a.p[p.k]?a.p[p.k]:[c.m[0],c.m[1],c.l[0],c.l[1]],u=p.u,I=(i,l)=>`<label>${l} <small>(${u})</small><input type="number" inputmode="decimal" step="0.01" data-vcv="${i}" value="${cur[i]??""}"></label>`;
+ return`<div class="vcform"><div class="vcfor">${a?`Prix de <b>👷 ${esc(a.nom)}</b> pour ce poste (gardés pour tes autres projets)`:`<b>Mes propres prix</b> pour ce poste (utilisés dans tous tes projets)`}</div>
+ <div class="vcgrid">${I(0,"Matériel mini")}${I(1,"Matériel maxi")}${I(2,"Main-d'œuvre mini")}${I(3,"Main-d'œuvre maxi")}</div>
+ <small class="mu">Prix de référence Valou : matériel ${vcR(p.d[0],p.d[1],u)}, main-d'œuvre ${vcR((LABD[p.k]||[0,0])[0],(LABD[p.k]||[0,0])[1],u)}. Pour un prix unique, mets la même valeur en mini et en maxi.</small>
+ <div class="vcbtns"><button type="button" class="vcb" data-vcreset="${p.k}">Remettre les prix ${a?"de Valou pour cet artisan":"Valou"}</button><button type="button" class="vcb pri" data-vcsave="${p.k}">Enregistrer</button></div></div>`}
+const vcRefresh=()=>{save();const y=(document.querySelector("#vcx")||{}).scrollTop||0;vcDraw();const el=document.querySelector("#vcx");if(el)el.scrollTop=y};
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-vcopen],[data-vcclose],[data-vced],[data-vcsave],[data-vcreset],[data-vcnew],[data-vcdel],[data-vcimp]");if(!b)return;e.preventDefault();e.stopPropagation();const Pp=vcPrj();
+ if(b.dataset.vcopen!=null){VC=1;VCE=null;vcDraw();document.body.classList.add("vcon");return}
+ if(b.dataset.vcclose!=null){VC=null;vcDraw();document.body.classList.remove("vcon");render();return}
+ if(!Pp)return;S.collab=S.collab||[];Pp.cpa=Pp.cpa||{};
+ if(b.dataset.vced){VCE=VCE==b.dataset.vced?null:b.dataset.vced;vcRefresh();return}
+ if(b.dataset.vcnew!=null){const nm=($("#vc-n").value||"").trim();if(!nm)return;S.collab.push({id:"c"+Date.now().toString(36),nom:nm,met:($("#vc-m").value||"").trim(),p:{}});vcRefresh();return}
+ if(b.dataset.vcimp){const a=AR.find(x=>x[0]==b.dataset.vcimp);if(a)S.collab.push({id:"c"+Date.now().toString(36),nom:a[1],met:a[2]||"",src:a[0],p:{}});vcRefresh();return}
+ if(b.dataset.vcdel){const a=vcC(b.dataset.vcdel);if(!a||!confirm(`Supprimer ${a.nom} et ses prix ?`))return;S.collab=S.collab.filter(x=>x.id!=a.id);S.props.forEach(p=>{if(p.cpa)Object.keys(p.cpa).forEach(k=>{if(p.cpa[k]==a.id)delete p.cpa[k]})});vcRefresh();return}
+ const k=b.dataset.vcsave||b.dataset.vcreset,cid=Pp.cpa[k],a=cid&&vcC(cid);
+ if(b.dataset.vcsave){const v=[0,1,2,3].map(i=>{const x=document.querySelector(`[data-vck="${k}"] [data-vcv="${i}"]`);return x&&x.value!==""?+x.value:null});if(v[0]!=null&&v[1]!=null&&v[1]<v[0])[v[0],v[1]]=[v[1],v[0]];if(v[2]!=null&&v[3]!=null&&v[3]<v[2])[v[2],v[3]]=[v[3],v[2]];
+  if(a){a.p=a.p||{};a.p[k]=v}else{S.p=S.p||{};S.p[k]=Object.assign({},S.p[k]||{},{0:v[0],1:v[1],2:v[2],3:v[3]});S.tm=1}VCE=null;vcRefresh();toast&&toast("Prix enregistrés : le budget est recalculé");return}
+ if(b.dataset.vcreset){if(a){if(a.p)delete a.p[k]}else if(S.p)delete S.p[k];VCE=null;vcRefresh()}},true);
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#vcx"))return;const Pp=vcPrj();if(!Pp)return;Pp.cpa=Pp.cpa||{};
+ if(t.matches("[data-vcart]")){const k=t.dataset.vcart;if(t.value)Pp.cpa[k]=t.value;else delete Pp.cpa[k];const a=vcC(t.value);VCE=a&&!(a.p&&a.p[k])?k:VCE;vcRefresh()}
+ else if(t.matches("[data-vcall]")){VCA=t.checked?1:0;vcRefresh()}},true);
+{const _syn=syn;syn=function(){const h=_syn.apply(this,arguments);return h.replace('<div class="c"><h3>Travaux</h3>','<button type="button" class="vcopen" data-vcopen>🧮 Comprendre et ajuster les calculs<small>Le détail de chaque poste, tes prix et ceux de tes artisans</small></button><div class="c"><h3>Travaux</h3>')}}
+{const st=document.createElement("style");st.textContent=`#vcx{position:fixed;inset:0;z-index:9000;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}body.vcon{overflow:hidden}
+.vcw{max-width:760px;margin:0 auto;padding:12px 14px calc(30px + env(safe-area-inset-bottom,0px));padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.vctop{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;padding:8px 0 10px;background:var(--bg);font-size:18px}
+.vcb{border:1.5px solid var(--bl);background:var(--cd);color:var(--bl);border-radius:999px;padding:8px 14px;font:700 14px Manrope,system-ui,sans-serif;cursor:pointer}.vcb.pri{background:var(--bl);color:#F5EFE3}
+.vcopen{display:grid;gap:2px;width:100%;text-align:left;margin:0 0 12px;padding:14px 16px;border:2px solid #C9A35A;border-radius:16px;background:var(--cd);color:var(--tx);font:800 16px Manrope,system-ui,sans-serif;cursor:pointer}.vcopen small{font-weight:500;color:var(--mu);font-size:13px}
+.vcexp>div{margin:4px 0;font-size:14px;line-height:1.45}.vcfx{padding:10px 12px;border-radius:12px;background:rgba(201,163,90,.18);font-size:15px!important}
+.vcar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)}.vcar small{display:block;color:var(--mu);font-size:12px}.vcx{border:0;background:transparent;font-size:18px;cursor:pointer}
+.vcadd{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:10px}@media(max-width:520px){.vcadd{grid-template-columns:1fr}}.vcimp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.vctg{margin:6px 2px 4px;font-size:14px}.vcg{margin:18px 4px 8px}
+.vcp{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:12px 14px;margin:0 0 10px}.vcp.ed{border-color:#C9A35A;box-shadow:0 0 0 3px rgba(201,163,90,.2)}
+.vch{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.vcs{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}.vcs-val{background:var(--bg);color:var(--mu)}.vcs-me{background:rgba(201,163,90,.25);color:#7a5a1e}.vcs-art{background:var(--bl);color:#F5EFE3}
+.vcf{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:8px 0 4px;font-size:14px}.vcf span{color:var(--mu)}.vcf b{text-align:right}
+.vcd{font-size:12.5px;color:var(--mu)}.vcres{margin-top:6px;padding-top:6px;border-top:1px dashed var(--bd);font-size:14px}
+.vcact{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;justify-content:space-between;margin-top:10px}.vcact label{display:grid;gap:3px;font-size:12px;color:var(--mu);flex:1;min-width:180px}
+.vcform{margin-top:10px;padding:10px;border-radius:12px;background:var(--bg)}.vcfor{font-size:13px;margin-bottom:8px}.vcgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vcgrid label{display:grid;gap:3px;font-size:12px}
+.vcbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:10px}`;document.head.appendChild(st)}
+
 render();
 /* =================== fin VERSION 26 =================== */
 /* ===================== VERSION 34 : traductions de l’espace professionnel (néerlandais, anglais) ===================== */
