@@ -1,37 +1,288 @@
 {
   "source": "Hubo.be (prix web, magasin de référence : Seraing 4101)",
   "date": "2026-11-15",
-  "note": "Prix du MATÉRIEL uniquement (main-d'œuvre non comprise). prix = prix du conditionnement de vente ; qte = contenu d'un conditionnement dans l'unité de calcul. prix null = PRIX À COMPLÉTER.",
+  "tva": 21,
+  "note": "Prix du MATÉRIEL uniquement (main-d'œuvre non comprise). Les prix ci-dessous sont les prix Hubo TVA 21 % comprise ; l'appli les ramène hors TVA (÷ 1,21). prix = prix du conditionnement de vente ; qte = contenu d'un conditionnement dans l'unité de calcul. prix null = PRIX À COMPLÉTER.",
   "articles": [
-    {"id": "R01", "cat": "Gros œuvre", "nom": "Bloc béton 39x14x19 cm", "unite": "pièce", "cond": "pièce", "qte": 1, "prix": 1.89},
-    {"id": "R02", "cat": "Gros œuvre", "nom": "Ciment Portland 25 kg", "unite": "sac", "cond": "sac 25 kg", "qte": 1, "prix": 8.19},
-    {"id": "R03", "cat": "Gros œuvre", "nom": "Sable de maçonnerie 0-2 mm", "unite": "sac", "cond": "sac 25 kg", "qte": 1, "prix": 2.39},
-    {"id": "R04", "cat": "Gros œuvre", "nom": "Linteau béton précontraint 120x14x6 cm", "unite": "pièce", "cond": "pièce", "qte": 1, "prix": 17.39},
-    {"id": "R05", "cat": "Gros œuvre", "nom": "Container à gravats 6 m³", "unite": "pièce", "cond": "pièce", "qte": 1, "prix": null},
-    {"id": "R06", "cat": "Toiture", "nom": "Tuile béton ou terre cuite", "unite": "m²", "cond": "?", "qte": 1, "prix": null},
-    {"id": "R07", "cat": "Toiture", "nom": "Sous-toiture (membrane)", "unite": "m²", "cond": "rouleau 30 m²", "qte": 30, "prix": 49.99, "chute": 0.10},
-    {"id": "R08", "cat": "Toiture", "nom": "Roofing toit plat (couche de finition)", "unite": "m²", "cond": "rouleau 6 m²", "qte": 6, "prix": 59.99, "chute": 0.10},
-    {"id": "R09", "cat": "Toiture", "nom": "Gouttière PVC", "unite": "m", "cond": "longueur 2 m", "qte": 2, "prix": 10.59},
-    {"id": "R10", "cat": "Toiture", "nom": "Fenêtre de toit Velux 78x98", "unite": "pièce", "cond": "pièce", "qte": 1, "prix": 568.70},
-    {"id": "R11", "cat": "Isolation", "nom": "Laine minérale 15 cm", "unite": "m²", "cond": "rouleau 3,54 m²", "qte": 3.54, "prix": 48.46, "chute": 0.10},
-    {"id": "R12", "cat": "Isolation", "nom": "Panneau PIR 10 cm", "unite": "m²", "cond": "paquet 2,88 m²", "qte": 2.88, "prix": 83.49, "chute": 0.10, "promo": true},
-    {"id": "R13", "cat": "Plafonnage et cloisons", "nom": "Plâtre 25 kg", "unite": "sac", "cond": "sac 25 kg", "qte": 1, "prix": 12.99},
-    {"id": "R14", "cat": "Plafonnage et cloisons", "nom": "Enduit de lissage 25 kg", "unite": "sac", "cond": "sac 25 kg", "qte": 1, "prix": 43.99},
-    {"id": "R15", "cat": "Plafonnage et cloisons", "nom": "Plaque de plâtre 12,5 mm", "unite": "m²", "cond": "plaque 260x120 (3,12 m²)", "qte": 3.12, "prix": 24.99, "chute": 0.10},
-    {"id": "R16a", "cat": "Plafonnage et cloisons", "nom": "Montant métallique", "unite": "m", "cond": "longueur 2,6 m", "qte": 2.6, "prix": 9.99},
-    {"id": "R16b", "cat": "Plafonnage et cloisons", "nom": "Rail métallique", "unite": "m", "cond": "longueur 2,6 m", "qte": 2.6, "prix": 7.99},
-    {"id": "R17", "cat": "Peinture", "nom": "Peinture murale blanche", "unite": "L", "cond": "seau 10 L", "qte": 10, "prix": 39.99},
-    {"id": "R18", "cat": "Peinture", "nom": "Sous-couche (primer)", "unite": "L", "cond": "seau 10 L", "qte": 10, "prix": 89.99},
-    {"id": "R19", "cat": "Sols et carrelage", "nom": "Carrelage de sol 60x60", "unite": "m²", "cond": "boîte 1,80 m²", "qte": 1.8, "prix": 35.98, "chute": "pose"},
-    {"id": "R20", "cat": "Sols et carrelage", "nom": "Carrelage mural 30x60", "unite": "m²", "cond": "boîte ≈ 1,62 m²", "qte": 1.62, "prix": 19.26, "chute": "pose", "promo": true},
-    {"id": "R21", "cat": "Sols et carrelage", "nom": "Colle à carrelage flex 25 kg", "unite": "kg", "cond": "sac 25 kg", "qte": 25, "prix": 17.39},
-    {"id": "R22", "cat": "Sols et carrelage", "nom": "Sol stratifié 7 mm", "unite": "m²", "cond": "paquet 2,47 m²", "qte": 2.47, "prix": 32.09, "chute": "pose"},
-    {"id": "R23", "cat": "Sols et carrelage", "nom": "Parquet contrecollé", "unite": "m²", "cond": "?", "qte": 1, "prix": null},
-    {"id": "R24", "cat": "Menuiseries", "nom": "Fenêtre PVC 120x140", "unite": "pièce", "cond": "pièce", "qte": 1, "prix": null},
-    {"id": "R25", "cat": "Menuiseries", "nom": "Porte intérieure 201,5x83 cm (sans huisserie)", "unite": "pièce", "cond": "pièce", "qte": 1, "prix": 62.99},
-    {"id": "R26", "cat": "Électricité", "nom": "Câble 3G2,5 en gaine", "unite": "m", "cond": "rouleau 100 m", "qte": 100, "prix": 259.00},
-    {"id": "R27", "cat": "Sanitaire", "nom": "WC suspendu + bâti-support + plaque de commande", "unite": "pack", "cond": "pack", "qte": 1, "prix": 249.00},
-    {"id": "R28", "cat": "Sanitaire", "nom": "Meuble lavabo avec lavabo et mitigeur", "unite": "pièce", "cond": "pièce", "qte": 1, "prix": 180.99},
-    {"id": "R29", "cat": "Sanitaire", "nom": "Radiateur acier 60x100", "unite": "pièce", "cond": "pièce", "qte": 1, "prix": null}
+    {
+      "id": "R01",
+      "cat": "Gros œuvre",
+      "nom": "Bloc béton 39x14x19 cm",
+      "unite": "pièce",
+      "cond": "pièce",
+      "qte": 1,
+      "prix": 1.89
+    },
+    {
+      "id": "R02",
+      "cat": "Gros œuvre",
+      "nom": "Ciment Portland 25 kg",
+      "unite": "sac",
+      "cond": "sac 25 kg",
+      "qte": 1,
+      "prix": 8.19
+    },
+    {
+      "id": "R03",
+      "cat": "Gros œuvre",
+      "nom": "Sable de maçonnerie 0-2 mm",
+      "unite": "sac",
+      "cond": "sac 25 kg",
+      "qte": 1,
+      "prix": 2.39
+    },
+    {
+      "id": "R04",
+      "cat": "Gros œuvre",
+      "nom": "Linteau béton précontraint 120x14x6 cm",
+      "unite": "pièce",
+      "cond": "pièce",
+      "qte": 1,
+      "prix": 17.39
+    },
+    {
+      "id": "R05",
+      "cat": "Gros œuvre",
+      "nom": "Container à gravats 6 m³",
+      "unite": "pièce",
+      "cond": "pièce",
+      "qte": 1,
+      "prix": null
+    },
+    {
+      "id": "R06",
+      "cat": "Toiture",
+      "nom": "Tuile béton ou terre cuite",
+      "unite": "m²",
+      "cond": "?",
+      "qte": 1,
+      "prix": null
+    },
+    {
+      "id": "R07",
+      "cat": "Toiture",
+      "nom": "Sous-toiture (membrane)",
+      "unite": "m²",
+      "cond": "rouleau 30 m²",
+      "qte": 30,
+      "prix": 49.99,
+      "chute": 0.1
+    },
+    {
+      "id": "R08",
+      "cat": "Toiture",
+      "nom": "Roofing toit plat (couche de finition)",
+      "unite": "m²",
+      "cond": "rouleau 6 m²",
+      "qte": 6,
+      "prix": 59.99,
+      "chute": 0.1
+    },
+    {
+      "id": "R09",
+      "cat": "Toiture",
+      "nom": "Gouttière PVC",
+      "unite": "m",
+      "cond": "longueur 2 m",
+      "qte": 2,
+      "prix": 10.59
+    },
+    {
+      "id": "R10",
+      "cat": "Toiture",
+      "nom": "Fenêtre de toit Velux 78x98",
+      "unite": "pièce",
+      "cond": "pièce",
+      "qte": 1,
+      "prix": 568.7
+    },
+    {
+      "id": "R11",
+      "cat": "Isolation",
+      "nom": "Laine minérale 15 cm",
+      "unite": "m²",
+      "cond": "rouleau 3,54 m²",
+      "qte": 3.54,
+      "prix": 48.46,
+      "chute": 0.1
+    },
+    {
+      "id": "R12",
+      "cat": "Isolation",
+      "nom": "Panneau PIR 10 cm",
+      "unite": "m²",
+      "cond": "paquet 2,88 m²",
+      "qte": 2.88,
+      "prix": 83.49,
+      "chute": 0.1,
+      "promo": true
+    },
+    {
+      "id": "R13",
+      "cat": "Plafonnage et cloisons",
+      "nom": "Plâtre 25 kg",
+      "unite": "sac",
+      "cond": "sac 25 kg",
+      "qte": 1,
+      "prix": 12.99
+    },
+    {
+      "id": "R14",
+      "cat": "Plafonnage et cloisons",
+      "nom": "Enduit de lissage 25 kg",
+      "unite": "sac",
+      "cond": "sac 25 kg",
+      "qte": 1,
+      "prix": 43.99
+    },
+    {
+      "id": "R15",
+      "cat": "Plafonnage et cloisons",
+      "nom": "Plaque de plâtre 12,5 mm",
+      "unite": "m²",
+      "cond": "plaque 260x120 (3,12 m²)",
+      "qte": 3.12,
+      "prix": 24.99,
+      "chute": 0.1
+    },
+    {
+      "id": "R16a",
+      "cat": "Plafonnage et cloisons",
+      "nom": "Montant métallique",
+      "unite": "m",
+      "cond": "longueur 2,6 m",
+      "qte": 2.6,
+      "prix": 9.99
+    },
+    {
+      "id": "R16b",
+      "cat": "Plafonnage et cloisons",
+      "nom": "Rail métallique",
+      "unite": "m",
+      "cond": "longueur 2,6 m",
+      "qte": 2.6,
+      "prix": 7.99
+    },
+    {
+      "id": "R17",
+      "cat": "Peinture",
+      "nom": "Peinture murale blanche",
+      "unite": "L",
+      "cond": "seau 10 L",
+      "qte": 10,
+      "prix": 39.99
+    },
+    {
+      "id": "R18",
+      "cat": "Peinture",
+      "nom": "Sous-couche (primer)",
+      "unite": "L",
+      "cond": "seau 10 L",
+      "qte": 10,
+      "prix": 89.99
+    },
+    {
+      "id": "R19",
+      "cat": "Sols et carrelage",
+      "nom": "Carrelage de sol 60x60",
+      "unite": "m²",
+      "cond": "boîte 1,80 m²",
+      "qte": 1.8,
+      "prix": 35.98,
+      "chute": "pose"
+    },
+    {
+      "id": "R20",
+      "cat": "Sols et carrelage",
+      "nom": "Carrelage mural 30x60",
+      "unite": "m²",
+      "cond": "boîte ≈ 1,62 m²",
+      "qte": 1.62,
+      "prix": 19.26,
+      "chute": "pose",
+      "promo": true
+    },
+    {
+      "id": "R21",
+      "cat": "Sols et carrelage",
+      "nom": "Colle à carrelage flex 25 kg",
+      "unite": "kg",
+      "cond": "sac 25 kg",
+      "qte": 25,
+      "prix": 17.39
+    },
+    {
+      "id": "R22",
+      "cat": "Sols et carrelage",
+      "nom": "Sol stratifié 7 mm",
+      "unite": "m²",
+      "cond": "paquet 2,47 m²",
+      "qte": 2.47,
+      "prix": 32.09,
+      "chute": "pose"
+    },
+    {
+      "id": "R23",
+      "cat": "Sols et carrelage",
+      "nom": "Parquet contrecollé",
+      "unite": "m²",
+      "cond": "?",
+      "qte": 1,
+      "prix": null
+    },
+    {
+      "id": "R24",
+      "cat": "Menuiseries",
+      "nom": "Fenêtre PVC 120x140",
+      "unite": "pièce",
+      "cond": "pièce",
+      "qte": 1,
+      "prix": null
+    },
+    {
+      "id": "R25",
+      "cat": "Menuiseries",
+      "nom": "Porte intérieure 201,5x83 cm (sans huisserie)",
+      "unite": "pièce",
+      "cond": "pièce",
+      "qte": 1,
+      "prix": 62.99
+    },
+    {
+      "id": "R26",
+      "cat": "Électricité",
+      "nom": "Câble 3G2,5 en gaine",
+      "unite": "m",
+      "cond": "rouleau 100 m",
+      "qte": 100,
+      "prix": 259.0
+    },
+    {
+      "id": "R27",
+      "cat": "Sanitaire",
+      "nom": "WC suspendu + bâti-support + plaque de commande",
+      "unite": "pack",
+      "cond": "pack",
+      "qte": 1,
+      "prix": 249.0
+    },
+    {
+      "id": "R28",
+      "cat": "Sanitaire",
+      "nom": "Meuble lavabo avec lavabo et mitigeur",
+      "unite": "pièce",
+      "cond": "pièce",
+      "qte": 1,
+      "prix": 180.99
+    },
+    {
+      "id": "R29",
+      "cat": "Sanitaire",
+      "nom": "Radiateur acier 60x100",
+      "unite": "pièce",
+      "cond": "pièce",
+      "qte": 1,
+      "prix": null
+    }
   ]
 }
