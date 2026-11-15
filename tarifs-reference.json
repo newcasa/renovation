@@ -1,0 +1,847 @@
+{
+ "version": 1,
+ "tva_incluse": false,
+ "note": "Grille de référence Valou (HTVA) : m = matériel mini/maxi, l = main-d'œuvre mini/maxi, par unité u. Générée depuis l'appli ; les corrections du tableau de bord sont enregistrées sur le serveur (table valou_tarifs).",
+ "postes": [
+  {
+   "k": "sol_parquet",
+   "g": "Espaces",
+   "n": "Sol – parquet",
+   "u": "€/m²",
+   "m": [
+    20.66,
+    70.25
+   ],
+   "l": [
+    15,
+    35
+   ],
+   "note": ""
+  },
+  {
+   "k": "sol_carrelage",
+   "g": "Espaces",
+   "n": "Sol – carrelage",
+   "u": "€/m²",
+   "m": [
+    12.4,
+    57.85
+   ],
+   "l": [
+    20,
+    50
+   ],
+   "note": ""
+  },
+  {
+   "k": "mur_plafonnage",
+   "g": "Espaces",
+   "n": "Murs – plafonnage",
+   "u": "€/m²",
+   "m": [
+    4.13,
+    10.74
+   ],
+   "l": [
+    13,
+    32
+   ],
+   "note": ""
+  },
+  {
+   "k": "mur_peinture",
+   "g": "Espaces",
+   "n": "Murs – peinture",
+   "u": "€/m²",
+   "m": [
+    4.13,
+    8.26
+   ],
+   "l": [
+    15,
+    30
+   ],
+   "note": ""
+  },
+  {
+   "k": "mur_carrelage",
+   "g": "Espaces",
+   "n": "Murs – carrelage",
+   "u": "€/m²",
+   "m": [
+    20.66,
+    49.59
+   ],
+   "l": [
+    25,
+    60
+   ],
+   "note": ""
+  },
+  {
+   "k": "pl",
+   "g": "Espaces",
+   "n": "Plafonds",
+   "u": "€/m²",
+   "m": [
+    8.26,
+    20.66
+   ],
+   "l": [
+    30,
+    60
+   ],
+   "note": ""
+  },
+  {
+   "k": "meu_cuisine",
+   "g": "Espaces",
+   "n": "Cuisine équipée",
+   "u": "€",
+   "m": [
+    3305.79,
+    16528.93
+   ],
+   "l": [
+    1000,
+    5000
+   ],
+   "note": ""
+  },
+  {
+   "k": "meu_sdb",
+   "g": "Espaces",
+   "n": "Salle de bain équipée",
+   "u": "€",
+   "m": [
+    3305.79,
+    14049.59
+   ],
+   "l": [
+    2500,
+    10500
+   ],
+   "note": ""
+  },
+  {
+   "k": "wc_cl",
+   "g": "Espaces",
+   "n": "WC – WC classique (sur pied)",
+   "u": "€",
+   "m": [
+    123.97,
+    371.9
+   ],
+   "l": [
+    0,
+    0
+   ],
+   "note": ""
+  },
+  {
+   "k": "wc_sp",
+   "g": "Espaces",
+   "n": "WC – WC suspendu",
+   "u": "€",
+   "m": [
+    206.61,
+    578.51
+   ],
+   "l": [
+    0,
+    0
+   ],
+   "note": ""
+  },
+  {
+   "k": "wc_ev",
+   "g": "Espaces",
+   "n": "WC – Évier / lave-mains",
+   "u": "€",
+   "m": [
+    66.12,
+    289.26
+   ],
+   "l": [
+    0,
+    0
+   ],
+   "note": ""
+  },
+  {
+   "k": "wc_mb",
+   "g": "Espaces",
+   "n": "WC – Meuble sous lavabo",
+   "u": "€",
+   "m": [
+    123.97,
+    495.87
+   ],
+   "l": [
+    0,
+    0
+   ],
+   "note": ""
+  },
+  {
+   "k": "wc_rb",
+   "g": "Espaces",
+   "n": "WC – Robinetterie",
+   "u": "€",
+   "m": [
+    49.59,
+    206.61
+   ],
+   "l": [
+    0,
+    0
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_ch",
+   "g": "Menuiseries",
+   "n": "Châssis (PVC)",
+   "u": "€/unité",
+   "m": [
+    309.92,
+    557.85
+   ],
+   "l": [
+    125,
+    225
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_ca",
+   "g": "Menuiseries",
+   "n": "Châssis aluminium",
+   "u": "€/unité",
+   "m": [
+    309.92,
+    557.85
+   ],
+   "l": [
+    125,
+    225
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_bv",
+   "g": "Menuiseries",
+   "n": "Baie vitrée",
+   "u": "€/unité",
+   "m": [
+    929.75,
+    3099.17
+   ],
+   "l": [
+    375,
+    1250
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_pe",
+   "g": "Menuiseries",
+   "n": "Porte d'entrée",
+   "u": "€/unité",
+   "m": [
+    929.75,
+    2169.42
+   ],
+   "l": [
+    375,
+    875
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_pi",
+   "g": "Menuiseries",
+   "n": "Portes intérieures",
+   "u": "€/unité",
+   "m": [
+    185.95,
+    433.88
+   ],
+   "l": [
+    75,
+    175
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_pg",
+   "g": "Menuiseries",
+   "n": "Porte de garage",
+   "u": "€/unité",
+   "m": [
+    495.87,
+    3409.09
+   ],
+   "l": [
+    200,
+    1375
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_vo",
+   "g": "Menuiseries",
+   "n": "Volets",
+   "u": "€/unité",
+   "m": [
+    93.39,
+    309.92
+   ],
+   "l": [
+    38,
+    125
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_co",
+   "g": "Électricité",
+   "n": "Coffret / tableau électrique",
+   "u": "€/unité",
+   "m": [
+    297.52,
+    557.85
+   ],
+   "l": [
+    440,
+    825
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_re",
+   "g": "Électricité",
+   "n": "Réseau électrique complet (prises, points lumineux)",
+   "u": "€/unité",
+   "m": [
+    22.31,
+    44.63
+   ],
+   "l": [
+    33,
+    66
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_mc",
+   "g": "Électricité",
+   "n": "Mise en conformité",
+   "u": "€/unité",
+   "m": [
+    50.41,
+    148.76
+   ],
+   "l": [
+    74,
+    220
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_pl",
+   "g": "Sanitaire",
+   "n": "Arrivée d'eau et évacuation des eaux",
+   "u": "€/m²",
+   "m": [
+    14.88,
+    39.67
+   ],
+   "l": [
+    12,
+    32
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cha",
+   "g": "Sanitaire",
+   "n": "Chaudière gaz condensation",
+   "u": "€/unité",
+   "m": [
+    1487.6,
+    3719.01
+   ],
+   "l": [
+    1200,
+    3000
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_pac",
+   "g": "Sanitaire",
+   "n": "Pompe à chaleur",
+   "u": "€/unité",
+   "m": [
+    4462.81,
+    9173.55
+   ],
+   "l": [
+    3600,
+    7400
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_rad",
+   "g": "Sanitaire",
+   "n": "Radiateurs",
+   "u": "€/unité",
+   "m": [
+    148.76,
+    396.69
+   ],
+   "l": [
+    120,
+    320
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_chs",
+   "g": "Sanitaire",
+   "n": "Chauffage au sol",
+   "u": "€/m²",
+   "m": [
+    29.75,
+    54.55
+   ],
+   "l": [
+    24,
+    44
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_da",
+   "g": "Gros œuvre",
+   "n": "Dalle béton",
+   "u": "€/m²",
+   "m": [
+    39.67,
+    66.12
+   ],
+   "l": [
+    72,
+    120
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_mp",
+   "g": "Gros œuvre",
+   "n": "Ouverture mur porteur",
+   "u": "€/unité",
+   "m": [
+    495.87,
+    1322.31
+   ],
+   "l": [
+    900,
+    2400
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_dem",
+   "g": "Gros œuvre",
+   "n": "Démolition intérieure",
+   "u": "€/m²",
+   "m": [
+    6.61,
+    19.83
+   ],
+   "l": [
+    12,
+    36
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_dr",
+   "g": "Gros œuvre",
+   "n": "Drainage périphérique",
+   "u": "€/ml",
+   "m": [
+    26.45,
+    49.59
+   ],
+   "l": [
+    48,
+    90
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_fa_0",
+   "g": "Isolation",
+   "n": "Façade – Ravalement",
+   "u": "€/m²",
+   "m": [
+    16.53,
+    49.59
+   ],
+   "l": [
+    20,
+    60
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_fa_1",
+   "g": "Isolation",
+   "n": "Façade – Enduit / crépi",
+   "u": "€/m²",
+   "m": [
+    12.4,
+    28.93
+   ],
+   "l": [
+    15,
+    35
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_fa_2",
+   "g": "Isolation",
+   "n": "Façade – Isolation intérieure",
+   "u": "€/m²",
+   "m": [
+    16.53,
+    37.19
+   ],
+   "l": [
+    20,
+    45
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_fa_3",
+   "g": "Isolation",
+   "n": "Façade – Isolation extérieure (ITE)",
+   "u": "€/m²",
+   "m": [
+    45.45,
+    103.31
+   ],
+   "l": [
+    55,
+    125
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_to_0",
+   "g": "Isolation",
+   "n": "Toiture (isolation) – Isolation combles",
+   "u": "€/m²",
+   "m": [
+    8.26,
+    23.14
+   ],
+   "l": [
+    10,
+    28
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_to_1",
+   "g": "Isolation",
+   "n": "Toiture (isolation) – Isolation sous rampants",
+   "u": "€/m²",
+   "m": [
+    16.53,
+    37.19
+   ],
+   "l": [
+    20,
+    45
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_to_2",
+   "g": "Isolation",
+   "n": "Toiture (isolation) – Isolation sarking",
+   "u": "€/m²",
+   "m": [
+    37.19,
+    66.12
+   ],
+   "l": [
+    45,
+    80
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_dp",
+   "g": "Toiture",
+   "n": "Dépose ancienne toiture",
+   "u": "€/m²",
+   "m": [
+    10.74,
+    19.01
+   ],
+   "l": [
+    13,
+    23
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_st",
+   "g": "Toiture",
+   "n": "Sous-toiture",
+   "u": "€/m²",
+   "m": [
+    4.13,
+    10.74
+   ],
+   "l": [
+    5,
+    13
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cv_0",
+   "g": "Toiture",
+   "n": "Couverture – Tuiles béton",
+   "u": "€/m²",
+   "m": [
+    28.93,
+    45.45
+   ],
+   "l": [
+    35,
+    55
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cv_1",
+   "g": "Toiture",
+   "n": "Couverture – Tuiles terre cuite",
+   "u": "€/m²",
+   "m": [
+    35.54,
+    57.85
+   ],
+   "l": [
+    43,
+    70
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cv_2",
+   "g": "Toiture",
+   "n": "Couverture – Ardoises artificielles",
+   "u": "€/m²",
+   "m": [
+    31.4,
+    49.59
+   ],
+   "l": [
+    38,
+    60
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cv_3",
+   "g": "Toiture",
+   "n": "Couverture – Ardoises naturelles",
+   "u": "€/m²",
+   "m": [
+    53.72,
+    90.91
+   ],
+   "l": [
+    65,
+    110
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cv_4",
+   "g": "Toiture",
+   "n": "Couverture – Toiture plate EPDM",
+   "u": "€/m²",
+   "m": [
+    49.59,
+    103.31
+   ],
+   "l": [
+    60,
+    125
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cp_0",
+   "g": "Toiture",
+   "n": "Charpente – Traitement",
+   "u": "€/m²",
+   "m": [
+    6.61,
+    12.4
+   ],
+   "l": [
+    8,
+    15
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cp_1",
+   "g": "Toiture",
+   "n": "Charpente – Remplacement",
+   "u": "€/m²",
+   "m": [
+    82.64,
+    165.29
+   ],
+   "l": [
+    100,
+    200
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_zi",
+   "g": "Toiture",
+   "n": "Zinguerie (gouttières)",
+   "u": "€/ml",
+   "m": [
+    16.53,
+    33.06
+   ],
+   "l": [
+    20,
+    40
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_no",
+   "g": "Toiture",
+   "n": "Noues / abergements",
+   "u": "€/ml",
+   "m": [
+    24.79,
+    61.98
+   ],
+   "l": [
+    30,
+    75
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_te",
+   "g": "Extérieurs",
+   "n": "Terrasse",
+   "u": "€/m²",
+   "m": [
+    33.06,
+    82.64
+   ],
+   "l": [
+    40,
+    100
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_al",
+   "g": "Extérieurs",
+   "n": "Allée / pavage",
+   "u": "€/m²",
+   "m": [
+    16.53,
+    41.32
+   ],
+   "l": [
+    20,
+    50
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_cl",
+   "g": "Extérieurs",
+   "n": "Clôture",
+   "u": "€/ml",
+   "m": [
+    20.66,
+    61.98
+   ],
+   "l": [
+    25,
+    75
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_ja",
+   "g": "Extérieurs",
+   "n": "Jardin / nivellement",
+   "u": "€/m²",
+   "m": [
+    8.26,
+    20.66
+   ],
+   "l": [
+    10,
+    25
+   ],
+   "note": ""
+  },
+  {
+   "k": "i_es_0",
+   "g": "Escalier",
+   "n": "Escalier – À remplacer",
+   "u": "€/escalier",
+   "m": [
+    1735.54,
+    4165.29
+   ],
+   "l": [
+    1400,
+    3360
+   ],
+   "note": "1 escalier = environ 14 marches (1 étage)."
+  },
+  {
+   "k": "i_es_1",
+   "g": "Escalier",
+   "n": "Escalier – Peinture",
+   "u": "€/escalier",
+   "m": [
+    173.55,
+    495.87
+   ],
+   "l": [
+    140,
+    400
+   ],
+   "note": "1 escalier = environ 14 marches (1 étage)."
+  }
+ ]
+}

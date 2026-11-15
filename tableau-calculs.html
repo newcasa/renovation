@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#5E1A2A">
+<title>Valou – Tableau de bord des calculs</title>
+<link rel="icon" href="favicon-48.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5EFE3;--cd:#FBF7EF;--tx:#5E1A2A;--mu:#7A5C63;--bd:#E8DDCC;--or:#C9A35A;--ord:#8C6A2C;--ok:#2e7d5b;--ko:#a33a2a;--r:16px}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font:15px/1.45 Manrope,system-ui,Arial,sans-serif;-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:Outfit,Manrope,sans-serif;font-weight:900;letter-spacing:-.03em;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{width:100%;min-width:0;padding:9px 11px;border:1.5px solid var(--bd);border-radius:10px;background:#fff8ec}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--or);border-color:var(--or)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid var(--tx);background:var(--cd);color:var(--tx);border-radius:999px;padding:9px 16px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--tx);color:var(--bg)}.btn.gold{background:var(--or);border-color:var(--or);color:var(--tx)}.btn.sm{padding:6px 12px;font-size:13px}.btn:disabled{opacity:.45;cursor:default}
+.btn.lnk{border:0;background:transparent;padding:4px 6px;text-decoration:underline}
+header{position:sticky;top:0;z-index:5;background:var(--tx);color:var(--bg);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header img{height:30px}header h1{font-size:19px;color:var(--bg)}header .sp{flex:1}header small{opacity:.85}
+header .btn{border-color:var(--or);background:transparent;color:var(--bg)}
+main{max-width:1180px;margin:0 auto;padding:16px 16px 120px}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin:0 0 14px}
+.mu{color:var(--mu)}.sm{font-size:13px}
+.login{max-width:420px;margin:40px auto}.login img{display:block;height:70px;margin:0 auto 16px}.login .c{display:grid;gap:10px}
+.fx{padding:12px 14px;border-radius:12px;background:rgba(201,163,90,.2);font-size:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}.tab{border:1.5px solid var(--bd);background:var(--cd);border-radius:999px;padding:8px 16px;font-weight:700;cursor:pointer}.tab.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.filt{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:12px}@media(max-width:700px){.filt{grid-template-columns:1fr}}
+.grp{margin:20px 4px 8px;font-size:20px}
+.pst{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);margin:0 0 10px;overflow:hidden}
+.pst.mod{border-color:var(--or);box-shadow:0 0 0 2px rgba(201,163,90,.25)}
+.ph{display:grid;grid-template-columns:minmax(180px,1.3fr) repeat(2,minmax(150px,1fr)) auto;gap:12px;align-items:center;padding:12px 14px;cursor:pointer}
+@media(max-width:860px){.ph{grid-template-columns:1fr 1fr}.ph .pn{grid-column:1/-1}.ph .pa{grid-column:1/-1;justify-self:end}}
+.pn b{display:block;font-size:15px}.pn small{color:var(--mu)}
+.vv small{display:block;color:var(--mu);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}.vv b{font-size:14.5px}.vv s{color:var(--mu);font-weight:400;font-size:12.5px}
+.tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:2px}.t-ref{background:var(--bg);color:var(--mu)}.t-mod{background:var(--or);color:var(--tx)}.t-pr{background:var(--tx);color:var(--bg)}
+.pb{border-top:1px dashed var(--bd);padding:14px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.ed{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}@media(max-width:600px){.ed{grid-template-columns:repeat(2,minmax(0,1fr))}}.ed label{display:grid;gap:3px;font-size:12.5px;color:var(--mu)}
+.sec h3{font-size:16px;margin-bottom:6px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}.pb,.pst{min-width:0}table.pr{width:100%;min-width:560px;border-collapse:collapse;font-size:13.5px}table.pr th,table.pr td{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}table.pr th{font-size:12px;color:var(--mu)}table.pr td.r,table.pr th.r{text-align:right;white-space:nowrap}
+.addp{display:grid;grid-template-columns:1.4fr repeat(4,1fr) 1.6fr auto;gap:6px;align-items:end}@media(max-width:860px){.addp{grid-template-columns:repeat(2,minmax(0,1fr))}.addp .w2{grid-column:1/-1}}
+.addp label{display:grid;gap:3px;font-size:12px;color:var(--mu)}
+.sim{display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:start}@media(max-width:600px){.sim{grid-template-columns:1fr}}
+.simr{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:4px 12px;font-size:13.5px}.simr b{text-align:right}.simr .h{color:var(--mu);font-size:12px;text-align:right}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--tx);color:var(--bg);padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -6px 20px rgba(0,0,0,.2)}
+.bar .btn{border-color:var(--or)}.bar .btn:not(.gold){background:transparent;color:var(--bg)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#3a0e19;color:var(--bg);padding:10px 16px;border-radius:12px;z-index:9;max-width:90vw;text-align:center}
+.art{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}@media(max-width:700px){.art{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.hist div{padding:6px 0;border-bottom:1px solid var(--bd);font-size:13.5px}
+.empty{padding:20px;text-align:center;color:var(--mu)}
+.warn{border-left:4px solid var(--ko)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* Valou – tableau de bord des calculs (page séparée de l'appli)
+   Prix retenus → table valou_tarifs (lue par l'appli Valou) ; artisans et propositions → valou_tarifs_admin (privé). */
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const E=x=>(Math.round(x*100)/100).toLocaleString("fr-BE",{minimumFractionDigits:2,maximumFractionDigits:2})+" €",E0=x=>Math.round(x).toLocaleString("fr-BE")+" €";
+const num=v=>v===""||v==null||isNaN(+v)?null:+v,uid=()=>Math.random().toString(36).slice(2,9);
+let CFG=null,AUTH=null,REF=[],PUB={p:{}},ADM={artisans:[],props:{},notes:{},hist:[]},SAVED="",ADMIN=null,UI={tab:"postes",q:"",g:"",f:"",open:{},sim:{}},MSG="";
+const loadA=()=>{try{AUTH=JSON.parse(localStorage.getItem("valou_tb_auth"))}catch(e){AUTH=null}},setA=a=>{AUTH=a;try{a?localStorage.setItem("valou_tb_auth",JSON.stringify(a)):localStorage.removeItem("valou_tb_auth")}catch(e){}};
+function toast(t){const d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),3200)}
+async function api(path,o={}){const h=Object.assign({apikey:CFG.key,"Content-Type":"application/json"},o.headers||{});if(!o.anon&&AUTH)h.Authorization="Bearer "+AUTH.access_token;else if(!/^sb_/.test(CFG.key))h.Authorization="Bearer "+CFG.key;
+ const r=await fetch(CFG.url.replace(/\/$/,"")+path,Object.assign({},o,{headers:h}));const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch(e){}
+ if(!r.ok){const e=new Error((j&&(j.msg||j.message||j.error_description||j.error))||("Erreur "+r.status));e.status=r.status;e.code=j&&j.code;throw e}return j}
+async function refresh(){if(!AUTH||!AUTH.refresh_token)return;if(AUTH.expires_at&&AUTH.expires_at-60>Date.now()/1000)return;
+ try{const r=await api("/auth/v1/token?grant_type=refresh_token",{method:"POST",anon:1,body:JSON.stringify({refresh_token:AUTH.refresh_token})});setA({access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600),user:r.user})}catch(e){setA(null)}}
+const keyOf=k=>REF.find(p=>p.k==k);
+const cur=k=>{const r=keyOf(k),o=PUB.p[k];return{m:o&&o.m?o.m:r.m,l:o&&o.l?o.l:r.l,mod:!!o}};
+const same=(a,b)=>JSON.stringify(a)==JSON.stringify(b);
+const dirty=()=>JSON.stringify({p:PUB.p,a:ADM})!==SAVED;
+const unitQ=u=>u.includes("m²")?"m²":u.includes("/ml")?"m":u.includes("unité")?"unité(s)":u.includes("escalier")?"escalier(s)":"forfait";
+const rng=(a,b)=>a==b?E(a):E(a)+" – "+E(b);
+/* ---------- démarrage ---------- */
+async function boot(){try{CFG=await (await fetch("kozi-config.json",{cache:"no-store"})).json()}catch(e){}
+ try{REF=(await (await fetch("tarifs-reference.json",{cache:"no-cache"})).json()).postes||[]}catch(e){REF=[]}
+ if(!CFG||!CFG.url||!CFG.key){$("#app").innerHTML=`<main><div class="c warn"><b>Serveur non configuré.</b> Le fichier kozi-config.json est introuvable.</div></main>`;return}
+ const h=location.hash.slice(1);if(/access_token=/.test(h)){const q=new URLSearchParams(h);setA({access_token:q.get("access_token"),refresh_token:q.get("refresh_token"),expires_at:+q.get("expires_at")||Math.floor(Date.now()/1000)+3600});history.replaceState(null,"",location.pathname)}
+ loadA();await refresh();if(AUTH)await loadData();draw()}
+async function loadData(){MSG="";try{ADMIN=await api("/rest/v1/rpc/valou_is_admin",{method:"POST",body:"{}"})}catch(e){ADMIN=null;MSG=e.status==404||/valou_is_admin|schema cache|function/i.test(e.message)?"setup":"err:"+e.message;return}
+ if(!ADMIN){MSG="notadmin";return}
+ try{const a=await api("/rest/v1/valou_tarifs?id=eq.ref&select=data,updated_at");PUB=a&&a[0]?a[0].data:{};PUB.p=PUB.p||{};PUB.maj=a&&a[0]?a[0].updated_at:null;
+  const b=await api("/rest/v1/valou_tarifs_admin?id=eq.ref&select=data");ADM=Object.assign({artisans:[],props:{},notes:{},hist:[]},b&&b[0]?b[0].data:{})}catch(e){MSG="err:"+e.message;return}
+ SAVED=JSON.stringify({p:PUB.p,a:ADM})}
+/* ---------- écrans ---------- */
+function draw(){const app=$("#app");
+ if(!AUTH){app.innerHTML=`<div class="login"><img src="logo.png" alt="Valou"><div class="c"><h2>Tableau de bord des calculs</h2><p class="mu sm" style="margin:0">Connecte-toi avec ton adresse e-mail de Valou. Tu reçois un code (ou un lien) par e-mail.</p>
+  <input id="em" type="email" inputmode="email" autocomplete="email" placeholder="Ton adresse e-mail"><button class="btn pri" id="send">Recevoir mon code</button>
+  <div id="codeBox" hidden style="display:grid;gap:10px"><input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="Code reçu par e-mail"><button class="btn gold" id="verify">Me connecter</button></div><small class="mu" id="lmsg"></small></div></div>`;return}
+ const head=`<header><img src="logo-pro.png" alt="Valou"><h1>Tableau de bord des calculs</h1><span class="sp"></span><small>${esc((AUTH.user&&AUTH.user.email)||"")}</small><button class="btn sm" id="out">Se déconnecter</button></header>`;
+ if(MSG){const t=MSG=="setup"?`<b>Le serveur n'est pas encore prêt.</b><p>Colle le script <code>supabase/tarifs.sql</code> dans Supabase → SQL Editor → Run, puis la dernière ligne avec ton adresse e-mail.</p>`:MSG=="notadmin"?`<b>Ton compte n'a pas encore le droit de modifier les prix.</b><p>Dans Supabase → SQL Editor, exécute la dernière ligne du script <code>supabase/tarifs.sql</code> en y mettant ton adresse e-mail, puis recharge cette page.</p>`:`<b>Impossible de charger les données.</b><p>${esc(MSG.slice(4))}</p>`;
+  app.innerHTML=head+`<main><div class="c warn">${t}<button class="btn sm" id="retry">Réessayer</button></div></main>`;return}
+ app.innerHTML=head+`<main>${UI.tab=="postes"?vPostes():UI.tab=="art"?vArt():vHist()}</main>${barHTML()}`;
+ const tabs=`<div class="tabs"><button class="tab${UI.tab=="postes"?" on":""}" data-tab="postes">📋 Postes (${REF.length})</button><button class="tab${UI.tab=="art"?" on":""}" data-tab="art">👷 Artisans participants (${ADM.artisans.length})</button><button class="tab${UI.tab=="hist"?" on":""}" data-tab="hist">🕓 Historique</button></div>`;
+ $("main").insertAdjacentHTML("afterbegin",tabs)}
+function barHTML(){const d=dirty(),n=Object.keys(PUB.p).length;return`<div class="bar"><span>${d?"⚠️ Modifications non publiées":"✅ À jour"} · ${n} poste${n>1?"s":""} corrigé${n>1?"s":""}${PUB.maj?` · publié le ${new Date(PUB.maj).toLocaleString("fr-BE",{dateStyle:"short",timeStyle:"short"})}`:""}</span>
+ <button class="btn gold" id="pub"${d?"":" disabled"}>📤 Publier dans Valou</button><button class="btn sm" id="csv">⬇️ Export Excel (CSV)</button><button class="btn sm" id="bak">💾 Sauvegarde</button></div>`}
+function vPostes(){const G=[...new Set(REF.map(p=>p.g))],q=UI.q.toLowerCase();
+ let L=REF.filter(p=>(!UI.g||p.g==UI.g)&&(!q||p.n.toLowerCase().includes(q))&&(!UI.f||(UI.f=="mod"?PUB.p[p.k]:UI.f=="pr"?(ADM.props[p.k]||[]).length:!PUB.p[p.k])));
+ return`<div class="c"><h2 style="font-size:20px;margin-bottom:8px">Comment Valou calcule un poste</h2>
+  <div class="fx">Montant d'un poste = <b>Quantité × (Matériel + Main-d'œuvre)</b>, prix <b>hors TVA</b></div>
+  <p class="sm" style="margin:10px 0 0">• Chaque prix est une <b>fourchette mini – maxi</b> par unité (m², mètre, unité…). L'utilisateur choisit le tarif mini, moyen (milieu) ou maxi.<br>• « Je fais moi-même » : la main-d'œuvre n'est pas comptée, et la TVA est de 21 % sur le matériel. Avec un artisan : TVA 6 % ou 21 %, au choix dans le projet.<br>• Le budget = somme des postes + imprévus. Les prix que tu <b>publies</b> ici remplacent les prix de référence de Valou <b>pour tous les utilisateurs</b> (sauf s'ils ont encodé leurs propres prix).</p></div>
+ <div class="filt"><input id="q" placeholder="🔍 Rechercher un poste" value="${esc(UI.q)}"><select id="g"><option value="">Toutes les catégories</option>${G.map(g=>`<option${g==UI.g?" selected":""}>${esc(g)}</option>`).join("")}</select>
+ <select id="f"><option value="">Tous les postes</option><option value="mod"${UI.f=="mod"?" selected":""}>Corrigés</option><option value="ref"${UI.f=="ref"?" selected":""}>Encore au prix de référence</option><option value="pr"${UI.f=="pr"?" selected":""}>Avec des prix d'artisans</option></select></div>
+ ${L.length?G.filter(g=>L.some(p=>p.g==g)).map(g=>`<h2 class="grp">${esc(g)}</h2>`+L.filter(p=>p.g==g).map(card).join("")).join(""):`<div class="empty">Aucun poste ne correspond.</div>`}`}
+function card(p){const c=cur(p.k),P=ADM.props[p.k]||[],op=UI.open[p.k],qn=unitQ(p.u);
+ return`<div class="pst${c.mod?" mod":""}" data-k="${p.k}"><div class="ph" data-tog="${p.k}"><div class="pn"><b>${esc(p.n)}${c.mod?'<span class="tag t-mod">Corrigé</span>':'<span class="tag t-ref">Référence</span>'}${P.length?`<span class="tag t-pr">👷 ${P.length}</span>`:""}</b><small>par ${qn=="forfait"?"forfait":qn.replace("(s)","")} · ${esc(p.u)}</small></div>
+  <div class="vv"><small>Matériel</small><b>${rng(c.m[0],c.m[1])}</b>${c.mod&&!same(c.m,p.m)?`<br><s>réf. ${rng(p.m[0],p.m[1])}</s>`:""}</div>
+  <div class="vv"><small>Main-d'œuvre</small><b>${rng(c.l[0],c.l[1])}</b>${c.mod&&!same(c.l,p.l)?`<br><s>réf. ${rng(p.l[0],p.l[1])}</s>`:""}</div>
+  <div class="pa"><button class="btn sm">${op?"Fermer":"Ouvrir"}</button></div></div>${op?body(p,c,P):""}</div>`}
+function body(p,c,P){const s=UI.sim[p.k]??(p.u.includes("m²")?20:1),lo=s*(c.m[0]+c.l[0]),hi=s*(c.m[1]+c.l[1]),mo=(lo+hi)/2,dl=s*c.m[0],dh=s*c.m[1],dm=(dl+dh)/2;
+ return`<div class="pb"><div class="sec"><h3>✏️ Prix retenus pour Valou <small class="mu">(hors TVA, ${esc(p.u)})</small></h3>
+  <div class="ed">${["Matériel mini","Matériel maxi","Main-d'œuvre mini","Main-d'œuvre maxi"].map((l,i)=>`<label>${l}<input type="number" inputmode="decimal" step="0.01" data-ed="${p.k}|${i}" value="${(i<2?c.m[i]:c.l[i-2])}"></label>`).join("")}</div>
+  <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:8px"><small class="mu">Référence Valou : matériel ${rng(p.m[0],p.m[1])} · main-d'œuvre ${rng(p.l[0],p.l[1])}</small>${c.mod?`<button class="btn sm" data-reset="${p.k}">↺ Remettre la référence</button>`:""}</div></div>
+ <div class="sec"><h3>👷 Prix des artisans participants</h3>${P.length?`<div class="tw"><table class="pr"><tr><th>Artisan</th><th class="r">Matériel</th><th class="r">Main-d'œuvre</th><th>Commentaire</th><th></th></tr>${P.map(x=>{const a=ADM.artisans.find(z=>z.id==x.a);return`<tr><td><b>${esc(a?a.nom:"(supprimé)")}</b><br><small class="mu">${esc(x.d||"")}</small></td><td class="r">${rng(x.m[0],x.m[1])}</td><td class="r">${rng(x.l[0],x.l[1])}</td><td>${esc(x.com||"")}</td><td class="r"><button class="btn sm gold" data-use="${p.k}|${x.id}">Retenir</button> <button class="btn sm lnk" data-pdel="${p.k}|${x.id}">Supprimer</button></td></tr>`}).join("")}
+   ${P.length>1?`<tr><td><b>Moyenne des artisans</b></td><td class="r">${rng(avg(P,"m",0),avg(P,"m",1))}</td><td class="r">${rng(avg(P,"l",0),avg(P,"l",1))}</td><td></td><td class="r"><button class="btn sm gold" data-avg="${p.k}">Retenir la moyenne</button></td></tr>`:""}</table></div>`:`<p class="mu sm" style="margin:0 0 8px">Aucun prix d'artisan encodé pour ce poste.</p>`}
+  ${ADM.artisans.length?`<div class="addp" style="margin-top:10px"><label class="w2">Artisan<select data-np="a">${ADM.artisans.map(a=>`<option value="${a.id}">${esc(a.nom)}${a.met?" – "+esc(a.met):""}</option>`).join("")}</select></label>
+   ${["Mat. mini","Mat. maxi","MO mini","MO maxi"].map((l,i)=>`<label>${l}<input type="number" inputmode="decimal" step="0.01" data-np="${i}"></label>`).join("")}<label class="w2">Commentaire<input data-np="com" placeholder="ex. devis du 12/11, pose comprise"></label><button class="btn pri" data-padd="${p.k}">+ Ajouter</button></div>`:`<p class="sm">Ajoute d'abord tes artisans dans l'onglet <button class="btn sm lnk" data-tab="art">👷 Artisans participants</button>.</p>`}</div>
+ <div class="sec"><h3>🧮 Exemple de calcul</h3><div class="sim"><label class="sm mu">Quantité (${unitQ(p.u)})<input type="number" inputmode="decimal" step="0.1" data-sim="${p.k}" value="${s}"></label>
+  <div class="simr"><span></span><span class="h">Mini</span><span class="h">Moyen</span><span class="h">Maxi</span>
+   <span>Avec artisan (HTVA)</span><b>${E0(lo)}</b><b>${E0(mo)}</b><b>${E0(hi)}</b>
+   <span>+ TVA 6 %</span><b>${E0(lo*1.06)}</b><b>${E0(mo*1.06)}</b><b>${E0(hi*1.06)}</b>
+   <span>+ TVA 21 %</span><b>${E0(lo*1.21)}</b><b>${E0(mo*1.21)}</b><b>${E0(hi*1.21)}</b>
+   <span>Moi-même (matériel + TVA 21 %)</span><b>${E0(dl*1.21)}</b><b>${E0(dm*1.21)}</b><b>${E0(dh*1.21)}</b></div></div>
+  <small class="mu">${s} × (${rng(c.m[0],c.m[1])} + ${rng(c.l[0],c.l[1])}) = ${E0(lo)} à ${E0(hi)} HTVA. (Valou affiche le tarif « mini » et « maxi » légèrement resserrés vers la moyenne.)</small></div>
+ <div class="sec"><h3>📝 Note interne</h3><textarea rows="2" data-note="${p.k}" placeholder="ex. prix revu avec Martin le 20/11, quantité habituelle…">${esc(ADM.notes[p.k]||"")}</textarea></div></div>`}
+const avg=(P,f,i)=>Math.round(P.reduce((s,x)=>s+num(x[f][i]),0)/P.length*100)/100;
+function vArt(){return`<div class="c"><h2 style="font-size:20px;margin-bottom:6px">👷 Artisans participants</h2><p class="mu sm" style="margin:0 0 10px">Les artisans avec qui tu revois les prix. Leurs prix restent privés : seuls les prix que tu retiens et publies sont utilisés par Valou.</p>
+ ${ADM.artisans.map(a=>{const n=Object.values(ADM.props).reduce((s,L)=>s+L.filter(x=>x.a==a.id).length,0);return`<div class="art"><input data-ae="${a.id}|nom" value="${esc(a.nom)}"><input data-ae="${a.id}|met" value="${esc(a.met||"")}" placeholder="Métier"><input data-ae="${a.id}|tel" value="${esc(a.tel||"")}" placeholder="Téléphone"><small class="mu">${n} prix encodé${n>1?"s":""}</small><button class="btn sm lnk" data-adel="${a.id}">Supprimer</button></div>`}).join("")||`<p class="empty">Aucun artisan pour l'instant.</p>`}
+ <div class="art" style="border:0"><input id="an" placeholder="Nom de l'artisan ou de l'entreprise"><input id="am" placeholder="Métier (ex. carreleur)"><input id="at" placeholder="Téléphone (facultatif)"><span></span><button class="btn pri" id="aadd">+ Ajouter</button></div></div>`}
+function vHist(){const H=(ADM.hist||[]).slice().reverse();return`<div class="c hist"><h2 style="font-size:20px;margin-bottom:8px">🕓 Historique des publications</h2>${H.length?H.map(h=>`<div><b>${esc(h.d)}</b> · ${esc(h.n)} : ${esc(h.t)}</div>`).join(""):`<p class="empty">Rien n'a encore été publié.</p>`}</div>`}
+/* ---------- actions ---------- */
+function setVal(k,i,v){const r=keyOf(k),c=cur(k),m=c.m.slice(),l=c.l.slice();if(i<2)m[i]=v;else l[i-2]=v;
+ if(m[1]<m[0])m.reverse();if(l[1]<l[0])l.reverse();if(same(m,r.m)&&same(l,r.l))delete PUB.p[k];else PUB.p[k]={m,l}}
+function redraw(keep){const y=scrollY;draw();if(keep!==false)scrollTo(0,y)}
+document.addEventListener("click",async e=>{const tg=e.target.closest("[data-tog]"),bt=e.target.closest("button");if(tg&&!e.target.closest("input,select,textarea")&&(!bt||bt.closest(".pa"))){UI.open[tg.dataset.tog]=!UI.open[tg.dataset.tog];redraw();return}const t=bt;if(!t)return;
+ if(t.id=="send"){const em=$("#em").value.trim();if(!em)return;try{await api("/auth/v1/otp?redirect_to="+encodeURIComponent(location.origin+location.pathname),{method:"POST",anon:1,body:JSON.stringify({email:em,create_user:false})});$("#codeBox").hidden=false;$("#lmsg").textContent="E-mail envoyé : entre le code reçu, ou clique sur le lien de l'e-mail."}catch(er){$("#lmsg").textContent="Envoi impossible : "+er.message}return}
+ if(t.id=="verify"){try{const r=await api("/auth/v1/verify",{method:"POST",anon:1,body:JSON.stringify({type:"email",email:$("#em").value.trim(),token:$("#code").value.trim()})});setA({access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600),user:r.user});await loadData();draw()}catch(er){$("#lmsg").textContent="Code refusé : "+er.message}return}
+ if(t.id=="out"){if(dirty()&&!confirm("Des modifications ne sont pas publiées. Se déconnecter quand même ?"))return;try{await api("/auth/v1/logout",{method:"POST"})}catch(er){}setA(null);draw();return}
+ if(t.id=="retry"){await refresh();await loadData();draw();return}
+ if(t.dataset.tab){UI.tab=t.dataset.tab;redraw(false);scrollTo(0,0);return}
+ if(t.dataset.reset){delete PUB.p[t.dataset.reset];redraw();return}
+ if(t.dataset.use){const[k,id]=t.dataset.use.split("|"),x=(ADM.props[k]||[]).find(z=>z.id==id);if(x){PUB.p[k]={m:x.m.slice(),l:x.l.slice()};const a=ADM.artisans.find(z=>z.id==x.a);toast("Prix de "+(a?a.nom:"l'artisan")+" retenus : n'oublie pas de publier")}redraw();return}
+ if(t.dataset.avg){const k=t.dataset.avg,P=ADM.props[k];PUB.p[k]={m:[avg(P,"m",0),avg(P,"m",1)],l:[avg(P,"l",0),avg(P,"l",1)]};toast("Moyenne retenue : n'oublie pas de publier");redraw();return}
+ if(t.dataset.pdel){const[k,id]=t.dataset.pdel.split("|");ADM.props[k]=(ADM.props[k]||[]).filter(z=>z.id!=id);if(!ADM.props[k].length)delete ADM.props[k];redraw();return}
+ if(t.dataset.padd){const k=t.dataset.padd,box=t.closest(".addp"),g=f=>box.querySelector(`[data-np="${f}"]`).value,v=[0,1,2,3].map(i=>num(g(i)));
+  if(v.some(x=>x==null)){toast("Indique les 4 prix (mets la même valeur en mini et maxi pour un prix unique).");return}if(v[1]<v[0])[v[0],v[1]]=[v[1],v[0]];if(v[3]<v[2])[v[2],v[3]]=[v[3],v[2]];
+  (ADM.props[k]=ADM.props[k]||[]).push({id:uid(),a:g("a"),m:[v[0],v[1]],l:[v[2],v[3]],com:g("com").trim(),d:new Date().toLocaleDateString("fr-BE")});redraw();return}
+ if(t.id=="aadd"){const nm=$("#an").value.trim();if(!nm)return;ADM.artisans.push({id:uid(),nom:nm,met:$("#am").value.trim(),tel:$("#at").value.trim()});redraw();return}
+ if(t.dataset.adel){const a=ADM.artisans.find(z=>z.id==t.dataset.adel);if(!a||!confirm(`Supprimer ${a.nom} et ses prix ?`))return;ADM.artisans=ADM.artisans.filter(z=>z.id!=a.id);Object.keys(ADM.props).forEach(k=>{ADM.props[k]=ADM.props[k].filter(x=>x.a!=a.id);if(!ADM.props[k].length)delete ADM.props[k]});redraw();return}
+ if(t.id=="pub")return publish();
+ if(t.id=="csv")return dl("valou-calculs-par-poste.csv","﻿"+csv(),"text/csv;charset=utf-8");
+ if(t.id=="bak")return dl("valou-tableau-de-bord-sauvegarde.json",JSON.stringify({date:new Date().toISOString(),publies:PUB.p,artisans:ADM},null,1),"application/json")});
+document.addEventListener("change",e=>{const t=e.target;
+ if(t.dataset.ed){const[k,i]=t.dataset.ed.split("|"),v=num(t.value);if(v==null)return;setVal(k,+i,v);redraw()}
+ else if(t.dataset.sim){UI.sim[t.dataset.sim]=num(t.value)||0;redraw()}
+ else if(t.dataset.note!=null){const v=t.value.trim();if(v)ADM.notes[t.dataset.note]=v;else delete ADM.notes[t.dataset.note];redraw()}
+ else if(t.dataset.ae){const[id,f]=t.dataset.ae.split("|"),a=ADM.artisans.find(z=>z.id==id);if(a){a[f]=t.value.trim();redraw()}}
+ else if(t.id=="g"||t.id=="f"){UI[t.id]=t.value;redraw(false)}});
+document.addEventListener("input",e=>{if(e.target.id=="q"){UI.q=e.target.value;const p=e.target.selectionStart;redraw();const q=$("#q");if(q){q.focus();q.setSelectionRange(p,p)}}});
+addEventListener("beforeunload",e=>{if(AUTH&&ADMIN&&dirty()){e.preventDefault();e.returnValue=""}});
+async function publish(){const old=JSON.parse(SAVED||"{}"),op=(old.p)||{},ks=new Set([...Object.keys(op),...Object.keys(PUB.p)]),d=new Date().toLocaleString("fr-BE",{dateStyle:"short",timeStyle:"short"}),h=[];
+ ks.forEach(k=>{if(same(op[k],PUB.p[k]))return;const r=keyOf(k);if(!r)return;const c=cur(k);h.push({d,k,n:r.n,t:PUB.p[k]?`matériel ${rng(c.m[0],c.m[1])}, main-d'œuvre ${rng(c.l[0],c.l[1])}`:"retour au prix de référence"})});
+ ADM.hist=(ADM.hist||[]).concat(h).slice(-300);const b=$("#pub");if(b){b.disabled=true;b.textContent="Publication…"}
+ try{await refresh();const hd={Prefer:"resolution=merge-duplicates,return=minimal"};
+  await api("/rest/v1/valou_tarifs?on_conflict=id",{method:"POST",headers:hd,body:JSON.stringify({id:"ref",data:{v:1,p:PUB.p}})});
+  await api("/rest/v1/valou_tarifs_admin?on_conflict=id",{method:"POST",headers:hd,body:JSON.stringify({id:"ref",data:ADM})});
+  PUB.maj=new Date().toISOString();SAVED=JSON.stringify({p:PUB.p,a:ADM});toast(`✅ Publié : ${h.length} poste${h.length>1?"s":""} mis à jour dans Valou`);redraw()}
+ catch(er){ADM.hist=ADM.hist.slice(0,ADM.hist.length-h.length);toast("Publication impossible : "+er.message);redraw()}}
+function csv(){const q=v=>`"${String(v??"").replace(/"/g,'""')}"`,f=x=>String(Math.round(x*100)/100).replace(".",","),rows=[["Catégorie","Poste","Unité","Réf. matériel mini","Réf. matériel maxi","Réf. MO mini","Réf. MO maxi","Retenu matériel mini","Retenu matériel maxi","Retenu MO mini","Retenu MO maxi","Statut","Prix d'artisans","Note"]];
+ REF.forEach(p=>{const c=cur(p.k),P=ADM.props[p.k]||[];rows.push([p.g,p.n,p.u,f(p.m[0]),f(p.m[1]),f(p.l[0]),f(p.l[1]),f(c.m[0]),f(c.m[1]),f(c.l[0]),f(c.l[1]),c.mod?"Corrigé":"Référence",P.map(x=>{const a=ADM.artisans.find(z=>z.id==x.a);return`${a?a.nom:"?"} : mat ${f(x.m[0])}-${f(x.m[1])} / MO ${f(x.l[0])}-${f(x.l[1])}`}).join(" | "),ADM.notes[p.k]||""])});
+ return rows.map(r=>r.map(q).join(";")).join("\r\n")}
+function dl(n,c,t){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:t}));a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},3000)}
+boot();
+</script>
+</body>
+</html>
