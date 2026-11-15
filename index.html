@@ -2601,7 +2601,7 @@ function hbCard(){if(!S.props[S.cur])return"";const H=hbP(),c=hbCalc();
   <select data-hbnew><option value="">Choisir…</option><option value="blocs">🧱 Mur en blocs (surface)</option><option value="cloison">🚪 Cloison sur ossature (longueur × hauteur)</option>${arts}</select>
   <div class="vhnw"></div></div>
  <p class="mu vhsrc">Prix de référence Hubo du ${HUBO.date.split("-").reverse().join("/")}, à actualiser, ramenés hors TVA (− ${hbTVA()} %). ${esc(HUBO.source)}.</p></details>`}
-{const _syn=syn;syn=function(){const h=_syn.apply(this,arguments);try{return h+hbCard()}catch(e){console.error(e);return h}}}
+/* liste de matériel Hubo : plus affichée dans le projet (demande du 15/11/2026) ; calcul gardé (hbCalc / hbCard) au cas où */
 function hbNewForm(v){if(!v)return"";const I=(k,l,ph)=>`<label class="vhin">${l}<input type="number" inputmode="decimal" step="0.01" data-hbn="${k}" placeholder="${ph||""}"></label>`;
  const a=v.startsWith("art|")&&hbA(v.slice(4));
  return(v=="blocs"?I("s","Surface du mur (m²)"):v=="cloison"?I("l","Longueur (m)")+I("h","Hauteur (m)"):a?I("q",`Quantité (${a.unite})`):"")+`<button type="button" class="vhadd" data-vhadd="${v}">Ajouter</button>`}
