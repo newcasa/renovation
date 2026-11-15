@@ -89,9 +89,12 @@ async function loadData(){MSG="";try{ADMIN=await api("/rest/v1/rpc/valou_is_admi
  SAVED=JSON.stringify({p:PUB.p,a:ADM})}
 /* ---------- écrans ---------- */
 function draw(){const app=$("#app");
- if(!AUTH){app.innerHTML=`<div class="login"><img src="logo.png" alt="Valou"><div class="c"><h2>Tableau de bord des calculs</h2><p class="mu sm" style="margin:0">Connecte-toi avec ton adresse e-mail de Valou. Tu reçois un code (ou un lien) par e-mail.</p>
-  <input id="em" type="email" inputmode="email" autocomplete="email" placeholder="Ton adresse e-mail"><button class="btn pri" id="send">Recevoir mon code</button>
-  <div id="codeBox" hidden style="display:grid;gap:10px"><input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="Code reçu par e-mail"><button class="btn gold" id="verify">Me connecter</button></div><small class="mu" id="lmsg"></small></div></div>`;return}
+ if(!AUTH){app.innerHTML=`<div class="login"><img src="logo.png" alt="Valou"><form class="c" id="pwf"><h2>Tableau de bord des calculs</h2>
+  <input id="em" type="email" inputmode="email" autocomplete="username" placeholder="Ton adresse e-mail" required>
+  <input id="pw" type="password" autocomplete="current-password" placeholder="Ton mot de passe" required>
+  <button class="btn pri" id="login" type="submit">Me connecter</button><small class="mu" id="lmsg"></small>
+  <details class="sm"><summary class="mu" style="cursor:pointer">Me connecter avec un code reçu par e-mail</summary><div style="display:grid;gap:10px;margin-top:10px"><button class="btn" id="send" type="button">Recevoir mon code</button>
+  <div id="codeBox" hidden style="display:grid;gap:10px"><input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="Code reçu par e-mail"><button class="btn gold" id="verify" type="button">Valider le code</button></div></div></details></form></div>`;return}
  const head=`<header><img src="logo-pro.png" alt="Valou"><h1>Tableau de bord des calculs</h1><span class="sp"></span><small>${esc((AUTH.user&&AUTH.user.email)||"")}</small><button class="btn sm" id="out">Se déconnecter</button></header>`;
  if(MSG){const t=MSG=="setup"?`<b>Le serveur n'est pas encore prêt.</b><p>Colle le script <code>supabase/tarifs.sql</code> dans Supabase → SQL Editor → Run, puis la dernière ligne avec ton adresse e-mail.</p>`:MSG=="notadmin"?`<b>Ton compte n'a pas encore le droit de modifier les prix.</b><p>Dans Supabase → SQL Editor, exécute la dernière ligne du script <code>supabase/tarifs.sql</code> en y mettant ton adresse e-mail, puis recharge cette page.</p>`:`<b>Impossible de charger les données.</b><p>${esc(MSG.slice(4))}</p>`;
   app.innerHTML=head+`<main><div class="c warn">${t}<button class="btn sm" id="retry">Réessayer</button></div></main>`;return}
@@ -138,9 +141,14 @@ function vHist(){const H=(ADM.hist||[]).slice().reverse();return`<div class="c h
 function setVal(k,i,v){const r=keyOf(k),c=cur(k),m=c.m.slice(),l=c.l.slice();if(i<2)m[i]=v;else l[i-2]=v;
  if(m[1]<m[0])m.reverse();if(l[1]<l[0])l.reverse();if(same(m,r.m)&&same(l,r.l))delete PUB.p[k];else PUB.p[k]={m,l}}
 function redraw(keep){const y=scrollY;draw();if(keep!==false)scrollTo(0,y)}
+const setSess=r=>setA({access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600),user:r.user});
+const msgErr=m=>/rate limit/i.test(m)?"Trop d’e-mails envoyés : réessaie dans une heure, ou connecte-toi avec ton mot de passe.":m;
+document.addEventListener("submit",async e=>{if(e.target.id!="pwf")return;e.preventDefault();const b=$("#login");b.disabled=true;$("#lmsg").textContent="Connexion…";
+ try{const r=await api("/auth/v1/token?grant_type=password",{method:"POST",anon:1,body:JSON.stringify({email:$("#em").value.trim(),password:$("#pw").value})});setSess(r);await loadData();draw()}
+ catch(er){b.disabled=false;$("#lmsg").textContent=/invalid.*(credentials|login)/i.test(er.message)?"Adresse ou mot de passe incorrect.":/confirm/i.test(er.message)?"Adresse e-mail pas encore confirmée.":"Connexion impossible : "+er.message}});
 document.addEventListener("click",async e=>{const tg=e.target.closest("[data-tog]"),bt=e.target.closest("button");if(tg&&!e.target.closest("input,select,textarea")&&(!bt||bt.closest(".pa"))){UI.open[tg.dataset.tog]=!UI.open[tg.dataset.tog];redraw();return}const t=bt;if(!t)return;
- if(t.id=="send"){const em=$("#em").value.trim();if(!em)return;try{await api("/auth/v1/otp?redirect_to="+encodeURIComponent(location.origin+location.pathname),{method:"POST",anon:1,body:JSON.stringify({email:em,create_user:false})});$("#codeBox").hidden=false;$("#lmsg").textContent="E-mail envoyé : entre le code reçu, ou clique sur le lien de l'e-mail."}catch(er){$("#lmsg").textContent="Envoi impossible : "+er.message}return}
- if(t.id=="verify"){try{const r=await api("/auth/v1/verify",{method:"POST",anon:1,body:JSON.stringify({type:"email",email:$("#em").value.trim(),token:$("#code").value.trim()})});setA({access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600),user:r.user});await loadData();draw()}catch(er){$("#lmsg").textContent="Code refusé : "+er.message}return}
+ if(t.id=="send"){const em=$("#em").value.trim();if(!em){$("#lmsg").textContent="Indique d’abord ton adresse e-mail.";return}try{await api("/auth/v1/otp?redirect_to="+encodeURIComponent(location.origin+location.pathname),{method:"POST",anon:1,body:JSON.stringify({email:em,create_user:false})});$("#codeBox").hidden=false;$("#lmsg").textContent="E-mail envoyé : entre le code reçu, ou clique sur le lien de l'e-mail."}catch(er){$("#lmsg").textContent="Envoi impossible : "+msgErr(er.message)}return}
+ if(t.id=="verify"){try{const r=await api("/auth/v1/verify",{method:"POST",anon:1,body:JSON.stringify({type:"email",email:$("#em").value.trim(),token:$("#code").value.trim()})});setSess(r);await loadData();draw()}catch(er){$("#lmsg").textContent="Code refusé : "+er.message}return}
  if(t.id=="out"){if(dirty()&&!confirm("Des modifications ne sont pas publiées. Se déconnecter quand même ?"))return;try{await api("/auth/v1/logout",{method:"POST"})}catch(er){}setA(null);draw();return}
  if(t.id=="retry"){await refresh();await loadData();draw();return}
  if(t.dataset.tab){UI.tab=t.dataset.tab;redraw(false);scrollTo(0,0);return}
