@@ -2774,6 +2774,108 @@ fetch("kozi-config.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(cf
  const old=localStorage.getItem("valou_ref");Object.keys(REF0).forEach(k=>{if(!d.p||!d.p[k]){const o=REF0[k];if(o.m)refSet(k,o.m,null);LABD[k]=o.l;delete REF0[k]}});refApply(d);
  try{localStorage.setItem("valou_ref",JSON.stringify(d))}catch(e){}if(old!==JSON.stringify(d))render()}).catch(()=>{});
 
+/* ===================== Valou v49 : moteur de devis BAS / MOYEN / HAUT ===================== */
+/* Pour chaque poste : matériaux (quantité × (1 + chutes), arrondie au conditionnement, prix magasin TVA comprise)
+   + main-d'œuvre (quantité × tarif bas / moyen / haut, hors TVA) + TVA main-d'œuvre (6 % si bâtiment de plus de 10 ans, sinon 21 %)
+   + frais annexes (container) ; imprévus 10 % (15 % maison ancienne / support en mauvais état).
+   Références : prix-hubo.json (R…), main-oeuvre.json (M…), tarifs-reference.json (articles et main-d'œuvre de chaque poste),
+   corrections publiées depuis le tableau de bord. Un poste sans référence garde la fourchette Valou (signalée). */
+const DV={ref:null,mo:null},dvn=v=>v===""||v==null||isNaN(+v)?null:+v;
+Promise.all([fetch("tarifs-reference.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null),fetch("main-oeuvre.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)]).then(([a,b])=>{if(a&&b){DV.ref=a;DV.mo=b;render()}}).catch(()=>{});
+const dvOn=()=>!!(DV.ref&&DV.mo&&S.props[S.cur]&&!(typeof qkTot=="function"&&qkTot()));
+const dvA=()=>{const P=S.props[S.cur];return P?(P.dv=P.dv||{}):{}};
+const dvGrp=p=>p.k=="meu_cuisine"?"Cuisine équipée":p.k=="meu_sdb"||/^wc_/.test(p.k)?"Sanitaire":p.eq?p.grp:"Espaces";
+const dvU=u=>u.includes("m²")?"m²":u.includes("/ml")?"m":u.includes("unité")||u=="€"?"pièce(s)":u.includes("escalier")?"escalier(s)":"forfait";
+function dvCalc(){if(!DV.ref||!DV.mo)return null;const PP=S.props[S.cur];if(!PP)return null;const A=dvA(),RF={},MO={};DV.ref.postes.forEach(p=>RF[p.k]=p);DV.mo.postes.forEach(m=>MO[m.id]=m);
+ const pub=window.REFD||{},H=(typeof HUBO!="undefined"&&HUBO&&HUBO.articles)||[],o={mat:[],mo:[],fb:[],miss:[],rem:[],q:[],wait:[],per:{},ann:0};
+ const ask=(id,t,opts,sub)=>{if(!o.q.some(x=>x.id==id))o.q.push({id,t,opts,sub})};
+ const surf=hbS((S.rooms||[]).map(r=>n(r.sol)));
+ vcPostes(0).forEach(p=>{let Q=0,QL=0;
+  if(p.rows)p.rows.forEach(x=>{Q+=x.q;if((x.w??x.r.mo)!=0)QL+=x.q});
+  else if(p.eq&&p.eq.act){const{it,ci,s}=p.eq,G=(S.rooms||[]).filter(g=>/garage/i.test(g.n)||g.k=="garage"),lab=(S.mc||{})[ci]!=0&&!(it[0]=="pg"&&G.length&&G.every(g=>g.pgw==0));Q=qty(it[0],s);QL=lab?Q:0}
+  if(p.k=="i_re"){const l=QL>0;Q=surf;QL=l?surf:0}
+  if(!(Q>0))return;const ref=RF[p.k]||{},pb=pub[p.k]||{},src=vcSrc(p.k).c,u=dvU(p.u),per=o.per[p.k]={g:dvGrp(p),b:0,m:0,h:0,lab:0};
+  const comp=(pb.c&&pb.c.length?pb.c:ref.c)||[];let moId=ref.mo;
+  /* poste sans référence, ou avec « mes prix » / prix d'un artisan : fourchette Valou (matériel HTVA → prix magasin TVAC) */
+  if(src!="val"||(!comp.length&&!moId)){const c=vcCtx(()=>[P(p.k,p.d),LB(p.k)]),m=c[0],l=c[1],mt=[Q*m[0]*1.21,Q*m[1]*1.21],lb=[QL*l[0],QL*l[1]];
+   o.fb.push({k:p.k,n:p.lab,Q,u,src:src=="val"?"fourchette Valou":vcSrc(p.k).t,mat:mt,lab:lb});per.b=mt[0]+lb[0];per.h=mt[1]+lb[1];per.m=(per.b+per.h)/2;per.lab=[lb[0],(lb[0]+lb[1])/2,lb[1]];return}
+  let mat=0;
+  comp.forEach(x=>{if(x.opt=="ancien"){if(!A.anc){ask("anc","Le carrelage de sol est-il posé sur un ancien carrelage ?",[["oui","Oui (primaire d’accrochage)"],["non","Non"]]);o.wait.push(x.n);return}if(A.anc!="oui")return}
+   let ch=dvn(x.pe)||0;if(x.pose){if(!A.pose){ask("pose","Le carrelage / le sol est-il posé droit ou en diagonale ?",[["droite","Pose droite (+10 %)"],["diag","Diagonale (+15 %)"]]);o.wait.push(x.n);return}ch=A.pose=="diag"?15:10}
+   const ep=x.mode=="ep",a0=ep?x.e0:(x.q0??x.q),a1=ep?(x.e1??x.e0):(x.q1??x.q0??x.q);if(a0==null||(ep&&x.d==null)){o.miss.push({id:x.r||"",n:x.n,why:"consommation à compléter"});return}
+   const avg=ep?n(x.d)*(n(a0)+n(a1))/2:(n(a0)+n(a1))/2,need=Q*avg*(1+ch/100),rid=x.r||((x.src||"").match(/R\d+[a-z]?/)||[])[0],h=rid&&H.find(z=>z.id==rid);
+   const how=`${hbN(Q)} ${u} × ${hbN(avg,3)} ${x.u||""}${ep?` (épaisseur ${hbN(n(a0),1)}–${hbN(n(a1),1)} mm)`:""}${ch?` + ${ch} %`:""} = ${hbN(need,2)} ${x.u||""}`;
+   if(h&&h.prix!=null){const nb=Math.ceil(need/h.qte-1e-9),t=nb*h.prix;mat+=t;o.mat.push({id:h.id,n:x.n,how:how+(h.qte!=1?` → ${h.cond}`:""),nb,cond:h.cond,pu:h.prix,tot:t,promo:h.promo,ver:h.verifier,k:p.k})}
+   else if(h){o.miss.push({id:h.id,n:x.n,why:"PRIX MATÉRIAU À COMPLÉTER"})}
+   else if(dvn(x.p0)!=null){const pu=(n(x.p0)+n(x.p1??x.p0))/2*1.21,t=need*pu;mat+=t;o.mat.push({id:"",n:x.n,how,nb:hbN(need,2)+" "+(x.u||""),cond:"",pu,tot:t,k:p.k})}
+   else o.miss.push({id:"",n:x.n,why:"PRIX MATÉRIAU À COMPLÉTER"})});
+  per.b=per.m=per.h=mat;
+  if(Array.isArray(moId)){const f=p.k=="i_ch"?"fen":"rad",ch=A[f];if(!ch){ask(f,p.k=="i_ch"?"Les fenêtres : pose en rénovation ou dépose totale ?":"Les radiateurs : remplacement ou nouveau raccordement ?",p.k=="i_ch"?[["reno","Pose en rénovation"],["depose","Dépose totale"]]:[["rempl","Remplacement"],["nouv","Nouveau raccordement"]]);moId=null;o.rem.push(`${p.lab} : main-d’œuvre en attente de ta réponse.`)}else moId=moId[ch=="depose"||ch=="nouv"?1:0]}
+  if(moId&&MO[moId]){const m=MO[moId],usePub=pb.l&&!(pb.l[0]==m.b&&pb.l[1]==m.h&&(pb.lm??m.m)==m.m),b=usePub?n(pb.l[0]):m.b,h=usePub?n(pb.l[1]):m.h,mm=usePub?(pb.lm!=null?n(pb.lm):(b+h)/2):m.m;
+   if(QL>0)o.mo.push({id:moId,n:p.lab==m.n?m.n:`${m.n} (${p.lab})`,Q:QL,u,b:QL*b,m:QL*mm,h:QL*h,e:m.e,pub:usePub,k:p.k});
+   per.lab=[QL*b,QL*mm,QL*h];per.b+=QL*b;per.m+=QL*mm;per.h+=QL*h;if(QL<Q)o.rem.push(`${p.lab} : une partie est faite par toi-même (pas de main-d’œuvre comptée sur ${hbN(Q-QL)} ${u}).`)}
+  else if(!moId&&!Array.isArray(ref.mo)&&QL>0){if(ref.moinc&&(p.k!="i_st"||vcPostes(0).some(z=>/^i_cv_/.test(z.k))))o.rem.push(`${p.lab} : main-d’œuvre ${ref.moinc}.`);else o.miss.push({id:"",n:p.lab,why:"MAIN-D’ŒUVRE À COMPLÉTER"})}});
+ /* frais annexes : container */
+ if(vcPostes(0).some(p=>p.k=="i_dem"||p.k=="i_dp")){if(!A.cont)ask("cont","Faut-il un container à gravats de 6 m³ (250 €, référence M02) ?",[["oui","Oui"],["non","Non"]]);else if(A.cont=="oui")o.ann=250}
+ if(!A.age)ask("age","Le bâtiment a-t-il plus de 10 ans ?",[["plus","Oui, plus de 10 ans (TVA 6 %)"],["moins","Non (TVA 21 %)"]],"Le taux de TVA sur la main-d’œuvre en dépend.");
+ if(!A.etat)ask("etat","Maison ancienne ou support en mauvais état ?",[["non","Non (imprévus 10 %)"],["oui","Oui (imprévus 15 %)"]]);
+ const rate=A.age=="plus"?6:A.age=="moins"?21:null,sm=(L,f)=>hbS(L.map(f)),M=sm(o.mat,x=>x.tot);
+ const MOb=sm(o.mo,x=>x.b)+sm(o.fb,x=>x.lab[0]),MOm=sm(o.mo,x=>x.m)+sm(o.fb,x=>(x.lab[0]+x.lab[1])/2),MOh=sm(o.mo,x=>x.h)+sm(o.fb,x=>x.lab[1]);
+ const MATb=M+sm(o.fb,x=>x.mat[0]),MATm=M+sm(o.fb,x=>(x.mat[0]+x.mat[1])/2),MATh=M+sm(o.fb,x=>x.mat[1]),r=(rate||0)/100,pi=A.etat=="oui"?15:10;
+ const L=(a,b,c)=>({b:a,m:b,h:c}),TV=L(MOb*r,MOm*r,MOh*r),ST=L(MATb+MOb+TV.b+o.ann,MATm+MOm+TV.m+o.ann,MATh+MOh+TV.h+o.ann),IM=L(ST.b*pi/100,ST.m*pi/100,ST.h*pi/100);
+ Object.values(o.per).forEach(x=>{const l=x.lab||[0,0,0];x.b+=l[0]*r;x.m+=l[1]*r;x.h+=l[2]*r});
+ return Object.assign(o,{rate,pi,MAT:L(MATb,MATm,MATh),MO:L(MOb,MOm,MOh),TV,ANN:L(o.ann,o.ann,o.ann),ST,IM,T:L(ST.b+IM.b,ST.m+IM.m,ST.h+IM.h)})}
+/* le budget de l'appli (accueil, comparaison, PDF, banques…) vient du moteur de devis */
+{const _tot=tot;tot=function(){if(!dvOn())return _tot();const d=dvCalc();if(!d)return _tot();const cat={},z=()=>[0,0,0],add=(g,v)=>{const c=cat[g]=cat[g]||z();c[0]+=v.b;c[1]+=v.h;c[2]+=v.m};
+ Object.entries(d.per).forEach(([k,v])=>add(v.g,v));if(d.ann)add("Espaces",d.ANN);
+ const det={inst:z(),w:z(),d:z()};Object.entries(d.per).forEach(([k,v])=>{const t=/^wc_/.test(k)?det.w:k=="meu_sdb"?det.d:v.g=="Sanitaire"?det.inst:null;if(t){t[0]+=v.b;t[1]+=v.h;t[2]+=v.m}});
+ const cats=T.map(c=>[c[0],cat[c[0]]||z()]).concat([["Cuisine équipée",cat["Cuisine équipée"]||z()]]);
+ return{e:cat.Espaces||z(),cats,all:[d.ST.b,d.ST.h,d.ST.m],moy:d.ST.m,sel:d.ST.m,imp:d.IM.m,bud:d.T.m,det,dv:d}}}
+fin=function(){const t=tot(),fr=n(S.ach)*n(S.fr)/100,tv=t.dv?t.dv.TV.m:vatSplit(t).tv,tt=n(S.ach)+t.bud+(t.dv?0:tv)+fr,em=Math.max(0,tt-n(S.ap)),r=n(S.tx)/1200,N=n(S.mo)||1,M=r?em*r/(1-Math.pow(1+r,-N)):em/N,as=em*n(S.ass)/100/12;return{t,fr,tv,tt,em,M,as,mt:M+as,int:M*N-em,cass:as*N,cc:M*N-em+as*N}};
+{const _kv=kv;kv=function(){const m=_kv(),t=tot();if(t.dv){const d=t.dv;m.rng=E(d.T.b)+" – "+E(d.T.h);m.moy=E(d.T.m);m.tv=E(d.TV.m)+" "+tr("(comprise)")}return m}}
+/* ---------- affichage : page Projet ---------- */
+function dvCard(){if(!dvOn())return"";const d=dvCalc();if(!d)return"";const e=hbE,R3=v=>`<td class="r" data-l="Bas">${E(v.b)}</td><td class="r" data-l="Moyen"><b>${E(v.m)}</b></td><td class="r" data-l="Haut">${E(v.h)}</td>`;
+ const Lst=[...d.mat.map(x=>x.ver?`${x.id} ${x.n} : prix à vérifier.`:x.promo?`${x.id} ${x.n} : prix promo, à revérifier.`:"").filter(Boolean),...d.mo.filter(x=>x.e==1).map(x=>`${x.id} ${x.n} : tarif estimé [E], moins fiable.`),...d.mo.filter(x=>x.e==2).map(x=>`${x.id} ${x.n} : tarif à vérifier.`),
+  ...d.fb.map(x=>`${x.n} : pas de référence détaillée, ${x.src} (matériel + main-d’œuvre).`),...d.rem];
+ if(dvA().fourn=="artisan")Lst.push("L’artisan fournit les matériaux : leur prix peut changer (prix de l’artisan, TVA 6 % ou 21 % sur l’ensemble). La fourchette est gardée à titre indicatif.");
+ if(d.mat.some(x=>/R13/.test(x.id)))Lst.push("Plâtre : consommation indicative (1 kg/m² par mm d’épaisseur), à vérifier.");
+ return`<details class="c dvk" open><summary><h3>📋 Devis estimatif</h3><span class="chev">›</span></summary>
+ <div class="dvsum">Coût probable : <b>≈ ${E(d.T.m)}</b>, entre <b>${E(d.T.b)}</b> et <b>${E(d.T.h)}</b> selon l’artisan.${d.rate==null?`<br><small>⚠️ TVA sur la main-d’œuvre pas encore comptée : réponds à la question sur l’âge du bâtiment.</small>`:""}</div>
+ ${d.q.map(x=>`<div class="dvq"><b>❓ ${x.t}</b>${x.sub?`<small>${x.sub}</small>`:""}<div class="segb">${x.opts.map(o=>`<button type="button" data-dvq="${x.id}|${o[0]}">${o[1]}</button>`).join("")}</div></div>`).join("")}
+ <h4>Matériaux <small class="mu">(achetés par le client, prix magasin TVA comprise)</small></h4>
+ ${d.mat.length||d.fb.length?`<div class="dvt"><table><tr><th>ID</th><th>Article</th><th>Calcul</th><th class="r">Quantité achetée</th><th class="r">Prix unitaire</th><th class="r">Total</th></tr>
+  ${d.mat.map(x=>`<tr><td class="dvid">${x.id||"—"}</td><td class="dvnm">${esc(x.n)}${x.promo?' <span class="dvb">promo</span>':""}${x.ver?' <span class="dvb">à vérifier</span>':""}</td><td class="dvc">${x.how}</td><td class="r" data-l="Quantité achetée">${typeof x.nb=="number"?`${x.nb} × ${esc(x.cond)}`:x.nb}</td><td class="r" data-l="Prix unitaire">${e(x.pu)}</td><td class="r" data-l="Total"><b>${e(x.tot)}</b></td></tr>`).join("")}
+  ${d.fb.map(x=>`<tr><td class="dvid">—</td><td class="dvnm">${esc(x.n)}</td><td class="dvc">${hbN(x.Q)} ${x.u} · ${esc(x.src)}</td><td class="r" data-l="Quantité achetée">${hbN(x.Q)} ${x.u}</td><td class="r" data-l="Prix unitaire">—</td><td class="r" data-l="Total"><b>${E(x.mat[0])} – ${E(x.mat[1])}</b></td></tr>`).join("")}</table></div>`:`<p class="mu">Aucun matériau chiffré.</p>`}
+ ${d.miss.length?`<div class="dvs"><b>À compléter (exclus du total)</b>${d.miss.map(x=>`<div>${x.id?x.id+" · ":""}${esc(x.n)} — ${x.why}</div>`).join("")}</div>`:""}
+ ${d.wait.length?`<p class="dvw">En attente de ta réponse : ${[...new Set(d.wait)].map(esc).join(", ")}.</p>`:""}
+ <h4>Main-d’œuvre <small class="mu">(hors TVA)</small></h4>
+ ${d.mo.length||d.fb.some(x=>x.lab[1])?`<div class="dvt"><table><tr><th>ID</th><th>Poste</th><th class="r">Quantité</th><th class="r">Bas</th><th class="r">Moyen</th><th class="r">Haut</th></tr>
+  ${d.mo.map(x=>`<tr><td class="dvid">${x.id}${x.e==1?" [E]":""}</td><td class="dvnm">${esc(x.n)}${x.pub?' <span class="dvb">corrigé</span>':""}</td><td class="r" data-l="Quantité">${hbN(x.Q)} ${x.u}</td>${R3(x)}</tr>`).join("")}
+  ${d.fb.filter(x=>x.lab[1]).map(x=>`<tr><td class="dvid">—</td><td class="dvnm">${esc(x.n)} <small class="mu">(${esc(x.src)})</small></td><td class="r" data-l="Quantité">${hbN(x.Q)} ${x.u}</td>${R3({b:x.lab[0],m:(x.lab[0]+x.lab[1])/2,h:x.lab[1]})}</tr>`).join("")}</table></div>`:`<p class="mu">Aucune main-d’œuvre (tout est fait par toi-même, ou à compléter).</p>`}
+ <h4>Récapitulatif</h4><div class="dvt dvr"><table><tr><th></th><th class="r">Bas</th><th class="r">Moyen</th><th class="r">Haut</th></tr>
+  <tr><td class="dvnm">Matériaux</td>${R3(d.MAT)}</tr><tr><td class="dvnm">Main-d’œuvre</td>${R3(d.MO)}</tr>
+  <tr><td class="dvnm">TVA main-d’œuvre ${d.rate==null?"(âge du bâtiment ?)":d.rate+" %"}</td>${R3(d.TV)}</tr><tr><td class="dvnm">Frais annexes${d.ann?" (container M02)":""}</td>${R3(d.ANN)}</tr>
+  <tr><td class="dvnm">Imprévus ${d.pi} %</td>${R3(d.IM)}</tr><tr class="dvtot"><td class="dvnm"><b>TOTAL</b></td>${R3(d.T)}</tr></table></div>
+ ${Lst.length?`<div class="dvs"><b>Remarques</b>${[...new Set(Lst)].map(x=>`<div>• ${x}</div>`).join("")}</div>`:""}
+ <div class="dvs"><b>Réglages du devis</b>${[["age","Bâtiment de plus de 10 ans",[["plus","Oui (6 %)"],["moins","Non (21 %)"]]],["pose","Pose du carrelage / sol",[["droite","Droite"],["diag","Diagonale"]]],["anc","Sur ancien carrelage",[["oui","Oui"],["non","Non"]]],["etat","Maison ancienne / support abîmé",[["non","Non (10 %)"],["oui","Oui (15 %)"]]],["cont","Container à gravats",[["oui","Oui"],["non","Non"]]],["fourn","Matériaux achetés par",[["client","Le client"],["artisan","L’artisan"]]]].map(([f,l,op])=>`<div class="dvrg"><span>${l}</span><div class="segb">${op.map(o=>`<button type="button" data-dvq="${f}|${o[0]}" class="${(dvA()[f]||(f=="fourn"?"client":""))==o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>`).join("")}</div>
+ <p class="mu dvrap">Estimation indicative basée sur des prix de référence de novembre 2026. Seul un devis d’artisan donne un prix définitif.</p></details>`}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-dvq]");if(!b)return;e.preventDefault();e.stopPropagation();const[f,v]=b.dataset.dvq.split("|");dvA()[f]=v;save();const y=scrollY;render();scrollTo(0,y)},true);
+{const _syn=syn;syn=function(){let h=_syn.apply(this,arguments);if(!dvOn())return h;
+ h=h.replace('<div class="c"><h3>Travaux</h3>',dvCard()+'<div class="c"><h3>Travaux</h3>');
+ h=h.replace(/<div class="vat">[\s\S]*?<\/div>\s*<\/div>(?=\s*<div class="ln"><span>Frais administratifs)/,`<div class="vat"><b>TVA</b><small>Comprise dans le devis estimatif : ${dvA().age=="plus"?"6 %":dvA().age=="moins"?"21 %":"6 % ou 21 % selon l’âge du bâtiment (question dans le devis)"} sur la main-d’œuvre ; les matériaux sont comptés au prix magasin, TVA 21 % comprise.</small></div>`);
+ return h.replace("🧮 Comprendre et ajuster les calculs<small>Le détail de chaque poste, tes prix et ceux de tes artisans</small>","🧮 Mes prix et mes artisans<small>Remplacer les prix de référence d’un poste par les tiens ou ceux d’un artisan</small>")}}
+{const st=document.createElement("style");st.textContent=`.dvk>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;cursor:pointer}.dvk>summary::-webkit-details-marker{display:none}.dvk>summary h3{margin:0}.dvk[open]>summary .chev{transform:rotate(90deg)}
+.dvk h4{margin:16px 0 6px;font-size:15px}.dvsum{margin:10px 0;padding:12px 14px;border-radius:12px;background:rgba(201,163,90,.2);font-size:15.5px;line-height:1.45}
+.dvq{display:grid;gap:6px;margin:10px 0;padding:12px;border-radius:12px;border:2px solid #C9A35A;background:var(--cd)}.dvq small{color:var(--mu)}
+.dvt{overflow-x:auto;margin:4px -4px}.dvt table{border-collapse:collapse;width:100%;font-size:13px}.dvt th,.dvt td{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}.dvt th{font-size:12px;color:var(--mu)}.dvt .r{text-align:right;white-space:nowrap}.dvc{color:var(--mu);font-size:12px}.dvid{font-weight:800;color:#8C6A2C;white-space:nowrap}
+.dvtot td{border-top:2px solid var(--tx);font-size:15px}.dvb{display:inline-block;font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:99px;background:rgba(201,163,90,.25);color:#7a5a1e}
+.dvs{display:grid;gap:4px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd);font-size:13.5px}.dvw{color:#8C6A2C;font-size:13px}.dvrg{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;padding:4px 0}.dvrap{font-size:12px;margin-top:10px}
+@media(max-width:700px){.dvt:not(.dvr) table,.dvt:not(.dvr) tbody{display:block}.dvt:not(.dvr) tr:first-child{display:none}.dvt:not(.dvr) tr{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;padding:9px 0;border-bottom:1px solid var(--bd)}.dvt:not(.dvr) td{border:0;padding:0}.dvt:not(.dvr) .dvc{grid-column:1/-1}.dvt:not(.dvr) td[data-l]{grid-column:1/-1;display:flex;justify-content:space-between}.dvt:not(.dvr) td[data-l]::before{content:attr(data-l);color:var(--mu);font-size:12px}}`;document.head.appendChild(st)}
+
+/* panneau « Mes prix et mes artisans » : le budget détaillé est maintenant dans le devis estimatif */
+{const _d=vcDraw;vcDraw=function(){_d();if(!dvOn())return;const el=document.getElementById("vcx");if(!el)return;el.querySelectorAll(".vcres").forEach(x=>x.remove());const t=el.querySelector(".vctop b");if(t)t.textContent="🧮 Mes prix et mes artisans";
+ const ex=el.querySelector(".vcexp");if(ex)ex.innerHTML=`<h3>À quoi sert cette page</h3><div>Le <b>devis estimatif</b> (bas / moyen / haut) est sur la page Projet : il utilise les références de matériaux et de main-d’œuvre.</div><div>Ici, tu peux <b>remplacer</b> les prix de référence d’un poste par <b>tes propres prix</b> ou par <b>ceux d’un artisan</b> : le devis utilisera alors ces prix pour ce poste (fourchette mini – maxi, matériel hors TVA).</div>`}}
+
 render();
 /* =================== fin VERSION 26 =================== */
 /* ===================== VERSION 34 : traductions de l’espace professionnel (néerlandais, anglais) ===================== */

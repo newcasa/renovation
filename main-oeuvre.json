@@ -1,0 +1,312 @@
+{
+ "source": "Main-d'œuvre Belgique 2026, hors TVA",
+ "date": "2026-11-16",
+ "note": "b/m/h = bas/moyen/haut ; e = 1 : estimation calculée, moins fiable ; e = 2 : à vérifier.",
+ "taux_horaires": {
+  "maçon": [
+   40,
+   55
+  ],
+  "plafonneur": [
+   45,
+   50
+  ],
+  "peintre": [
+   35,
+   55
+  ],
+  "carreleur": [
+   30,
+   55
+  ],
+  "électricien": [
+   40,
+   65
+  ],
+  "plombier": [
+   40,
+   65
+  ]
+ },
+ "postes": [
+  {
+   "id": "M01",
+   "n": "Démolition légère + évacuation",
+   "b": 10,
+   "m": 17.5,
+   "h": 25,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M02",
+   "n": "Container gravats 6 m³",
+   "b": 250,
+   "m": 250,
+   "h": 250,
+   "u": "forfait",
+   "e": 0
+  },
+  {
+   "id": "M03",
+   "n": "Maçonnerie blocs 14 cm",
+   "b": 25,
+   "m": 35,
+   "h": 45,
+   "u": "€/m² de mur",
+   "e": 1
+  },
+  {
+   "id": "M04",
+   "n": "Pose tuiles béton",
+   "b": 28,
+   "m": 34,
+   "h": 40,
+   "u": "€/m² de toiture",
+   "e": 0
+  },
+  {
+   "id": "M05",
+   "n": "Pose tuiles terre cuite",
+   "b": 20,
+   "m": 27.5,
+   "h": 35,
+   "u": "€/m² de toiture",
+   "e": 0
+  },
+  {
+   "id": "M06",
+   "n": "Roofing toit plat",
+   "b": 25,
+   "m": 37.5,
+   "h": 50,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M07",
+   "n": "EPDM toit plat",
+   "b": 40,
+   "m": 45,
+   "h": 50,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M08",
+   "n": "Pose gouttière",
+   "b": 20,
+   "m": 47.5,
+   "h": 75,
+   "u": "€/m",
+   "e": 0
+  },
+  {
+   "id": "M09",
+   "n": "Fenêtre de toit, remplacement",
+   "b": 200,
+   "m": 450,
+   "h": 700,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M10",
+   "n": "Fenêtre de toit, nouvelle ouverture",
+   "b": 400,
+   "m": 800,
+   "h": 1200,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M11",
+   "n": "Isolation toiture laine minérale",
+   "b": 6,
+   "m": 16,
+   "h": 26,
+   "u": "€/m²",
+   "e": 1
+  },
+  {
+   "id": "M12",
+   "n": "Plafonnage mur",
+   "b": 20,
+   "m": 27.5,
+   "h": 35,
+   "u": "€/m²",
+   "e": 1
+  },
+  {
+   "id": "M13",
+   "n": "Plafonnage plafond",
+   "b": 25,
+   "m": 32.5,
+   "h": 40,
+   "u": "€/m²",
+   "e": 1
+  },
+  {
+   "id": "M14",
+   "n": "Cloison gyproc",
+   "b": 18,
+   "m": 23,
+   "h": 28,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M15",
+   "n": "Plafond gyproc",
+   "b": 22,
+   "m": 28.5,
+   "h": 35,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M16",
+   "n": "Peinture murs intérieurs",
+   "b": 15,
+   "m": 25,
+   "h": 35,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M17",
+   "n": "Carrelage sol format courant",
+   "b": 25,
+   "m": 40,
+   "h": 55,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M18",
+   "n": "Carrelage sol grand format 60x60",
+   "b": 35,
+   "m": 50,
+   "h": 65,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M19",
+   "n": "Carrelage mural",
+   "b": 25,
+   "m": 40,
+   "h": 55,
+   "u": "€/m²",
+   "e": 1
+  },
+  {
+   "id": "M20",
+   "n": "Sol stratifié",
+   "b": 10,
+   "m": 14,
+   "h": 18,
+   "u": "€/m²",
+   "e": 0
+  },
+  {
+   "id": "M21",
+   "n": "Parquet contrecollé",
+   "b": 15,
+   "m": 18,
+   "h": 25,
+   "u": "€/m²",
+   "e": 1
+  },
+  {
+   "id": "M22",
+   "n": "Fenêtre PVC, pose en rénovation",
+   "b": 100,
+   "m": 200,
+   "h": 300,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M23",
+   "n": "Fenêtre PVC, dépose totale",
+   "b": 200,
+   "m": 400,
+   "h": 600,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M24",
+   "n": "Porte intérieure",
+   "b": 80,
+   "m": 340,
+   "h": 600,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M25",
+   "n": "WC suspendu + bâti",
+   "b": 400,
+   "m": 650,
+   "h": 900,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M26",
+   "n": "Meuble lavabo",
+   "b": 300,
+   "m": 550,
+   "h": 800,
+   "u": "€/pièce",
+   "e": 2
+  },
+  {
+   "id": "M27",
+   "n": "Radiateur, remplacement",
+   "b": 150,
+   "m": 325,
+   "h": 500,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M28",
+   "n": "Radiateur, nouveau raccordement",
+   "b": 250,
+   "m": 425,
+   "h": 600,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M29",
+   "n": "Électricité, rénovation complète (fourniture comprise)",
+   "b": 50,
+   "m": 75,
+   "h": 100,
+   "u": "€/m² habitable",
+   "e": 0
+  },
+  {
+   "id": "M30",
+   "n": "Nouvelle prise électrique",
+   "b": 80,
+   "m": 115,
+   "h": 150,
+   "u": "€/pièce",
+   "e": 0
+  },
+  {
+   "id": "M31",
+   "n": "Nouveau point lumineux",
+   "b": 100,
+   "m": 160,
+   "h": 220,
+   "u": "€/pièce",
+   "e": 0
+  }
+ ]
+}

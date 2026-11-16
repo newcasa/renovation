@@ -29,7 +29,8 @@
       "unite": "sac",
       "cond": "sac 25 kg",
       "qte": 1,
-      "prix": 2.39
+      "prix": 2.39,
+      "promo": true
     },
     {
       "id": "R04",
@@ -283,6 +284,25 @@
       "cond": "pièce",
       "qte": 1,
       "prix": null
+    },
+    {
+      "id": "R30",
+      "cat": "Sols et carrelage",
+      "nom": "Joint carrelage 4 kg",
+      "unite": "kg",
+      "cond": "sac 4 kg",
+      "qte": 4,
+      "prix": 18.99
+    },
+    {
+      "id": "R31",
+      "cat": "Sols et carrelage",
+      "nom": "Primaire d'accrochage sol 2,5 L",
+      "unite": "L",
+      "cond": "bidon 2,5 L",
+      "qte": 2.5,
+      "prix": 23.49,
+      "verifier": true
     }
   ]
 }

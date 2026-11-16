@@ -1,7 +1,7 @@
 {
  "version": 1,
  "tva_incluse": false,
- "note": "Grille de référence Valou (HTVA) : m = matériel mini/maxi, l = main-d'œuvre mini/maxi, par unité u. Générée depuis l'appli ; les corrections du tableau de bord sont enregistrées sur le serveur (table valou_tarifs). c = articles proposés pour chaque poste (consommation mini/maxi ou épaisseur mini/maxi : l'appli prend la moyenne ; prix HTVA par unité ; null = à compléter).",
+ "note": "Grille de référence Valou. m = matériel mini/maxi HTVA (ancienne fourchette, utilisée quand le poste n'a pas d'articles complets) ; l / lm = main-d'œuvre bas-haut / moyen HTVA ; c = articles (r = référence Hubo, vendue par conditionnement) ; mo = référence main-d'œuvre (main-oeuvre.json).",
  "postes": [
   {
    "k": "sol_parquet",
@@ -14,12 +14,13 @@
    ],
    "l": [
     15,
-    35
+    25
    ],
    "note": "",
    "c": [
     {
      "n": "Parquet contrecollé",
+     "r": "R23",
      "u": "m²",
      "pe": 10,
      "p0": null,
@@ -27,29 +28,12 @@
      "src": "Hubo R23",
      "mode": "q",
      "q0": 1,
-     "q1": 1
-    },
-    {
-     "n": "Sous-couche",
-     "u": "m²",
-     "pe": 10,
-     "p0": null,
-     "p1": null,
-     "mode": "q",
-     "q0": 1,
-     "q1": 1
-    },
-    {
-     "n": "Plinthes",
-     "u": "m",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
-     "mode": "q",
-     "q0": null,
-     "q1": null
+     "q1": 1,
+     "pose": 1
     }
-   ]
+   ],
+   "mo": "M21",
+   "lm": 18
   },
   {
    "k": "sol_carrelage",
@@ -61,13 +45,14 @@
     57.85
    ],
    "l": [
-    20,
-    50
+    35,
+    65
    ],
    "note": "",
    "c": [
     {
      "n": "Carrelage de sol 60x60",
+     "r": "R19",
      "u": "m²",
      "pe": 10,
      "p0": 16.52,
@@ -75,31 +60,49 @@
      "src": "Hubo R19",
      "mode": "q",
      "q0": 1,
-     "q1": 1
+     "q1": 1,
+     "pose": 1
     },
     {
-     "n": "Colle à carrelage flex (sac 25 kg)",
+     "n": "Colle carrelage (60x60 : 5,5 kg/m²)",
+     "r": "R21",
      "u": "kg",
      "pe": 0,
      "p0": 0.57,
      "p1": 0.57,
      "src": "Hubo R21",
-     "mode": "ep",
-     "d": 1.4,
-     "e0": 3,
-     "e1": 5
+     "mode": "q",
+     "q0": 5.5,
+     "q1": 5.5
     },
     {
-     "n": "Joint de carrelage",
+     "n": "Joint carrelage (joint 3 mm : 0,15 kg/m²)",
+     "r": "R30",
      "u": "kg",
      "pe": 0,
-     "p0": null,
-     "p1": null,
+     "p0": 3.92,
+     "p1": 3.92,
+     "src": "Hubo R30",
      "mode": "q",
-     "q0": null,
-     "q1": null
+     "q0": 0.15,
+     "q1": 0.15
+    },
+    {
+     "n": "Primaire d'accrochage (sur ancien carrelage)",
+     "r": "R31",
+     "u": "L",
+     "pe": 0,
+     "p0": 7.77,
+     "p1": 7.77,
+     "src": "Hubo R31",
+     "mode": "q",
+     "q0": 0.2,
+     "q1": 0.2,
+     "opt": "ancien"
     }
-   ]
+   ],
+   "mo": "M18",
+   "lm": 50
   },
   {
    "k": "mur_plafonnage",
@@ -111,13 +114,14 @@
     10.74
    ],
    "l": [
-    13,
-    32
+    20,
+    35
    ],
    "note": "",
    "c": [
     {
-     "n": "Plâtre 25 kg",
+     "n": "Plâtre (indicatif : 1 kg/m² par mm)",
+     "r": "R13",
      "u": "sac",
      "pe": 0,
      "p0": 10.74,
@@ -128,7 +132,9 @@
      "e0": 8,
      "e1": 12
     }
-   ]
+   ],
+   "mo": "M12",
+   "lm": 27.5
   },
   {
    "k": "mur_peinture",
@@ -141,12 +147,13 @@
    ],
    "l": [
     15,
-    30
+    35
    ],
    "note": "",
    "c": [
     {
-     "n": "Sous-couche (primer)",
+     "n": "Primer (1 couche, 10 m²/L)",
+     "r": "R18",
      "u": "L",
      "pe": 0,
      "p0": 7.44,
@@ -157,7 +164,8 @@
      "q1": 0.1
     },
     {
-     "n": "Peinture murale blanche (2 couches)",
+     "n": "Peinture murale blanche (2 couches, 10 m²/L)",
+     "r": "R17",
      "u": "L",
      "pe": 0,
      "p0": 3.3,
@@ -167,7 +175,9 @@
      "q0": 0.2,
      "q1": 0.2
     }
-   ]
+   ],
+   "mo": "M16",
+   "lm": 25
   },
   {
    "k": "mur_carrelage",
@@ -180,12 +190,13 @@
    ],
    "l": [
     25,
-    60
+    55
    ],
    "note": "",
    "c": [
     {
      "n": "Carrelage mural 30x60",
+     "r": "R20",
      "u": "m²",
      "pe": 10,
      "p0": 9.83,
@@ -193,31 +204,24 @@
      "src": "Hubo R20",
      "mode": "q",
      "q0": 1,
-     "q1": 1
+     "q1": 1,
+     "pose": 1
     },
     {
-     "n": "Colle à carrelage flex (sac 25 kg)",
+     "n": "Colle carrelage (mural : 4 kg/m²)",
+     "r": "R21",
      "u": "kg",
      "pe": 0,
      "p0": 0.57,
      "p1": 0.57,
      "src": "Hubo R21",
-     "mode": "ep",
-     "d": 1.4,
-     "e0": 2,
-     "e1": 4
-    },
-    {
-     "n": "Joint de carrelage",
-     "u": "kg",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
      "mode": "q",
-     "q0": null,
-     "q1": null
+     "q0": 4,
+     "q1": 4
     }
-   ]
+   ],
+   "mo": "M19",
+   "lm": 40
   },
   {
    "k": "pl",
@@ -229,13 +233,14 @@
     20.66
    ],
    "l": [
-    30,
-    60
+    22,
+    35
    ],
    "note": "",
    "c": [
     {
      "n": "Plaque de plâtre 12,5 mm",
+     "r": "R15",
      "u": "m²",
      "pe": 10,
      "p0": 6.62,
@@ -244,29 +249,10 @@
      "mode": "q",
      "q0": 1,
      "q1": 1
-    },
-    {
-     "n": "Fourrures / suspentes",
-     "u": "m",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
-     "mode": "q",
-     "q0": null,
-     "q1": null
-    },
-    {
-     "n": "Enduit de lissage 25 kg",
-     "u": "sac",
-     "pe": 0,
-     "p0": 36.36,
-     "p1": 36.36,
-     "src": "Hubo R14",
-     "mode": "q",
-     "q0": null,
-     "q1": null
     }
-   ]
+   ],
+   "mo": "M15",
+   "lm": 28.5
   },
   {
    "k": "meu_cuisine",
@@ -411,13 +397,14 @@
     578.51
    ],
    "l": [
-    0,
-    0
+    400,
+    900
    ],
    "note": "",
    "c": [
     {
      "n": "WC suspendu + bâti-support + plaque de commande",
+     "r": "R27",
      "u": "pack",
      "pe": 0,
      "p0": 205.79,
@@ -427,7 +414,9 @@
      "q0": 1,
      "q1": 1
     }
-   ]
+   ],
+   "mo": "M25",
+   "lm": 650
   },
   {
    "k": "wc_ev",
@@ -466,13 +455,14 @@
     495.87
    ],
    "l": [
-    0,
-    0
+    300,
+    800
    ],
    "note": "",
    "c": [
     {
      "n": "Meuble lavabo avec lavabo et mitigeur",
+     "r": "R28",
      "u": "pièce",
      "pe": 0,
      "p0": 149.58,
@@ -482,7 +472,9 @@
      "q0": 1,
      "q1": 1
     }
-   ]
+   ],
+   "mo": "M26",
+   "lm": 550
   },
   {
    "k": "wc_rb",
@@ -521,13 +513,14 @@
     557.85
    ],
    "l": [
-    125,
-    225
+    100,
+    300
    ],
    "note": "",
    "c": [
     {
      "n": "Fenêtre PVC 120x140",
+     "r": "R24",
      "u": "pièce",
      "pe": 0,
      "p0": null,
@@ -537,7 +530,12 @@
      "q0": 1,
      "q1": 1
     }
-   ]
+   ],
+   "mo": [
+    "M22",
+    "M23"
+   ],
+   "lm": 200
   },
   {
    "k": "i_ca",
@@ -630,13 +628,14 @@
     433.88
    ],
    "l": [
-    75,
-    175
+    80,
+    600
    ],
    "note": "",
    "c": [
     {
-     "n": "Porte intérieure 201,5x83 cm (sans huisserie)",
+     "n": "Porte intérieure (SANS huisserie)",
+     "r": "R25",
      "u": "pièce",
      "pe": 0,
      "p0": 52.06,
@@ -645,18 +644,10 @@
      "mode": "q",
      "q0": 1,
      "q1": 1
-    },
-    {
-     "n": "Huisserie / chambranle",
-     "u": "pièce",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
-     "mode": "q",
-     "q0": 1,
-     "q1": 1
     }
-   ]
+   ],
+   "mo": "M24",
+   "lm": 340
   },
   {
    "k": "i_pg",
@@ -749,33 +740,13 @@
     44.63
    ],
    "l": [
-    33,
-    66
+    50,
+    100
    ],
    "note": "",
-   "c": [
-    {
-     "n": "Câble 3G2,5 en gaine",
-     "u": "m",
-     "pe": 0,
-     "p0": 2.14,
-     "p1": 2.14,
-     "src": "Hubo R26",
-     "mode": "q",
-     "q0": null,
-     "q1": null
-    },
-    {
-     "n": "Prise ou interrupteur",
-     "u": "pièce",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
-     "mode": "q",
-     "q0": 1,
-     "q1": 1
-    }
-   ]
+   "c": [],
+   "mo": "M29",
+   "lm": 75
   },
   {
    "k": "i_mc",
@@ -905,13 +876,14 @@
     396.69
    ],
    "l": [
-    120,
-    320
+    150,
+    500
    ],
    "note": "",
    "c": [
     {
      "n": "Radiateur acier 60x100",
+     "r": "R29",
      "u": "pièce",
      "pe": 0,
      "p0": null,
@@ -921,7 +893,12 @@
      "q0": 1,
      "q1": 1
     }
-   ]
+   ],
+   "mo": [
+    "M27",
+    "M28"
+   ],
+   "lm": 325
   },
   {
    "k": "i_chs",
@@ -1036,23 +1013,13 @@
     19.83
    ],
    "l": [
-    12,
-    36
+    10,
+    25
    ],
    "note": "",
-   "c": [
-    {
-     "n": "Container à gravats 6 m³",
-     "u": "pièce",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
-     "src": "Hubo R05",
-     "mode": "q",
-     "q0": null,
-     "q1": null
-    }
-   ]
+   "c": [],
+   "mo": "M01",
+   "lm": 17.5
   },
   {
    "k": "i_dr",
@@ -1233,13 +1200,14 @@
     23.14
    ],
    "l": [
-    10,
-    28
+    6,
+    26
    ],
    "note": "",
    "c": [
     {
      "n": "Laine minérale 15 cm",
+     "r": "R11",
      "u": "m²",
      "pe": 10,
      "p0": 11.31,
@@ -1249,7 +1217,9 @@
      "q0": 1,
      "q1": 1
     }
-   ]
+   ],
+   "mo": "M11",
+   "lm": 16
   },
   {
    "k": "i_to_1",
@@ -1261,13 +1231,14 @@
     37.19
    ],
    "l": [
-    20,
-    45
+    6,
+    26
    ],
    "note": "",
    "c": [
     {
      "n": "Laine minérale 15 cm",
+     "r": "R11",
      "u": "m²",
      "pe": 10,
      "p0": 11.31,
@@ -1276,19 +1247,10 @@
      "mode": "q",
      "q0": 1,
      "q1": 1
-    },
-    {
-     "n": "Plaque de plâtre 12,5 mm",
-     "u": "m²",
-     "pe": 10,
-     "p0": 6.62,
-     "p1": 6.62,
-     "src": "Hubo R15",
-     "mode": "q",
-     "q0": 1,
-     "q1": 1
     }
-   ]
+   ],
+   "mo": "M11",
+   "lm": 16
   },
   {
    "k": "i_to_2",
@@ -1307,6 +1269,7 @@
    "c": [
     {
      "n": "Panneau PIR 10 cm",
+     "r": "R12",
      "u": "m²",
      "pe": 10,
      "p0": 23.96,
@@ -1316,7 +1279,8 @@
      "q0": 1,
      "q1": 1
     }
-   ]
+   ],
+   "moinc": "compris dans la pose de l'isolation"
   },
   {
    "k": "i_dp",
@@ -1363,6 +1327,7 @@
    "c": [
     {
      "n": "Sous-toiture (membrane)",
+     "r": "R07",
      "u": "m²",
      "pe": 10,
      "p0": 1.38,
@@ -1372,7 +1337,8 @@
      "q0": 1,
      "q1": 1
     }
-   ]
+   ],
+   "moinc": "compris dans la pose de la toiture"
   },
   {
    "k": "i_cv_0",
@@ -1384,13 +1350,14 @@
     45.45
    ],
    "l": [
-    35,
-    55
+    28,
+    40
    ],
    "note": "",
    "c": [
     {
      "n": "Tuiles béton",
+     "r": "R06",
      "u": "m²",
      "pe": 0,
      "p0": null,
@@ -1399,18 +1366,10 @@
      "mode": "q",
      "q0": null,
      "q1": null
-    },
-    {
-     "n": "Liteaux",
-     "u": "m",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
-     "mode": "q",
-     "q0": null,
-     "q1": null
     }
-   ]
+   ],
+   "mo": "M04",
+   "lm": 34
   },
   {
    "k": "i_cv_1",
@@ -1422,13 +1381,14 @@
     57.85
    ],
    "l": [
-    43,
-    70
+    20,
+    35
    ],
    "note": "",
    "c": [
     {
      "n": "Tuiles terre cuite",
+     "r": "R06",
      "u": "m²",
      "pe": 0,
      "p0": null,
@@ -1437,18 +1397,10 @@
      "mode": "q",
      "q0": null,
      "q1": null
-    },
-    {
-     "n": "Liteaux",
-     "u": "m",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
-     "mode": "q",
-     "q0": null,
-     "q1": null
     }
-   ]
+   ],
+   "mo": "M05",
+   "lm": 27.5
   },
   {
    "k": "i_cv_2",
@@ -1534,8 +1486,8 @@
     103.31
    ],
    "l": [
-    60,
-    125
+    40,
+    50
    ],
    "note": "",
    "c": [
@@ -1550,7 +1502,9 @@
      "q0": 1,
      "q1": 1
     }
-   ]
+   ],
+   "mo": "M07",
+   "lm": 45
   },
   {
    "k": "i_cp_0",
@@ -1617,12 +1571,13 @@
    ],
    "l": [
     20,
-    40
+    75
    ],
    "note": "",
    "c": [
     {
      "n": "Gouttière PVC",
+     "r": "R09",
      "u": "m",
      "pe": 0,
      "p0": 4.38,
@@ -1631,18 +1586,10 @@
      "mode": "q",
      "q0": 1,
      "q1": 1
-    },
-    {
-     "n": "Crochets de gouttière",
-     "u": "pièce",
-     "pe": 0,
-     "p0": null,
-     "p1": null,
-     "mode": "q",
-     "q0": null,
-     "q1": null
     }
-   ]
+   ],
+   "mo": "M08",
+   "lm": 47.5
   },
   {
    "k": "i_no",

@@ -38,7 +38,7 @@ main{max-width:1180px;margin:0 auto;padding:16px 16px 120px}
 .vv small{display:block;color:var(--mu);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}.vv b{font-size:14.5px}.vv s{color:var(--mu);font-weight:400;font-size:12.5px}
 .tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:2px}.t-ref{background:var(--bg);color:var(--mu)}.t-mod{background:var(--or);color:var(--tx)}.t-pr{background:var(--tx);color:var(--bg)}
 .pb{border-top:1px dashed var(--bd);padding:14px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
-.ed{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}@media(max-width:600px){.ed{grid-template-columns:repeat(2,minmax(0,1fr))}}.ed label{display:grid;gap:3px;font-size:12.5px;color:var(--mu)}
+.ed{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}@media(max-width:600px){.ed{grid-template-columns:repeat(2,minmax(0,1fr))}}.ed label{display:grid;gap:3px;font-size:12.5px;color:var(--mu)}
 .sec h3{font-size:16px;margin-bottom:6px}
 .art2{border:1px solid var(--bd);border-radius:12px;padding:10px;margin:0 0 8px;background:#fffaf0;display:grid;gap:8px}.a2h{display:flex;gap:6px;align-items:center}.a2h input{font-weight:700}.a2g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}@media(max-width:700px){.a2g{grid-template-columns:repeat(2,minmax(0,1fr))}}.a2g label{display:grid;gap:3px;font-size:12px;color:var(--mu)}.a2g small{font-size:11px}.a2t{font-size:13px}.art2.inc{border-color:#d9a08f;background:#fff4ef}.ko{color:var(--ko);font-weight:700}.note{padding:10px 12px;border-radius:12px;background:rgba(201,163,90,.18);font-size:13.5px;margin:0 0 8px}.pn .arts{display:block;margin-top:2px;font-size:12px;color:var(--ord)}.a2tot{font-size:15px;margin-top:4px}.seg{display:flex;gap:4px;flex-wrap:wrap}.seg button{border:1.5px solid var(--bd);background:var(--cd);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer}.seg button.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}.ed label small{color:var(--ord)}.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}.pb,.pst{min-width:0}table.pr{width:100%;min-width:560px;border-collapse:collapse;font-size:13.5px}table.pr th,table.pr td{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}table.pr th{font-size:12px;color:var(--mu)}table.pr td.r,table.pr th.r{text-align:right;white-space:nowrap}
 .addp{display:grid;grid-template-columns:1.4fr repeat(4,1fr) 1.6fr auto;gap:6px;align-items:end}@media(max-width:860px){.addp{grid-template-columns:repeat(2,minmax(0,1fr))}.addp .w2{grid-column:1/-1}}
@@ -71,20 +71,20 @@ async function api(path,o={}){const h=Object.assign({apikey:CFG.key,"Content-Typ
 async function refresh(){if(!AUTH||!AUTH.refresh_token)return;if(AUTH.expires_at&&AUTH.expires_at-60>Date.now()/1000)return;
  try{const r=await api("/auth/v1/token?grant_type=refresh_token",{method:"POST",anon:1,body:JSON.stringify({refresh_token:AUTH.refresh_token})});setA({access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600),user:r.user})}catch(e){setA(null)}}
 const keyOf=k=>REF.find(p=>p.k==k);
-const cur=k=>{const r=keyOf(k),o=PUB.p[k];return{m:o&&o.m?o.m:r.m,l:o&&o.l?o.l:r.l,mod:!!o,c:(o&&o.c)||[]}};
+const cur=k=>{const r=keyOf(k),o=PUB.p[k],l=o&&o.l?o.l:r.l;return{m:o&&o.m?o.m:r.m,l,lm:o&&o.lm!=null?o.lm:o&&o.l?(l[0]+l[1])/2:r.lm??(l[0]+l[1])/2,mod:!!o,c:(o&&o.c)||[]}};
 const r2=x=>Math.round(x*100)/100;
 const qmm=x=>{if(x.mode=="ep"){const d=num(x.d),a=num(x.e0),b=num(x.e1)??a;return d==null||a==null?null:{a,b,m:(a+b)/2,d,q0:d*a,q1:d*b,q:d*(a+b)/2}}const a=num(x.q0)??num(x.q),b=num(x.q1)??a;return a==null?null:{a,b,m:(a+b)/2,q0:a,q1:b,q:(a+b)/2}};
 const rowQ=x=>{const z=qmm(x);return z?[z.q0,z.q1]:[0,0]};
 const rowOk=x=>!!qmm(x)&&num(x.p0)!=null;
 const rowTot=x=>{const z=qmm(x);if(!z||num(x.p0)==null)return null;const q=z.q*(1+(num(x.pe)||0)/100);return[r2(q*num(x.p0)),r2(q*(num(x.p1)??num(x.p0)))]};
 const compOk=L=>L.length>0&&L.every(rowOk);
-const compM=L=>{const a=L.map(rowTot).filter(Boolean);return[r2(a.reduce((s,x)=>s+x[0],0)),r2(a.reduce((s,x)=>s+x[1],0))]};
+const compM=L=>{const a=L.filter(x=>!x.opt).map(rowTot).filter(Boolean);return[r2(a.reduce((s,x)=>s+x[0],0)),r2(a.reduce((s,x)=>s+x[1],0))]};
 const defC=k=>(keyOf(k)||{}).c||[];
 const compOf=k=>{const o=PUB.p[k];return o&&o.c?{L:o.c,own:1}:{L:defC(k),own:0}};
 function takeOver(k){const o=ensure(k);if(!o.c)o.c=JSON.parse(JSON.stringify(defC(k)));return o}
 function ensure(k){if(!PUB.p[k]){const c=cur(k);PUB.p[k]={m:c.m.slice(),l:c.l.slice()}}return PUB.p[k]}
 function recalc(k){const o=PUB.p[k];if(!o)return;delete o.t;if(o.c&&!o.c.length)delete o.c;if(o.c&&compOk(o.c))o.m=compM(o.c);
- const r=keyOf(k);if(!o.c&&same(o.m,r.m)&&same(o.l,r.l))delete PUB.p[k]}
+ const r=keyOf(k);if(!o.c&&same(o.m,r.m)&&same(o.l,r.l)&&(o.lm==null||o.lm==r.lm))delete PUB.p[k]}
 let HUBO=null;fetch("prix-hubo.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{HUBO=j}).catch(()=>{});
 const hbRow=a=>{const t=(HUBO&&HUBO.tva)??21,pu=r2(a.prix/a.qte/(1+t/100));return{id:uid(),n:a.nom,mode:"q",q0:1,q1:1,u:a.unite,pe:typeof a.chute=="number"?Math.round(a.chute*100):a.chute=="pose"?10:0,p0:pu,p1:pu,src:"Hubo "+a.id}};
 const same=(a,b)=>JSON.stringify(a)==JSON.stringify(b);
@@ -134,8 +134,8 @@ function card(p){const c=cur(p.k),P=ADM.props[p.k]||[],op=UI.open[p.k],qn=unitQ(
   <div class="pa"><button class="btn sm">${op?"Fermer":"Ouvrir"}</button></div></div>${op?body(p,c,P):""}</div>`}
 function body(p,c,P){const s=UI.sim[p.k]??(p.u.includes("m²")?20:1),lo=s*(c.m[0]+c.l[0]),hi=s*(c.m[1]+c.l[1]),mo=(lo+hi)/2,dl=s*c.m[0],dh=s*c.m[1],dm=(dl+dh)/2;
  return`<div class="pb"><div class="sec"><h3>✏️ Prix retenus pour Valou <small class="mu">(hors TVA, ${esc(p.u)})</small></h3>
-  <div class="ed">${["Matériel mini","Matériel maxi","Main-d'œuvre mini","Main-d'œuvre maxi"].map((l,i)=>{const lk=i<2&&c.c.length&&compOk(c.c);return`<label>${l}<input type="number" inputmode="decimal" step="0.01" data-ed="${p.k}|${i}" value="${(i<2?c.m[i]:c.l[i-2])}"${lk?" disabled":""}>${lk?`<small>calculé : consommation</small>`:""}</label>`}).join("")}</div>
-  <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:8px"><small class="mu">Référence Valou : matériel ${rng(p.m[0],p.m[1])} · main-d'œuvre ${rng(p.l[0],p.l[1])}</small>${c.mod?`<button class="btn sm" data-reset="${p.k}">↺ Remettre la référence</button>`:""}</div></div>
+  <div class="ed">${["Matériel mini","Matériel maxi","Main-d'œuvre bas","Main-d'œuvre haut","Main-d'œuvre moyen"].map((l,i)=>{const lk=i<2&&c.c.length&&compOk(c.c);return`<label>${l}<input type="number" inputmode="decimal" step="0.01" data-ed="${p.k}|${i}" value="${r2(i<2?c.m[i]:i<4?c.l[i-2]:c.lm)}"${lk?" disabled":""}>${lk?`<small>calculé : articles</small>`:""}</label>`}).join("")}</div>
+  <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:8px"><small class="mu">Référence Valou : matériel ${rng(p.m[0],p.m[1])} · main-d'œuvre ${p.mo?`${esc([].concat(p.mo).join(" / "))} : `:""}${rng(p.l[0],p.l[1])}${p.lm!=null?` (moyen ${E(p.lm)})`:""}</small>${c.mod?`<button class="btn sm" data-reset="${p.k}">↺ Remettre la référence</button>`:""}</div></div>
  ${compHTML(p,c)}
  <div class="sec"><h3>👷 Prix des artisans participants</h3>${P.length?`<div class="tw"><table class="pr"><tr><th>Artisan</th><th class="r">Matériel</th><th class="r">Main-d'œuvre</th><th>Commentaire</th><th></th></tr>${P.map(x=>{const a=ADM.artisans.find(z=>z.id==x.a);return`<tr><td><b>${esc(a?a.nom:"(supprimé)")}</b><br><small class="mu">${esc(x.d||"")}</small></td><td class="r">${rng(x.m[0],x.m[1])}</td><td class="r">${rng(x.l[0],x.l[1])}</td><td>${esc(x.com||"")}</td><td class="r"><button class="btn sm gold" data-use="${p.k}|${x.id}">Retenir</button> <button class="btn sm lnk" data-pdel="${p.k}|${x.id}">Supprimer</button></td></tr>`}).join("")}
    ${P.length>1?`<tr><td><b>Moyenne des artisans</b></td><td class="r">${rng(avg(P,"m",0),avg(P,"m",1))}</td><td class="r">${rng(avg(P,"l",0),avg(P,"l",1))}</td><td></td><td class="r"><button class="btn sm gold" data-avg="${p.k}">Retenir la moyenne</button></td></tr>`:""}</table></div>`:`<p class="mu sm" style="margin:0 0 8px">Aucun prix d'artisan encodé pour ce poste.</p>`}
@@ -162,9 +162,9 @@ function compHTML(p,c){const qn=unitQ(p.u),un=qn=="forfait"?"forfait":"1 "+qn.re
   <div class="a2g">${ep?`<label>Épaisseur mini (mm)${I(x,"e0","","0.1")}</label><label>Épaisseur maxi (mm)${I(x,"e1","","0.1")}</label><label>${u} par mm d'épaisseur <small>(pour ${un})</small>${I(x,"d","ex. 1,4","0.001")}</label>`
    :`<label>Consommation mini <small>(${u} pour ${un})</small>${I(x,"q0","","0.001")}</label><label>Consommation maxi <small>(${u} pour ${un})</small>${I(x,"q1","","0.001")}</label>`}
    <label>Unité<input data-cp="${p.k}|${x.id}|u" value="${esc(x.u||"")}" placeholder="kg, L, m², pièce, m…"></label><label>Pertes %${I(x,"pe","0","1")}</label><label>Prix mini / ${u} <small>(HTVA)</small>${I(x,"p0","à compléter")}</label><label>Prix maxi / ${u} <small>(HTVA)</small>${I(x,"p1")}</label></div>
-  <div class="a2t">${how}${tot}</div></div>`};
+  <div class="a2t">${how}${tot}${x.opt=="ancien"?` <span class="mu">— seulement si le carrelage est posé sur un ancien carrelage (question dans le projet), pas compté ici.</span>`:""}</div></div>`};
  return`<div class="sec"><h3>🧱 Articles du poste <small class="mu">pour ${un}</small></h3>
-  <p class="mu sm" style="margin:0 0 8px">Chaque article a une consommation <b>mini et maxi</b> (ou une <b>épaisseur</b> mini et maxi) : Valou prend <b>la moyenne des deux</b>. Le prix du matériel = somme des articles (quantité moyenne + pertes) × prix hors TVA.</p>
+  <p class="mu sm" style="margin:0 0 8px">Dans le devis de Valou, chaque article est arrondi au conditionnement de vente (boîte, sac, rouleau) et compté au prix magasin TVA comprise. Chaque article a une consommation <b>mini et maxi</b> (ou une <b>épaisseur</b> mini et maxi) : Valou prend <b>la moyenne des deux</b>. Le prix du matériel = somme des articles (quantité moyenne + pertes) × prix hors TVA.</p>
   ${own?"":L.length?`<div class="note">📋 <b>Articles proposés</b> : ils ne sont pas encore appliqués, Valou utilise toujours le prix de référence (${rng(p.m[0],p.m[1])}). Complète-les ou corrige-les : dès que tu modifies un article, le poste passe sur ses articles.${ok?` <button class="btn sm gold" data-cpuse="${p.k}">Appliquer ces articles</button>`:""}</div>`:""}
   ${L.map(row).join("")}
   ${L.length?`<div class="a2tot">${ok?`Matériel pour ${un} : <b>${rng(M[0],M[1])}</b>${own?"":" <small class=\"mu\">(pas encore appliqué)</small>"}`:`<span class="ko">⚠️ ${L.filter(x=>!rowOk(x)).length} article(s) à compléter</span> : tant qu'ils ne sont pas complets, Valou garde le prix du matériel actuel (${rng(c.m[0],c.m[1])}).`}</div>`:""}
@@ -175,8 +175,8 @@ function vArt(){return`<div class="c"><h2 style="font-size:20px;margin-bottom:6p
  <div class="art" style="border:0"><input id="an" placeholder="Nom de l'artisan ou de l'entreprise"><input id="am" placeholder="Métier (ex. carreleur)"><input id="at" placeholder="Téléphone (facultatif)"><span></span><button class="btn pri" id="aadd">+ Ajouter</button></div></div>`}
 function vHist(){const H=(ADM.hist||[]).slice().reverse();return`<div class="c hist"><h2 style="font-size:20px;margin-bottom:8px">🕓 Historique des publications</h2>${H.length?H.map(h=>`<div><b>${esc(h.d)}</b> · ${esc(h.n)} : ${esc(h.t)}</div>`).join(""):`<p class="empty">Rien n'a encore été publié.</p>`}</div>`}
 /* ---------- actions ---------- */
-function setVal(k,i,v){const c=cur(k),m=c.m.slice(),l=c.l.slice();if(i<2)m[i]=v;else l[i-2]=v;
- if(m[1]<m[0])m.reverse();if(l[1]<l[0])l.reverse();const o=ensure(k);o.m=m;o.l=l;recalc(k)}
+function setVal(k,i,v){const c=cur(k),m=c.m.slice(),l=c.l.slice();if(i==4){const o=ensure(k);o.l=l;o.lm=v;recalc(k);return}if(i<2)m[i]=v;else l[i-2]=v;
+ if(m[1]<m[0])m.reverse();if(l[1]<l[0])l.reverse();const o=ensure(k);o.m=m;o.l=l;if(o.lm==null)o.lm=c.lm;recalc(k)}
 function redraw(keep){const y=scrollY;draw();if(keep!==false)scrollTo(0,y)}
 const setSess=r=>setA({access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600),user:r.user});
 const msgErr=m=>/rate limit/i.test(m)?"Trop d’e-mails envoyés : réessaie dans une heure, ou connecte-toi avec ton mot de passe.":m;
