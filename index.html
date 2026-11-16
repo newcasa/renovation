@@ -2663,8 +2663,8 @@ const vcR=(a,b,u)=>{const x=u?u.replace(/^€\s*/,""):"";return a==b?`${E(a)}${x
 const VLV={min:"tarif mini",moy:"tarif moyen",max:"tarif maxi"};
 let VC=null,VCE=null,VCA=0;
 /* détail publié depuis le tableau de bord : consommation du matériel et main-d'œuvre au temps */
-function vcComp(k){const d=(window.REFD||{})[k];if(!d||(!d.c&&!d.t))return"";const f=x=>hbN(+x||0),pr=(a,b)=>a==b||b==null?f(a)+" €":f(a)+" à "+f(b)+" €";
- return`<div class="vccmp">${d.c&&d.c.length?`<b>Détail du matériel (par unité) :</b>${d.c.map(x=>`<div>• ${esc(x.n||"Article")} : ${f(x.q)} ${esc(x.u||"")}${+x.pe?` + ${f(x.pe)} % de pertes`:""} × ${pr(x.p0,x.p1)}</div>`).join("")}`:""}${d.t&&+d.t.h?`<div><b>Main-d'œuvre :</b> ${f(d.t.h)} h × ${pr(d.t.r0,d.t.r1)}/h</div>`:""}</div>`}
+function vcComp(k){const d=(window.REFD||{})[k];if(!d||!d.c||!d.c.length)return"";const f=x=>hbN(+x||0,3),pr=(a,b)=>b==null||a==b?hbN(+a||0)+" €":hbN(+a||0)+" à "+hbN(+b||0)+" €",rq=(a,b)=>a==b?f(a):f(a)+" à "+f(b);
+ return`<div class="vccmp"><b>Détail du matériel (par unité) :</b>${d.c.map(x=>{const ep=x.mode=="ep",q0=ep?(+x.d||0)*(+x.e0||0):(x.q0??x.q),q1=ep?(+x.d||0)*(x.e1??x.e0??0):(x.q1??x.q0??x.q);return`<div>• ${esc(x.n||"Article")} : ${ep?`${f(x.d)} ${esc(x.u||"")}/mm × ${rq(x.e0,x.e1??x.e0)} mm = `:""}${rq(q0,q1)} ${esc(x.u||"")}${+x.pe?` + ${hbN(+x.pe)} % de pertes`:""} × ${pr(x.p0,x.p1)}</div>`}).join("")}</div>`}
 function vcDraw(){let el=document.getElementById("vcx");if(!VC){if(el)el.remove();return}if(!el){el=document.createElement("div");el.id="vcx";document.body.appendChild(el)}
  const Pp=vcPrj();if(!Pp){VC=null;el.remove();return}Pp.cpa=Pp.cpa||{};S.collab=S.collab||[];const L=vcPostes(VCA),g=[...new Set(L.map(p=>p.grp))],t=tot();
  const card=p=>{const c=vcCalc(p),s=vcSrc(p.k),u=p.u,cid=Pp.cpa[p.k]||"",ed=VCE==p.k;
