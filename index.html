@@ -2663,8 +2663,11 @@ const vcR=(a,b,u)=>{const x=u?u.replace(/^€\s*/,""):"";return a==b?`${E(a)}${x
 const VLV={min:"tarif mini",moy:"tarif moyen",max:"tarif maxi"};
 let VC=null,VCE=null,VCA=0;
 /* détail publié depuis le tableau de bord : consommation du matériel et main-d'œuvre au temps */
-function vcComp(k){const d=(window.REFD||{})[k];if(!d||!d.c||!d.c.length)return"";const f=x=>hbN(+x||0,3),pr=(a,b)=>b==null||a==b?hbN(+a||0)+" €":hbN(+a||0)+" à "+hbN(+b||0)+" €",rq=(a,b)=>a==b?f(a):f(a)+" à "+f(b);
- return`<div class="vccmp"><b>Détail du matériel (par unité) :</b>${d.c.map(x=>{const ep=x.mode=="ep",q0=ep?(+x.d||0)*(+x.e0||0):(x.q0??x.q),q1=ep?(+x.d||0)*(x.e1??x.e0??0):(x.q1??x.q0??x.q);return`<div>• ${esc(x.n||"Article")} : ${ep?`${f(x.d)} ${esc(x.u||"")}/mm × ${rq(x.e0,x.e1??x.e0)} mm = `:""}${rq(q0,q1)} ${esc(x.u||"")}${+x.pe?` + ${hbN(+x.pe)} % de pertes`:""} × ${pr(x.p0,x.p1)}</div>`}).join("")}</div>`}
+function vcComp(k,Q,QU){const d=(window.REFD||{})[k];if(!d||!d.c||!d.c.length)return"";const f=x=>hbN(+x||0,3),e=x=>hbN(+x||0),rg=(a,b)=>Math.abs(a-b)<.005?e(a)+" €":e(a)+" à "+e(b)+" €";Q=+Q||0;
+ const mm=x=>{if(x.mode=="ep"){const dd=+x.d,a=x.e0,b=x.e1??x.e0;if(x.d==null||a==null)return null;return{a:+a,b:+b,m:(+a+ +b)/2,q:dd*(+a+ +b)/2,d:dd}}const a=x.q0??x.q,b=x.q1??a;return a==null?null:{a:+a,b:+b,m:(+a+ +b)/2,q:(+a+ +b)/2}};
+ return`<div class="vccmp"><b>Ce qui compose le matériel${Q?` pour ${f(Q)} ${QU||""}`:""} :</b>${d.c.map(x=>{const z=mm(x),u=esc(x.u||"");if(!z)return`<div>• ${esc(x.n||"Article")} : <i>consommation non renseignée</i></div>`;
+  const pe=+x.pe||0,qu=z.q*(1+pe/100),qt=Q*qu,p0=x.p0,p1=x.p1??x.p0;
+  return`<div>• <b>${esc(x.n||"Article")}</b> : ${x.mode=="ep"?`épaisseur moyenne ${f(z.m)} mm (${f(z.a)} à ${f(z.b)}) × ${f(z.d)} ${u}/mm`:`consommation moyenne ${f(z.q)} ${u} (${f(z.a)} à ${f(z.b)})`}${pe?` + ${e(pe)} % de pertes`:""} = ${f(qu)} ${u} par ${QU&&QU!="unité(s)"?QU:"unité"}${Q?` → <b>${f(qt)} ${u}</b> pour le projet`:""}${p0!=null?` × ${rg(+p0,+p1)}/${u}${Q?` = <b>${rg(qt*p0,qt*p1)}</b>`:""}`:" · <i>prix non renseigné</i>"}</div>`}).join("")}</div>`}
 function vcDraw(){let el=document.getElementById("vcx");if(!VC){if(el)el.remove();return}if(!el){el=document.createElement("div");el.id="vcx";document.body.appendChild(el)}
  const Pp=vcPrj();if(!Pp){VC=null;el.remove();return}Pp.cpa=Pp.cpa||{};S.collab=S.collab||[];const L=vcPostes(VCA),g=[...new Set(L.map(p=>p.grp))],t=tot();
  const card=p=>{const c=vcCalc(p),s=vcSrc(p.k),u=p.u,cid=Pp.cpa[p.k]||"",ed=VCE==p.k;
@@ -2672,7 +2675,7 @@ function vcDraw(){let el=document.getElementById("vcx");if(!VC){if(el)el.remove(
   return`<div class="vcp${ed?" ed":""}" data-vck="${p.k}"><div class="vch"><b>${esc(p.lab)}</b><span class="vcs vcs-${s.c}">${esc(s.t)}</span></div>
   <div class="vcf"><span>Quantité</span><b>${c.q?hbN(c.q)+" "+(u.includes("m²")?"m²":u.includes("/ml")?"m":u.includes("unité")?"unité(s)":""):"—"}</b>
   <span>Matériel</span><b>${vcR(c.m[0],c.m[1],u)}</b><span>Main-d'œuvre</span><b>${vcR(c.l[0],c.l[1],u)}</b></div>${how}
-  ${vcComp(p.k)}${c.q?`<div class="vcres">= <b>${vcR(c.lo,c.hi)}</b> · retenu dans le budget : <b>${E(c.ch)}</b> HTVA${c.tva?` <small class="mu">(+ TVA ${E(c.tva)} : ${c.chA&&c.chD?`${vatA()} % artisan, 21 % moi-même`:c.chA?`${vatA()} %, artisan`:"21 % sur le matériel, moi-même"})</small>`:""}</div>`:""}
+  ${vcComp(p.k,c.q,u.includes("m²")?"m²":u.includes("/ml")?"m":u.includes("unité")?"unité(s)":"")}${c.q?`<div class="vcres">= <b>${vcR(c.lo,c.hi)}</b> · retenu dans le budget : <b>${E(c.ch)}</b> HTVA${c.tva?` <small class="mu">(+ TVA ${E(c.tva)} : ${c.chA&&c.chD?`${vatA()} % artisan, 21 % moi-même`:c.chA?`${vatA()} %, artisan`:"21 % sur le matériel, moi-même"})</small>`:""}</div>`:""}
   <div class="vcact"><label>Prix appliqué<select data-vcart="${p.k}"><option value="">${S.tm?"Mes prix / Valou":"Prix Valou"}</option>${S.collab.map(a=>`<option value="${a.id}"${a.id==cid?" selected":""}>👷 ${esc(a.nom)}${a.p&&a.p[p.k]?"":" (à encoder)"}</option>`).join("")}</select></label><button type="button" class="vcb" data-vced="${p.k}">✏️ Modifier les prix</button></div>
   ${ed?vcForm(p,c,cid):""}</div>`};
  el.innerHTML=`<div class="vcw"><div class="vctop"><button type="button" class="vcb" data-vcclose>‹ Retour</button><b>🧮 Comment Valou calcule</b></div>
