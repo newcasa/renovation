@@ -40,7 +40,7 @@ main{max-width:1180px;margin:0 auto;padding:16px 16px 120px}
 .pb{border-top:1px dashed var(--bd);padding:14px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
 .ed{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}@media(max-width:600px){.ed{grid-template-columns:repeat(2,minmax(0,1fr))}}.ed label{display:grid;gap:3px;font-size:12.5px;color:var(--mu)}
 .sec h3{font-size:16px;margin-bottom:6px}
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}.pb,.pst{min-width:0}table.pr{width:100%;min-width:560px;border-collapse:collapse;font-size:13.5px}table.pr th,table.pr td{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}table.pr th{font-size:12px;color:var(--mu)}table.pr td.r,table.pr th.r{text-align:right;white-space:nowrap}
+.cmp input{padding:6px 8px;min-width:70px}.cmp td:first-child input{min-width:170px}.ed label small{color:var(--ord)}.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}.pb,.pst{min-width:0}table.pr{width:100%;min-width:560px;border-collapse:collapse;font-size:13.5px}table.pr th,table.pr td{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}table.pr th{font-size:12px;color:var(--mu)}table.pr td.r,table.pr th.r{text-align:right;white-space:nowrap}
 .addp{display:grid;grid-template-columns:1.4fr repeat(4,1fr) 1.6fr auto;gap:6px;align-items:end}@media(max-width:860px){.addp{grid-template-columns:repeat(2,minmax(0,1fr))}.addp .w2{grid-column:1/-1}}
 .addp label{display:grid;gap:3px;font-size:12px;color:var(--mu)}
 .sim{display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:start}@media(max-width:600px){.sim{grid-template-columns:1fr}}
@@ -71,7 +71,16 @@ async function api(path,o={}){const h=Object.assign({apikey:CFG.key,"Content-Typ
 async function refresh(){if(!AUTH||!AUTH.refresh_token)return;if(AUTH.expires_at&&AUTH.expires_at-60>Date.now()/1000)return;
  try{const r=await api("/auth/v1/token?grant_type=refresh_token",{method:"POST",anon:1,body:JSON.stringify({refresh_token:AUTH.refresh_token})});setA({access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600),user:r.user})}catch(e){setA(null)}}
 const keyOf=k=>REF.find(p=>p.k==k);
-const cur=k=>{const r=keyOf(k),o=PUB.p[k];return{m:o&&o.m?o.m:r.m,l:o&&o.l?o.l:r.l,mod:!!o}};
+const cur=k=>{const r=keyOf(k),o=PUB.p[k];return{m:o&&o.m?o.m:r.m,l:o&&o.l?o.l:r.l,mod:!!o,c:(o&&o.c)||[],t:o&&o.t&&num(o.t.h)?o.t:null}};
+const r2=x=>Math.round(x*100)/100;
+const rowTot=x=>{const q=(num(x.q)||0)*(1+(num(x.pe)||0)/100);return[r2(q*(num(x.p0)||0)),r2(q*(num(x.p1)??num(x.p0)??0))]};
+const compM=L=>{const a=L.map(rowTot);return[r2(a.reduce((s,x)=>s+x[0],0)),r2(a.reduce((s,x)=>s+x[1],0))]};
+function ensure(k){if(!PUB.p[k]){const c=cur(k);PUB.p[k]={m:c.m.slice(),l:c.l.slice()}}return PUB.p[k]}
+function recalc(k){const o=PUB.p[k];if(!o)return;if(o.c&&!o.c.length)delete o.c;if(o.t&&!num(o.t.h))delete o.t;
+ if(o.c)o.m=compM(o.c);if(o.t){const h=num(o.t.h)||0;o.l=[r2(h*(num(o.t.r0)||0)),r2(h*(num(o.t.r1)??num(o.t.r0)??0))]}
+ const r=keyOf(k);if(!o.c&&!o.t&&same(o.m,r.m)&&same(o.l,r.l))delete PUB.p[k]}
+let HUBO=null;fetch("prix-hubo.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{HUBO=j}).catch(()=>{});
+const hbRow=a=>{const t=(HUBO&&HUBO.tva)??21,pu=r2(a.prix/a.qte/(1+t/100));return{id:uid(),n:a.nom,q:1,u:a.unite,pe:typeof a.chute=="number"?Math.round(a.chute*100):a.chute=="pose"?10:0,p0:pu,p1:pu,src:"Hubo "+a.id}};
 const same=(a,b)=>JSON.stringify(a)==JSON.stringify(b);
 const dirty=()=>JSON.stringify({p:PUB.p,a:ADM})!==SAVED;
 const unitQ=u=>u.includes("m²")?"m²":u.includes("/ml")?"m":u.includes("unité")?"unité(s)":u.includes("escalier")?"escalier(s)":"forfait";
@@ -118,8 +127,9 @@ function card(p){const c=cur(p.k),P=ADM.props[p.k]||[],op=UI.open[p.k],qn=unitQ(
   <div class="pa"><button class="btn sm">${op?"Fermer":"Ouvrir"}</button></div></div>${op?body(p,c,P):""}</div>`}
 function body(p,c,P){const s=UI.sim[p.k]??(p.u.includes("m²")?20:1),lo=s*(c.m[0]+c.l[0]),hi=s*(c.m[1]+c.l[1]),mo=(lo+hi)/2,dl=s*c.m[0],dh=s*c.m[1],dm=(dl+dh)/2;
  return`<div class="pb"><div class="sec"><h3>✏️ Prix retenus pour Valou <small class="mu">(hors TVA, ${esc(p.u)})</small></h3>
-  <div class="ed">${["Matériel mini","Matériel maxi","Main-d'œuvre mini","Main-d'œuvre maxi"].map((l,i)=>`<label>${l}<input type="number" inputmode="decimal" step="0.01" data-ed="${p.k}|${i}" value="${(i<2?c.m[i]:c.l[i-2])}"></label>`).join("")}</div>
+  <div class="ed">${["Matériel mini","Matériel maxi","Main-d'œuvre mini","Main-d'œuvre maxi"].map((l,i)=>{const lk=i<2?c.c.length:c.t;return`<label>${l}<input type="number" inputmode="decimal" step="0.01" data-ed="${p.k}|${i}" value="${(i<2?c.m[i]:c.l[i-2])}"${lk?" disabled":""}>${lk?`<small>${i<2?"calculé : consommation":"calculé : temps × taux"}</small>`:""}</label>`}).join("")}</div>
   <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:8px"><small class="mu">Référence Valou : matériel ${rng(p.m[0],p.m[1])} · main-d'œuvre ${rng(p.l[0],p.l[1])}</small>${c.mod?`<button class="btn sm" data-reset="${p.k}">↺ Remettre la référence</button>`:""}</div></div>
+ ${compHTML(p,c)}
  <div class="sec"><h3>👷 Prix des artisans participants</h3>${P.length?`<div class="tw"><table class="pr"><tr><th>Artisan</th><th class="r">Matériel</th><th class="r">Main-d'œuvre</th><th>Commentaire</th><th></th></tr>${P.map(x=>{const a=ADM.artisans.find(z=>z.id==x.a);return`<tr><td><b>${esc(a?a.nom:"(supprimé)")}</b><br><small class="mu">${esc(x.d||"")}</small></td><td class="r">${rng(x.m[0],x.m[1])}</td><td class="r">${rng(x.l[0],x.l[1])}</td><td>${esc(x.com||"")}</td><td class="r"><button class="btn sm gold" data-use="${p.k}|${x.id}">Retenir</button> <button class="btn sm lnk" data-pdel="${p.k}|${x.id}">Supprimer</button></td></tr>`}).join("")}
    ${P.length>1?`<tr><td><b>Moyenne des artisans</b></td><td class="r">${rng(avg(P,"m",0),avg(P,"m",1))}</td><td class="r">${rng(avg(P,"l",0),avg(P,"l",1))}</td><td></td><td class="r"><button class="btn sm gold" data-avg="${p.k}">Retenir la moyenne</button></td></tr>`:""}</table></div>`:`<p class="mu sm" style="margin:0 0 8px">Aucun prix d'artisan encodé pour ce poste.</p>`}
   ${ADM.artisans.length?`<div class="addp" style="margin-top:10px"><label class="w2">Artisan<select data-np="a">${ADM.artisans.map(a=>`<option value="${a.id}">${esc(a.nom)}${a.met?" – "+esc(a.met):""}</option>`).join("")}</select></label>
@@ -132,14 +142,25 @@ function body(p,c,P){const s=UI.sim[p.k]??(p.u.includes("m²")?20:1),lo=s*(c.m[0
    <span>Moi-même (matériel + TVA 21 %)</span><b>${E0(dl*1.21)}</b><b>${E0(dm*1.21)}</b><b>${E0(dh*1.21)}</b></div></div>
   <small class="mu">${s} × (${rng(c.m[0],c.m[1])} + ${rng(c.l[0],c.l[1])}) = ${E0(lo)} à ${E0(hi)} HTVA. (Valou affiche le tarif « mini » et « maxi » légèrement resserrés vers la moyenne.)</small></div>
  <div class="sec"><h3>📝 Note interne</h3><textarea rows="2" data-note="${p.k}" placeholder="ex. prix revu avec Martin le 20/11, quantité habituelle…">${esc(ADM.notes[p.k]||"")}</textarea></div></div>`}
+function compHTML(p,c){const qn=unitQ(p.u),un=qn=="forfait"?"forfait":"1 "+qn.replace("(s)",""),L=c.c,T=c.t||{};
+ const opts=HUBO?HUBO.articles.filter(a=>a.prix!=null).map(a=>`<option value="${a.id}">${a.id} · ${esc(a.nom)} (${esc(a.unite)})</option>`).join(""):"";
+ return`<div class="sec"><h3>🧱 Consommation du matériel <small class="mu">pour ${un}</small></h3>
+  <p class="mu sm" style="margin:0 0 8px">Décris ce qu'il faut acheter pour ${un} : quantité, pertes et prix hors TVA. Le prix du matériel du poste se calcule tout seul.</p>
+  ${L.length?`<div class="tw"><table class="pr cmp"><tr><th>Article</th><th class="r">Consommation</th><th>Unité</th><th class="r">Pertes %</th><th class="r">Prix mini /unité</th><th class="r">Prix maxi /unité</th><th class="r">Total pour ${un}</th><th></th></tr>
+   ${L.map(x=>{const t=rowTot(x);return`<tr><td><input data-cp="${p.k}|${x.id}|n" value="${esc(x.n)}">${x.src?`<small class="mu">${esc(x.src)}</small>`:""}</td><td><input type="number" step="0.001" inputmode="decimal" data-cp="${p.k}|${x.id}|q" value="${x.q??""}"></td><td><input data-cp="${p.k}|${x.id}|u" value="${esc(x.u||"")}" placeholder="kg, L, m²…"></td><td><input type="number" step="1" inputmode="decimal" data-cp="${p.k}|${x.id}|pe" value="${x.pe??0}"></td><td><input type="number" step="0.01" inputmode="decimal" data-cp="${p.k}|${x.id}|p0" value="${x.p0??""}"></td><td><input type="number" step="0.01" inputmode="decimal" data-cp="${p.k}|${x.id}|p1" value="${x.p1??""}"></td><td class="r"><b>${rng(t[0],t[1])}</b></td><td><button class="btn sm lnk" data-cpdel="${p.k}|${x.id}" aria-label="Retirer">✕</button></td></tr>`}).join("")}
+   <tr><td colspan="6"><b>Matériel pour ${un}</b></td><td class="r"><b>${rng(c.m[0],c.m[1])}</b></td><td></td></tr></table></div>`:""}
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-cpadd="${p.k}">+ Ligne</button>${opts?`<select data-cphubo="${p.k}" style="max-width:340px"><option value="">+ Article de la liste Hubo…</option>${opts}</select>`:""}</div></div>
+ <div class="sec"><h3>⏱ Main-d'œuvre au temps <small class="mu">(facultatif)</small></h3>
+  <div class="ed"><label>Temps (heures pour ${un})<input type="number" step="0.01" inputmode="decimal" data-tm="${p.k}|h" value="${T.h??""}" placeholder="ex. 0,8"></label><label>Taux horaire mini (€/h HTVA)<input type="number" step="0.5" inputmode="decimal" data-tm="${p.k}|r0" value="${T.r0??""}"></label><label>Taux horaire maxi (€/h HTVA)<input type="number" step="0.5" inputmode="decimal" data-tm="${p.k}|r1" value="${T.r1??""}"></label>
+  <div style="align-self:end">${c.t?`<b>= ${rng(c.l[0],c.l[1])}</b><br><button class="btn sm lnk" data-tmclr="${p.k}">Ne plus calculer au temps</button>`:`<small class="mu">Indique le temps et le taux : la main-d'œuvre se calcule toute seule.</small>`}</div></div></div>`}
 const avg=(P,f,i)=>Math.round(P.reduce((s,x)=>s+num(x[f][i]),0)/P.length*100)/100;
 function vArt(){return`<div class="c"><h2 style="font-size:20px;margin-bottom:6px">👷 Artisans participants</h2><p class="mu sm" style="margin:0 0 10px">Les artisans avec qui tu revois les prix. Leurs prix restent privés : seuls les prix que tu retiens et publies sont utilisés par Valou.</p>
  ${ADM.artisans.map(a=>{const n=Object.values(ADM.props).reduce((s,L)=>s+L.filter(x=>x.a==a.id).length,0);return`<div class="art"><input data-ae="${a.id}|nom" value="${esc(a.nom)}"><input data-ae="${a.id}|met" value="${esc(a.met||"")}" placeholder="Métier"><input data-ae="${a.id}|tel" value="${esc(a.tel||"")}" placeholder="Téléphone"><small class="mu">${n} prix encodé${n>1?"s":""}</small><button class="btn sm lnk" data-adel="${a.id}">Supprimer</button></div>`}).join("")||`<p class="empty">Aucun artisan pour l'instant.</p>`}
  <div class="art" style="border:0"><input id="an" placeholder="Nom de l'artisan ou de l'entreprise"><input id="am" placeholder="Métier (ex. carreleur)"><input id="at" placeholder="Téléphone (facultatif)"><span></span><button class="btn pri" id="aadd">+ Ajouter</button></div></div>`}
 function vHist(){const H=(ADM.hist||[]).slice().reverse();return`<div class="c hist"><h2 style="font-size:20px;margin-bottom:8px">🕓 Historique des publications</h2>${H.length?H.map(h=>`<div><b>${esc(h.d)}</b> · ${esc(h.n)} : ${esc(h.t)}</div>`).join(""):`<p class="empty">Rien n'a encore été publié.</p>`}</div>`}
 /* ---------- actions ---------- */
-function setVal(k,i,v){const r=keyOf(k),c=cur(k),m=c.m.slice(),l=c.l.slice();if(i<2)m[i]=v;else l[i-2]=v;
- if(m[1]<m[0])m.reverse();if(l[1]<l[0])l.reverse();if(same(m,r.m)&&same(l,r.l))delete PUB.p[k];else PUB.p[k]={m,l}}
+function setVal(k,i,v){const c=cur(k),m=c.m.slice(),l=c.l.slice();if(i<2)m[i]=v;else l[i-2]=v;
+ if(m[1]<m[0])m.reverse();if(l[1]<l[0])l.reverse();const o=ensure(k);o.m=m;o.l=l;recalc(k)}
 function redraw(keep){const y=scrollY;draw();if(keep!==false)scrollTo(0,y)}
 const setSess=r=>setA({access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600),user:r.user});
 const msgErr=m=>/rate limit/i.test(m)?"Trop d’e-mails envoyés : réessaie dans une heure, ou connecte-toi avec ton mot de passe.":m;
@@ -152,9 +173,12 @@ document.addEventListener("click",async e=>{const tg=e.target.closest("[data-tog
  if(t.id=="out"){if(dirty()&&!confirm("Des modifications ne sont pas publiées. Se déconnecter quand même ?"))return;try{await api("/auth/v1/logout",{method:"POST"})}catch(er){}setA(null);draw();return}
  if(t.id=="retry"){await refresh();await loadData();draw();return}
  if(t.dataset.tab){UI.tab=t.dataset.tab;redraw(false);scrollTo(0,0);return}
- if(t.dataset.reset){delete PUB.p[t.dataset.reset];redraw();return}
- if(t.dataset.use){const[k,id]=t.dataset.use.split("|"),x=(ADM.props[k]||[]).find(z=>z.id==id);if(x){PUB.p[k]={m:x.m.slice(),l:x.l.slice()};const a=ADM.artisans.find(z=>z.id==x.a);toast("Prix de "+(a?a.nom:"l'artisan")+" retenus : n'oublie pas de publier")}redraw();return}
- if(t.dataset.avg){const k=t.dataset.avg,P=ADM.props[k];PUB.p[k]={m:[avg(P,"m",0),avg(P,"m",1)],l:[avg(P,"l",0),avg(P,"l",1)]};toast("Moyenne retenue : n'oublie pas de publier");redraw();return}
+ if(t.dataset.reset){const o=PUB.p[t.dataset.reset];if(o&&(o.c||o.t)&&!confirm("Remettre la référence efface aussi la consommation et le temps de ce poste. Continuer ?"))return;delete PUB.p[t.dataset.reset];redraw();return}
+ if(t.dataset.cpadd){const k=t.dataset.cpadd,o=ensure(k);(o.c=o.c||[]).push({id:uid(),n:"",q:1,u:"",pe:0,p0:0,p1:0});recalc(k);redraw();return}
+ if(t.dataset.cpdel){const[k,id]=t.dataset.cpdel.split("|"),o=PUB.p[k];if(o&&o.c){o.c=o.c.filter(z=>z.id!=id);recalc(k)}redraw();return}
+ if(t.dataset.tmclr){const o=PUB.p[t.dataset.tmclr];if(o){delete o.t;recalc(t.dataset.tmclr)}redraw();return}
+ if(t.dataset.use){const[k,id]=t.dataset.use.split("|"),x=(ADM.props[k]||[]).find(z=>z.id==id);if(x){if((PUB.p[k]||{}).c||(PUB.p[k]||{}).t){if(!confirm("Retenir ces prix remplace le calcul par consommation / au temps de ce poste. Continuer ?"))return}PUB.p[k]={m:x.m.slice(),l:x.l.slice()};const a=ADM.artisans.find(z=>z.id==x.a);toast("Prix de "+(a?a.nom:"l'artisan")+" retenus : n'oublie pas de publier")}redraw();return}
+ if(t.dataset.avg){const k=t.dataset.avg,P=ADM.props[k];if(((PUB.p[k]||{}).c||(PUB.p[k]||{}).t)&&!confirm("Retenir la moyenne remplace le calcul par consommation / au temps de ce poste. Continuer ?"))return;PUB.p[k]={m:[avg(P,"m",0),avg(P,"m",1)],l:[avg(P,"l",0),avg(P,"l",1)]};toast("Moyenne retenue : n'oublie pas de publier");redraw();return}
  if(t.dataset.pdel){const[k,id]=t.dataset.pdel.split("|");ADM.props[k]=(ADM.props[k]||[]).filter(z=>z.id!=id);if(!ADM.props[k].length)delete ADM.props[k];redraw();return}
  if(t.dataset.padd){const k=t.dataset.padd,box=t.closest(".addp"),g=f=>box.querySelector(`[data-np="${f}"]`).value,v=[0,1,2,3].map(i=>num(g(i)));
   if(v.some(x=>x==null)){toast("Indique les 4 prix (mets la même valeur en mini et maxi pour un prix unique).");return}if(v[1]<v[0])[v[0],v[1]]=[v[1],v[0]];if(v[3]<v[2])[v[2],v[3]]=[v[3],v[2]];
@@ -165,6 +189,9 @@ document.addEventListener("click",async e=>{const tg=e.target.closest("[data-tog
  if(t.id=="csv")return dl("valou-calculs-par-poste.csv","﻿"+csv(),"text/csv;charset=utf-8");
  if(t.id=="bak")return dl("valou-tableau-de-bord-sauvegarde.json",JSON.stringify({date:new Date().toISOString(),publies:PUB.p,artisans:ADM},null,1),"application/json")});
 document.addEventListener("change",e=>{const t=e.target;
+ if(t.dataset.cp){const[k,id,f]=t.dataset.cp.split("|"),o=ensure(k),x=(o.c||[]).find(z=>z.id==id);if(!x)return;x[f]=f=="n"||f=="u"?t.value.trim():num(t.value);recalc(k);redraw();return}
+ if(t.dataset.cphubo){const k=t.dataset.cphubo,a=HUBO&&HUBO.articles.find(z=>z.id==t.value);if(!a)return;const o=ensure(k);(o.c=o.c||[]).push(hbRow(a));recalc(k);redraw();return}
+ if(t.dataset.tm){const[k,f]=t.dataset.tm.split("|"),o=ensure(k);o.t=o.t||{};o.t[f]=num(t.value);if(f=="r0"&&o.t.r1==null)o.t.r1=o.t.r0;recalc(k);redraw();return}
  if(t.dataset.ed){const[k,i]=t.dataset.ed.split("|"),v=num(t.value);if(v==null)return;setVal(k,+i,v);redraw()}
  else if(t.dataset.sim){UI.sim[t.dataset.sim]=num(t.value)||0;redraw()}
  else if(t.dataset.note!=null){const v=t.value.trim();if(v)ADM.notes[t.dataset.note]=v;else delete ADM.notes[t.dataset.note];redraw()}
@@ -180,8 +207,8 @@ async function publish(){const old=JSON.parse(SAVED||"{}"),op=(old.p)||{},ks=new
   await api("/rest/v1/valou_tarifs_admin?on_conflict=id",{method:"POST",headers:hd,body:JSON.stringify({id:"ref",data:ADM})});
   PUB.maj=new Date().toISOString();SAVED=JSON.stringify({p:PUB.p,a:ADM});toast(`✅ Publié : ${h.length} poste${h.length>1?"s":""} mis à jour dans Valou`);redraw()}
  catch(er){ADM.hist=ADM.hist.slice(0,ADM.hist.length-h.length);toast("Publication impossible : "+er.message);redraw()}}
-function csv(){const q=v=>`"${String(v??"").replace(/"/g,'""')}"`,f=x=>String(Math.round(x*100)/100).replace(".",","),rows=[["Catégorie","Poste","Unité","Réf. matériel mini","Réf. matériel maxi","Réf. MO mini","Réf. MO maxi","Retenu matériel mini","Retenu matériel maxi","Retenu MO mini","Retenu MO maxi","Statut","Prix d'artisans","Note"]];
- REF.forEach(p=>{const c=cur(p.k),P=ADM.props[p.k]||[];rows.push([p.g,p.n,p.u,f(p.m[0]),f(p.m[1]),f(p.l[0]),f(p.l[1]),f(c.m[0]),f(c.m[1]),f(c.l[0]),f(c.l[1]),c.mod?"Corrigé":"Référence",P.map(x=>{const a=ADM.artisans.find(z=>z.id==x.a);return`${a?a.nom:"?"} : mat ${f(x.m[0])}-${f(x.m[1])} / MO ${f(x.l[0])}-${f(x.l[1])}`}).join(" | "),ADM.notes[p.k]||""])});
+function csv(){const q=v=>`"${String(v??"").replace(/"/g,'""')}"`,f=x=>String(Math.round(x*100)/100).replace(".",","),rows=[["Catégorie","Poste","Unité","Réf. matériel mini","Réf. matériel maxi","Réf. MO mini","Réf. MO maxi","Retenu matériel mini","Retenu matériel maxi","Retenu MO mini","Retenu MO maxi","Statut","Consommation du matériel","Main-d'œuvre au temps","Prix d'artisans","Note"]];
+ REF.forEach(p=>{const c=cur(p.k),P=ADM.props[p.k]||[];rows.push([p.g,p.n,p.u,f(p.m[0]),f(p.m[1]),f(p.l[0]),f(p.l[1]),f(c.m[0]),f(c.m[1]),f(c.l[0]),f(c.l[1]),c.mod?"Corrigé":"Référence",c.c.map(x=>`${x.n} : ${f(num(x.q)||0)} ${x.u||""}${num(x.pe)?" +"+x.pe+" %":""} × ${f(num(x.p0)||0)}-${f(num(x.p1)??num(x.p0)??0)} €`).join(" | "),c.t?`${f(num(c.t.h))} h × ${f(num(c.t.r0)||0)}-${f(num(c.t.r1)??num(c.t.r0)??0)} €/h`:"",P.map(x=>{const a=ADM.artisans.find(z=>z.id==x.a);return`${a?a.nom:"?"} : mat ${f(x.m[0])}-${f(x.m[1])} / MO ${f(x.l[0])}-${f(x.l[1])}`}).join(" | "),ADM.notes[p.k]||""])});
  return rows.map(r=>r.map(q).join(";")).join("\r\n")}
 function dl(n,c,t){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:t}));a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},3000)}
 boot();
