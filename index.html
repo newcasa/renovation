@@ -2797,21 +2797,21 @@ function dvCalc(){if(!DV.ref||!DV.mo)return null;const PP=S.props[S.cur];if(!PP)
   if(!(Q>0))return;const ref=RF[p.k]||{},pb=pub[p.k]||{},src=vcSrc(p.k).c,u=dvU(p.u),per=o.per[p.k]={g:dvGrp(p),b:0,m:0,h:0,lab:0};
   const comp=(pb.c&&pb.c.length?pb.c:ref.c)||[];let moId=ref.mo;
   /* poste sans référence, ou avec « mes prix » / prix d'un artisan : fourchette Valou (matériel HTVA → prix magasin TVAC) */
-  if(src!="val"||(!comp.length&&!moId)){const c=vcCtx(()=>[P(p.k,p.d),LB(p.k)]),m=c[0],l=c[1],QD=Q-QL,md=[QD*m[0]*1.21,QD*m[1]*1.21],ma=[QL*m[0],QL*m[1]],lb=[QL*l[0],QL*l[1]];
-   o.fb.push({k:p.k,n:p.lab,Q,QL,u,src:src=="val"?"fourchette Valou":vcSrc(p.k).t,md,ma,lab:lb,mat:[md[0]+ma[0],md[1]+ma[1]]});per.b=md[0]+ma[0]+lb[0];per.h=md[1]+ma[1]+lb[1];per.m=(per.b+per.h)/2;per.va=[ma[0]+lb[0],(ma[0]+ma[1]+lb[0]+lb[1])/2,ma[1]+lb[1]];return}
+  if(src!="val"||(!comp.length&&!moId)){const c=vcCtx(()=>[P(p.k,p.d),LB(p.k)]),m=c[0],l=c[1],QD=Q-QL,md=[QD*m[0],QD*m[1]],ma=[QL*m[0],QL*m[1]],lb=[QL*l[0],QL*l[1]];
+   o.fb.push({k:p.k,n:p.lab,Q,QL,u,src:src=="val"?"fourchette Valou":vcSrc(p.k).t,md,ma,lab:lb,mat:[md[0]+ma[0],md[1]+ma[1]]});per.b=md[0]+ma[0]+lb[0];per.h=md[1]+ma[1]+lb[1];per.m=(per.b+per.h)/2;per.va=[ma[0]+lb[0],(ma[0]+ma[1]+lb[0]+lb[1])/2,ma[1]+lb[1]];per.vd=[md[0],(md[0]+md[1])/2,md[1]];return}
   let matD=0,matA=0;
   comp.forEach(x=>{if(x.opt=="ancien"){if(!A.anc){ask("anc","Le carrelage de sol est-il posé sur un ancien carrelage ?",[["oui","Oui (primaire d’accrochage)"],["non","Non"]]);o.wait.push(x.n);return}if(A.anc!="oui")return}
    let ch=dvn(x.pe)||0;if(x.pose){if(!A.pose){ask("pose","Le carrelage / le sol est-il posé droit ou en diagonale ?",[["droite","Pose droite (+10 %)"],["diag","Diagonale (+15 %)"]]);o.wait.push(x.n);return}ch=A.pose=="diag"?15:10}
    const ep=x.mode=="ep",a0=ep?x.e0:(x.q0??x.q),a1=ep?(x.e1??x.e0):(x.q1??x.q0??x.q);if(a0==null||(ep&&x.d==null)){o.miss.push({id:x.r||"",n:x.n,why:"consommation à compléter"});return}
    const avg=ep?n(x.d)*(n(a0)+n(a1))/2:(n(a0)+n(a1))/2,rid=x.r||((x.src||"").match(/R\d+[a-z]?/)||[])[0],h=rid&&H.find(z=>z.id==rid),PX=window.REFPX||{neg:{},mag:{}};
    [["mag",Q-QL],["neg",QL]].forEach(([sc,QQ])=>{if(!(QQ>0))return;const need=QQ*avg*(1+ch/100),how=`${hbN(QQ)} ${u} × ${hbN(avg,3)} ${x.u||""}${ep?` (épaisseur ${hbN(n(a0),1)}–${hbN(n(a1),1)} mm)`:""}${ch?` + ${ch} %`:""} = ${hbN(need,2)} ${x.u||""}`;
-    if(h){const mg=PX.mag[h.id]&&dvn(PX.mag[h.id].p)!=null?n(PX.mag[h.id].p):h.prix,ng=PX.neg[h.id]||{},ngp=dvn(ng.p);
+    if(h){const mg=PX.mag[h.id]&&dvn(PX.mag[h.id].p)!=null?n(PX.mag[h.id].p):h.prix!=null?Math.round(h.prix/1.21*100)/100:null,ng=PX.neg[h.id]||{},ngp=dvn(ng.p);
      if(sc=="mag"){if(mg==null){o.miss.push({id:h.id,n:x.n,why:"PRIX MATÉRIAU À COMPLÉTER (magasin)"});return}const nb=Math.ceil(need/h.qte-1e-9),t=nb*mg;matD+=t;o.mat.push({sc,id:h.id,n:x.n,how:how+(h.qte!=1?` → ${h.cond}`:""),nb,cond:h.cond,pu:mg,tot:t,promo:h.promo&&!PX.mag[h.id],ver:h.verifier,k:p.k,shop:(PX.mag[h.id]||{}).s||"Hubo"});return}
-     const qte=dvn(ng.q)||h.qte,cond=ng.c||h.cond;let pu=ngp,fbk=0;if(pu==null){if(mg==null){o.miss.push({id:h.id,n:x.n,why:"PRIX MATÉRIAU À COMPLÉTER (négociant)"});return}pu=Math.round(mg/1.21*100)/100;fbk=1}
-     const nb=Math.ceil(need/qte-1e-9),t=nb*pu;matA+=t;o.mat.push({sc,id:h.id,n:x.n,how:how+(qte!=1?` → ${cond}`:""),nb,cond:fbk?h.cond:cond,pu,tot:t,nf:fbk,k:p.k,shop:fbk?"prix magasin hors TVA, à défaut":(ng.s||"négociant")});return}
-    if(dvn(x.p0)!=null){const pu=(n(x.p0)+n(x.p1??x.p0))/2*(sc=="mag"?1.21:1),t=need*pu;if(sc=="mag")matD+=t;else matA+=t;o.mat.push({sc,id:"",n:x.n,how,nb:hbN(need,2)+" "+(x.u||""),cond:"",pu,tot:t,k:p.k,shop:"prix du tableau de bord"});return}
+     const qte=dvn(ng.q)||h.qte,cond=ng.c||h.cond;let pu=ngp,fbk=0;if(pu==null){if(mg==null){o.miss.push({id:h.id,n:x.n,why:"PRIX MATÉRIAU À COMPLÉTER (négociant)"});return}pu=mg;fbk=1}
+     const nb=Math.ceil(need/qte-1e-9),t=nb*pu;matA+=t;o.mat.push({sc,id:h.id,n:x.n,how:how+(qte!=1?` → ${cond}`:""),nb,cond:fbk?h.cond:cond,pu,tot:t,nf:fbk,k:p.k,shop:fbk?"prix magasin, à défaut":(ng.s||"négociant")});return}
+    if(dvn(x.p0)!=null){const pu=(n(x.p0)+n(x.p1??x.p0))/2,t=need*pu;if(sc=="mag")matD+=t;else matA+=t;o.mat.push({sc,id:"",n:x.n,how,nb:hbN(need,2)+" "+(x.u||""),cond:"",pu,tot:t,k:p.k,shop:"prix du tableau de bord"});return}
     o.miss.push({id:"",n:x.n,why:"PRIX MATÉRIAU À COMPLÉTER"})})});
-  const mat=matD+matA;per.va=[matA,matA,matA];
+  const mat=matD+matA;per.va=[matA,matA,matA];per.vd=[matD,matD,matD];
   per.b=per.m=per.h=mat;
   if(Array.isArray(moId)){const f=p.k=="i_ch"?"fen":"rad",ch=A[f];if(!ch){ask(f,p.k=="i_ch"?"Les fenêtres : pose en rénovation ou dépose totale ?":"Les radiateurs : remplacement ou nouveau raccordement ?",p.k=="i_ch"?[["reno","Pose en rénovation"],["depose","Dépose totale"]]:[["rempl","Remplacement"],["nouv","Nouveau raccordement"]]);moId=null;o.rem.push(`${p.lab} : main-d’œuvre en attente de ta réponse.`)}else moId=moId[ch=="depose"||ch=="nouv"?1:0]}
   if(moId&&MO[moId]){const m=MO[moId],usePub=pb.l&&!(pb.l[0]==m.b&&pb.l[1]==m.h&&(pb.lm??m.m)==m.m),b=usePub?n(pb.l[0]):m.b,h=usePub?n(pb.l[1]):m.h,mm=usePub?(pb.lm!=null?n(pb.lm):(b+h)/2):m.m;
@@ -2825,10 +2825,10 @@ function dvCalc(){if(!DV.ref||!DV.mo)return null;const PP=S.props[S.cur];if(!PP)
  const rate=A.age=="plus"?6:A.age=="moins"?21:null,sm=(L,f)=>hbS(L.map(f)),MD=sm(o.mat.filter(x=>x.sc=="mag"),x=>x.tot),MA=sm(o.mat.filter(x=>x.sc=="neg"),x=>x.tot);
  const MOb=sm(o.mo,x=>x.b)+sm(o.fb,x=>x.lab[0]),MOm=sm(o.mo,x=>x.m)+sm(o.fb,x=>(x.lab[0]+x.lab[1])/2),MOh=sm(o.mo,x=>x.h)+sm(o.fb,x=>x.lab[1]);
  const L=(a,b,c)=>({b:a,m:b,h:c}),MATD=L(MD+sm(o.fb,x=>x.md[0]),MD+sm(o.fb,x=>(x.md[0]+x.md[1])/2),MD+sm(o.fb,x=>x.md[1])),MATA=L(MA+sm(o.fb,x=>x.ma[0]),MA+sm(o.fb,x=>(x.ma[0]+x.ma[1])/2),MA+sm(o.fb,x=>x.ma[1]));
- const r=(rate||0)/100,pi=A.etat=="oui"?15:10,MOL=L(MOb,MOm,MOh),TV=L((MOb+MATA.b)*r,(MOm+MATA.m)*r,(MOh+MATA.h)*r),MAT=L(MATD.b+MATA.b,MATD.m+MATA.m,MATD.h+MATA.h);
+ const r=(rate||0)/100,pi=A.etat=="oui"?15:10,MOL=L(MOb,MOm,MOh),TVA_=L((MOb+MATA.b)*r,(MOm+MATA.m)*r,(MOh+MATA.h)*r),TVD=L(MATD.b*.21,MATD.m*.21,MATD.h*.21),TV=L(TVA_.b+TVD.b,TVA_.m+TVD.m,TVA_.h+TVD.h),MAT=L(MATD.b+MATA.b,MATD.m+MATA.m,MATD.h+MATA.h);
  const ST=L(MAT.b+MOb+TV.b+o.ann,MAT.m+MOm+TV.m+o.ann,MAT.h+MOh+TV.h+o.ann),IM=L(ST.b*pi/100,ST.m*pi/100,ST.h*pi/100);
- Object.values(o.per).forEach(x=>{const v=x.va||[0,0,0];x.b+=v[0]*r;x.m+=v[1]*r;x.h+=v[2]*r});
- return Object.assign(o,{rate,pi,MAT,MATD,MATA,MO:MOL,TV,ANN:L(o.ann,o.ann,o.ann),ST,IM,T:L(ST.b+IM.b,ST.m+IM.m,ST.h+IM.h)})}
+ Object.values(o.per).forEach(x=>{const v=x.va||[0,0,0],w=x.vd||[0,0,0];x.b+=v[0]*r+w[0]*.21;x.m+=v[1]*r+w[1]*.21;x.h+=v[2]*r+w[2]*.21});
+ return Object.assign(o,{rate,pi,MAT,MATD,MATA,MO:MOL,TV,TVA_,TVD,ANN:L(o.ann,o.ann,o.ann),ST,IM,T:L(ST.b+IM.b,ST.m+IM.m,ST.h+IM.h)})}
 /* le budget de l'appli (accueil, comparaison, PDF, banques…) vient du moteur de devis */
 {const _tot=tot;tot=function(){if(!dvOn())return _tot();const d=dvCalc();if(!d)return _tot();const cat={},z=()=>[0,0,0],add=(g,v)=>{const c=cat[g]=cat[g]||z();c[0]+=v.b;c[1]+=v.h;c[2]+=v.m};
  Object.entries(d.per).forEach(([k,v])=>add(v.g,v));if(d.ann)add("Espaces",d.ANN);
@@ -2841,7 +2841,7 @@ fin=function(){const t=tot(),fr=n(S.ach)*n(S.fr)/100,tv=t.dv?t.dv.TV.m:vatSplit(
 function dvCard(){if(!dvOn())return"";const d=dvCalc();if(!d)return"";const e=hbE,R3=v=>`<td class="r" data-l="Bas">${E(v.b)}</td><td class="r" data-l="Moyen"><b>${E(v.m)}</b></td><td class="r" data-l="Haut">${E(v.h)}</td>`;
  const Lst=[...d.mat.map(x=>x.ver?`${x.id} ${x.n} : prix à vérifier.`:x.promo?`${x.id} ${x.n} : prix promo, à revérifier.`:"").filter(Boolean),...d.mo.filter(x=>x.e==1).map(x=>`${x.id} ${x.n} : tarif estimé [E], moins fiable.`),...d.mo.filter(x=>x.e==2).map(x=>`${x.id} ${x.n} : tarif à vérifier.`),
   ...d.fb.map(x=>`${x.n} : pas de référence détaillée, ${x.src} (matériel + main-d’œuvre).`),...d.rem];
- if(d.mat.some(x=>x.nf))Lst.push("Prix négociant pas encore encodés pour certains articles : Valou utilise le prix du magasin de bricolage hors TVA, à défaut (à compléter dans le tableau de bord, onglet « Prix des matériaux »).");
+ if(d.mat.some(x=>x.nf))Lst.push("Prix négociant pas encore encodés pour certains articles : Valou utilise le prix du magasin de bricolage (hors TVA), à défaut (à compléter dans le tableau de bord, onglet « Prix des matériaux »).");
  if(d.mat.some(x=>/R13/.test(x.id)))Lst.push("Plâtre : consommation indicative (1 kg/m² par mm d’épaisseur), à vérifier.");
  return`<details class="c dvk" open><summary><h3>📋 Devis estimatif</h3><span class="chev">›</span></summary>
  <div class="dvsum">Coût probable : <b>≈ ${E(d.T.m)}</b>, entre <b>${E(d.T.b)}</b> et <b>${E(d.T.h)}</b> selon l’artisan.${d.rate==null?`<br><small>⚠️ TVA sur la main-d’œuvre pas encore comptée : réponds à la question sur l’âge du bâtiment.</small>`:""}</div>
@@ -2851,7 +2851,7 @@ function dvCard(){if(!dvOn())return"";const d=dvCalc();if(!d)return"";const e=hb
   ${F.map(x=>`<tr><td class="dvid">—</td><td class="dvnm">${esc(x.n)}</td><td class="dvc">${esc(x.src)}</td><td class="r" data-l="Quantité">${hbN(x.q)} ${x.u}</td><td class="r" data-l="Prix unitaire">—</td><td class="r" data-l="Total ${hd}"><b>${E(x.v[0])} – ${E(x.v[1])}</b></td></tr>`).join("")}</table></div>`:"";
   const MD=d.mat.filter(x=>x.sc=="mag"),MA=d.mat.filter(x=>x.sc=="neg"),FD=d.fb.filter(x=>x.Q-x.QL>0).map(x=>({n:x.n,src:x.src,q:x.Q-x.QL,u:x.u,v:x.md})),FA=d.fb.filter(x=>x.QL>0).map(x=>({n:x.n,src:x.src,q:x.QL,u:x.u,v:x.ma}));
   return(MA.length||FA.length?`<h4>Matériaux des postes faits par un artisan <small class="mu">(prix négociant, hors TVA — TVA ${d.rate==null?"6 ou 21":d.rate} % ajoutée)</small></h4>${T(MA,FA,"HTVA")}`:"")
-   +(MD.length||FD.length?`<h4>Matériaux des postes faits moi-même <small class="mu">(magasin de bricolage, TVA 21 % comprise)</small></h4>${T(MD,FD,"TVAC")}`:"")
+   +(MD.length||FD.length?`<h4>Matériaux des postes faits moi-même <small class="mu">(magasin de bricolage, hors TVA — TVA 21 % ajoutée)</small></h4>${T(MD,FD,"HTVA")}`:"")
    +(!MA.length&&!FA.length&&!MD.length&&!FD.length?`<h4>Matériaux</h4><p class="mu">Aucun matériau chiffré.</p>`:"")})()}
  ${d.miss.length?`<div class="dvs"><b>À compléter (exclus du total)</b>${d.miss.map(x=>`<div>${x.id?x.id+" · ":""}${esc(x.n)} — ${x.why}</div>`).join("")}</div>`:""}
  ${d.wait.length?`<p class="dvw">En attente de ta réponse : ${[...new Set(d.wait)].map(esc).join(", ")}.</p>`:""}
@@ -2860,8 +2860,8 @@ function dvCard(){if(!dvOn())return"";const d=dvCalc();if(!d)return"";const e=hb
   ${d.mo.map(x=>`<tr><td class="dvid">${x.id}${x.e==1?" [E]":""}</td><td class="dvnm">${esc(x.n)}${x.pub?' <span class="dvb">corrigé</span>':""}</td><td class="r" data-l="Quantité">${hbN(x.Q)} ${x.u}</td>${R3(x)}</tr>`).join("")}
   ${d.fb.filter(x=>x.lab[1]).map(x=>`<tr><td class="dvid">—</td><td class="dvnm">${esc(x.n)} <small class="mu">(${esc(x.src)})</small></td><td class="r" data-l="Quantité">${hbN(x.Q)} ${x.u}</td>${R3({b:x.lab[0],m:(x.lab[0]+x.lab[1])/2,h:x.lab[1]})}</tr>`).join("")}</table></div>`:`<p class="mu">Aucune main-d’œuvre (tout est fait par toi-même, ou à compléter).</p>`}
  <h4>Récapitulatif</h4><div class="dvt dvr"><table><tr><th></th><th class="r">Bas</th><th class="r">Moyen</th><th class="r">Haut</th></tr>
-  ${d.MATA.h?`<tr><td class="dvnm">Matériaux négociant (artisan, HTVA)</td>${R3(d.MATA)}</tr>`:""}${d.MATD.h?`<tr><td class="dvnm">Matériaux magasin (moi-même, TVAC)</td>${R3(d.MATD)}</tr>`:""}${!d.MATA.h&&!d.MATD.h?`<tr><td class="dvnm">Matériaux</td>${R3(d.MAT)}</tr>`:""}<tr><td class="dvnm">Main-d’œuvre (HTVA)</td>${R3(d.MO)}</tr>
-  <tr><td class="dvnm">TVA ${d.rate==null?"(âge du bâtiment ?)":d.rate+" %"} (main-d’œuvre${d.MATA.h?" + matériaux négociant":""})</td>${R3(d.TV)}</tr><tr><td class="dvnm">Frais annexes${d.ann?" (container M02)":""}</td>${R3(d.ANN)}</tr>
+  ${d.MATA.h?`<tr><td class="dvnm">Matériaux négociant (artisan, HTVA)</td>${R3(d.MATA)}</tr>`:""}${d.MATD.h?`<tr><td class="dvnm">Matériaux magasin (moi-même, HTVA)</td>${R3(d.MATD)}</tr>`:""}${!d.MATA.h&&!d.MATD.h?`<tr><td class="dvnm">Matériaux</td>${R3(d.MAT)}</tr>`:""}<tr><td class="dvnm">Main-d’œuvre (HTVA)</td>${R3(d.MO)}</tr>
+  <tr><td class="dvnm">TVA ${d.rate==null?"(âge du bâtiment ?)":d.rate+" %"} (main-d’œuvre${d.MATA.h?" + matériaux négociant":""})</td>${R3(d.TVA_)}</tr>${d.MATD.h?`<tr><td class="dvnm">TVA 21 % (matériaux magasin)</td>${R3(d.TVD)}</tr>`:""}<tr><td class="dvnm">Frais annexes${d.ann?" (container M02)":""}</td>${R3(d.ANN)}</tr>
   <tr><td class="dvnm">Imprévus ${d.pi} %</td>${R3(d.IM)}</tr><tr class="dvtot"><td class="dvnm"><b>TOTAL</b></td>${R3(d.T)}</tr></table></div>
  ${Lst.length?`<div class="dvs"><b>Remarques</b>${[...new Set(Lst)].map(x=>`<div>• ${x}</div>`).join("")}</div>`:""}
  <div class="dvs"><b>Réglages du devis</b>${[["age","Bâtiment de plus de 10 ans",[["plus","Oui (6 %)"],["moins","Non (21 %)"]]],["pose","Pose du carrelage / sol",[["droite","Droite"],["diag","Diagonale"]]],["anc","Sur ancien carrelage",[["oui","Oui"],["non","Non"]]],["etat","Maison ancienne / support abîmé",[["non","Non (10 %)"],["oui","Oui (15 %)"]]],["cont","Container à gravats",[["oui","Oui"],["non","Non"]]]].map(([f,l,op])=>`<div class="dvrg"><span>${l}</span><div class="segb">${op.map(o=>`<button type="button" data-dvq="${f}|${o[0]}" class="${(dvA()[f]||"")==o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>`).join("")}</div>
@@ -2869,7 +2869,7 @@ function dvCard(){if(!dvOn())return"";const d=dvCalc();if(!d)return"";const e=hb
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-dvq]");if(!b)return;e.preventDefault();e.stopPropagation();const[f,v]=b.dataset.dvq.split("|");dvA()[f]=v;save();const y=scrollY;render();scrollTo(0,y)},true);
 {const _syn=syn;syn=function(){let h=_syn.apply(this,arguments);if(!dvOn())return h;
  h=h.replace('<div class="c"><h3>Travaux</h3>',dvCard()+'<div class="c"><h3>Travaux</h3>');
- h=h.replace(/<div class="vat">[\s\S]*?<\/div>\s*<\/div>(?=\s*<div class="ln"><span>Frais administratifs)/,`<div class="vat"><b>TVA</b><small>Comprise dans le devis estimatif. Postes faits par un artisan : ${dvA().age=="plus"?"6 %":dvA().age=="moins"?"21 %":"6 % ou 21 % selon l’âge du bâtiment (question dans le devis)"} sur la main-d’œuvre et les matériaux (prix négociant). Postes faits toi-même : matériaux au prix du magasin de bricolage, TVA 21 % comprise.</small></div>`);
+ h=h.replace(/<div class="vat">[\s\S]*?<\/div>\s*<\/div>(?=\s*<div class="ln"><span>Frais administratifs)/,`<div class="vat"><b>TVA</b><small>Comprise dans le devis estimatif. Postes faits par un artisan : ${dvA().age=="plus"?"6 %":dvA().age=="moins"?"21 %":"6 % ou 21 % selon l’âge du bâtiment (question dans le devis)"} sur la main-d’œuvre et les matériaux (prix négociant). Postes faits toi-même : matériaux au prix du magasin de bricolage + TVA 21 %. Tous les prix de référence sont hors TVA.</small></div>`);
  return h.replace("🧮 Comprendre et ajuster les calculs<small>Le détail de chaque poste, tes prix et ceux de tes artisans</small>","🧮 Mes prix et mes artisans<small>Remplacer les prix de référence d’un poste par les tiens ou ceux d’un artisan</small>")}}
 {const st=document.createElement("style");st.textContent=`.dvk>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;cursor:pointer}.dvk>summary::-webkit-details-marker{display:none}.dvk>summary h3{margin:0}.dvk[open]>summary .chev{transform:rotate(90deg)}
 .dvk h4{margin:16px 0 6px;font-size:15px}.dvsum{margin:10px 0;padding:12px 14px;border-radius:12px;background:rgba(201,163,90,.2);font-size:15.5px;line-height:1.45}
