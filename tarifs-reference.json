@@ -1059,6 +1059,116 @@
    ]
   },
   {
+   "k": "i_mb",
+   "g": "Gros œuvre",
+   "n": "Mur en blocs béton (14 cm)",
+   "u": "€/m²",
+   "m": [
+    27,
+    27
+   ],
+   "note": "",
+   "c": [
+    {
+     "n": "Blocs béton 39x14x19 (12,5/m²)",
+     "r": "R01",
+     "u": "pièce",
+     "pe": 5,
+     "p0": 1.56,
+     "p1": 1.56,
+     "src": "Hubo R01",
+     "mode": "q",
+     "q0": 12.5,
+     "q1": 12.5
+    },
+    {
+     "n": "Ciment (indicatif : 12 kg/m², sac 25 kg)",
+     "r": "R02",
+     "u": "sac",
+     "pe": 0,
+     "p0": 6.77,
+     "p1": 6.77,
+     "src": "Hubo R02",
+     "mode": "q",
+     "q0": 0.48,
+     "q1": 0.48
+    },
+    {
+     "n": "Sable (indicatif : 42 kg/m², sac 25 kg)",
+     "r": "R03",
+     "u": "sac",
+     "pe": 0,
+     "p0": 1.98,
+     "p1": 1.98,
+     "src": "Hubo R03",
+     "mode": "q",
+     "q0": 1.68,
+     "q1": 1.68
+    }
+   ],
+   "mo": "M03",
+   "l": [
+    25,
+    45
+   ],
+   "lm": 35
+  },
+  {
+   "k": "i_cg",
+   "g": "Gros œuvre",
+   "n": "Cloison en plaques de plâtre (2 faces)",
+   "u": "€/m²",
+   "m": [
+    22,
+    22
+   ],
+   "note": "",
+   "c": [
+    {
+     "n": "Plaques de plâtre (2 faces)",
+     "r": "R15",
+     "u": "m²",
+     "pe": 10,
+     "p0": 6.62,
+     "p1": 6.62,
+     "src": "Hubo R15",
+     "mode": "q",
+     "q0": 2,
+     "q1": 2
+    },
+    {
+     "n": "Montants (1 tous les 60 cm)",
+     "r": "R16a",
+     "u": "m",
+     "pe": 0,
+     "p0": 3.18,
+     "p1": 3.18,
+     "src": "Hubo R16a",
+     "mode": "q",
+     "q0": 1.67,
+     "q1": 1.67
+    },
+    {
+     "n": "Rails haut et bas (2 × longueur, hauteur 2,6 m)",
+     "r": "R16b",
+     "u": "m",
+     "pe": 0,
+     "p0": 2.54,
+     "p1": 2.54,
+     "src": "Hubo R16b",
+     "mode": "q",
+     "q0": 0.77,
+     "q1": 0.77
+    }
+   ],
+   "mo": "M14",
+   "l": [
+    18,
+    28
+   ],
+   "lm": 23
+  },
+  {
    "k": "i_fa_0",
    "g": "Isolation",
    "n": "Façade – Ravalement",
@@ -1617,6 +1727,68 @@
      "q1": 1
     }
    ]
+  },
+  {
+   "k": "i_vx_0",
+   "g": "Toiture",
+   "n": "Fenêtre de toit (Velux 78x98) – Remplacement",
+   "u": "€/unité",
+   "m": [
+    470,
+    470
+   ],
+   "note": "",
+   "c": [
+    {
+     "n": "Fenêtre de toit Velux 78x98",
+     "r": "R10",
+     "u": "pièce",
+     "pe": 0,
+     "p0": 470.0,
+     "p1": 470.0,
+     "src": "Hubo R10",
+     "mode": "q",
+     "q0": 1,
+     "q1": 1
+    }
+   ],
+   "mo": "M09",
+   "l": [
+    200,
+    700
+   ],
+   "lm": 450
+  },
+  {
+   "k": "i_vx_1",
+   "g": "Toiture",
+   "n": "Fenêtre de toit (Velux 78x98) – Nouvelle ouverture",
+   "u": "€/unité",
+   "m": [
+    470,
+    470
+   ],
+   "note": "",
+   "c": [
+    {
+     "n": "Fenêtre de toit Velux 78x98",
+     "r": "R10",
+     "u": "pièce",
+     "pe": 0,
+     "p0": 470.0,
+     "p1": 470.0,
+     "src": "Hubo R10",
+     "mode": "q",
+     "q0": 1,
+     "q1": 1
+    }
+   ],
+   "mo": "M10",
+   "l": [
+    400,
+    1200
+   ],
+   "lm": 800
   },
   {
    "k": "i_te",

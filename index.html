@@ -2888,6 +2888,15 @@ function vatBlock(h,nw){const i=h.indexOf('<div class="vat">');if(i<0)return h;l
 {const _d=vcDraw;vcDraw=function(){_d();if(!dvOn())return;const el=document.getElementById("vcx");if(!el)return;el.querySelectorAll(".vcres").forEach(x=>x.remove());const t=el.querySelector(".vctop b");if(t)t.textContent="🧮 Mes prix et mes artisans";
  const ex=el.querySelector(".vcexp");if(ex)ex.innerHTML=`<h3>À quoi sert cette page</h3><div>Le <b>devis estimatif</b> (bas / moyen / haut) est sur la page Projet : il utilise les références de matériaux et de main-d’œuvre.</div><div>Ici, tu peux <b>remplacer</b> les prix de référence d’un poste par <b>tes propres prix</b> ou par <b>ceux d’un artisan</b> : le devis utilisera alors ces prix pour ce poste (fourchette mini – maxi, matériel hors TVA).</div>`}}
 
+/* ===================== Valou v51 : postes « Mur en blocs », « Cloison en plaques de plâtre », « Fenêtre de toit (Velux) » ===================== */
+/* Ajoutés aux équipements (prix de repli hors TVA ; le devis utilise les articles et la main-d'œuvre de tarifs-reference.json : M03, M14, M09 / M10). */
+(function(){const cat=n=>T.find(c=>c[0]==n),add=(n,it)=>{const c=cat(n);if(c&&!c[1].some(x=>x[0]==it[0]))c[1].push(it)};
+ add("Gros œuvre",["mb","Mur en blocs béton (14 cm)","m²",27,27]);
+ add("Gros œuvre",["cg","Cloison en plaques de plâtre (2 faces)","m²",22,22]);
+ add("Toiture",["vx","Fenêtre de toit (Velux 78x98)","unité",0,0,[["Remplacement",470,470],["Nouvelle ouverture",470,470]]]);
+ Object.assign(LABD,{i_mb:LABD.i_mb||[25,45],i_cg:LABD.i_cg||[18,28],i_vx_0:LABD.i_vx_0||[200,700],i_vx_1:LABD.i_vx_1||[400,1200]});
+ if(typeof DICT=="object")Object.assign(DICT,{"Mur en blocs béton (14 cm)":["Muur in betonblokken (14 cm)","Concrete block wall (14 cm)"],"Cloison en plaques de plâtre (2 faces)":["Gipsplaatwand (2 zijden)","Plasterboard partition (2 sides)"],"Fenêtre de toit (Velux 78x98)":["Dakraam (Velux 78x98)","Roof window (Velux 78x98)"],"Remplacement":["Vervanging","Replacement"],"Nouvelle ouverture":["Nieuwe opening","New opening"]})})();
+
 render();
 /* =================== fin VERSION 26 =================== */
 /* ===================== VERSION 34 : traductions de l’espace professionnel (néerlandais, anglais) ===================== */
