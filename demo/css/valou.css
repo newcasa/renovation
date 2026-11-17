@@ -391,3 +391,5 @@ table.fixes td.c { width: 1%; white-space: nowrap; } table.fixes td.r { width: 1
   table.fixes td:first-child { grid-column: 1 / -1; font-weight: 600; }
   table.fixes td.r { text-align: right; }
 }
+
+small.bloc { display: block; margin: 2px 0 0; font-size: 11px; }

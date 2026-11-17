@@ -273,7 +273,7 @@ export function mensualite(montant, tauxAnnuel, ans) {
 /* Premier budget en 30 secondes : quelques cases à cocher.
    Les QUANTITÉS sont estimées à partir de la surface (hypothèses affichées), les PRIX viennent toujours des références. */
 export const RAPIDE = [
-  { id: "peinture", t: "Peinture des murs", k: "mur_peinture", q: m => Math.round(m.surface * 2.5), hyp: "surface des murs ≈ 2,5 × surface habitable" },
+  { id: "peinture", t: "Peinture des murs", k: "mur_peinture", q: m => Math.round(m.surface * RATIO_MURS), hyp: "surface des murs ≈ 2,7 × surface habitable" },
   { id: "sols", t: "Sols (carrelage)", k: "sol_carrelage", q: m => Math.round(m.surface), hyp: "toute la surface habitable" },
   { id: "elec", t: "Électricité complète", k: "i_re", q: m => Math.round(m.surface), hyp: "toute la surface habitable" },
   { id: "cuisine", t: "Cuisine équipée", k: "meu_cuisine", q: () => 1 },
@@ -327,8 +327,10 @@ export function prixLocaux(tarifs, rayons = RAYONS, min = MIN_ARTISANS) {
 }
 
 /* ---------- Pièces : murs et plafond calculés à partir du sol (même règle que l'appli Valou) ----------
-   murs = sol × 2,5 (modifiable pièce par pièce), plafond = sol. */
-export const RATIO_MURS = 2.5;
+   murs = sol × 2,7 (modifiable pièce par pièce), plafond = sol. */
+export const RATIO_MURS = 2.7;
+/* escalier : on encode le nombre de marches, 16 marches = 1 escalier */
+export const MARCHES_PAR_ESCALIER = 16;
 export const mursPiece = pc => (pc.murs != null && pc.murs !== "" ? +pc.murs : Math.round((+pc.sol || 0) * RATIO_MURS * 10) / 10);
 
 /* Types de pièces et postes imposés par l'appli (comme dans l'appli Valou) :
@@ -360,7 +362,8 @@ export function travauxPiece(pc) {
 
 /* toutes les lignes : celles des pièces + celles de « toute la maison » */
 export function travauxEffectifs(maison) {
-  return [...(maison.pieces || []).flatMap(travauxPiece), ...(maison.travaux || []).filter(l => !l.pieceId)];
+  const esc = l => (l.marches != null ? { ...l, q: +l.marches / MARCHES_PAR_ESCALIER } : l);
+  return [...(maison.pieces || []).flatMap(travauxPiece), ...(maison.travaux || []).filter(l => !l.pieceId).map(esc)];
 }
 
 /* ---------- Chauffage ---------- */

@@ -142,7 +142,7 @@ try {
     await page.locator(".titre-piece").waitFor();
     await page.fill('[data-pc="sol"]', "12");
     await page.locator('[data-pc="sol"]').dispatchEvent("change");
-    assert.equal(await page.getAttribute('[data-pc="murs"]', "placeholder"), "30");
+    assert.equal(await page.getAttribute('[data-pc="murs"]', "placeholder"), "32,4");
     await page.check('[data-pc="mpe"]');
     await page.check('[data-pc="pOn"]');
     await page.check('[data-pc="chOn"]');
@@ -157,6 +157,11 @@ try {
     await page.locator('details:has([data-mq="i_pi"]) > summary').click();
     await page.fill('[data-mq="i_pi"]', "4");
     await page.locator('[data-mq="i_pi"]').dispatchEvent("change");
+    /* escalier : 16 marches = 1 escalier */
+    await page.locator('details:has([data-mmarches="i_es_1"]) > summary').click();
+    await page.fill('[data-mmarches="i_es_1"]', "16");
+    await page.locator('[data-mmarches="i_es_1"]').dispatchEvent("change");
+    assert.match(await page.locator('tr:has([data-mmarches="i_es_1"])').innerText(), /€/);
     await page.locator('[data-l$=":soiMeme"]').first().check();
     await page.locator(".vrai-cout .gros").waitFor();
     assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), apres);

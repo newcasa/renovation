@@ -1,6 +1,6 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
 import { chargerReferences } from "./donnees.js";
-import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES } from "./moteur.js";
+import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
@@ -201,7 +201,9 @@ function ecranMaison(m) {
     return `<details class="grp fixe" ${rempli.length ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
       <table class="fixes">${P.map(p => { const l = ligneDe(p.k); return `<tr>
         <td>${esc(p.n)}</td>
-        <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small></td>
+        <td class="q">${/escalier/.test(p.u)
+          ? `<input type="number" min="0" step="1" inputmode="numeric" data-mmarches="${p.k}" value="${esc(l ? (l.marches ?? l.q * MARCHES_PAR_ESCALIER) : "")}" placeholder="0" aria-label="Nombre de marches : ${esc(p.n)}"><small>marches</small><small class="mu bloc">${MARCHES_PAR_ESCALIER} marches = 1 escalier</small>`
+          : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>`}</td>
         <td class="c"><label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label></td>
         <td class="r">${l && l.fiab ? euros(l.total[1], 10) : ""}</td></tr>`; }).join("")}</table></details>`;
   }).join("");
@@ -637,6 +639,11 @@ document.addEventListener("change", e => {
     /* liste fixe « toute la maison » : une ligne par poste, supprimée si la quantité est vide */
     const k = t.dataset.mq, l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === k), q = t.value === "" ? 0 : +t.value;
     if (q > 0) { if (l) { l.q = q; delete l.auto; } else m.travaux.push({ id: nouvelId(), piece: "Toute la maison", k, q }); }
+    else m.travaux = m.travaux.filter(x => x !== l);
+  } else if (t.dataset.mmarches) {
+    /* escalier : on encode les marches, l'appli compte 16 marches = 1 escalier */
+    const k = t.dataset.mmarches, l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === k), n = t.value === "" ? 0 : +t.value;
+    if (n > 0) { if (l) { l.marches = n; delete l.q; } else m.travaux.push({ id: nouvelId(), piece: "Toute la maison", k, marches: n }); }
     else m.travaux = m.travaux.filter(x => x !== l);
   } else if (t.dataset.mme) {
     const l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === t.dataset.mme);
