@@ -209,7 +209,7 @@ function ecranMaison(m) {
   }).join("");
   /* estimation rapide sans pièces (cases cochées à l'ajout de la maison) */
   const rapides = horsPieces.filter(l => POSTES_PIECES.test(l.k));
-  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide, pour toute la maison</h3>
+  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide (faite à l'ajout de la maison)</h3>
       <p class="mu petit-t">Calculée à l'ajout de la maison. Pour plus de précision, ajoutez les pièces et supprimez ces lignes.</p>
       <table class="fixes">${rapides.map(l => { const p = R.postes[l.k]; return `<tr><td>${esc(p ? p.n : l.k)}${l.auto ? ` <small class="mu">(${esc(l.auto)})</small>` : ""}</td>
         <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-l="${l.id}:q" value="${esc(l.q ?? "")}" aria-label="Quantité"><small>${esc(p ? unitePoste(p.u, l.k) : "")}</small></td>
@@ -259,6 +259,45 @@ function ecranMaison(m) {
 
       <div class="pile">
         <section class="carte">
+          <h2>Hypothèses du calcul</h2>
+          <div class="champs">
+            <div class="ligne"><span>TVA sur les travaux par un artisan</span><b>${b.rate} %</b></div>
+            <small class="mu">${b.rate === 6 ? "6 % : logement de plus de 10 ans, rénovation facturée par l'entrepreneur (conditions à vérifier avec lui)." : "21 % : logement de moins de 10 ans."}</small>
+            ${hyp}
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="carte">
+      <h2>Les pièces</h2>
+      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
+      <div class="grille-pieces">${cartesPieces}</div>
+      <div class="ajout-piece">
+        <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
+        <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
+        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
+      </div>
+    </section>
+
+    <section class="carte">
+      <h2>Le chauffage</h2>
+      ${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
+      ${chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
+      ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
+      ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
+    </section>
+
+    <section class="carte">
+      <h2>Structure, toiture et équipements</h2>
+      <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
+      ${rapidesHTML}
+      ${grpFixes}
+    </section>
+
+    <div class="fin-page">
+        ${aides()}
+        <section class="carte">
           <h2>L'achat</h2>
           <div class="champs">
             <label>Prix (€)<input type="number" min="0" inputmode="numeric" data-f="prix" value="${esc(m.prix)}"></label>
@@ -284,14 +323,6 @@ function ecranMaison(m) {
             <small class="mu">Si vous empruntez, l'acte de crédit a ses propres frais (pas encore comptés).</small>
           </div>
         </section>
-        <section class="carte">
-          <h2>Hypothèses du calcul</h2>
-          <div class="champs">
-            <div class="ligne"><span>TVA sur les travaux par un artisan</span><b>${b.rate} %</b></div>
-            <small class="mu">${b.rate === 6 ? "6 % : logement de plus de 10 ans, rénovation facturée par l'entrepreneur (conditions à vérifier avec lui)." : "21 % : logement de moins de 10 ans."}</small>
-            ${hyp}
-          </div>
-        </section>
         ${(() => {
           /* le financement : mêmes valeurs que le dossier pour la banque */
           const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
@@ -309,35 +340,7 @@ function ecranMaison(m) {
           </div>
         </section>`;
         })()}
-        ${aides()}
-      </div>
     </div>
-
-    <section class="carte">
-      <h2>Les pièces</h2>
-      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
-      <div class="grille-pieces">${cartesPieces}</div>
-      <div class="ajout-piece">
-        <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
-        <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
-        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
-      </div>
-    </section>
-
-    <section class="carte">
-      <h2>Le chauffage</h2>
-      ${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
-      ${chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
-      ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
-      ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
-    </section>
-
-    <section class="carte">
-      <h2>Travaux pour toute la maison</h2>
-      <p class="mu">Remplissez seulement les quantités des postes à prévoir. Un poste vide n'est pas compté.</p>
-      ${rapidesHTML}
-      ${grpFixes}
-    </section>
 
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
