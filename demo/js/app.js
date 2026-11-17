@@ -592,8 +592,19 @@ function ecranDossier(m) {
 }
 
 /* ---------- photos de la visite ---------- */
+/* crée une pièce à partir d'un nom (type deviné : « Cuisine » → cuisine, « Garage » → garage…) */
+function ajouterPieceNommee(m, nom) {
+  const T = PIECES_QUESTIONNAIRE.find(x => memeNom(x[0], nom));
+  const n = nom.toLowerCase();
+  const type = T ? T[1] : /cuisine/.test(n) && !/arri/.test(n) ? "cuisine" : /bain|douche/.test(n) ? "sdb" : /^wc|toilette/.test(n) ? "wc" : /garage/.test(n) ? "garage" : "standard";
+  m.pieces = m.pieces || [];
+  m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; });
+  const prises = new Set(m.pieces.map(x => x.c % COULEURS.length));
+  const c = [...Array(COULEURS.length).keys()].find(i => !prises.has(i)) ?? m.pieces.length % COULEURS.length;
+  m.pieces.push({ id: nouvelId(), nom, type, sol: null, murs: null, wi: [], c });
+}
 const photosCache = {}, photosEnCours = {};
-let photoPiece = null, photoAutre = "";
+let visite = { maisonId: null, nom: "", saisie: true }; // mode visite : pièce en cours de photo
 function photosDe(m) {
   if (!photosCache[m.id] && !photosEnCours[m.id] && typeof indexedDB !== "undefined") {
     photosEnCours[m.id] = true;
@@ -629,28 +640,38 @@ const vignette = (m, p) => `<figure class="vignette"><a href="${p.url}" target="
 
 function ecranPhotos(m) {
   const P = photosDe(m);
+  if (visite.maisonId !== m.id) visite = { maisonId: m.id, nom: "", saisie: true };
   const { deja, types } = nomsPieces(m);
-  if (!photoPiece) photoPiece = deja[0] || types[0];
-  const nomActuel = photoPiece === "__autre" ? photoAutre : photoPiece;
+  const enCours = visite.nom ? P.filter(p => memeNom(p.nomPiece, visite.nom)) : [];
   const groupes = [...new Set(P.map(p => p.nomPiece))];
+  const carteVisite = visite.saisie
+    ? `<form class="carte prise" id="f-visite">
+        <label>${visite.nom ? "Nom de la pièce suivante" : "Nom de la première pièce"}<input id="visite-nom" list="noms-pieces" autocomplete="off" placeholder="ex. Hall d'entrée" required></label>
+        <datalist id="noms-pieces">${deja.concat(types).map(n => `<option value="${esc(n)}">`).join("")}</datalist>
+        <button class="btn btn-photo" type="submit">${visite.nom ? "Commencer cette pièce →" : "Commencer la visite →"}</button>
+        ${visite.nom ? `<button class="btn lien" type="button" data-action="visite-annuler">← Revenir à « ${esc(visite.nom)} »</button>` : ""}
+        <small class="mu">Tapez le nom de la pièce, puis photographiez-la. Les photos restent sur cet appareil.</small>
+      </form>`
+    : `<section class="carte prise en-cours">
+        <small class="mu">Pièce en cours</small>
+        <div class="vis-nom"><b>${esc(visite.nom)}</b><span class="badge b-reference">${enCours.length} photo${enCours.length > 1 ? "s" : ""}</span></div>
+        ${boutonPhoto("📷 Prendre une photo", visite.nom)}
+        ${enCours.length ? `<div class="vis-miniatures">${enCours.slice(-8).map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}
+        <div class="vis-suite"><button class="btn sec" data-action="visite-suivante">Pièce suivante →</button><button class="btn lien" data-action="visite-fin">Terminer la visite</button></div>
+      </section>`;
   return `${entete("maisons")}
   <main>
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
     <h1>📷 Photos de la visite</h1>
-    <section class="carte prise">
-      <label>Pièce photographiée<select data-photo-piece>${optionsPieces(m, photoPiece)}</select></label>
-      ${photoPiece === "__autre" ? `<label>Nom de la pièce<input data-photo-autre value="${esc(photoAutre)}" placeholder="ex. Mezzanine"></label>` : ""}
-      ${nomActuel ? boutonPhoto(`📷 Prendre une photo · ${esc(nomActuel)}`) : `<span class="btn off">📷 Tapez d'abord le nom de la pièce</span>`}
-      <small class="mu">Choisissez la pièce, puis prenez autant de photos que vous voulez : elles sont rangées sous ce nom et s'associent à la pièce du même nom. Les photos restent sur cet appareil.</small>
-    </section>
-    ${P.length ? groupes.map(g => {
+    ${carteVisite}
+    ${P.length ? `<h2 class="sous-titre">Pièces photographiées</h2>` + groupes.map(g => {
       const L = P.filter(p => p.nomPiece === g), pc = pieceDePhoto(m, L[0]);
       return `<section class="carte groupe-photos" ${pc ? `style="${stylePiece(m, pc)}"` : ""}>
         <div class="gp-tete"><h2>${esc(g)} <small class="mu">${L.length} photo${L.length > 1 ? "s" : ""}</small></h2>
           ${pc ? `<a class="btn sec petit-btn" href="#/maison/${m.id}/piece/${pc.id}">Ouvrir la pièce →</a>` : `<span class="badge b-estimation">Pas encore de pièce</span><button class="btn sec petit-btn" data-action="creer-piece-photo" data-nom="${esc(g)}">＋ Créer la pièce « ${esc(g)} »</button>`}</div>
         <div class="galerie">${L.map(p => vignette(m, p)).join("")}</div>
       </section>`;
-    }).join("") : `<div class="carte vide"><p>Aucune photo pour l'instant.</p></div>`}
+    }).join("") + (groupes.some(g => !pieceDePhoto(m, { nomPiece: g })) ? `<p><button class="btn" data-action="creer-pieces-photos">＋ Créer toutes les pièces manquantes</button></p>` : "") : ""}
   </main>`;
 }
 
@@ -721,13 +742,15 @@ document.addEventListener("click", e => {
   }
   if (a === "suppr-maison" && m && confirm("Supprimer cette maison ?")) { supprimerPhotosMaison(m.id).catch(() => {}); maisons = maisons.filter(x => x !== m); sauver(); location.hash = "#/"; }
   if (a === "suppr-photo" && m && confirm("Supprimer cette photo ?")) { supprimerPhoto(el.dataset.id).then(() => rechargerPhotos(m)); }
+  if (a === "visite-suivante") { visite.saisie = true; afficher(); setTimeout(() => { const i = document.getElementById("visite-nom"); if (i) i.focus(); }, 0); }
+  if (a === "visite-annuler") { visite.saisie = false; afficher(); }
+  if (a === "visite-fin" && m) { visite = { maisonId: m.id, nom: "", saisie: true }; afficher(); document.querySelector(".sous-titre")?.scrollIntoView({ behavior: "smooth" }); }
+  if (a === "creer-pieces-photos" && m) {
+    [...new Set(photosDe(m).map(p => p.nomPiece))].filter(g => !pieceDePhoto(m, { nomPiece: g })).forEach(g => ajouterPieceNommee(m, g));
+    appliquerChauffage(m); sauver(); afficher();
+  }
   if (a === "creer-piece-photo" && m) {
-    const nom = el.dataset.nom, T = PIECES_QUESTIONNAIRE.find(x => memeNom(x[0], nom));
-    m.pieces = m.pieces || [];
-    m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; });
-    const prises = new Set(m.pieces.map(x => x.c % COULEURS.length));
-    const c = [...Array(COULEURS.length).keys()].find(i => !prises.has(i)) ?? m.pieces.length % COULEURS.length;
-    m.pieces.push({ id: nouvelId(), nom, type: T ? T[1] : "standard", sol: null, murs: null, wi: [], c });
+    ajouterPieceNommee(m, el.dataset.nom);
     appliquerChauffage(m);
     sauver(); afficher();
   }
@@ -737,14 +760,12 @@ document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
   /* photos de la visite */
   if (t.dataset.photoInput != null && m) {
-    const nom = t.dataset.nom || (photoPiece === "__autre" ? photoAutre.trim() : photoPiece);
+    const nom = t.dataset.nom;
     const fichiers = [...(t.files || [])];
     if (!nom || !fichiers.length) return;
     Promise.all(fichiers.map(f => ajouterPhoto(m.id, nom, f))).then(() => rechargerPhotos(m)).catch(() => alert("La photo n'a pas pu être enregistrée sur cet appareil."));
     return;
   }
-  if (t.dataset.photoPiece != null) { photoPiece = t.value; afficher(); return; }
-  if (t.dataset.photoAutre != null) { photoAutre = t.value; afficher(); return; }
   if (t.dataset.photoRenommer && m) {
     let nom = t.value;
     if (nom === "__autre") nom = (prompt("Nom de la pièce") || "").trim();
@@ -834,6 +855,12 @@ document.addEventListener("input", e => {
 });
 
 document.addEventListener("submit", e => {
+  if (e.target.id === "f-visite") {
+    e.preventDefault();
+    const nom = document.getElementById("visite-nom").value.trim();
+    if (nom) { visite.nom = nom; visite.saisie = false; afficher(); }
+    return;
+  }
   if (e.target.id !== "f-ajout") return;
   e.preventDefault();
   const m = creerMaison(brouillon);
