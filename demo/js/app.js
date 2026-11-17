@@ -274,8 +274,13 @@ function ecranMaison(m) {
               <div class="ligne"><span>TVA 21 %</span><span>${euros2(c.notaireCalcul.tva)}</span></div>
             </details>
             <small class="mu">Calcul d'après le ${esc(c.notaireCalcul.source)}. À confirmer par le notaire.</small>` : ""}
-            <label>${c.notaireCalcul || c.notaireEncode ? "Montant de votre notaire, si vous avez son décompte (€)" : "Honoraires et frais du notaire (€)"}<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="${c.notaireCalcul ? "calculé : " + euros(c.notaireCalcul.total) : "à compléter"}"></label>
-            ${c.notaireEncode ? `<small class="mu">Montant encodé : il remplace le calcul. Videz la case pour revenir au calcul.</small>` : c.notaireCalcul ? "" : `<small class="mu">Pas de calcul automatique sous 64 095 € : encodez le montant du notaire (simulateur sur notaire.be).</small>`}
+            ${(() => {
+              /* case verrouillée : on utilise le calcul ; on coche pour encoder le vrai montant du notaire */
+              const reel = c.notaireCalcul == null && !c.notaireEncode ? true : m.notaireReel ?? m.fraisNotaire != null;
+              return `${c.notaireCalcul || c.notaireEncode ? `<label class="cb"><input type="checkbox" data-notaire-reel ${reel ? "checked" : ""}> J'ai le décompte de mon notaire : j'encode le vrai montant</label>` : ""}
+            <label class="${reel ? "" : "verrou"}">Honoraires et frais du notaire, TVA comprise (€)<span class="saisie"><input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(reel ? m.fraisNotaire ?? "" : "")}" placeholder="${!reel && c.notaireCalcul ? "calculé : " + euros(c.notaireCalcul.total) : "montant du notaire"}" ${reel ? "" : "disabled"}>${reel ? "" : `<i aria-hidden="true">🔒</i>`}</span></label>
+            ${reel ? (c.notaireCalcul || c.notaireEncode ? `<small class="mu">Ce montant remplace le calcul. Décochez la case pour revenir au calcul.</small>` : `<small class="mu">Pas de calcul automatique sous 64 095 € : encodez le montant du notaire (simulateur sur notaire.be).</small>`) : `<small class="mu">Case verrouillée : le montant calculé est utilisé.</small>`}`;
+            })()}
             <small class="mu">Si vous empruntez, l'acte de crédit a ses propres frais (pas encore comptés).</small>
           </div>
         </section>
@@ -287,6 +292,23 @@ function ecranMaison(m) {
             ${hyp}
           </div>
         </section>
+        ${(() => {
+          /* le financement : mêmes valeurs que le dossier pour la banque */
+          const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
+          const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
+          return `<section class="carte">
+          <h2>Le financement</h2>
+          <div class="champs">
+            ${ch("apport", "Apport personnel", "€", "ex. 40000")}
+            <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
+            <small class="mu">Vrai coût moyen ${euros(c.total[1], 100)} − apport${apport ? "" : " (à compléter)"}.</small>
+            ${ch("taux", "Taux annuel du crédit (si vous l'avez)", "%", "taux de la banque")}
+            ${ch("duree", "Durée du crédit", "ans", "ex. 25")}
+            ${mens ? `<div class="ligne"><span>Mensualité estimée (hors assurance)</span><b>${euros(mens)} / mois</b></div>` : ""}
+            <small class="mu">Ces valeurs sont reprises dans le dossier bancaire.</small>
+          </div>
+        </section>`;
+        })()}
         ${aides()}
       </div>
     </div>
@@ -318,7 +340,7 @@ function ecranMaison(m) {
     </section>
 
     <div class="actions">
-      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
+      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
     </div>
   </main>`;
@@ -494,7 +516,17 @@ function ecranDossier(m) {
   const auj = new Date().toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" });
   return `${entete("maisons")}
   <main class="dossier">
-    <div class="no-print barre-outils"><a href="#/maison/${m.id}" class="retour">← Retour à la maison</a><button class="btn" data-action="imprimer">Télécharger en PDF</button></div>
+    <div class="no-print barre-outils"><a href="#/maison/${m.id}" class="retour">← Retour à la maison</a>
+      <span class="actions-g">${c.notaireEncode
+        ? `<button class="btn" data-action="envoyer-banque">Envoyer à la banque</button><button class="btn sec" data-action="imprimer">Télécharger en PDF</button>`
+        : `<span class="btn off" aria-disabled="true">🔒 Envoyer à la banque</span><span class="btn off" aria-disabled="true">🔒 Télécharger en PDF</span>`}</span></div>
+    <div class="no-print" id="envoi"></div>
+    ${c.notaireEncode ? "" : `<section class="no-print carte verrou-banque">
+      <b>🔒 Envoi verrouillé : le montant du notaire doit être validé</b>
+      <p class="mu">Le dossier utilise pour l'instant les frais de notaire calculés${c.notaireCalcul ? ` (${euros(c.notaireCalcul.total)})` : ""}. Dès que votre notaire vous a donné son décompte, encodez le montant : l'envoi à la banque se déverrouille.</p>
+      <label class="cb"><input type="checkbox" data-notaire-reel ${m.notaireReel ? "checked" : ""}> J'ai le décompte de mon notaire : j'encode le vrai montant</label>
+      ${m.notaireReel || !c.notaireCalcul ? `<label>Honoraires et frais du notaire, TVA comprise (€)<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="montant du notaire"></label>` : ""}
+    </section>`}
     <article class="feuille">
       <header class="f-tete"><img src="../logo.png" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
       ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
@@ -574,6 +606,9 @@ document.addEventListener("click", e => {
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
   if (a === "imprimer") window.print();
+  if (a === "envoyer-banque") {
+    document.getElementById("envoi").innerHTML = `<p class="alerte ok">✓ Dossier envoyé à votre banque. <small>(Démonstration : aucun envoi réel.)</small></p>`;
+  }
   if (el.dataset.simN != null) { sim.n = +el.dataset.simN; afficher(); }
   if (a === "pro-ok" || a === "pro-non") {
     const carte = el.closest(".demande");
@@ -644,7 +679,10 @@ document.addEventListener("change", e => {
   if (t.form && t.form.id === "f-ajout" && t.name) { brouillon[t.name] = t.type === "checkbox" ? t.checked : t.value; return; }
   if (!m) return;
   /* écran maison */
-  if (t.dataset.f) {
+  if (t.dataset.notaireReel != null) {
+    m.notaireReel = t.checked;
+    if (!t.checked) m.fraisNotaire = null; // retour au calcul
+  } else if (t.dataset.f) {
     const f = t.dataset.f;
     m[f] = t.type === "checkbox" ? t.checked : t.value === "" ? null : +t.value;
   } else if (t.dataset.h) {

@@ -412,3 +412,13 @@ details.notaire > summary::before { content: "›"; display: inline-block; width
 details.notaire[open] > summary::before { transform: rotate(90deg); }
 details.notaire > summary > span { flex: 1; }
 details.notaire .ligne { padding: 3px 0 0 12px; color: var(--mu); }
+
+/* case des frais de notaire verrouillée */
+label.verrou input { background: #F1ECE4; color: var(--mu); cursor: not-allowed; }
+label.verrou .saisie i { font-size: 14px; }
+
+/* envoi à la banque verrouillé */
+.verrou-info { display: block; margin-top: 6px; }
+.verrou-banque { border-left: 6px solid var(--or); display: grid; gap: 8px; max-width: 840px; margin: 0 auto 16px; }
+.verrou-banque p { margin: 0; }
+.alerte.ok { background: #E0F0E8; border-color: #B9DCC8; color: var(--vert); max-width: 840px; margin: 0 auto 16px; }
