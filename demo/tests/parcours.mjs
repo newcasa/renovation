@@ -41,6 +41,13 @@ try {
     await page.locator('.cmp thead a').first().click();
     await page.getByText("Dossier pour la banque").click();
     await page.locator(".feuille").waitFor();
+    /* envoi verrouillé tant que le montant du notaire n'est pas encodé */
+    assert.equal(await page.locator('[data-action="envoyer-banque"]').count(), 0);
+    await page.check(".verrou-banque [data-notaire-reel]");
+    await page.fill('.verrou-banque [data-f="fraisNotaire"]', "4600");
+    await page.locator('.verrou-banque [data-f="fraisNotaire"]').dispatchEvent("change");
+    await page.locator('[data-action="envoyer-banque"]').click();
+    assert.match(await page.locator("#envoi").innerText(), /envoyé/);
     for (const [k, v] of [["apport", "40000"], ["taux", "3.2"], ["duree", "25"]]) {
       await page.fill(`[data-fin="${k}"]`, v);
       await page.locator(`[data-fin="${k}"]`).dispatchEvent("change");

@@ -80,7 +80,7 @@ export function ecranPro(ctx, onglet, metier) {
         const f = x.m.fin || {}, emprunt = Math.max(0, x.c.total[1] - (+f.apport || 0)), mens = mensualite(emprunt, f.taux, f.duree);
         const tot = x.b.postes.reduce((s, p) => s + p.total[1], 0) || 1;
         const det = Math.round((x.b.postes.filter(p => p.fiab === "reference" || p.fiab === "estimation").reduce((s, p) => s + p.total[1], 0) / tot) * 100);
-        return `<article class="carte dossier-c"><span class="badge b-reference">Dossier prêt</span><h3>${esc(x.m.nom)}</h3><small class="mu">${esc(x.m.commune || "")}</small>
+        return `<article class="carte dossier-c">${x.c.notaireEncode ? `<span class="badge b-reference">Dossier prêt</span>` : `<span class="badge b-estimation">🔒 En attente du montant du notaire</span>`}<h3>${esc(x.m.nom)}</h3><small class="mu">${esc(x.m.commune || "")}</small>
           <div class="recap">
             <div><span>Coût total du projet</span><b>${euros(x.c.total[1], 100)}</b></div>
             <div><span>dont travaux</span><b>${euros(x.c.travaux[1], 100)}</b></div>
