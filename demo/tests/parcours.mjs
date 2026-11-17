@@ -64,6 +64,9 @@ try {
     await page.getByText("Maison de démonstration A").first().click();
 
     /* envoi du projet aux artisans, puis ce que reçoit le carreleur (avec les photos de la cuisine) */
+    await page.locator("main > .envoi").waitFor();
+    assert.ok(await page.evaluate(() => { const m = document.querySelector("main"); return m.lastElementChild.classList.contains("envoi"); }), "l'envoi aux artisans est le dernier bloc");
+    assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Matériaux Exemple/);
     await page.getByText("📨 Envoyer le projet aux artisans").click();
     await page.locator('[data-action="envoi-ok"]').click();
     await page.getByText("Voir ce que reçoit l'artisan →").click();
@@ -71,14 +74,23 @@ try {
     await page.locator(".demande").first().waitFor();
     assert.match(await page.locator(".demande").first().innerText(), /Projet envoyé[\s\S]*photos? de la visite/);
     await page.screenshot({ path: `${OUT}/${nom}-0c-artisan-photos.png`, fullPage: nom === "ordi" });
-    /* négociant : on encode un prix, il est utilisé dans la liste de matériaux */
+    /* l'artisan peut proposer une visite */
+    await page.locator('.demande [data-action="pro-visite"]').first().click();
+    assert.match(await page.locator(".demande").first().innerText(), /proposition de visite/);
+    /* négociant : sa fiche (services, coordonnées, horaires), visible sur la fiche de la maison ; pas d'offres */
+    await page.goto(URL + "#/pro/negociant");
+    await page.fill('[data-negfiche="nom"]', "Négoce Test");
+    await page.locator('[data-negfiche="nom"]').dispatchEvent("change");
+    assert.match(await page.locator(".fiche-neg").innerText(), /Négoce Test[\s\S]*Livraison sur chantier[\s\S]*Lundi/);
+    assert.equal(await page.getByText("Envoyer mon offre").count(), 0);
+    await page.screenshot({ path: `${OUT}/${nom}-0d-negociant.png`, fullPage: nom === "ordi" });
     await page.goto(URL + "#/pro/negprix");
     await page.fill('[data-negprix="R19"]', "25");
     await page.locator('[data-negprix="R19"]').dispatchEvent("change");
-    await page.goto(URL + "#/pro/negociant");
-    await page.locator(".demande").first().waitFor();
-    assert.match(await page.locator(".demande").first().innerText(), /R19[\s\S]*votre prix/);
-    await page.screenshot({ path: `${OUT}/${nom}-0d-negociant.png`, fullPage: nom === "ordi" });
+    /* agence : annonce libre, estimation Valou facultative (décochée au départ) */
+    await page.goto(URL + "#/pro/agence");
+    assert.equal(await page.locator('[data-annonce="valou"]').isChecked(), false);
+    assert.equal(await page.locator(".a-valou").count(), 0);
     for (const d of ["demo-artisan", "demo-negociant"]) { await page.goto(URL + "#/" + d); await page.locator(".etapes-demo li").nth(3).waitFor(); }
     await page.goto(URL);
     await page.getByText("Maison de démonstration A").first().click();
@@ -117,7 +129,7 @@ try {
     await page.selectOption("[data-metier]", "carreleur");
     await page.locator(".demande").first().waitFor();
     assert.match(await page.locator(".d-lots").first().innerText(), /carrelage/i);
-    await page.getByText("Proposer un devis").first().click();
+    await page.getByText("Envoyer un devis").first().click();
     await page.locator(".d-act.ok").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-artisan.png`, fullPage: nom === "ordi" });
     for (const [o, sel] of [["courtier", ".dossier-c"], ["agence", ".annonce"]]) {

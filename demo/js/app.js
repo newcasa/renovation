@@ -3,7 +3,7 @@ import { chargerReferences } from "./donnees.js";
 import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS } from "./vitrine.js";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant } from "./vitrine.js";
 import { ecranQuestionnaire, PIECES_QUESTIONNAIRE } from "./questionnaire.js";
 import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js";
 
@@ -53,6 +53,13 @@ function ecranAccueil() {
       <p>Prix d'achat, droits d'enregistrement, notaire et travaux : le vrai budget, poste par poste, avant de faire une offre.</p>
       <span class="actions-g"><a class="btn" href="#/ajouter">＋ Ajouter une maison</a><a class="btn sec" href="#/questionnaire">📝 Questionnaire de visite à imprimer</a></span>
     </section>
+    <section class="avantages av-particulier"><b>Pour vous, c'est gratuit</b><ul>
+      <li>Le vrai coût avant de faire une offre : prix, droits, notaire et travaux</li>
+      <li>Vos maisons comparées sur leur vrai coût, PEB compris</li>
+      <li>La visite guidée pièce par pièce, avec les photos</li>
+      <li>Un dossier complet pour la banque</li>
+      <li>Votre projet envoyé aux artisans, qui le comprennent sans se déplacer</li>
+    </ul></section>
     ${maisons.length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>Aucune maison pour l'instant.</p></div>`}
     ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="presentation">🎬 Préparer une présentation (tout remettre à zéro)</button></p>` : ""}
   </main>`;
@@ -393,12 +400,16 @@ function ecranMaison(m) {
         })()}
     </div>
 
-    ${panneauEnvoi(m, b)}
+    <section class="carte negs"><h2>Négociants de votre région</h2>
+      <p class="mu">Pour vos matériaux : services, coordonnées et horaires.</p>
+      ${ficheNegociant(negFiche)}</section>
 
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
     </div>
+
+    ${panneauEnvoi(m, b)}
   </main>`;
 }
 
@@ -520,7 +531,15 @@ function appliquerPrixNeg() {
   Object.entries(prixNeg).forEach(([id, p]) => { R.px.neg[id] = { ...(negOrigine[id] || {}), p, s: "Votre négoce (démo)" }; });
   try { localStorage.setItem("valou_demo_prixneg", JSON.stringify(prixNeg)); } catch (e) {}
 }
-let envoiOuvert = null; // maison dont le panneau « envoyer aux artisans » est ouvert
+let envoiOuvert = null;
+/* fiche du négociant et annonce de l'agence (démonstration, gardées sur cet appareil) */
+const FICHE_EXEMPLE = { nom: "Matériaux Exemple", fictif: true, adresse: "Rue de l'Exemple 1, 5100 Jambes", tel: "081 00 00 00", email: "contact@exemple.be", site: "",
+  services: "Livraison sur chantier\nLocation de matériel\nDécoupe sur mesure\nConseil en isolation",
+  horaires: { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" } };
+const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; } };
+const ecrire = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+let negFiche = lire("valou_demo_negfiche", JSON.parse(JSON.stringify(FICHE_EXEMPLE)));
+let annonce = lire("valou_demo_annonce", { titre: "", prix: "", texte: "", valou: false }); // maison dont le panneau « envoyer aux artisans » est ouvert
 const sauverTarifs = () => { try { localStorage.setItem("valou_demo_tarifs", JSON.stringify(tarifs)); } catch (e) {} };
 
 function resume(m) {
@@ -790,6 +809,8 @@ function preparerPresentation(direct) {
   chargerDemo();
   tarifs = { p: {} }; sauverTarifs();
   prixNeg = {}; appliquerPrixNeg(); envoiOuvert = null;
+  negFiche = JSON.parse(JSON.stringify(FICHE_EXEMPLE)); ecrire("valou_demo_negfiche", negFiche);
+  annonce = { titre: "", prix: "", texte: "", valou: false }; ecrire("valou_demo_annonce", annonce);
   maisons.forEach(m => { if (m.demo) delete m.envoi; });
   sim = { k: "sol_carrelage", n: 25 }; metier = "general"; selection = null;
   fermerCamera(); visite = { maisonId: null, nom: "", saisie: true };
@@ -807,7 +828,7 @@ function afficher() {
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
   else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
-  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs, prixNeg, photos: m => photosDe(m) }, h.split("/")[2] || "", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
+  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs, prixNeg, negFiche, annonce, photos: m => photosDe(m) }, h.split("/")[2] || "", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
   else if (h === "/demo-artisan" || h === "/demo-negociant") html = ecranDemoPro({ entete, maisonDemo: maisons.find(m => m.demo) }, h === "/demo-negociant" ? "negociant" : "artisan");
   else if (h === "/moteur") html = ecranMoteur({ R, entete, sim, tarifs });
   else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
@@ -846,11 +867,13 @@ document.addEventListener("click", e => {
     document.getElementById("envoi").innerHTML = `<p class="alerte ok">✓ Dossier envoyé à votre banque. <small>(Démonstration : aucun envoi réel.)</small></p>`;
   }
   if (el.dataset.simN != null) { sim.n = +el.dataset.simN; afficher(); }
-  if (a === "pro-ok" || a === "pro-non") {
+  if (a === "pro-ok" || a === "pro-non" || a === "pro-visite") {
     const carte = el.closest(".demande");
     carte.querySelector(".d-act").outerHTML = a === "pro-ok"
       ? `<span class="d-act ok">✓ Le client est prévenu : il recevra votre devis dans son espace Valou.</span>`
-      : `<span class="d-act mu">Demande transmise à un autre artisan.</span>`;
+      : a === "pro-visite"
+        ? `<span class="d-act ok">✓ Le client est prévenu : il recevra votre proposition de visite et choisira un moment.</span>`
+        : `<span class="d-act mu">Demande transmise à un autre artisan.</span>`;
   }
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "presentation") preparerPresentation();
@@ -908,6 +931,7 @@ document.addEventListener("change", e => {
     return;
   }
   if (t.dataset.peb && m) { m[t.dataset.peb] = t.dataset.peb === "peb" ? t.value || null : t.value === "" ? null : +t.value; sauver(); afficher(); return; }
+  if (t.dataset.negfiche || t.dataset.neghor || t.dataset.annonce) { majProFormulaire(t); afficher(); return; }
   if (t.dataset.negprix) { const v = t.value === "" ? null : +t.value; if (v > 0) prixNeg[t.dataset.negprix] = v; else delete prixNeg[t.dataset.negprix]; appliquerPrixNeg(); afficher(); return; }
   if (t.dataset.metier != null) { metier = t.value; afficher(); return; }
   if (t.dataset.simK != null) { sim.k = t.value; afficher(); return; }
@@ -985,8 +1009,14 @@ document.addEventListener("change", e => {
   afficher();
 });
 
+function majProFormulaire(t) {
+  if (t.dataset.negfiche) { negFiche[t.dataset.negfiche] = t.value; delete negFiche.fictif; ecrire("valou_demo_negfiche", negFiche); }
+  if (t.dataset.neghor) { negFiche.horaires = { ...(negFiche.horaires || {}), [t.dataset.neghor]: t.value }; delete negFiche.fictif; ecrire("valou_demo_negfiche", negFiche); }
+  if (t.dataset.annonce) { annonce[t.dataset.annonce] = t.type === "checkbox" ? t.checked : t.value; ecrire("valou_demo_annonce", annonce); }
+}
 document.addEventListener("input", e => {
   const t = e.target;
+  if (t.dataset.negfiche || t.dataset.neghor || t.dataset.annonce) { majProFormulaire(t); return; }
   if (t.dataset.choixn && brouillon) brouillon.choix[t.dataset.choixn].n = t.value;
   else if (t.form && t.form.id === "f-ajout" && t.name && t.type !== "checkbox") brouillon[t.name] = t.value;
 });

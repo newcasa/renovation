@@ -124,9 +124,9 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 **Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-artisan`. Dans la maison A, prendre 2 ou 3 photos de la cuisine avec « 📷 Photos de la visite » (mode visite, nom « Cuisine »).
 
-1. **La maison visitée** : les pièces en couleur et le vrai coût. En bas, « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
+1. **La maison visitée** : les pièces en couleur et le vrai coût. Tout en bas, dernière étape : « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
    > « Le client a visité, chiffré, photographié. Il vous envoie son projet en un clic. »
-2. **La demande reçue** (« Voir ce que reçoit l'artisan → », dans l'espace artisan, métier « Carreleur ») : les travaux de votre métier, le budget du client et les photos de la cuisine.
+2. **La demande reçue** (« Voir ce que reçoit l'artisan → », dans l'espace artisan, métier « Carreleur ») : les travaux de votre métier, le budget du client et les photos de la cuisine. Trois boutons : « Proposer une visite », « Envoyer un devis », « Pas disponible ».
    > « Vous savez tout de suite si le chantier est pour vous, sans vous déplacer. Le client connaît déjà son budget. »
 3. **Vos tarifs** (onglet « Mes tarifs » de l'espace artisan) : l'encadré de confidentialité, un prix tapé, l'accord coché.
    > « Vos prix ne sont jamais montrés. Ils servent à des moyennes d'au moins 5 artisans, et vous recevez les demandes en priorité. »
@@ -140,14 +140,26 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 **Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-negociant`.
 
-1. **Une maison et ses travaux** (maison A) : ouvrir un poste dans « Budget travaux » (par exemple « Sol – carrelage ») pour montrer le détail des matériaux.
-2. **La liste de matériaux reçue** (Professionnels › « Je suis négociant » › « Listes de matériaux ») : 12 articles, quantités arrondies au conditionnement (« 31 × boîte 1,80 m² »), montant total.
-   > « Chaque chantier arrive avec sa liste exacte. Vous envoyez votre offre, le client ou son artisan commande. »
-3. **Vos prix** (onglet « Mes prix ») : taper 2 ou 3 prix, par exemple le carrelage de sol (R19) et la colle (R21).
-4. **Le résultat** (onglet « Listes de matériaux ») : vos prix apparaissent, marqués « votre prix ». Le budget de la maison change aussi.
-   > « Vos prix sont utilisés pour les chantiers de votre zone faits par des artisans. »
+Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers et des artisans, avec leurs services, coordonnées et horaires.
+
+1. **Votre fiche** (Professionnels › « Je suis négociant » › « Ma fiche ») : remplir le nom du négoce, l'adresse, le téléphone, les services et les horaires. L'aperçu à droite se met à jour.
+   > « Votre fiche apparaît sur les projets des maisons de votre zone. »
+2. **Ce que voit le particulier** (maison A, en bas) : « Négociants de votre région », avec votre fiche.
+   > « Le particulier, ou son artisan, sait où acheter ses matériaux et quand vous êtes ouvert. Il vient chez vous ou vous appelle. »
+3. **Vos prix (facultatif)** (onglet « Mes prix ») : taper un ou deux prix.
+   > « Si vous le souhaitez, vos prix servent aux budgets des chantiers de votre zone. »
 
 **Questions à poser :**
-1. Comment recevez-vous aujourd'hui les demandes de prix des particuliers et des artisans ?
-2. Une liste de matériaux déjà calculée, par chantier, vous ferait-elle gagner du temps ?
-3. Seriez-vous prêt à publier vos prix (ou une remise) pour recevoir ces listes ? Sous quelle forme paieriez-vous : abonnement, commission sur les ventes ?
+1. D'où viennent aujourd'hui vos clients particuliers et artisans ?
+2. Être visible sur les projets de rénovation de votre zone vous intéresse-t-il ? Sous quelle forme paieriez-vous (abonnement mensuel, mise en avant) ?
+3. Seriez-vous d'accord de partager vos prix pour les budgets ?
+
+---
+
+# Les avantages de chacun (à dire pendant la démo)
+
+- **Particulier (gratuit)** : le vrai coût avant l'offre, la comparaison des maisons avec le PEB, la visite guidée avec les photos, le dossier pour la banque, le projet envoyé aux artisans.
+- **Artisan** : des projets déjà chiffrés avec les photos des pièces, un client qui connaît son budget, le choix entre proposer une visite, envoyer un devis ou dire « pas disponible », des tarifs confidentiels.
+- **Négociant** : visible sur les projets de sa zone, avec ses services, coordonnées et horaires ; des clients avec un chantier chiffré ; aucune offre à envoyer.
+- **Courtier ou banque** : un dossier complet (achat, notaire validé, travaux, PEB), moins de temps passé à reconstituer le budget.
+- **Agence** : des annonces rédigées librement, l'estimation des travaux en option, des acheteurs qui osent visiter les maisons à rénover.

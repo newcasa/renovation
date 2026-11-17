@@ -24,21 +24,26 @@ export function ecranPro(ctx, onglet, metier) {
   const { R, maisons, entete } = ctx;
   /* 4 profils, chacun avec ses propres onglets */
   const PROFILS = [
-    { id: "artisan", t: "Je suis artisan", ico: "🔨", d: "Recevoir des projets déjà chiffrés, avec les photos des pièces.", tabs: [["artisan", "Demandes reçues"], ["tarifs", "Mes tarifs"]], demo: "#/demo-artisan" },
-    { id: "negociant", t: "Je suis négociant", ico: "🧱", d: "Recevoir les listes de matériaux de chaque chantier, avec vos prix.", tabs: [["negociant", "Listes de matériaux"], ["negprix", "Mes prix"]], demo: "#/demo-negociant" },
-    { id: "courtier", t: "Je suis courtier ou banque", ico: "🏦", d: "Recevoir des dossiers de crédit complets : achat, notaire et travaux.", tabs: [["courtier", "Dossiers reçus"]] },
-    { id: "agence", t: "Je suis une agence", ico: "🏠", d: "Afficher le vrai coût, travaux compris, sur vos annonces.", tabs: [["agence", "Mon annonce"]] },
+    { id: "artisan", t: "Je suis artisan", ico: "🔨", d: "Recevoir des projets déjà chiffrés, avec les photos des pièces.", tabs: [["artisan", "Demandes reçues"], ["tarifs", "Mes tarifs"]], demo: "#/demo-artisan",
+      av: ["Des projets déjà chiffrés, avec les photos des pièces", "Un client qui connaît son budget : moins de devis refusés", "Vous choisissez : visite, devis ou pas disponible", "Vos tarifs restent confidentiels"] },
+    { id: "negociant", t: "Je suis négociant", ico: "🧱", d: "Être vu des particuliers et des artisans de votre zone : vos services, coordonnées et horaires.", tabs: [["negociant", "Ma fiche"], ["negprix", "Mes prix"]], demo: "#/demo-negociant",
+      av: ["Visible sur les projets des maisons de votre zone", "Vos services, coordonnées et horaires mis en avant", "Des clients avec un chantier déjà chiffré", "Aucune offre à envoyer : les clients viennent à vous"] },
+    { id: "courtier", t: "Je suis courtier ou banque", ico: "🏦", d: "Recevoir des dossiers de crédit complets : achat, notaire et travaux.", tabs: [["courtier", "Dossiers reçus"]],
+      av: ["Un dossier complet : achat, notaire validé, travaux poste par poste", "Moins de temps à reconstituer le budget du client", "Le PEB et les travaux énergétiques déjà identifiés"] },
+    { id: "agence", t: "Je suis une agence", ico: "🏠", d: "Publier vos annonces librement, avec l'estimation des travaux en option.", tabs: [["agence", "Mon annonce"]],
+      av: ["Vos annonces, rédigées librement", "L'estimation des travaux en option, pour rassurer les acheteurs", "Des acheteurs qui osent visiter les maisons à rénover"] },
   ];
   if (!onglet) {
     return `${entete("pro")}<main><h1>Côté professionnels</h1>${simule}
       <p class="intro">Choisissez votre métier pour voir ce que Valou vous apporte.</p>
-      <div class="profils">${PROFILS.map(P => `<a class="carte profil" href="#/pro/${P.tabs[0][0]}"><span class="pf-ico">${P.ico}</span><b>${esc(P.t)}</b><p class="mu">${esc(P.d)}</p><span class="go">Entrer →</span></a>`).join("")}</div>
+      <div class="profils">${PROFILS.map(P => `<a class="carte profil" href="#/pro/${P.tabs[0][0]}"><span class="pf-ico">${P.ico}</span><b>${esc(P.t)}</b><p class="mu">${esc(P.d)}</p><ul class="av-liste">${P.av.map(a => `<li>${esc(a)}</li>`).join("")}</ul><span class="go">Entrer →</span></a>`).join("")}</div>
     </main>`;
   }
   const profil = PROFILS.find(P => P.tabs.some(([id]) => id === onglet)) || PROFILS[0];
   const nav = `<div class="espace-tete"><a href="#/pro" class="retour">← Changer de profil</a>
       <h1><span>${profil.ico}</span> Espace ${esc(profil.t.replace(/^Je suis (une? )?/, ""))}</h1>
       ${profil.demo ? `<a class="btn sec petit-btn" href="${profil.demo}">🎬 Démo guidée</a>` : ""}</div>
+    <div class="avantages"><b>Vos avantages</b><ul>${profil.av.map(a => `<li>${esc(a)}</li>`).join("")}</ul></div>
     ${profil.tabs.length > 1 ? `<div class="onglets" role="tablist">${profil.tabs.map(([id, t]) => `<a role="tab" class="onglet ${onglet === id ? "on" : ""}" href="#/pro/${id}" aria-selected="${onglet === id}">${t}</a>`).join("")}</div>` : ""}`;
   const L = maisons.map(m => { const b = calculerBudget(R, m); return { m, b, c: coutTotal(m, b) }; });
   let corps = "";
@@ -66,7 +71,7 @@ export function ecranPro(ctx, onglet, metier) {
           <table class="d-lots">${x.lots.map(p => `<tr><td>${esc(p.n)}</td><td class="r">${esc(qte(p.QL, p.u))}</td><td>${badge(p.fiab)}</td></tr>`).join("")}</table>
           ${(P => (P.length ? `<div class="d-photos"><small class="mu">📷 ${P.length} photo${P.length > 1 ? "s" : ""} de la visite</small><div class="galerie mini">${P.slice(0, 8).map(p => `<figure class="vignette"><a href="${p.url}" target="_blank" rel="noopener"><img src="${p.url}" alt="${esc(p.nomPiece)}"></a><figcaption><small>${esc(p.nomPiece)}</small></figcaption></figure>`).join("")}</div></div>` : `<p class="mu petit-t">Pas encore de photos pour ces pièces.</p>`))(photosDemande(x))}
           <div class="d-pied"><small class="mu">${x.m.fin && x.m.fin.apport ? "✓ Dossier de financement préparé" : "Financement en préparation"} · Coordonnées du client transmises quand vous acceptez</small>
-            <span class="d-act"><button class="btn" data-action="pro-ok">Proposer un devis</button><button class="btn sec" data-action="pro-non">Pas disponible</button></span></div>
+            <span class="d-act"><button class="btn sec" data-action="pro-visite">Proposer une visite</button><button class="btn" data-action="pro-ok">Envoyer un devis</button><button class="btn lien" data-action="pro-non">Pas disponible</button></span></div>
         </article>`;
       }).join("") : `<div class="carte vide"><p>Aucune demande pour ce métier dans les maisons du prototype.</p></div>`}`;
   }
@@ -99,32 +104,25 @@ export function ecranPro(ctx, onglet, metier) {
   }
 
   if (onglet === "negociant") {
-    const PX = ctx.prixNeg || {};
-    corps = `<div class="pro-intro"><h2>Des listes de matériaux déjà calculées</h2>
-      <p class="mu">Pour chaque chantier, Valou calcule les quantités exactes, arrondies au conditionnement (boîtes, sacs, rouleaux). Le négociant reçoit la liste et propose son offre.</p></div>
-      ${L.map(x => {
-        const A = {};
-        x.b.postes.forEach(p => p.articles.filter(a => a.id).forEach(a => {
-          const k = a.id + "|" + a.sc;
-          const o = (A[k] = A[k] || { id: a.id, n: a.n, sc: a.sc, nb: 0, cond: a.cond, pu: a.pu, tot: 0, defaut: a.defaut });
-          o.nb += a.nb; o.tot += a.tot;
-        }));
-        const lignes = Object.values(A).sort((a, b) => b.tot - a.tot);
-        if (!lignes.length) return "";
-        const total = lignes.reduce((s, a) => s + a.tot, 0);
-        const sansListe = x.b.postes.filter(p => p.mode === "fourchette" || p.matFourchette).map(p => p.n);
-        return `<article class="carte demande">
-          <div class="d-tete"><div><span class="badge b-reference">Liste de matériaux</span><h3>${esc(x.m.commune || x.m.nom)}</h3>
-            <small class="mu">${esc([x.m.annee && `Maison de ${x.m.annee}`, x.m.surface && `${nombre(x.m.surface)} m²`].filter(Boolean).join(" · "))}</small></div>
-            <div class="d-budget"><small>Montant des matériaux (HTVA)</small><b>${euros(total, 10)}</b><small class="mu">${lignes.length} articles</small></div></div>
-          <table class="d-lots neg"><thead><tr><th>Article</th><th class="r">Quantité</th><th class="r">Prix HTVA</th><th class="r">Total</th></tr></thead><tbody>
-          ${lignes.map(a => `<tr><td>${esc(a.id)} ${esc(a.n)} <small class="mu">${a.sc === "neg" ? "· pour un artisan" : "· fait soi-même"}</small></td><td class="r">${nombre(a.nb)} × ${esc(a.cond)}</td>
-            <td class="r">${euros2(a.pu)}${PX[a.id] ? ` <small class="ok-prix">votre prix</small>` : a.defaut ? ` <small class="mu">prix magasin</small>` : ""}</td><td class="r">${euros2(a.tot)}</td></tr>`).join("")}</tbody></table>
-          ${sansListe.length ? `<p class="mu petit-t">Sans liste détaillée pour l'instant (à chiffrer par vous) : ${esc(sansListe.join(", "))}.</p>` : ""}
-          <div class="d-pied"><small class="mu">Coordonnées transmises quand le client accepte votre offre</small>
-            <span class="d-act"><button class="btn" data-action="pro-ok">Envoyer mon offre</button><button class="btn sec" data-action="pro-non">Pas intéressé</button></span></div>
-        </article>`;
-      }).join("")}`;
+    const F = ctx.negFiche || {}, H = F.horaires || {};
+    const champ = (k, t, ph = "", type = "text") => `<label>${t}<input type="${type}" data-negfiche="${k}" value="${esc(F[k] ?? "")}" placeholder="${esc(ph)}"></label>`;
+    corps = `<div class="pro-intro"><h2>Soyez vu des particuliers et des artisans de votre zone</h2>
+      <p class="mu">Votre fiche apparaît sur les projets des maisons proches de votre négoce : vos services, vos coordonnées et vos horaires. Les clients viennent chez vous ou vous appellent.</p></div>
+      <div class="deux">
+        <section class="carte"><h2>Ma fiche</h2><div class="champs">
+          ${champ("nom", "Nom du négoce", "ex. Matériaux Dupont")}
+          ${champ("adresse", "Adresse", "rue, numéro, code postal, commune")}
+          ${champ("tel", "Téléphone", "", "tel")}
+          ${champ("email", "E-mail", "", "email")}
+          ${champ("site", "Site internet", "")}
+          <label class="large">Services (un par ligne)<textarea data-negfiche="services" rows="5" placeholder="Livraison sur chantier&#10;Location de matériel&#10;Découpe sur mesure">${esc(F.services || "")}</textarea></label>
+        </div>
+        <h3>Horaires d'ouverture</h3>
+        <div class="horaires">${JOURS.map(([k, j]) => `<label>${j}<input data-neghor="${k}" value="${esc(H[k] ?? "")}" placeholder="ex. 7h30–17h ou fermé"></label>`).join("")}</div>
+        </section>
+        <section><h2 class="petit-titre">Ce que voient les particuliers et les artisans</h2>${ficheNegociant(F)}</section>
+      </div>
+      <p class="mu petit-t">Les négociants n'envoient pas d'offres : les clients choisissent eux-mêmes de vous contacter.</p>`;
   }
 
   if (onglet === "negprix") {
@@ -161,19 +159,43 @@ export function ecranPro(ctx, onglet, metier) {
   }
 
   if (onglet === "agence") {
-    const x = L[0];
-    corps = `<div class="pro-intro"><h2>Des annonces qui rassurent les acheteurs</h2>
-      <p class="mu">L'agence affiche sur son annonce le vrai coût estimé, travaux compris. L'acheteur ose visiter une maison à rénover, parce qu'il sait ce qui l'attend.</p></div>
-      ${x ? `<article class="carte annonce">
-        <div class="a-photo"><img src="../photo-par-defaut.jpg" alt=""><span class="badge b-exemple">Bien fictif</span></div>
-        <div class="a-corps"><small class="mu">${esc(x.m.commune || "")}</small><h3>${esc(x.m.description ? x.m.description.split(",")[0] : x.m.nom)}</h3>
-          <div class="a-prix">${euros(x.c.prix)}</div>
-          <div class="a-valou"><img src="../favicon-48.png" alt=""><div><small>Vrai coût estimé par Valou, travaux compris</small><b>${euros(x.c.total[0], 1000)} – ${euros(x.c.total[2], 1000)}</b></div></div>
-          <a class="btn sec" href="#/maison/${x.m.id}">Voir le détail des travaux</a></div>
-      </article>` : ""}`;
+    const A = ctx.annonce || {}, x = L[0];
+    corps = `<div class="pro-intro"><h2>Vos annonces, comme vous le voulez</h2>
+      <p class="mu">L'agence écrit librement son annonce. Rien n'est obligatoire sur les travaux. Si elle le souhaite, elle peut ajouter l'estimation Valou des travaux.</p></div>
+      <div class="deux">
+        <section class="carte"><h2>Mon annonce</h2><div class="champs">
+          <label>Titre<input data-annonce="titre" value="${esc(A.titre ?? "")}" placeholder="ex. Maison 3 façades avec jardin"></label>
+          <label>Prix demandé (€)<input type="number" min="0" data-annonce="prix" value="${esc(A.prix ?? "")}" placeholder="ex. 245000"></label>
+          <label class="large">Texte de l'annonce<textarea data-annonce="texte" rows="6" placeholder="Décrivez le bien comme vous le souhaitez.">${esc(A.texte || "")}</textarea></label>
+          <label class="cb large"><input type="checkbox" data-annonce="valou" ${A.valou ? "checked" : ""}> Ajouter l'estimation Valou des travaux (facultatif)</label>
+        </div></section>
+        <section><h2 class="petit-titre">Aperçu de l'annonce</h2>
+          <article class="carte annonce seule">
+            <div class="a-photo"><img src="../photo-par-defaut.jpg" alt=""><span class="badge b-exemple">Exemple</span></div>
+            <div class="a-corps"><h3>${esc(A.titre || "Titre de l'annonce")}</h3>
+              ${A.prix ? `<div class="a-prix">${euros(+A.prix)}</div>` : ""}
+              ${A.texte ? `<p class="a-texte">${esc(A.texte)}</p>` : `<p class="mu">Votre texte apparaîtra ici.</p>`}
+              ${A.valou && x ? `<div class="a-valou"><img src="../favicon-48.png" alt=""><div><small>Estimation Valou des travaux (${esc(x.m.nom)})</small><b>${euros(x.b.T[0], 1000)} – ${euros(x.b.T[2], 1000)}</b></div></div>` : ""}
+            </div>
+          </article></section>
+      </div>`;
   }
 
   return `${entete("pro")}<main>${nav}${simule}${corps}</main>`;
+}
+
+/* ---------- fiche publique d'un négociant ---------- */
+export const JOURS = [["lun", "Lundi"], ["mar", "Mardi"], ["mer", "Mercredi"], ["jeu", "Jeudi"], ["ven", "Vendredi"], ["sam", "Samedi"], ["dim", "Dimanche"]];
+export function ficheNegociant(F) {
+  if (!F || !F.nom) return `<div class="carte vide"><p class="mu">Aucun négociant inscrit pour l'instant.</p></div>`;
+  const services = String(F.services || "").split("\n").map(x => x.trim()).filter(Boolean);
+  const H = F.horaires || {};
+  return `<article class="carte fiche-neg">
+    <div class="fn-tete"><span class="pf-ico">🧱</span><div><b>${esc(F.nom)}</b>${F.fictif ? ` <span class="badge b-exemple">Exemple fictif</span>` : ""}${F.adresse ? `<small class="mu">${esc(F.adresse)}</small>` : ""}</div></div>
+    ${services.length ? `<ul class="fn-services">${services.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+    <div class="fn-contact">${F.tel ? `<span>📞 ${esc(F.tel)}</span>` : ""}${F.email ? `<span>✉️ ${esc(F.email)}</span>` : ""}${F.site ? `<span>🌐 ${esc(F.site)}</span>` : ""}</div>
+    ${JOURS.some(([k]) => H[k]) ? `<table class="fn-horaires">${JOURS.map(([k, j]) => `<tr><td>${j}</td><td>${esc(H[k] || "—")}</td></tr>`).join("")}</table>` : ""}
+  </article>`;
 }
 
 /* ---------- Notre moteur ---------- */
@@ -307,14 +329,14 @@ export function ecranDemoPro(ctx, type) {
   const A = maisonDemo ? `#/maison/${maisonDemo.id}` : "#/";
   const D = type === "negociant" ? {
     titre: "Valou pour les négociants",
-    accroche: "Des listes de matériaux déjà calculées, pour chaque chantier de votre zone.",
-    atouts: [["📋", "Les quantités exactes", "Valou calcule les matériaux de chaque chantier, arrondis au conditionnement réel : boîtes, sacs, rouleaux."],
-      ["🏷️", "Vos prix dans les budgets", "Vos prix hors TVA sont utilisés pour les travaux faits par les artisans de votre zone."],
-      ["🤝", "Des clients qui achètent", "Particuliers et artisans arrivent avec un projet chiffré : vous envoyez une offre, ils commandent."]],
-    etapes: [[A, "Une maison et ses travaux", "Le vrai coût, pièce par pièce, avec le détail des matériaux de chaque poste."],
-      ["#/pro/negociant", "La liste de matériaux reçue", "Les articles, quantités et montants, prêts pour une offre."],
-      ["#/pro/negprix", "Encodez vos prix", "Tapez 2 ou 3 prix : la liste et le budget de la maison changent tout de suite."],
-      ["#/pro/negociant", "Le résultat", "Vos prix apparaissent dans la liste, marqués « votre prix »."]],
+    accroche: "Soyez vu des particuliers et des artisans qui préparent des travaux près de chez vous.",
+    atouts: [["🧱", "Votre fiche sur les projets", "Vos services, coordonnées et horaires apparaissent sur les projets des maisons de votre zone."],
+      ["📍", "Des clients proches", "Particuliers et artisans de la région, avec un chantier déjà chiffré : ils savent ce qu'ils vont acheter."],
+      ["🏷️", "Vos prix dans les budgets (option)", "Si vous le souhaitez, vos prix hors TVA servent aux budgets des chantiers de votre zone."]],
+    etapes: [["#/pro/negociant", "Votre fiche", "Services, coordonnées et horaires d'ouverture : l'aperçu se met à jour pendant la saisie."],
+      [A, "Ce que voit le particulier", "Sur la fiche de la maison, en bas : « Négociants de votre région »."],
+      ["#/pro/negprix", "Vos prix (facultatif)", "Tapez un ou deux prix : ils servent aux budgets des maisons proches."],
+      [A, "Le résultat", "Dans « Budget travaux », les postes utilisent vos prix."]],
   } : {
     titre: "Valou pour les artisans",
     accroche: "Des projets déjà chiffrés, avec les photos des pièces, sans vous déplacer pour comprendre.",
