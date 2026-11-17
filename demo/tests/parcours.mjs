@@ -91,6 +91,11 @@ try {
     await page.locator("#prix-locaux").screenshot({ path: `${OUT}/${nom}-9-prix-locaux.png` });
     assert.match(await page.locator(".stat b").first().innerText(), /^\d+$/);
     await page.screenshot({ path: `${OUT}/${nom}-9-moteur.png`, fullPage: nom === "ordi" });
+    /* questionnaire de visite à imprimer */
+    await page.goto(URL + "#/questionnaire");
+    await page.locator(".q-page").first().waitFor();
+    assert.equal(await page.locator(".q-page").count(), 7);
+    assert.equal(await page.locator(".q-piece").count(), 10);
     await page.locator('.nav-i[href="#/feuille-de-route"]').click();
     await page.locator(".phases").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-10-feuille.png`, fullPage: nom === "ordi" });

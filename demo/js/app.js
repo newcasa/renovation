@@ -4,6 +4,7 @@ import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHES
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
+import { ecranQuestionnaire } from "./questionnaire.js";
 
 let R = null;
 let maisons = lireMaisons();
@@ -48,7 +49,7 @@ function ecranAccueil() {
     <section class="hero">
       <h1>Combien cette maison va-t-elle <em>vraiment</em> vous coûter ?</h1>
       <p>Prix d'achat, droits d'enregistrement, notaire et travaux : le vrai budget, poste par poste, avant de faire une offre.</p>
-      <a class="btn" href="#/ajouter">＋ Ajouter une maison</a>
+      <span class="actions-g"><a class="btn" href="#/ajouter">＋ Ajouter une maison</a><a class="btn sec" href="#/questionnaire">📝 Questionnaire de visite à imprimer</a></span>
     </section>
     ${maisons.length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>Aucune maison pour l'instant.</p></div>`}
     ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="exemple">${maisons.some(m => m.demo) ? "Remettre les maisons de démonstration à zéro" : "Charger les maisons de démonstration"}</button></p>` : ""}
@@ -587,6 +588,7 @@ function afficher() {
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/);
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
+  else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
   else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs }, h.split("/")[2] || "artisan", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
   else if (h === "/moteur") html = ecranMoteur({ R, entete, sim, tarifs });
   else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
