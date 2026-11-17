@@ -165,3 +165,33 @@ test("quartiles", () => {
   assert.equal(quantile([10, 20, 30, 40], 0.5), 25);
   assert.deepEqual(sansExtremes([1, 2, 3]), [1, 2, 3]);
 });
+
+import { travauxEffectifs, mursPiece, travauxChauffage } from "../js/moteur.js";
+
+test("pièces : murs = sol × 2,5, plafond = sol, murs corrigeables", () => {
+  assert.equal(mursPiece({ sol: 12 }), 30);
+  assert.equal(mursPiece({ sol: 12, murs: 26 }), 26);
+  const m = { pieces: [{ id: "a", nom: "Chambre", sol: 12 }], travaux: [{ pieceId: "a", k: "mur_peinture", lien: "murs" }, { pieceId: "a", k: "pl_peinture", lien: "plafond" }, { pieceId: "a", k: "sol_parquet", lien: "sol" }, { pieceId: "a", k: "mur_carrelage", q: 8 }] };
+  assert.deepEqual(travauxEffectifs(m).map(l => l.q), [30, 12, 12, 8]);
+  m.pieces[0].sol = 20;
+  assert.deepEqual(travauxEffectifs(m).map(l => l.q), [50, 20, 20, 8]); // la pièce change : les quantités suivent
+});
+
+test("postes plafond ajoutés : plafonnage (M13) et peinture (signalée en estimation)", () => {
+  const b = calculerBudget(R, maison([{ k: "pl_plafonnage", q: 10 }, { k: "pl_peinture", q: 10 }]), 2026);
+  const pf = b.postes.find(p => p.k === "pl_plafonnage"), pp = b.postes.find(p => p.k === "pl_peinture");
+  assert.equal(pf.main.id, "M13");
+  assert.equal(pp.main.id, "M16");
+  assert.equal(pp.fiab, "estimation");
+});
+
+test("chauffage : remplacement, déjà en place, radiateurs nouveaux si rien n'existe", () => {
+  const a = travauxChauffage({ actuel: "mazout", souhaite: "pac", emetteurs: "rad", nbRad: 6 }, 120);
+  assert.deepEqual(a.lignes.map(l => [l.k, l.q]), [["i_pac", 1], ["i_rad", 6]]);
+  assert.equal(a.rad, "rempl");
+  assert.ok(a.notes.some(n => /mazout/.test(n)));
+  assert.equal(travauxChauffage({ actuel: "gaz", souhaite: "gaz" }).lignes.length, 0);
+  const c = travauxChauffage({ actuel: "aucun", souhaite: "gaz", emetteurs: "sol" }, 90);
+  assert.deepEqual(c.lignes.map(l => [l.k, l.q]), [["i_cha", 1], ["i_chs", 90]]);
+  assert.equal(c.rad, "nouv");
+});

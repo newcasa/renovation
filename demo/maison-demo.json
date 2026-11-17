@@ -16,101 +16,133 @@
         "pose": "droite",
         "anc": "non",
         "fen": "depose",
-        "rad": "rempl",
         "cont": "oui"
       },
       "travaux": [
         {
-          "piece": "Séjour",
+          "pieceId": "sejour",
           "k": "i_dem",
           "q": 12
         },
         {
-          "piece": "Séjour",
+          "pieceId": "sejour",
           "k": "sol_carrelage",
-          "q": 32
+          "lien": "sol"
         },
         {
-          "piece": "Séjour",
+          "pieceId": "sejour",
           "k": "mur_peinture",
-          "q": 78
+          "lien": "murs"
         },
         {
-          "piece": "Cuisine",
+          "pieceId": "sejour",
+          "k": "pl_peinture",
+          "lien": "plafond"
+        },
+        {
+          "pieceId": "cuisine",
           "k": "meu_cuisine",
           "q": 1
         },
         {
-          "piece": "Cuisine",
+          "pieceId": "cuisine",
           "k": "sol_carrelage",
-          "q": 12
+          "lien": "sol"
         },
         {
-          "piece": "Cuisine",
+          "pieceId": "cuisine",
           "k": "mur_peinture",
-          "q": 28
+          "lien": "murs"
         },
         {
-          "piece": "Salle de bain",
+          "pieceId": "cuisine",
+          "k": "pl_peinture",
+          "lien": "plafond"
+        },
+        {
+          "pieceId": "sdb",
           "k": "i_dem",
           "q": 6
         },
         {
-          "piece": "Salle de bain",
+          "pieceId": "sdb",
           "k": "meu_sdb",
           "q": 1
         },
         {
-          "piece": "Salle de bain",
+          "pieceId": "sdb",
           "k": "sol_carrelage",
-          "q": 6
+          "lien": "sol"
         },
         {
-          "piece": "Salle de bain",
+          "pieceId": "sdb",
           "k": "mur_carrelage",
           "q": 20
         },
         {
-          "piece": "WC",
+          "pieceId": "sdb",
+          "k": "pl_peinture",
+          "lien": "plafond"
+        },
+        {
+          "pieceId": "wc",
           "k": "wc_sp",
           "q": 1
         },
         {
-          "piece": "Hall et escalier",
+          "pieceId": "hall",
           "k": "mur_peinture",
-          "q": 45
+          "lien": "murs"
         },
         {
-          "piece": "Chambre 1",
+          "pieceId": "ch1",
           "k": "sol_parquet",
-          "q": 15
+          "lien": "sol"
         },
         {
-          "piece": "Chambre 1",
+          "pieceId": "ch1",
           "k": "mur_peinture",
-          "q": 42,
+          "lien": "murs",
           "soiMeme": true
         },
         {
-          "piece": "Chambre 2",
-          "k": "sol_parquet",
-          "q": 12
-        },
-        {
-          "piece": "Chambre 2",
-          "k": "mur_peinture",
-          "q": 38,
+          "pieceId": "ch1",
+          "k": "pl_peinture",
+          "lien": "plafond",
           "soiMeme": true
         },
         {
-          "piece": "Chambre 3",
+          "pieceId": "ch2",
           "k": "sol_parquet",
-          "q": 10
+          "lien": "sol"
         },
         {
-          "piece": "Chambre 3",
+          "pieceId": "ch2",
           "k": "mur_peinture",
-          "q": 34,
+          "lien": "murs",
+          "soiMeme": true
+        },
+        {
+          "pieceId": "ch2",
+          "k": "pl_peinture",
+          "lien": "plafond",
+          "soiMeme": true
+        },
+        {
+          "pieceId": "ch3",
+          "k": "sol_parquet",
+          "lien": "sol"
+        },
+        {
+          "pieceId": "ch3",
+          "k": "mur_peinture",
+          "lien": "murs",
+          "soiMeme": true
+        },
+        {
+          "pieceId": "ch3",
+          "k": "pl_peinture",
+          "lien": "plafond",
           "soiMeme": true
         },
         {
@@ -122,16 +154,6 @@
           "piece": "Toute la maison",
           "k": "i_co",
           "q": 1
-        },
-        {
-          "piece": "Toute la maison",
-          "k": "i_cha",
-          "q": 1
-        },
-        {
-          "piece": "Toute la maison",
-          "k": "i_rad",
-          "q": 8
         },
         {
           "piece": "Toute la maison",
@@ -158,7 +180,55 @@
           "k": "i_zi",
           "q": 18
         }
-      ]
+      ],
+      "pieces": [
+        {
+          "id": "sejour",
+          "nom": "Séjour",
+          "sol": 32
+        },
+        {
+          "id": "cuisine",
+          "nom": "Cuisine",
+          "sol": 12
+        },
+        {
+          "id": "sdb",
+          "nom": "Salle de bain",
+          "sol": 6
+        },
+        {
+          "id": "wc",
+          "nom": "WC",
+          "sol": 2
+        },
+        {
+          "id": "hall",
+          "nom": "Hall et escalier",
+          "sol": 18
+        },
+        {
+          "id": "ch1",
+          "nom": "Chambre 1",
+          "sol": 15
+        },
+        {
+          "id": "ch2",
+          "nom": "Chambre 2",
+          "sol": 12
+        },
+        {
+          "id": "ch3",
+          "nom": "Chambre 3",
+          "sol": 10
+        }
+      ],
+      "chauffage": {
+        "actuel": "mazout",
+        "souhaite": "gaz",
+        "emetteurs": "rad",
+        "nbRad": 8
+      }
     },
     {
       "nom": "Maison de démonstration B",
@@ -178,28 +248,33 @@
       },
       "travaux": [
         {
-          "piece": "Séjour et cuisine",
+          "pieceId": "sejour",
           "k": "mur_peinture",
-          "q": 110
+          "lien": "murs"
         },
         {
-          "piece": "Hall et escalier",
-          "k": "mur_peinture",
-          "q": 45
+          "pieceId": "sejour",
+          "k": "pl_peinture",
+          "lien": "plafond"
         },
         {
-          "piece": "Chambres",
+          "pieceId": "hall",
           "k": "mur_peinture",
-          "q": 115,
+          "lien": "murs"
+        },
+        {
+          "pieceId": "chambres",
+          "k": "mur_peinture",
+          "lien": "murs",
           "soiMeme": true
         },
         {
-          "piece": "Chambres",
+          "pieceId": "chambres",
           "k": "sol_parquet",
-          "q": 40
+          "lien": "sol"
         },
         {
-          "piece": "Salle de bain",
+          "pieceId": "sdb",
           "k": "wc_mb",
           "q": 1
         },
@@ -208,7 +283,34 @@
           "k": "i_to_0",
           "q": 65
         }
-      ]
+      ],
+      "pieces": [
+        {
+          "id": "sejour",
+          "nom": "Séjour et cuisine",
+          "sol": 45
+        },
+        {
+          "id": "hall",
+          "nom": "Hall et escalier",
+          "sol": 15
+        },
+        {
+          "id": "chambres",
+          "nom": "Chambres",
+          "sol": 40
+        },
+        {
+          "id": "sdb",
+          "nom": "Salle de bain",
+          "sol": 8
+        }
+      ],
+      "chauffage": {
+        "actuel": "gaz",
+        "souhaite": "garder",
+        "emetteurs": "garder"
+      }
     }
   ]
 }

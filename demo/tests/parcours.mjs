@@ -98,9 +98,12 @@ try {
     await page.fill('input[name="annee"]', "1965");
     await page.fill('input[name="surface"]', "120");
     await page.selectOption('select[name="etat"]', "renover");
-    for (const id of ["peinture", "sols", "elec", "cuisine", "sdb", "chaudiere"]) await page.check(`[data-choix="${id}"]`);
-    await page.check('[data-choix="radiateurs"]');
-    await page.fill('[data-choixn="radiateurs"]', "7");
+    for (const id of ["peinture", "sols", "elec", "cuisine", "sdb"]) await page.check(`[data-choix="${id}"]`);
+    await page.selectOption('[data-chf="actuel"]', "mazout");
+    await page.selectOption('[data-chf="souhaite"]', "pac");
+    await page.selectOption('[data-chf="emetteurs"]', "rad");
+    await page.fill('[data-chf="nbRad"]', "7");
+    await page.locator('[data-chf="nbRad"]').dispatchEvent("change");
     await page.screenshot({ path: `${OUT}/${nom}-2-ajouter.png`, fullPage: nom === "ordi" }); // sur téléphone, la capture pleine page perturbe le clic suivant
     await page.getByText("Voir le vrai coût").click();
 
@@ -129,7 +132,18 @@ try {
     assert.match(await page.locator(".recap").innerText(), /Imprévus \(15 %\)/);
 
     /* pièce par pièce : passer la peinture en « moi-même » */
-    await page.locator('[data-l="0:soiMeme"]').check();
+    /* chauffage repris : pompe à chaleur + 7 radiateurs */
+    const tout = await page.locator("main").innerText();
+    assert.match(tout, /Pompe à chaleur/);
+    assert.match(tout, /cuve à mazout/);
+    /* une pièce : sol 12 m² → murs 30 m² et plafond 12 m² calculés */
+    await page.getByText("Ajouter une pièce").click();
+    await page.locator('.surfaces [data-pc$=":sol"]').first().fill("12");
+    await page.locator('.surfaces [data-pc$=":sol"]').first().dispatchEvent("change");
+    assert.equal(await page.locator('.surfaces [data-pc$=":murs"]').first().getAttribute("placeholder"), "30");
+    await page.getByText("＋ Ajouter un travail").click();
+    assert.equal(await page.locator('.table:not(.surfaces) tbody tr:last-child input[data-l$=":q"]').inputValue(), "30");
+    await page.locator('[data-l$=":soiMeme"]').first().check();
     await page.locator(".vrai-cout .gros").waitFor();
     assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), apres);
 
