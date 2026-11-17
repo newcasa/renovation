@@ -48,6 +48,28 @@ try {
     assert.match(await page.locator(".feuille").innerText(), /\/ mois/);
     await page.screenshot({ path: `${OUT}/${nom}-7-dossier.png`, fullPage: nom === "ordi" });
     if (nom === "ordi") await page.pdf({ path: `${OUT}/dossier-banque-exemple.pdf`, format: "A4", printBackground: true });
+
+    /* professionnels, moteur, feuille de route */
+    await page.locator('.nav-i[href="#/pro/artisan"]').click();
+    await page.locator(".demande").first().waitFor();
+    await page.selectOption("[data-metier]", "carreleur");
+    await page.locator(".demande").first().waitFor();
+    assert.match(await page.locator(".d-lots").first().innerText(), /carrelage/i);
+    await page.getByText("Proposer un devis").first().click();
+    await page.locator(".d-act.ok").waitFor();
+    await page.screenshot({ path: `${OUT}/${nom}-8-artisan.png`, fullPage: nom === "ordi" });
+    for (const [o, sel] of [["courtier", ".dossier-c"], ["agence", ".annonce"]]) {
+      await page.locator(`.onglet[href="#/pro/${o}"]`).click();
+      await page.locator(sel).first().waitFor();
+      await page.screenshot({ path: `${OUT}/${nom}-8-${o}.png`, fullPage: nom === "ordi" });
+    }
+    await page.locator('.nav-i[href="#/moteur"]').click();
+    await page.locator(".stats").waitFor();
+    assert.match(await page.locator(".stat b").first().innerText(), /^\d+$/);
+    await page.screenshot({ path: `${OUT}/${nom}-9-moteur.png`, fullPage: nom === "ordi" });
+    await page.locator('.nav-i[href="#/feuille-de-route"]').click();
+    await page.locator(".phases").waitFor();
+    await page.screenshot({ path: `${OUT}/${nom}-10-feuille.png`, fullPage: nom === "ordi" });
     await page.goto(URL);
     await page.locator(".maison").first().waitFor();
 

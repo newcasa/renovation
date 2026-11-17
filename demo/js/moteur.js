@@ -161,7 +161,12 @@ function calculerPoste(R, k, Q, QL, rep, rate) {
       if (QD > 0) o.notes.push(`Fait vous-même sur ${QD} ${u} : pas de main-d'œuvre comptée.`);
     } else if (QL > 0) {
       if (p.moinc) o.notes.push(`Main-d'œuvre ${p.moinc}.`);
-      else o.manques.push("Main-d'œuvre à compléter");
+      else if (p.l) {
+        /* pas de tarif de référence : la main-d'œuvre reprend la fourchette Valou (signalé) */
+        o.mo = [QL * p.l[0], QL * moy(p.l[0], p.l[1]), QL * p.l[1]];
+        o.moFourchette = true;
+        o.notes.push("Main-d'œuvre : fourchette Valou, pas encore de tarif de référence.");
+      } else o.manques.push("Main-d'œuvre à compléter");
     }
   }
 
@@ -177,7 +182,7 @@ function calculerPoste(R, k, Q, QL, rep, rate) {
 export function fiabilite(o) {
   if (o.manques.length) return "incomplet";
   if (o.mode === "fourchette") return "fourchette";
-  if (o.matFourchette || (o.main && o.main.e > 0) || o.articles.some(a => a.promo || a.ver || a.indicatif || a.defaut)) return "estimation";
+  if (o.matFourchette || o.moFourchette || (o.main && o.main.e > 0) || o.articles.some(a => a.promo || a.ver || a.indicatif || a.defaut)) return "estimation";
   return "reference";
 }
 

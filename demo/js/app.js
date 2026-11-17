@@ -3,6 +3,7 @@ import { chargerReferences } from "./donnees.js";
 import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
+import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
 
 let R = null;
 let maisons = lireMaisons();
@@ -26,7 +27,7 @@ function entete(actif) {
       : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   return `<header class="top">
     <a href="#/" class="marque" aria-label="Valou, accueil"><img src="../logo.png" alt="Valou"></a>
-    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("", "Professionnels", "", 1)}${lien("", "Notre moteur", "", 1)}${lien("", "Feuille de route", "", 1)}</nav>
+    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/pro/artisan", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
   </header>`;
 }
 
@@ -248,9 +249,10 @@ function detailPoste(p, b) {
   const art = p.articles.map(a => `<tr><td>${esc(a.id)} ${esc(a.n)}${a.promo ? " <small class='mu'>(prix promo)</small>" : ""}${a.defaut ? " <small class='mu'>(prix magasin, à défaut du prix négociant)</small>" : ""}</td>
     <td class="r">${a.nb != null ? `${nombre(a.nb)} × ${esc(a.cond)}` : `${a.besoin.toFixed(2).replace(".", ",")} ${esc(a.unite)}`}</td><td class="r">${euros2(a.tot)}</td></tr>`).join("");
   const mo = p.main && p.QL > 0 ? `<tr><td>${esc(p.main.id)} ${esc(p.main.n)}${p.main.e ? ` <small class='mu'>(${p.main.e === 1 ? "tarif estimé" : "tarif à vérifier"})</small>` : ""}</td><td class="r">${nombre(p.QL)} ${esc(p.u)} × ${euros2(p.main.m)}</td><td class="r">${euros2(p.mo[1])}</td></tr>` : "";
+  const fbMo = p.moFourchette && p.QL > 0 ? `<tr><td>Main-d'œuvre (fourchette Valou)</td><td></td><td class="r">${euros2(p.mo[1])}</td></tr>` : "";
   const fbMat = p.matFourchette ? `<tr><td>Matériel (fourchette Valou)</td><td></td><td class="r">${euros2(p.mat[1])}</td></tr>` : "";
   const fb = p.mode === "fourchette" ? `<tr><td>Matériel (fourchette Valou)</td><td></td><td class="r">${euros2(p.mat[1])}</td></tr>${p.QL > 0 ? `<tr><td>Main-d'œuvre (fourchette Valou)</td><td></td><td class="r">${euros2(p.mo[1])}</td></tr>` : ""}` : "";
-  return `<div class="det"><table>${art}${fbMat}${mo}${fb}<tr class="tva"><td>TVA</td><td></td><td class="r">${euros2(p.tva[1])}</td></tr></table>
+  return `<div class="det"><table>${art}${fbMat}${mo}${fbMo}${fb}<tr class="tva"><td>TVA</td><td></td><td class="r">${euros2(p.tva[1])}</td></tr></table>
     ${[...p.notes, ...p.manques].map(t => `<small class="mu">• ${esc(t)}</small>`).join("<br>")}</div>`;
 }
 
@@ -266,6 +268,7 @@ function aides() {
 
 /* ---------- écran : comparer ---------- */
 let selection = null; // identifiants des maisons comparées (3 au plus)
+let metier = "general"; // métier choisi sur l'écran artisan
 
 function resume(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
@@ -390,6 +393,9 @@ function afficher() {
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/);
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
+  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete }, h.split("/")[2] || "artisan", metier);
+  else if (h === "/moteur") html = ecranMoteur({ R, entete });
+  else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
@@ -409,6 +415,12 @@ document.addEventListener("click", e => {
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
   if (a === "imprimer") window.print();
+  if (a === "pro-ok" || a === "pro-non") {
+    const carte = el.closest(".demande");
+    carte.querySelector(".d-act").outerHTML = a === "pro-ok"
+      ? `<span class="d-act ok">✓ Le client est prévenu : il recevra votre devis dans son espace Valou.</span>`
+      : `<span class="d-act mu">Demande transmise à un autre artisan.</span>`;
+  }
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "suppr-ligne" && m) { m.travaux.splice(+el.dataset.i, 1); sauver(); afficher(); }
   if (a === "ajout-ligne" && m) { m.travaux.push({ id: nouvelId(), piece: "", k: "mur_peinture", q: "" }); sauver(); afficher(); }
@@ -417,6 +429,7 @@ document.addEventListener("click", e => {
 
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  if (t.dataset.metier != null) { metier = t.value; afficher(); return; }
   /* comparer */
   if (t.dataset.comp) {
     const id = t.dataset.comp;

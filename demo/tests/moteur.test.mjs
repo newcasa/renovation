@@ -73,6 +73,17 @@ test("salle de bain : pas de main-d'œuvre de référence et articles sans prix 
   proche(p.total[1], ((3305.79 + 14049.59) / 2 + (2500 + 10500) / 2) * 1.06, "total moyen");
 });
 
+test("articles chiffrés mais pas de tarif de main-d'œuvre : main-d'œuvre en fourchette Valou", () => {
+  const p = calculerBudget(R, maison([{ k: "i_fa_2", q: 10 }]), 2026).postes[0];
+  assert.equal(p.moFourchette, true);
+  assert.equal(p.fiab, "estimation");
+  assert.deepEqual(p.mo, [200, 325, 450]);
+});
+
+test("aucun poste de la grille ne reste « à compléter »", () => {
+  R.liste.forEach(x => assert.notEqual(calculerBudget(R, maison([{ k: x.k, q: 1 }]), 2026).postes[0].fiab, "incomplet", x.k));
+});
+
 test("TVA : 21 % pour un logement récent", () => {
   assert.equal(tauxProjet({ annee: 2020 }, 2026), 21);
   assert.equal(tauxProjet({ annee: 2010 }, 2026), 6);
