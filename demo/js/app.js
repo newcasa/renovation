@@ -698,7 +698,7 @@ function ecranDossier(m) {
         <tr class="sous"><td colspan="2">TVA</td><td class="r">${euros(b.TVA[1])}</td></tr>
         ${b.ANN[1] ? `<tr class="sous"><td colspan="2">Container à gravats</td><td class="r">${euros(b.ANN[1])}</td></tr>` : ""}
         <tr class="sous"><td colspan="2">Imprévus (${b.pi} %)</td><td class="r">${euros(b.IM[1])}</td></tr>
-        <tr class="tot"><td colspan="2">Total des travaux (moyen)</td><td class="r">${euros(b.T[1], 100)}</td></tr>
+        <tr class="tot"><td colspan="3">Total des travaux (moyen)</td><td class="r">${euros(b.T[1], 100)}</td></tr>
       </table>
 
       <h2>4. Hypothèses et fiabilité</h2>
@@ -859,6 +859,14 @@ function preparerPresentation(direct) {
 }
 
 /* ---------- écran : contacter un professionnel ---------- */
+/* artisans de démonstration par métier (fictifs) : le premier est celui qui répond dans la démo */
+const LIEUX_DEMO = [["Namur", 4], ["Gembloux", 9], ["Andenne", 14], ["Fosses-la-Ville", 17], ["Éghezée", 19]];
+function artisansDuMetier(id) {
+  const A = ARTISANS_EXEMPLE[id] || ARTISANS_EXEMPLE.general, base = A.nom.replace(/ Exemple$/, "");
+  return LIEUX_DEMO.map(([lieu, km], i) => ({ id: `${id}-${i + 1}`, nom: i ? `${base} Exemple ${String.fromCharCode(65 + i)}` : A.nom, lieu, km, tarifs: i < 3 }));
+}
+const ctOuvert = {};
+
 function ecranContacts(id) {
   const m = id && trouver(id);
   if (!m) {
@@ -880,13 +888,32 @@ function ecranContacts(id) {
   const ligneMetier = ({ x, lots }) => {
     const t = lots.reduce((s, p) => s + p.total[1], 0);
     const envoye = m.envoi && m.envoi.metiers.includes(x.id), r = (m.reponses || []).find(y => y.metier === x.id), A = ARTISANS_EXEMPLE[x.id] || ARTISANS_EXEMPLE.general;
+    const choisis = (m.artisansChoisis || {})[x.id] || [], liste = artisansDuMetier(x.id);
+    const nomsChoisis = choisis.map(id => (liste.find(a => a.id === id) || {}).nom).filter(Boolean);
     const etat = !envoye ? `<span class="badge b-fourchette">Pas encore envoyé</span>`
-      : !r ? `<span class="badge b-estimation">Envoyé · en attente de réponse</span>`
+      : !r ? `<span class="badge b-estimation">Envoyé${nomsChoisis.length ? ` à ${nomsChoisis.length} artisan${nomsChoisis.length > 1 ? "s" : ""}` : ""} · en attente de réponse</span>`
       : r.type === "non" ? `<span class="badge b-fourchette">Artisan pas disponible</span>`
       : `<span class="badge b-reference">${r.type === "visite" ? "Visite proposée" : "Devis envoyé"}</span>`;
+    /* le projet personnalisé de ce métier : chaque poste, sa quantité, les pièces concernées et son prix */
+    const ouPoste = k => [...new Set(b.lignes.filter(l => l.k === k && l.pieceId && !l.soiMeme).map(l => ((m.pieces || []).find(pc => pc.id === l.pieceId) || {}).nom).filter(Boolean))];
+    const projet = `<table class="ct-projet"><thead><tr><th>Poste</th><th class="ct-ou">Pièces</th><th class="r">Quantité</th><th class="r">Budget moyen</th></tr></thead><tbody>
+      ${lots.map(p => `<tr><td>${esc(p.n)} ${badge(p.fiab)}</td><td class="mu ct-ou">${esc(ouPoste(p.k).join(", ") || "Toute la maison")}</td><td class="r">${esc(qte(p.QL, p.u))}</td><td class="r"><b>${euros(p.total[1], 10)}</b></td></tr>`).join("")}
+      <tr class="tot"><td colspan="3">Total ${esc(x.t.toLowerCase())} (TVA ${b.rate} % comprise)</td><td class="r"><b>${euros(t, 10)}</b></td></tr></tbody></table>
+      <p class="mu petit-t">C'est exactement ce que reçoivent les artisans choisis, avec les photos des pièces concernées.</p>`;
+    const choix = `<div class="ct-choix" data-metier-choix="${x.id}">
+      <p class="mu petit-t">Cochez jusqu'à <b>3 artisans</b>, puis envoyez.</p>
+      ${liste.map(a => { const on = choisis.includes(a.id); return `<label class="cb ct-art"><input type="checkbox" data-art="${a.id}" ${on ? "checked" : ""} ${envoye || (!on && choisis.length >= 3) ? "disabled" : ""}>
+        <span><b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><small class="mu">${esc(a.lieu)} · à ${a.km} km${a.tarifs ? " · tarifs partagés avec Valou" : ""}</small></span></label>`; }).join("")}
+      ${envoye ? `<p class="envoye">📨 Projet envoyé${nomsChoisis.length ? ` à ${esc(nomsChoisis.join(", "))}` : ""} le ${esc(new Date(((m.envoiMetier || {})[x.id] || m.envoi).date).toLocaleDateString("fr-BE"))}. Démonstration : aucun envoi réel.</p>`
+        : `<button class="btn petit-btn" data-action="envoi-metier" data-metier="${x.id}" ${choisis.length ? "" : "disabled"}>📨 Envoyer${choisis.length ? ` à ${choisis.length} artisan${choisis.length > 1 ? "s" : ""}` : ""}</button>`}
+    </div>`;
     return `<div class="contact-ligne"><div><b>${esc(x.t)}</b><small class="mu">${lots.map(p => esc(p.n)).join(", ")}</small></div>
       <div class="r"><small class="mu">Budget moyen</small><b>${euros(t, 10)}</b></div>
-      <div class="ct-etat">${etat}${r && r.type !== "non" ? `<div class="ct-coord"><b>${esc(A.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><span>📞 ${esc(A.tel)}</span><small class="mu">Répondu le ${esc(new Date(r.date).toLocaleDateString("fr-BE"))}</small></div>` : ""}</div></div>`;
+      <div class="ct-etat">${etat}${r && r.type !== "non" ? `<div class="ct-coord"><b>${esc(A.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><span>📞 ${esc(A.tel)}</span><small class="mu">Répondu le ${esc(new Date(r.date).toLocaleDateString("fr-BE"))}</small></div>` : ""}</div>
+      <div class="ct-plus">
+        <details class="ct-det" ${ctOuvert[m.id + ":p:" + x.id] ? "open" : ""} data-ct="${m.id}:p:${x.id}"><summary>📋 Voir le projet ${esc(x.t.toLowerCase())}</summary>${projet}</details>
+        <details class="ct-det" ${ctOuvert[m.id + ":a:" + x.id] ? "open" : ""} data-ct="${m.id}:a:${x.id}"><summary>👷 Choisir les artisans${choisis.length ? ` (${choisis.length}/3)` : ""}</summary>${choix}</details>
+      </div></div>`;
   };
   return `${entete("contacts")}<main>
     <a href="#/contacts" class="retour">← Mes maisons</a>
@@ -903,7 +930,7 @@ function ecranContacts(id) {
       <p><a class="btn sec petit-btn" href="#/maison/${m.id}">Voir la fiche complète →</a></p>
     </section>
     <section class="carte">
-      <div class="gp-tete"><h2>Artisans</h2>${m.envoi ? `<small class="mu">Projet envoyé le ${esc(new Date(m.envoi.date).toLocaleDateString("fr-BE"))}</small>` : `<a class="btn petit-btn" href="#/maison/${m.id}">📨 Envoyer le projet aux artisans</a>`}</div>
+      <div class="gp-tete"><h2>Artisans</h2><small class="mu">Pour chaque métier : consultez le projet, cochez jusqu'à 3 artisans, envoyez.</small></div>
       ${metiers.length ? metiers.map(ligneMetier).join("") : `<p class="mu">Aucun travail encodé pour l'instant.</p>`}
       <p class="mu petit-t">Les coordonnées d'un artisan apparaissent quand il répond à votre projet (visite ou devis).</p>
     </section>
@@ -941,7 +968,7 @@ function afficher() {
 /* ---------- interactions ---------- */
 
 const maisonCourante = () => {
-  const mm = location.hash.match(/^#\/(?:maison|dossier)\/(\w+)/);
+  const mm = location.hash.match(/^#\/(?:maison|dossier|contacts)\/(\w+)/);
   return mm && trouver(mm[1]);
 };
 
@@ -955,6 +982,14 @@ document.addEventListener("click", e => {
     if (window.innerWidth < 800) document.getElementById("at-panneau")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   if (a === "envoi-ouvrir" && m) { envoiOuvert = m.id; afficher(); }
+  if (a === "envoi-metier" && m) {
+    const id = el.dataset.metier, choisis = (m.artisansChoisis || {})[id] || [];
+    if (!choisis.length) return;
+    m.envoi = m.envoi || { date: Date.now(), metiers: [] };
+    if (!m.envoi.metiers.includes(id)) m.envoi.metiers.push(id);
+    m.envoiMetier = { ...(m.envoiMetier || {}), [id]: { date: Date.now(), artisans: choisis } };
+    sauver(); afficher();
+  }
   if (a === "envoi-annuler") { envoiOuvert = null; afficher(); }
   if (a === "envoi-ok" && m) {
     const ids = [...document.querySelectorAll("[data-envoi-metier]")].filter(x => x.checked).map(x => x.dataset.envoiMetier);
@@ -1019,8 +1054,16 @@ document.addEventListener("click", e => {
   }
 });
 
+document.addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.ct) ctOuvert[d.dataset.ct] = d.open; }, true);
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  /* contacter : choix de 3 artisans au maximum par métier */
+  if (t.dataset.art && m) {
+    const id = t.closest("[data-metier-choix]").dataset.metierChoix, L = new Set((m.artisansChoisis || {})[id] || []);
+    if (t.checked) { if (L.size >= 3) { t.checked = false; return; } L.add(t.dataset.art); } else L.delete(t.dataset.art);
+    m.artisansChoisis = { ...(m.artisansChoisis || {}), [id]: [...L] };
+    sauver(); afficher(); return;
+  }
   /* photos de la visite */
   if (t.dataset.photoInput != null && m) {
     const nom = t.dataset.nom;

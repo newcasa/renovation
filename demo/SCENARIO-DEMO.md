@@ -163,3 +163,14 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 - **Négociant** : visible sur les projets de sa zone, avec ses services, coordonnées et horaires ; des clients avec un chantier chiffré ; aucune offre à envoyer.
 - **Courtier ou banque** : un dossier complet (achat, notaire validé, travaux, PEB), moins de temps passé à reconstituer le budget.
 - **Agence** : des annonces rédigées librement, l'estimation des travaux en option, des acheteurs qui osent visiter les maisons à rénover.
+
+---
+
+# « Contacter » : choisir ses artisans par métier (1 minute, en option)
+
+**Clic :** « Contacter » › Maison de démonstration B.
+
+**À montrer :** pour chaque métier, « 📋 Voir le projet » (chaque poste, les pièces concernées, la quantité et le budget), puis « 👷 Choisir les artisans » : cocher 3 artisans (le 4e se bloque), puis « 📨 Envoyer à 3 artisans ».
+
+**À dire :**
+> « Le particulier voit exactement ce que recevra chaque artisan, et il choisit lui-même 3 artisans par métier. Pas de démarchage : c'est lui qui décide. »

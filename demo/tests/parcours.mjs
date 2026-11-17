@@ -83,6 +83,18 @@ try {
     await page.locator(".resume").waitFor();
     assert.match(await page.locator("main").innerText(), /Carreleur[\s\S]*Visite proposée[\s\S]*Carrelage Exemple[\s\S]*Négociants de votre région/);
     await page.screenshot({ path: `${OUT}/${nom}-0e-contacts.png`, fullPage: nom === "ordi" });
+    /* maison B : pour un métier, on consulte le projet personnalisé, on coche 3 artisans (pas plus) et on envoie */
+    await page.locator(".retour").click();
+    await page.locator('.grille .maison:has-text("Maison de démonstration B")').click();
+    const ligne = page.locator(".contact-ligne").first();
+    await ligne.locator('summary:has-text("Voir le projet")').click();
+    assert.match(await ligne.locator(".ct-projet").innerText(), /Poste[\s\S]*Total[\s\S]*€/);
+    await ligne.locator('summary:has-text("Choisir les artisans")').click();
+    for (let i = 0; i < 3; i++) await page.locator(".contact-ligne").first().locator("[data-art]").nth(i).check();
+    assert.ok(await page.locator(".contact-ligne").first().locator("[data-art]").nth(3).isDisabled(), "4e artisan bloqué");
+    await page.screenshot({ path: `${OUT}/${nom}-0f-choix-artisans.png`, fullPage: nom === "ordi" });
+    await page.locator(".contact-ligne").first().locator('[data-action="envoi-metier"]').click();
+    assert.match(await page.locator(".contact-ligne").first().innerText(), /Envoyé à 3 artisans/);
     /* négociant : sa fiche (services, coordonnées, horaires), visible sur la fiche de la maison ; pas d'offres */
     await page.goto(URL + "#/pro/negociant");
     await page.fill('[data-negfiche="nom"]', "Négoce Test");
