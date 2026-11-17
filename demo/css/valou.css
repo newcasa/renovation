@@ -692,3 +692,14 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .ct-choix .btn { margin-top: 10px; }
 @media (max-width: 900px) { .contact-ligne { grid-template-columns: 1fr auto; } .ct-etat, .ct-boutons { grid-column: 1 / -1; } .ct-btn { flex: 1; justify-content: center; } }
 @media (max-width: 600px) { .ct-panneau { padding: 4px 6px 10px; } .ct-projet th, .ct-projet td { padding: 7px 4px; font-size: 13px; } .ct-projet .badge { display: none; } .ct-projet td:first-child { width: 22px; } }
+
+/* matériau souhaité et remarque pour l'artisan */
+.ct-mat-in { width: 100%; min-width: 150px; padding: 6px 8px; font-size: 13.5px; }
+.ct-projet th small { font-weight: 500; }
+.ct-mat-tel { display: none; margin-top: 6px; }
+.ct-note { display: block; margin-top: 12px; font: 700 13.5px Manrope, sans-serif; color: var(--bordeaux); }
+.ct-note textarea { display: block; width: 100%; margin-top: 4px; font: 400 14px Manrope, sans-serif; padding: 8px 10px; }
+.d-mats { background: var(--carte); border-radius: 10px; padding: 10px 12px; margin: 10px 0; font-size: 14px; }
+.d-mats ul { margin: 6px 0 0; padding-left: 18px; }
+.d-mats p { margin: 6px 0 0; font-style: italic; }
+@media (max-width: 760px) { .ct-projet .ct-mat { display: none; } .ct-mat-tel { display: block; } }

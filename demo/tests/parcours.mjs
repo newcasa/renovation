@@ -102,6 +102,13 @@ try {
     await L().locator("[data-part]").first().uncheck();
     assert.match(await L().locator(".ct-projet").innerText(), new RegExp(`À envoyer : ${nParts - 1} partie`));
     assert.equal(await L().locator("tr.exclu").count(), 1);
+    /* le matériau souhaité (ex. le type de carrelage) et une remarque partent avec le projet */
+    await L().locator("[data-mat]:visible").nth(1).fill("Grès cérame 60×60 test");
+    await L().locator("[data-mat]:visible").nth(1).dispatchEvent("change");
+    await L().locator("[data-note-metier]").fill("Joints gris test");
+    await L().locator("[data-note-metier]").dispatchEvent("change");
+    assert.equal(await L().locator("[data-mat]:visible").nth(1).inputValue(), "Grès cérame 60×60 test");
+    const metierTest = await L().locator('[data-v="p"]').getAttribute("data-metier");
     await page.screenshot({ path: `${OUT}/${nom}-0f-parties.png`, fullPage: nom === "ordi" });
     await L().locator('[data-v="a"]').click();
     for (let i = 0; i < 3; i++) await L().locator("[data-art]").nth(i).check();
@@ -109,6 +116,10 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-0g-choix-artisans.png`, fullPage: nom === "ordi" });
     await L().locator('[data-action="envoi-metier"]').click();
     assert.match(await L().innerText(), /Envoyé à 3 artisans/);
+    await page.goto(URL + "#/pro/artisan");
+    await page.selectOption("[data-metier]", metierTest);
+    assert.match(await page.locator(".demande").filter({ hasText: "Grès cérame 60×60 test" }).innerText(), /Souhaits du client[\s\S]*Grès cérame 60×60 test[\s\S]*Joints gris test/);
+    await page.screenshot({ path: `${OUT}/${nom}-0h-souhaits-artisan.png`, fullPage: nom === "ordi" });
 
     /* négociant : sa fiche (services, coordonnées, horaires), visible sur la fiche de la maison ; pas d'offres */
     await page.goto(URL + "#/pro/negociant");

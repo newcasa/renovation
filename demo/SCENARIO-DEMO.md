@@ -170,7 +170,7 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 
 **Clic :** « Contacter » › Maison de démonstration B.
 
-**À montrer :** chaque métier tient sur une ligne, avec deux boutons. « 📋 Projet » : chaque partie (une pièce et un poste) avec sa quantité et son budget ; décocher une partie (ex. « je fais moi-même la salle de bain ») la retire de l'envoi et le total change. « 👷 Artisans » : cocher 3 artisans (le 4e se bloque), puis « 📨 Envoyer ». L'artisan ne reçoit que les parties cochées.
+**À montrer :** chaque métier tient sur une ligne, avec deux boutons. « 📋 Projet » : chaque partie (une pièce et un poste) avec sa quantité et son budget ; décocher une partie (ex. « je fais moi-même la salle de bain ») la retire de l'envoi et le total change. « 👷 Artisans » : cocher 3 artisans (le 4e se bloque), puis « 📨 Envoyer ». Pour chaque partie, on peut écrire le matériau souhaité (ex. « Grès cérame 60×60 », avec des propositions), et une remarque pour l'artisan. L'artisan ne reçoit que les parties cochées, avec ces « Souhaits du client ».
 
 **À dire :**
 > « Le particulier voit exactement ce que recevra chaque artisan, et il choisit lui-même 3 artisans par métier. Pas de démarchage : c'est lui qui décide. »

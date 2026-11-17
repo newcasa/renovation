@@ -866,6 +866,23 @@ function artisansDuMetier(id) {
   return LIEUX_DEMO.map(([lieu, km], i) => ({ id: `${id}-${i + 1}`, nom: i ? `${base} Exemple ${String.fromCharCode(65 + i)}` : A.nom, lieu, km, tarifs: i < 3 }));
 }
 const ctOuvert = {};
+/* propositions de matériaux (texte libre : le client peut écrire ce qu'il veut ; aucun prix) */
+const MATERIAUX = [
+  [/carrelage/, ["Grès cérame 60×60", "Grès cérame 30×60", "Grès cérame imitation bois 20×120", "Grès cérame 120×60 grand format", "Carreaux de ciment", "Faïence murale 30×60", "Mosaïque", "Pierre naturelle"]],
+  [/parquet/, ["Parquet chêne massif", "Parquet contrecollé chêne", "Sol stratifié", "Sol vinyle (PVC) clipsable"]],
+  [/peinture/, ["Peinture mate blanche", "Peinture velours", "Peinture satinée (pièces humides)", "Peinture de couleur (référence à fournir)"]],
+  [/plafonnage/, ["Plâtre projeté", "Plaques de plâtre (Gyproc)", "Enduit lissé"]],
+  [/^i_ch|chassis|ch_/, ["PVC blanc", "PVC anthracite", "Aluminium", "Bois", "Double vitrage", "Triple vitrage"]],
+  [/^i_(pe)$/, ["Porte PVC", "Porte aluminium", "Porte bois", "Porte avec vitrage"]],
+  [/^i_(pi)$/, ["Porte tubulaire blanche", "Porte pleine", "Porte vitrée", "Porte coulissante"]],
+  [/meu_cuisine/, ["Cuisine en kit (montage seulement)", "Cuisine sur mesure", "Plan de travail stratifié", "Plan de travail en pierre"]],
+  [/meu_sdb/, ["Douche à l'italienne", "Baignoire", "Meuble double vasque", "Paroi de douche vitrée"]],
+  [/^wc_/, ["WC suspendu", "WC au sol", "Lave-mains"]],
+  [/i_rad|^rad/, ["Radiateur acier à panneaux", "Radiateur design", "Sèche-serviettes"]],
+  [/i_(cv|to)_/, ["Tuiles terre cuite", "Tuiles béton", "Ardoises naturelles", "Ardoises artificielles", "EPDM"]],
+  [/i_st|isol/, ["Laine de roche", "Laine de verre", "Fibre de bois", "PIR / PUR"]],
+];
+const suggestionsMateriau = k => (MATERIAUX.find(([re]) => re.test(k)) || [, []])[1];
 /* les parties du projet d'un métier : chaque poste, pièce par pièce (sans ce que l'on fait soi-même) */
 function partiesMetier(m, b, x) {
   const P = {};
@@ -912,11 +929,16 @@ function ecranContacts(id) {
       : `<span class="badge b-reference">${r.type === "visite" ? "Visite proposée" : "Devis envoyé"}</span>`;
     const ouvert = ctOuvert[m.id + ":" + x.id];
     const projet = `<div class="ct-panneau"><p class="mu petit-t">Cochez les parties à envoyer. Exemple : vous carrelez vous-même la salle de bain, mais pas le séjour → ne cochez que le séjour.</p>
-      <table class="ct-projet"><thead><tr><th></th><th>Pièce</th><th>Poste</th><th class="r">Quantité</th><th class="r">Budget</th></tr></thead><tbody>
-      ${parts.map(q => `<tr class="${incluse(q) ? "" : "exclu"}"><td><input type="checkbox" data-part="${esc(q.cle)}" ${incluse(q) ? "checked" : ""} ${envoye ? "disabled" : ""} aria-label="Envoyer : ${esc(q.piece)}, ${esc(q.n)}"></td>
-        <td><b>${esc(q.piece)}</b></td><td>${esc(q.n)} ${badge(q.fiab)}</td><td class="r">${esc(qte(q.q, q.u))}</td><td class="r">${q.total ? euros(q.total, 10) : "–"}</td></tr>`).join("")}
-      <tr class="tot"><td colspan="4">À envoyer : ${nSel} partie${nSel > 1 ? "s" : ""} sur ${parts.length} (TVA ${b.rate} % comprise)</td><td class="r"><b>${euros(tSel, 10)}</b></td></tr></tbody></table>
-      <p class="mu petit-t">C'est exactement ce que reçoivent les artisans choisis, avec les photos des pièces cochées.</p></div>`;
+      <table class="ct-projet"><thead><tr><th></th><th>Pièce</th><th>Poste</th><th class="ct-mat">Matériau souhaité <small>(facultatif)</small></th><th class="r">Quantité</th><th class="r">Budget</th></tr></thead><tbody>
+      ${parts.map(q => { const mat = (m.materiaux || {})[q.cle] || "", sug = suggestionsMateriau(q.k);
+        const champ = `<input class="ct-mat-in" data-mat="${esc(q.cle)}" value="${esc(mat)}" ${sug.length ? `list="sug-${esc(q.k)}"` : ""} placeholder="${esc(sug[0] ? `ex. ${sug[0]}` : "ex. marque, couleur, format")}" ${envoye ? "readonly" : ""} aria-label="Matériau souhaité : ${esc(q.piece)}, ${esc(q.n)}">`;
+        return `<tr class="${incluse(q) ? "" : "exclu"}"><td><input type="checkbox" data-part="${esc(q.cle)}" ${incluse(q) ? "checked" : ""} ${envoye ? "disabled" : ""} aria-label="Envoyer : ${esc(q.piece)}, ${esc(q.n)}"></td>
+        <td><b>${esc(q.piece)}</b></td><td>${esc(q.n)} ${badge(q.fiab)}<div class="ct-mat-tel">${champ}</div></td><td class="ct-mat">${champ}</td><td class="r">${esc(qte(q.q, q.u))}</td><td class="r">${q.total ? euros(q.total, 10) : "–"}</td></tr>`; }).join("")}
+      <tr class="tot"><td colspan="5">À envoyer : ${nSel} partie${nSel > 1 ? "s" : ""} sur ${parts.length} (TVA ${b.rate} % comprise)</td><td class="r"><b>${euros(tSel, 10)}</b></td></tr></tbody></table>
+      ${[...new Set(parts.map(q => q.k))].map(k => suggestionsMateriau(k).length ? `<datalist id="sug-${esc(k)}">${suggestionsMateriau(k).map(v => `<option value="${esc(v)}">`).join("")}</datalist>` : "").join("")}
+      <label class="ct-note">Remarque pour l'artisan <small class="mu">(facultatif)</small>
+        <textarea data-note-metier="${x.id}" rows="2" ${envoye ? "readonly" : ""} placeholder="ex. Carrelage déjà acheté, à poser seulement. Joints gris anthracite.">${esc((m.notesMetier || {})[x.id] || "")}</textarea></label>
+      <p class="mu petit-t">C'est exactement ce que reçoivent les artisans choisis : les parties cochées, le matériau souhaité, votre remarque et les photos des pièces concernées. Le budget reste une estimation : le matériau choisi peut le faire varier.</p></div>`;
     const choix = `<div class="ct-panneau ct-choix" data-metier-choix="${x.id}">
       <p class="mu petit-t">Cochez jusqu'à <b>3 artisans</b>, puis envoyez.</p>
       ${liste.map(a => { const on = choisis.includes(a.id); return `<label class="cb ct-art"><input type="checkbox" data-art="${a.id}" ${on ? "checked" : ""} ${envoye || (!on && choisis.length >= 3) ? "disabled" : ""}>
@@ -1079,6 +1101,9 @@ document.addEventListener("click", e => {
 
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  /* contacter : matériau souhaité et remarque pour l'artisan */
+  if (t.dataset.mat != null && m) { m.materiaux = { ...(m.materiaux || {}), [t.dataset.mat]: t.value.trim() }; sauver(); afficher(); return; }
+  if (t.dataset.noteMetier && m) { m.notesMetier = { ...(m.notesMetier || {}), [t.dataset.noteMetier]: t.value.trim() }; sauver(); return; }
   /* contacter : parties du projet à envoyer */
   if (t.dataset.part && m) {
     const id = t.closest(".contact-ligne").querySelector("[data-action=ct-ouvrir]").dataset.metier, X = new Set((m.partiesExclues || {})[id] || []);
