@@ -14,7 +14,7 @@ Adresse une fois en ligne : https://hoono.be/demo/
 | `js/moteur.js` | **Le moteur de calcul** (bas / moyen / haut, TVA, imprévus, coût total). Aucun affichage : seulement des calculs |
 | `js/donnees.js` | Charge les fichiers de prix de la racine (`tarifs-reference.json`, `main-oeuvre.json`, `prix-hubo.json`, `aides-renovation.json`) et les prix publiés depuis le tableau de bord (Supabase) |
 | `js/app.js` | Les écrans : accueil, ajouter une maison, le vrai coût, comparer, dossier pour la banque (imprimable en PDF) |
-| `js/vitrine.js` | Les écrans de présentation : Professionnels (artisan, courtier, agence : simulations), Notre moteur, Feuille de route |
+| `js/vitrine.js` | Les écrans de présentation : Professionnels (artisan : demandes et mes tarifs, courtier, agence : simulations), Notre moteur, Feuille de route |
 | `maison-demo.json` | **Les 2 maisons de démonstration (fictives)** : A, ancienne et à rénover, et B, plus chère mais en bon état. Elles sont affichées dès la première visite. Pour les remplacer par de vraies maisons : changer ce fichier (mêmes champs). Seules les caractéristiques et les quantités y sont, les prix viennent toujours des références |
 | `js/stockage.js`, `js/format.js` | Enregistrement des maisons sur l'appareil, mise en forme des montants |
 | `tests/moteur.test.mjs` | Tests du moteur : `node --test demo/tests/moteur.test.mjs` |
@@ -29,3 +29,15 @@ Les prix viennent des **mêmes fichiers** que l'appli complète, et du **tableau
 - Chaque poste affiche son niveau de fiabilité : Référence détaillée, Estimation, Fourchette, À compléter.
 - Droits d'enregistrement en Wallonie : 3 % (habitation propre et unique) ou 12,5 %, à confirmer par le notaire.
 - Honoraires du notaire : montant à encoder (simulation du notaire).
+
+## Prix locaux des artisans (simulation)
+
+Sur l'écran « Notre moteur », une simulation montre le fonctionnement prévu :
+- les artisans encodent leurs tarifs, qui restent **confidentiels** ;
+- pour un chantier, Valou prend le plus petit rayon (5, 10, 15 puis 20 km) qui compte **au moins 5 artisans** ;
+- les prix anormaux sont écartés, puis bas = 1er quartile, moyen = médiane, haut = 3e quartile ;
+- s'il y a moins de 5 artisans, la grille de référence est gardée.
+
+Les tarifs des artisans y sont **fictifs** : ils sont tirés au hasard dans la fourchette de référence du poste, et ils ne changent jamais le budget des maisons. Le calcul est dans `js/moteur.js` (`prixLocaux`) et il est testé.
+
+Pour la vraie appli, il faudra une table privée dans Supabase, où le calcul de la moyenne se fait sur le serveur et ne renvoie que des moyennes d'au moins 5 artisans. Le principe est à faire valider par un avocat (droit de la concurrence et RGPD).

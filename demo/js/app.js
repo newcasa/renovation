@@ -269,6 +269,9 @@ function aides() {
 /* ---------- écran : comparer ---------- */
 let selection = null; // identifiants des maisons comparées (3 au plus)
 let metier = "general"; // métier choisi sur l'écran artisan
+let sim = { k: "sol_carrelage", n: 25 }; // simulation des prix locaux (Notre moteur)
+let tarifs = (() => { try { return JSON.parse(localStorage.getItem("valou_demo_tarifs") || "null") || { p: {} }; } catch (e) { return { p: {} }; } })();
+const sauverTarifs = () => { try { localStorage.setItem("valou_demo_tarifs", JSON.stringify(tarifs)); } catch (e) {} };
 
 function resume(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
@@ -393,8 +396,8 @@ function afficher() {
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/);
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
-  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete }, h.split("/")[2] || "artisan", metier);
-  else if (h === "/moteur") html = ecranMoteur({ R, entete });
+  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs }, h.split("/")[2] || "artisan", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
+  else if (h === "/moteur") html = ecranMoteur({ R, entete, sim, tarifs });
   else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
@@ -415,6 +418,7 @@ document.addEventListener("click", e => {
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
   if (a === "imprimer") window.print();
+  if (el.dataset.simN != null) { sim.n = +el.dataset.simN; afficher(); }
   if (a === "pro-ok" || a === "pro-non") {
     const carte = el.closest(".demande");
     carte.querySelector(".d-act").outerHTML = a === "pro-ok"
@@ -430,6 +434,9 @@ document.addEventListener("click", e => {
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
   if (t.dataset.metier != null) { metier = t.value; afficher(); return; }
+  if (t.dataset.simK != null) { sim.k = t.value; afficher(); return; }
+  if (t.dataset.tarif) { tarifs.p[t.dataset.tarif] = t.value === "" ? null : +t.value; sauverTarifs(); afficher(); return; }
+  if (t.dataset.tarifOk != null) { tarifs.ok = t.checked; sauverTarifs(); afficher(); return; }
   /* comparer */
   if (t.dataset.comp) {
     const id = t.dataset.comp;

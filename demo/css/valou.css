@@ -286,3 +286,36 @@ h3 { font: 900 19px Outfit, sans-serif; margin: 6px 0 2px; }
   .nav-i { padding: 6px 9px; font-size: 13px; }
   .top nav { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
 }
+
+/* mes tarifs (artisan) */
+.confidentiel { background: #F1F7F3; border-color: #CBE3D5; }
+.confidentiel b:first-child { font-size: 16px; }
+.confidentiel ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+.tarifs th { text-align: left; font-size: 12.5px; color: var(--mu); padding: 6px 4px; }
+.tarifs td:last-child { width: 220px; text-align: left; }
+.tarifs input { width: 110px; }
+.tarifs + .cb { margin-top: 10px; }
+
+/* simulation des prix locaux */
+.sim-ctl { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; margin: 10px 0 16px; }
+.sim-ctl label { min-width: 260px; }
+.lbl { display: block; font-weight: 700; font-size: 13.5px; margin-bottom: 4px; }
+.seg { display: inline-flex; border: 1.5px solid var(--bord); border-radius: 10px; overflow: hidden; background: #fff; }
+.seg button { border: 0; background: none; padding: 9px 14px; font: 800 14px Manrope, sans-serif; color: var(--bordeaux); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--bord); }
+.seg button.on { background: var(--bordeaux); color: var(--creme); }
+.sim { display: grid; grid-template-columns: minmax(240px, 340px) 1fr; gap: 22px; align-items: start; }
+.carte-km { width: 100%; height: auto; background: #fff; border: 1px solid var(--bord); border-radius: 16px; }
+.carte-km .rayon { fill: none; stroke: var(--bord); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.carte-km .rayon.on { stroke: var(--or); stroke-width: 2.5; stroke-dasharray: none; fill: rgba(201, 163, 90, .08); }
+.carte-km .km { font: 700 10px Manrope, sans-serif; fill: var(--mu); }
+.pt { fill: #CDBFB3; } .pt.on { fill: var(--or-fonce); } .pt.vous { fill: var(--vert); stroke: #fff; stroke-width: 2; }
+.chantier circle { fill: var(--bordeaux); } .chantier text { fill: #fff; font-size: 12px; font-weight: 900; }
+.sim-res h3 { margin: 8px 0 6px; }
+.ref-l { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--bord); }
+.ref-l .trois .moy { background: #fff; color: var(--bordeaux); border-color: var(--bord); } .ref-l .trois .moy small { color: var(--mu); }
+.legende-carte { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.legende-carte li { display: flex; align-items: center; gap: 6px; }
+.legende-carte i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #CDBFB3; }
+.legende-carte i.on { background: var(--or-fonce); } .legende-carte i.vous { background: var(--vert); }
+@media (max-width: 760px) { .sim { grid-template-columns: 1fr; } .tarifs td:last-child { width: auto; } }

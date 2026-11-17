@@ -282,3 +282,34 @@ export function travauxRapides(maison, choix) {
   });
   return out;
 }
+
+/* ---------- Prix locaux : moyenne des tarifs déclarés par les artisans autour du chantier ----------
+   tarifs = [{ d: distance au chantier en km, p: prix HTVA }]
+   On prend le plus petit rayon qui contient au moins MIN artisans (confidentialité : jamais de moyenne avec moins de 5 prix).
+   Les prix anormaux sont écartés, puis : bas = 1er quartile, moyen = médiane, haut = 3e quartile. */
+export const RAYONS = [5, 10, 15, 20];
+export const MIN_ARTISANS = 5;
+
+export function quantile(trie, q) {
+  if (!trie.length) return null;
+  const i = (trie.length - 1) * q, a = Math.floor(i), b = Math.ceil(i);
+  return trie[a] + (trie[b] - trie[a]) * (i - a);
+}
+
+export function sansExtremes(valeurs) {
+  const t = [...valeurs].sort((x, y) => x - y);
+  if (t.length < 4) return t;
+  const q1 = quantile(t, 0.25), q3 = quantile(t, 0.75), e = 1.5 * (q3 - q1);
+  return t.filter(v => v >= q1 - e && v <= q3 + e);
+}
+
+export function prixLocaux(tarifs, rayons = RAYONS, min = MIN_ARTISANS) {
+  for (const r of rayons) {
+    const dedans = tarifs.filter(t => t.d <= r && t.p > 0).map(t => t.p);
+    if (dedans.length >= min) {
+      const t = sansExtremes(dedans);
+      return { rayon: r, n: dedans.length, ecartes: dedans.length - t.length, b: quantile(t, 0.25), m: quantile(t, 0.5), h: quantile(t, 0.75) };
+    }
+  }
+  return null; // pas assez d'artisans : on garde la grille de référence
+}

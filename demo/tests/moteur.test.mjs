@@ -137,3 +137,31 @@ test("maisons de démonstration : travaux valides, et B moins chère au final qu
   const [A, B] = L;
   assert.ok(B.d.prix > A.d.prix && B.c.total[1] < A.c.total[1], "l'histoire de la comparaison");
 });
+
+import { prixLocaux, quantile, sansExtremes } from "../js/moteur.js";
+
+test("prix locaux : jamais de moyenne avec moins de 5 artisans", () => {
+  const t = [{ d: 2, p: 40 }, { d: 3, p: 50 }, { d: 4, p: 45 }, { d: 9, p: 60 }];
+  assert.equal(prixLocaux(t), null);
+});
+
+test("prix locaux : on élargit le rayon jusqu'à trouver 5 artisans", () => {
+  const t = [{ d: 2, p: 40 }, { d: 3, p: 50 }, { d: 4, p: 45 }, { d: 8, p: 55 }, { d: 14, p: 60 }, { d: 30, p: 99 }];
+  const r = prixLocaux(t);
+  assert.equal(r.rayon, 15);
+  assert.equal(r.n, 5);
+  assert.equal(r.m, 50); // médiane de 40, 45, 50, 55, 60
+});
+
+test("prix locaux : un prix anormal est écarté", () => {
+  const t = [40, 42, 45, 47, 50, 300].map((p, i) => ({ d: 1 + i * 0.5, p }));
+  const r = prixLocaux(t);
+  assert.equal(r.ecartes, 1);
+  assert.ok(r.h < 60);
+});
+
+test("quartiles", () => {
+  assert.equal(quantile([10, 20, 30, 40, 50], 0.25), 20);
+  assert.equal(quantile([10, 20, 30, 40], 0.5), 25);
+  assert.deepEqual(sansExtremes([1, 2, 3]), [1, 2, 3]);
+});

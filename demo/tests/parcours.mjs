@@ -63,8 +63,25 @@ try {
       await page.locator(sel).first().waitFor();
       await page.screenshot({ path: `${OUT}/${nom}-8-${o}.png`, fullPage: nom === "ordi" });
     }
+    /* l'artisan encode ses tarifs (confidentiels) */
+    await page.locator('.onglet[href="#/pro/tarifs"]').click();
+    await page.locator(".confidentiel").waitFor();
+    await page.fill('[data-tarif="sol_carrelage"]', "48");
+    await page.locator('[data-tarif="sol_carrelage"]').dispatchEvent("change");
+    await page.check("[data-tarif-ok]");
+    await page.locator(".tarifs ~ .d-act.ok").waitFor();
+    await page.screenshot({ path: `${OUT}/${nom}-8-tarifs.png`, fullPage: nom === "ordi" });
+
     await page.locator('.nav-i[href="#/moteur"]').click();
     await page.locator(".stats").waitFor();
+    /* simulation des prix locaux : 0 artisan → grille ; 12 artisans → prix locaux, avec « vous » */
+    await page.locator('[data-sim-n="0"]').click();
+    assert.match(await page.locator(".sim-res").innerText(), /Pas encore assez/);
+    await page.locator('[data-sim-n="25"]').click();
+    assert.match(await page.locator(".sim-res").innerText(), /artisans dans un rayon de \d+ km/);
+    assert.equal(await page.locator(".carte-km .pt.vous").count(), 1);
+    await page.locator("#prix-locaux").scrollIntoViewIfNeeded();
+    await page.locator("#prix-locaux").screenshot({ path: `${OUT}/${nom}-9-prix-locaux.png` });
     assert.match(await page.locator(".stat b").first().innerText(), /^\d+$/);
     await page.screenshot({ path: `${OUT}/${nom}-9-moteur.png`, fullPage: nom === "ordi" });
     await page.locator('.nav-i[href="#/feuille-de-route"]').click();
