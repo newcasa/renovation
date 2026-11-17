@@ -259,32 +259,6 @@ function ecranMaison(m) {
 
       <div class="pile">
         <section class="carte">
-          <h2>L'achat</h2>
-          <div class="champs">
-            <label>Prix (€)<input type="number" min="0" inputmode="numeric" data-f="prix" value="${esc(m.prix)}"></label>
-            <label class="cb large"><input type="checkbox" data-f="uniqueHabitation" ${m.uniqueHabitation !== false ? "checked" : ""}> Seule habitation, occupée par moi</label>
-            <div class="ligne"><span>Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")} %)</span><b>${euros(c.droits)}</b></div>
-            <small class="mu">Taux légal wallon, à confirmer par le notaire.</small>
-            ${c.notaireCalcul ? `<details class="notaire"><summary><span>Frais de notaire (acte d'achat)</span><b>${euros(c.notaireCalcul.total)}</b></summary>
-              <div class="ligne"><span>Honoraires</span><span>${euros2(c.notaireCalcul.honoraires)}</span></div>
-              <div class="ligne"><span>Frais administratifs</span><span>${euros2(c.notaireCalcul.detail.administratifs)}</span></div>
-              <div class="ligne"><span>Débours</span><span>${euros2(c.notaireCalcul.detail.debours)}</span></div>
-              <div class="ligne"><span>Transcription hypothécaire</span><span>${euros2(c.notaireCalcul.detail.transcription)}</span></div>
-              <div class="ligne"><span>Droit pour les annexes et droit d'écriture</span><span>${euros2(c.notaireCalcul.detail.annexes + c.notaireCalcul.detail.ecriture)}</span></div>
-              <div class="ligne"><span>TVA 21 %</span><span>${euros2(c.notaireCalcul.tva)}</span></div>
-            </details>
-            <small class="mu">Calcul d'après le ${esc(c.notaireCalcul.source)}. À confirmer par le notaire.</small>` : ""}
-            ${(() => {
-              /* case verrouillée : on utilise le calcul ; on coche pour encoder le vrai montant du notaire */
-              const reel = c.notaireCalcul == null && !c.notaireEncode ? true : m.notaireReel ?? m.fraisNotaire != null;
-              return `${c.notaireCalcul || c.notaireEncode ? `<label class="cb"><input type="checkbox" data-notaire-reel ${reel ? "checked" : ""}> J'ai le décompte de mon notaire : j'encode le vrai montant</label>` : ""}
-            <label class="${reel ? "" : "verrou"}">Honoraires et frais du notaire, TVA comprise (€)<span class="saisie"><input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(reel ? m.fraisNotaire ?? "" : "")}" placeholder="${!reel && c.notaireCalcul ? "calculé : " + euros(c.notaireCalcul.total) : "montant du notaire"}" ${reel ? "" : "disabled"}>${reel ? "" : `<i aria-hidden="true">🔒</i>`}</span></label>
-            ${reel ? (c.notaireCalcul || c.notaireEncode ? `<small class="mu">Ce montant remplace le calcul. Décochez la case pour revenir au calcul.</small>` : `<small class="mu">Pas de calcul automatique sous 64 095 € : encodez le montant du notaire (simulateur sur notaire.be).</small>`) : `<small class="mu">Case verrouillée : le montant calculé est utilisé.</small>`}`;
-            })()}
-            <small class="mu">Si vous empruntez, l'acte de crédit a ses propres frais (pas encore comptés).</small>
-          </div>
-        </section>
-        <section class="carte">
           <h2>Hypothèses du calcul</h2>
           <div class="champs">
             <div class="ligne"><span>TVA sur les travaux par un artisan</span><b>${b.rate} %</b></div>
@@ -292,24 +266,6 @@ function ecranMaison(m) {
             ${hyp}
           </div>
         </section>
-        ${(() => {
-          /* le financement : mêmes valeurs que le dossier pour la banque */
-          const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
-          const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
-          return `<section class="carte">
-          <h2>Le financement</h2>
-          <div class="champs">
-            ${ch("apport", "Apport personnel", "€", "ex. 40000")}
-            <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
-            <small class="mu">Vrai coût moyen ${euros(c.total[1], 100)} − apport${apport ? "" : " (à compléter)"}.</small>
-            ${ch("taux", "Taux annuel du crédit (si vous l'avez)", "%", "taux de la banque")}
-            ${ch("duree", "Durée du crédit", "ans", "ex. 25")}
-            ${mens ? `<div class="ligne"><span>Mensualité estimée (hors assurance)</span><b>${euros(mens)} / mois</b></div>` : ""}
-            <small class="mu">Ces valeurs sont reprises dans le dossier bancaire.</small>
-          </div>
-        </section>`;
-        })()}
-        ${aides()}
       </div>
     </div>
 
@@ -338,6 +294,53 @@ function ecranMaison(m) {
       ${rapidesHTML}
       ${grpFixes}
     </section>
+
+    <div class="fin-page">
+        ${aides()}
+        <section class="carte">
+          <h2>L'achat</h2>
+          <div class="champs">
+            <label>Prix (€)<input type="number" min="0" inputmode="numeric" data-f="prix" value="${esc(m.prix)}"></label>
+            <label class="cb large"><input type="checkbox" data-f="uniqueHabitation" ${m.uniqueHabitation !== false ? "checked" : ""}> Seule habitation, occupée par moi</label>
+            <div class="ligne"><span>Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")} %)</span><b>${euros(c.droits)}</b></div>
+            <small class="mu">Taux légal wallon, à confirmer par le notaire.</small>
+            ${c.notaireCalcul ? `<details class="notaire"><summary><span>Frais de notaire (acte d'achat)</span><b>${euros(c.notaireCalcul.total)}</b></summary>
+              <div class="ligne"><span>Honoraires</span><span>${euros2(c.notaireCalcul.honoraires)}</span></div>
+              <div class="ligne"><span>Frais administratifs</span><span>${euros2(c.notaireCalcul.detail.administratifs)}</span></div>
+              <div class="ligne"><span>Débours</span><span>${euros2(c.notaireCalcul.detail.debours)}</span></div>
+              <div class="ligne"><span>Transcription hypothécaire</span><span>${euros2(c.notaireCalcul.detail.transcription)}</span></div>
+              <div class="ligne"><span>Droit pour les annexes et droit d'écriture</span><span>${euros2(c.notaireCalcul.detail.annexes + c.notaireCalcul.detail.ecriture)}</span></div>
+              <div class="ligne"><span>TVA 21 %</span><span>${euros2(c.notaireCalcul.tva)}</span></div>
+            </details>
+            <small class="mu">Calcul d'après le ${esc(c.notaireCalcul.source)}. À confirmer par le notaire.</small>` : ""}
+            ${(() => {
+              /* case verrouillée : on utilise le calcul ; on coche pour encoder le vrai montant du notaire */
+              const reel = c.notaireCalcul == null && !c.notaireEncode ? true : m.notaireReel ?? m.fraisNotaire != null;
+              return `${c.notaireCalcul || c.notaireEncode ? `<label class="cb"><input type="checkbox" data-notaire-reel ${reel ? "checked" : ""}> J'ai le décompte de mon notaire : j'encode le vrai montant</label>` : ""}
+            <label class="${reel ? "" : "verrou"}">Honoraires et frais du notaire, TVA comprise (€)<span class="saisie"><input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(reel ? m.fraisNotaire ?? "" : "")}" placeholder="${!reel && c.notaireCalcul ? "calculé : " + euros(c.notaireCalcul.total) : "montant du notaire"}" ${reel ? "" : "disabled"}>${reel ? "" : `<i aria-hidden="true">🔒</i>`}</span></label>
+            ${reel ? (c.notaireCalcul || c.notaireEncode ? `<small class="mu">Ce montant remplace le calcul. Décochez la case pour revenir au calcul.</small>` : `<small class="mu">Pas de calcul automatique sous 64 095 € : encodez le montant du notaire (simulateur sur notaire.be).</small>`) : `<small class="mu">Case verrouillée : le montant calculé est utilisé.</small>`}`;
+            })()}
+            <small class="mu">Si vous empruntez, l'acte de crédit a ses propres frais (pas encore comptés).</small>
+          </div>
+        </section>
+        ${(() => {
+          /* le financement : mêmes valeurs que le dossier pour la banque */
+          const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
+          const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
+          return `<section class="carte">
+          <h2>Le financement</h2>
+          <div class="champs">
+            ${ch("apport", "Apport personnel", "€", "ex. 40000")}
+            <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
+            <small class="mu">Vrai coût moyen ${euros(c.total[1], 100)} − apport${apport ? "" : " (à compléter)"}.</small>
+            ${ch("taux", "Taux annuel du crédit (si vous l'avez)", "%", "taux de la banque")}
+            ${ch("duree", "Durée du crédit", "ans", "ex. 25")}
+            ${mens ? `<div class="ligne"><span>Mensualité estimée (hors assurance)</span><b>${euros(mens)} / mois</b></div>` : ""}
+            <small class="mu">Ces valeurs sont reprises dans le dossier bancaire.</small>
+          </div>
+        </section>`;
+        })()}
+    </div>
 
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>

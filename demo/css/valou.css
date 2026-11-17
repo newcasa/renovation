@@ -422,3 +422,9 @@ label.verrou .saisie i { font-size: 14px; }
 .verrou-banque { border-left: 6px solid var(--or); display: grid; gap: 8px; max-width: 840px; margin: 0 auto 16px; }
 .verrou-banque p { margin: 0; }
 .alerte.ok { background: #E0F0E8; border-color: #B9DCC8; color: var(--vert); max-width: 840px; margin: 0 auto 16px; }
+
+/* bas de la fiche : aides, achat, financement */
+.fin-page { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); align-items: start; margin-bottom: 16px; }
+.fin-page > .carte { margin-bottom: 0; }
+.fin-page .champs { grid-template-columns: 1fr; gap: 8px; margin-bottom: 0; }
+@media (max-width: 900px) { .fin-page { grid-template-columns: 1fr; } }
