@@ -203,3 +203,23 @@ test("escalier : 16 marches = 1 escalier", () => {
   const t = travauxEffectifs({ travaux: [{ piece: "Toute la maison", k: "i_es_1", marches: 16 }, { piece: "Toute la maison", k: "i_es_0", marches: 8 }] });
   assert.deepEqual(t.map(l => l.q), [1, 0.5]);
 });
+
+import { fraisNotaireAchat } from "../js/moteur.js";
+
+test("frais de notaire : identiques au simulateur notaire.be (au centime)", () => {
+  // relevés notaire.be : total des coûts − droits d'enregistrement
+  for (const [prix, hon, tva, total] of [[150000, 1686.56, 619.62, 8455.19 - 4500.01], [245000, 2147.31, 716.38, 11862.70 - 7350.01], [400000, 2621.74, 816.01, 17086.75 - 12000]]) {
+    const f = fraisNotaireAchat(prix);
+    assert.equal(f.honoraires, hon, `honoraires ${prix}`);
+    assert.equal(f.tva, tva, `TVA ${prix}`);
+    proche(f.total, total, `total ${prix}`);
+  }
+  assert.equal(fraisNotaireAchat(50000), null); // pas de relevé sous 64 095 € : à compléter
+});
+
+test("coût total : frais de notaire calculés, ou montant encodé s'il existe", () => {
+  const m = maison([{ k: "i_dem", q: 10 }]);
+  const b = calculerBudget(R, m, 2026);
+  proche(coutTotal(m, b).notaire, 11862.70 - 7350.01, "calculé");
+  assert.equal(coutTotal({ ...m, fraisNotaire: 4000 }, b).notaire, 4000);
+});

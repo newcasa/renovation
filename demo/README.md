@@ -28,7 +28,7 @@ Les prix viennent des **mêmes fichiers** que l'appli complète, et du **tableau
 - Un poste dont un article n'a pas encore de prix garde la fourchette Valou pour le matériel ; sans tarif de main-d'œuvre de référence, il garde la fourchette Valou pour la main-d'œuvre. Dans les deux cas, il est signalé comme « Estimation ».
 - Chaque poste affiche son niveau de fiabilité : Référence détaillée, Estimation, Fourchette, À compléter.
 - Droits d'enregistrement en Wallonie : 3 % (habitation propre et unique) ou 12,5 %, à confirmer par le notaire.
-- Honoraires du notaire : montant à encoder (simulation du notaire).
+- Frais de notaire de l'acte d'achat : calculés d'après le simulateur notaire.be (relevés de novembre 2026, vérifiés au centime pour 150 000, 245 000 et 400 000 €). Un montant encodé (décompte du notaire) remplace le calcul. Sous 64 095 € : à compléter. Les frais de l'acte de crédit ne sont pas encore comptés.
 
 ## Prix locaux des artisans (simulation)
 

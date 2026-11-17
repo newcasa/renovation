@@ -404,3 +404,11 @@ small.bloc { display: block; margin: 2px 0 0; font-size: 11px; }
 .piece-ecran .rb-ico { width: 38px; height: 38px; border-radius: 50%; background: var(--pc-fond); display: grid; place-items: center; }
 .piece-ecran .cb input, .piece-ecran input[type="checkbox"] { accent-color: var(--pc-acc); }
 .piece-ecran .btn { background: var(--pc-acc); filter: brightness(.85); }
+
+/* frais de notaire détaillés */
+details.notaire { background: #fff; border: 1px solid var(--bord); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+details.notaire > summary { font-weight: 700; }
+details.notaire > summary::before { content: "›"; display: inline-block; width: 12px; color: var(--or-fonce); font-weight: 900; transition: transform .15s; }
+details.notaire[open] > summary::before { transform: rotate(90deg); }
+details.notaire > summary > span { flex: 1; }
+details.notaire .ligne { padding: 3px 0 0 12px; color: var(--mu); }

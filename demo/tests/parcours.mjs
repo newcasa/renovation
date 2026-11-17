@@ -120,13 +120,14 @@ try {
     await page.locator(".poste > summary").first().click();
     await page.screenshot({ path: `${OUT}/${nom}-4-detail.png`, fullPage: true });
 
-    /* frais de notaire : le total augmente du montant encodé */
+    /* frais de notaire : calculés d'après notaire.be (245 000 € → 4 513 €), remplacés par un montant encodé */
+    assert.match(await page.locator("details.notaire summary").innerText(), /4\s?513 €/);
     const avant = await page.locator(".vrai-cout .gros").innerText();
-    await page.fill('[data-f="fraisNotaire"]', "2500");
+    await page.fill('[data-f="fraisNotaire"]', "5000");
     await page.locator('[data-f="fraisNotaire"]').dispatchEvent("change");
     const apres = await page.locator(".vrai-cout .gros").innerText();
     const n = s => +s.replace(/[^\d]/g, "");
-    assert.equal(n(apres) - n(avant), 2500);
+    assert.ok(Math.abs(n(apres) - n(avant) - (5000 - 4512.69)) <= 100, "montant encodé"); // arrondi à la centaine
 
     /* hypothèse : support abîmé → imprévus 15 % */
     assert.match(await page.locator(".recap").innerText(), /Imprévus \(15 %\)/);

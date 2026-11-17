@@ -250,17 +250,55 @@ export function calculerBudget(R, maison, annee) {
   return { rate, pi, rep, postes, lignes, MAT, MO, TVA, ANN, ST, IM, T, hypo };
 }
 
+/* ---------- Frais de notaire pour l'acte d'achat ----------
+   Relevés sur le simulateur officiel notaire.be (novembre 2026, Wallonie, maison, droits d'enregistrement),
+   vérifiés au centime près pour 150 000 €, 245 000 € et 400 000 € :
+   - honoraires : 1 269,92 € à 64 095 €, puis + 0,485 % jusqu'à 250 095 €, puis + 0,30 % au-delà ;
+   - frais fixes : droit pour les annexes 100 €, frais administratifs 855 €, débours 309 €,
+     transcription hypothécaire 285 €, droit d'écriture 100 € ;
+   - TVA 21 % sur les honoraires, les frais administratifs, les débours et le droit pour les annexes.
+   En dessous de 64 095 €, aucun relevé : « à compléter ». */
+export const NOTAIRE = {
+  source: "simulateur notaire.be, novembre 2026",
+  seuil: 64095, base: 1269.92, tranches: [[250095, 0.00485], [Infinity, 0.003]],
+  fixes: { annexes: 100, administratifs: 855, debours: 309, transcription: 285, ecriture: 100 },
+  tva: 21,
+};
+const arr2 = v => Math.round((v + 1e-9) * 100) / 100;
+
+export function honorairesNotaire(prix) {
+  if (!(prix >= NOTAIRE.seuil)) return null;
+  let h = NOTAIRE.base, bas = NOTAIRE.seuil;
+  for (const [haut, taux] of NOTAIRE.tranches) {
+    if (prix <= bas) break;
+    h += (Math.min(prix, haut) - bas) * taux;
+    bas = haut;
+  }
+  return arr2(h);
+}
+
+export function fraisNotaireAchat(prix) {
+  const honoraires = honorairesNotaire(prix);
+  if (honoraires == null) return null;
+  const F = NOTAIRE.fixes;
+  const tva = arr2((honoraires + F.administratifs + F.debours + F.annexes) * NOTAIRE.tva / 100);
+  const fixes = Object.values(F).reduce((s, v) => s + v, 0);
+  return { honoraires, fixes, detail: F, tva, total: arr2(honoraires + fixes + tva), source: NOTAIRE.source };
+}
+
 /* Coût total d'achat + rénovation.
    Droits d'enregistrement en Wallonie : 3 % pour l'habitation propre et unique, sinon 12,5 % (taux légaux, à confirmer par le notaire).
-   Honoraires et frais du notaire : à encoder (montant de la simulation du notaire), sinon « à compléter ». */
+   Frais de notaire : montant encodé (devis du notaire) s'il existe, sinon calcul d'après le simulateur notaire.be. */
 export function coutTotal(maison, budget) {
   const prix = num(maison.prix) || 0;
   const tauxDroits = maison.uniqueHabitation === false ? 12.5 : 3;
   const droits = (prix * tauxDroits) / 100;
-  const notaire = num(maison.fraisNotaire);
+  const encode = num(maison.fraisNotaire);
+  const calcul = fraisNotaireAchat(prix);
+  const notaire = encode != null ? encode : calcul ? calcul.total : null;
   const travaux = budget.T;
   const fixe = prix + droits + (notaire || 0);
-  return { prix, tauxDroits, droits, notaire, travaux, total: travaux.map(t => fixe + t) };
+  return { prix, tauxDroits, droits, notaire, notaireCalcul: encode == null ? calcul : null, notaireEncode: encode != null, travaux, total: travaux.map(t => fixe + t) };
 }
 
 /* Mensualité d'un crédit (taux annuel en %, durée en années) */
