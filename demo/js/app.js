@@ -265,8 +265,18 @@ function ecranMaison(m) {
             <label class="cb large"><input type="checkbox" data-f="uniqueHabitation" ${m.uniqueHabitation !== false ? "checked" : ""}> Seule habitation, occupée par moi</label>
             <div class="ligne"><span>Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")} %)</span><b>${euros(c.droits)}</b></div>
             <small class="mu">Taux légal wallon, à confirmer par le notaire.</small>
-            <label>Honoraires et frais du notaire (€)<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="à compléter"></label>
-            <small class="mu">Montant de la simulation du notaire (barème officiel : simulateur sur notaire.be).</small>
+            ${c.notaireCalcul ? `<details class="notaire"><summary><span>Frais de notaire (acte d'achat)</span><b>${euros(c.notaireCalcul.total)}</b></summary>
+              <div class="ligne"><span>Honoraires</span><span>${euros2(c.notaireCalcul.honoraires)}</span></div>
+              <div class="ligne"><span>Frais administratifs</span><span>${euros2(c.notaireCalcul.detail.administratifs)}</span></div>
+              <div class="ligne"><span>Débours</span><span>${euros2(c.notaireCalcul.detail.debours)}</span></div>
+              <div class="ligne"><span>Transcription hypothécaire</span><span>${euros2(c.notaireCalcul.detail.transcription)}</span></div>
+              <div class="ligne"><span>Droit pour les annexes et droit d'écriture</span><span>${euros2(c.notaireCalcul.detail.annexes + c.notaireCalcul.detail.ecriture)}</span></div>
+              <div class="ligne"><span>TVA 21 %</span><span>${euros2(c.notaireCalcul.tva)}</span></div>
+            </details>
+            <small class="mu">Calcul d'après le ${esc(c.notaireCalcul.source)}. À confirmer par le notaire.</small>` : ""}
+            <label>${c.notaireCalcul || c.notaireEncode ? "Montant de votre notaire, si vous avez son décompte (€)" : "Honoraires et frais du notaire (€)"}<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="${c.notaireCalcul ? "calculé : " + euros(c.notaireCalcul.total) : "à compléter"}"></label>
+            ${c.notaireEncode ? `<small class="mu">Montant encodé : il remplace le calcul. Videz la case pour revenir au calcul.</small>` : c.notaireCalcul ? "" : `<small class="mu">Pas de calcul automatique sous 64 095 € : encodez le montant du notaire (simulateur sur notaire.be).</small>`}
+            <small class="mu">Si vous empruntez, l'acte de crédit a ses propres frais (pas encore comptés).</small>
           </div>
         </section>
         <section class="carte">
@@ -496,7 +506,7 @@ function ecranDossier(m) {
       <table class="f-table">
         <tr><td>Prix d'achat</td><td class="r">${euros(c.prix)}</td></tr>
         <tr><td>Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")} %, taux légal wallon à confirmer par le notaire)</td><td class="r">${euros(c.droits)}</td></tr>
-        <tr><td>Honoraires et frais du notaire</td><td class="r">${c.notaire == null ? `<span class="manque">à compléter</span>` : euros(c.notaire)}</td></tr>
+        <tr><td>Honoraires et frais du notaire, TVA comprise${c.notaireCalcul ? ` <small class="mu">(calcul d'après le ${esc(c.notaireCalcul.source)})</small>` : c.notaireEncode ? ` <small class="mu">(montant du notaire)</small>` : ""}</td><td class="r">${c.notaire == null ? `<span class="manque">à compléter</span>` : euros(c.notaire)}</td></tr>
         <tr><td>Travaux, TVA et imprévus compris <small class="mu">(fourchette ${fourchette(c.travaux)})</small></td><td class="r">${euros(c.travaux[1], 100)}</td></tr>
         <tr class="tot"><td>Coût total du projet</td><td class="r">${euros(c.total[1], 100)}</td></tr>
       </table>
