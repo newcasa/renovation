@@ -342,3 +342,12 @@ h3 { font: 900 19px Outfit, sans-serif; margin: 6px 0 2px; }
   .pc-tot { margin-left: 0; text-align: left; }
   .table td[data-l="Travail"] { padding-right: 40px; }
 }
+
+/* petit tableau des surfaces des pièces */
+.surfaces { max-width: 620px; margin-bottom: 4px; }
+.surfaces td.q input { width: 90px; }
+.table td select[data-l$=":lieu"] { min-width: 130px; }
+@media (max-width: 640px) {
+  .surfaces tbody tr { grid-template-columns: 1fr 1fr 1fr; }
+  .surfaces td[data-l="Pièce"] { grid-column: 1 / -1; padding-right: 40px; }
+}

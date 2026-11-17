@@ -138,11 +138,11 @@ try {
     assert.match(tout, /cuve à mazout/);
     /* une pièce : sol 12 m² → murs 30 m² et plafond 12 m² calculés */
     await page.getByText("Ajouter une pièce").click();
-    await page.locator('.piece [data-pc$=":sol"]').first().fill("12");
-    await page.locator('.piece [data-pc$=":sol"]').first().dispatchEvent("change");
-    assert.equal(await page.locator('.piece [data-pc$=":murs"]').first().getAttribute("placeholder"), "30");
-    await page.getByText("Ajouter un travail dans cette pièce").first().click();
-    assert.equal(await page.locator('.piece tbody input[data-l$=":q"]').first().inputValue(), "30");
+    await page.locator('.surfaces [data-pc$=":sol"]').first().fill("12");
+    await page.locator('.surfaces [data-pc$=":sol"]').first().dispatchEvent("change");
+    assert.equal(await page.locator('.surfaces [data-pc$=":murs"]').first().getAttribute("placeholder"), "30");
+    await page.getByText("＋ Ajouter un travail").click();
+    assert.equal(await page.locator('.table:not(.surfaces) tbody tr:last-child input[data-l$=":q"]').inputValue(), "30");
     await page.locator('[data-l$=":soiMeme"]').first().check();
     await page.locator(".vrai-cout .gros").waitFor();
     assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), apres);
