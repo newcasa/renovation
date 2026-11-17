@@ -127,6 +127,11 @@ try {
     await page.locator(".q-page").first().waitFor();
     assert.equal(await page.locator(".q-page").count(), 2);
     assert.equal(await page.locator(".q-table tbody tr").count(), 22);
+    /* mode présentation : hoono.be/demo/#/presentation remet les maisons de démonstration à zéro */
+    await page.goto(URL + "#/presentation");
+    await page.waitForFunction(() => location.hash === "#/");
+    await page.locator(".maison").first().waitFor();
+    assert.match(await page.locator(".grille").innerText(), /Maison de démonstration A[\s\S]*Maison de démonstration B/);
     await page.locator('.nav-i[href="#/feuille-de-route"]').click();
     await page.locator(".phases").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-10-feuille.png`, fullPage: nom === "ordi" });

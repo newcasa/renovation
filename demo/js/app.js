@@ -53,7 +53,7 @@ function ecranAccueil() {
       <span class="actions-g"><a class="btn" href="#/ajouter">＋ Ajouter une maison</a><a class="btn sec" href="#/questionnaire">📝 Questionnaire de visite à imprimer</a></span>
     </section>
     ${maisons.length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>Aucune maison pour l'instant.</p></div>`}
-    ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="exemple">${maisons.some(m => m.demo) ? "Remettre les maisons de démonstration à zéro" : "Charger les maisons de démonstration"}</button></p>` : ""}
+    ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="presentation">🎬 Préparer une présentation (tout remettre à zéro)</button></p>` : ""}
   </main>`;
 }
 
@@ -721,9 +721,24 @@ function ecranPhotos(m) {
   </main>`;
 }
 
+/* ---------- mode présentation : tout remettre comme au départ ----------
+   maisons de démonstration neuves (et leurs photos effacées), simulations par défaut, retour à l'accueil.
+   Les maisons personnelles ne sont pas touchées. Raccourci : hoono.be/demo/#/presentation */
+function preparerPresentation(direct) {
+  if (!direct && !confirm("Remettre la démonstration à zéro ? Vos maisons personnelles ne sont pas touchées.")) return;
+  maisons.filter(m => m.demo).forEach(m => { supprimerPhotosMaison(m.id).catch(() => {}); delete photosCache[m.id]; });
+  chargerDemo();
+  tarifs = { p: {} }; sauverTarifs();
+  sim = { k: "sol_carrelage", n: 25 }; metier = "general"; selection = null;
+  fermerCamera(); visite = { maisonId: null, nom: "", saisie: true };
+  location.hash = "#/";
+  afficher();
+}
+
 /* ---------- routeur ---------- */
 function afficher() {
   const h = location.hash.replace(/^#/, "") || "/";
+  if (h === "/presentation" && R) { preparerPresentation(true); return; }
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/);
@@ -768,6 +783,7 @@ document.addEventListener("click", e => {
       : `<span class="d-act mu">Demande transmise à un autre artisan.</span>`;
   }
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
+  if (a === "presentation") preparerPresentation();
   if (a === "suppr-ligne" && m) { m.travaux = m.travaux.filter(l => l.id !== el.dataset.id); sauver(); afficher(); }
   if (a === "ajout-piece" && m) {
     const nom = (document.getElementById("np-nom").value || "").trim(), type = document.getElementById("np-type").value;
