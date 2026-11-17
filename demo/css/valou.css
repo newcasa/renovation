@@ -732,9 +732,7 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .demande .d-tete > div > small { display: block; }
 
 /* page d'intro */
-.intro-page { max-width: none; width: 100%; margin: 0; box-sizing: border-box; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background:
-  radial-gradient(circle at 85% 10%, rgba(236, 130, 36, .14), transparent 45%),
-  radial-gradient(circle at 10% 90%, rgba(2, 34, 80, .10), transparent 50%), var(--creme); }
+.intro-page { max-width: none; width: 100%; margin: 0; box-sizing: border-box; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: linear-gradient(to top right, #DDEBFA 0%, #EEF1F2 50%, #F6EAD8 100%); }
 .intro-boite { max-width: 760px; text-align: center; }
 .intro-logo { width: min(420px, 80vw); height: auto; margin: 0 auto 28px; display: block; }
 .intro-boite h1 { font: 900 clamp(28px, 5vw, 48px)/1.12 Outfit, sans-serif; color: var(--bordeaux); margin: 0 0 16px; }
