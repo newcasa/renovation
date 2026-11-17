@@ -1,0 +1,214 @@
+{
+  "note": "Maisons FICTIVES pour la démonstration. À remplacer par de vraies maisons (mêmes champs). Seules les caractéristiques et les quantités sont ici : tous les prix viennent des références Valou.",
+  "maisons": [
+    {
+      "nom": "Maison de démonstration A",
+      "commune": "Jambes (Namur) · bien fictif",
+      "description": "Maison 3 façades de 1965, 3 chambres, jardin. Dans son jus : cuisine et salle de bain d'origine, chauffage au mazout à remplacer, simple vitrage, toiture non isolée.",
+      "prix": 245000,
+      "annee": 1965,
+      "surface": 125,
+      "etat": "renover",
+      "uniqueHabitation": true,
+      "fraisNotaire": null,
+      "rep": {
+        "etat": "oui",
+        "pose": "droite",
+        "anc": "non",
+        "fen": "depose",
+        "rad": "rempl",
+        "cont": "oui"
+      },
+      "travaux": [
+        {
+          "piece": "Séjour",
+          "k": "i_dem",
+          "q": 12
+        },
+        {
+          "piece": "Séjour",
+          "k": "sol_carrelage",
+          "q": 32
+        },
+        {
+          "piece": "Séjour",
+          "k": "mur_peinture",
+          "q": 78
+        },
+        {
+          "piece": "Cuisine",
+          "k": "meu_cuisine",
+          "q": 1
+        },
+        {
+          "piece": "Cuisine",
+          "k": "sol_carrelage",
+          "q": 12
+        },
+        {
+          "piece": "Cuisine",
+          "k": "mur_peinture",
+          "q": 28
+        },
+        {
+          "piece": "Salle de bain",
+          "k": "i_dem",
+          "q": 6
+        },
+        {
+          "piece": "Salle de bain",
+          "k": "meu_sdb",
+          "q": 1
+        },
+        {
+          "piece": "Salle de bain",
+          "k": "sol_carrelage",
+          "q": 6
+        },
+        {
+          "piece": "Salle de bain",
+          "k": "mur_carrelage",
+          "q": 20
+        },
+        {
+          "piece": "WC",
+          "k": "wc_sp",
+          "q": 1
+        },
+        {
+          "piece": "Hall et escalier",
+          "k": "mur_peinture",
+          "q": 45
+        },
+        {
+          "piece": "Chambre 1",
+          "k": "sol_parquet",
+          "q": 15
+        },
+        {
+          "piece": "Chambre 1",
+          "k": "mur_peinture",
+          "q": 42,
+          "soiMeme": true
+        },
+        {
+          "piece": "Chambre 2",
+          "k": "sol_parquet",
+          "q": 12
+        },
+        {
+          "piece": "Chambre 2",
+          "k": "mur_peinture",
+          "q": 38,
+          "soiMeme": true
+        },
+        {
+          "piece": "Chambre 3",
+          "k": "sol_parquet",
+          "q": 10
+        },
+        {
+          "piece": "Chambre 3",
+          "k": "mur_peinture",
+          "q": 34,
+          "soiMeme": true
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_re",
+          "q": 125
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_co",
+          "q": 1
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_cha",
+          "q": 1
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_rad",
+          "q": 8
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_ch",
+          "q": 9
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_pe",
+          "q": 1
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_pi",
+          "q": 6
+        },
+        {
+          "piece": "Toiture",
+          "k": "i_to_1",
+          "q": 70
+        },
+        {
+          "piece": "Toiture",
+          "k": "i_zi",
+          "q": 18
+        }
+      ]
+    },
+    {
+      "nom": "Maison de démonstration B",
+      "commune": "Erpent (Namur) · bien fictif",
+      "description": "Maison 4 façades de 1998, 3 chambres, bien entretenue : châssis double vitrage, chaudière récente, cuisine en bon état. Plus chère à l'achat, peu de travaux.",
+      "prix": 299000,
+      "annee": 1998,
+      "surface": 135,
+      "etat": "bon",
+      "uniqueHabitation": true,
+      "fraisNotaire": null,
+      "rep": {
+        "etat": "non",
+        "pose": "droite",
+        "anc": "non",
+        "cont": "non"
+      },
+      "travaux": [
+        {
+          "piece": "Séjour et cuisine",
+          "k": "mur_peinture",
+          "q": 110
+        },
+        {
+          "piece": "Hall et escalier",
+          "k": "mur_peinture",
+          "q": 45
+        },
+        {
+          "piece": "Chambres",
+          "k": "mur_peinture",
+          "q": 115,
+          "soiMeme": true
+        },
+        {
+          "piece": "Chambres",
+          "k": "sol_parquet",
+          "q": 40
+        },
+        {
+          "piece": "Salle de bain",
+          "k": "wc_mb",
+          "q": 1
+        },
+        {
+          "piece": "Toiture",
+          "k": "i_to_0",
+          "q": 65
+        }
+      ]
+    }
+  ]
+}
