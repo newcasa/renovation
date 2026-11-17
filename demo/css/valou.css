@@ -495,3 +495,7 @@ label.verrou .saisie i { font-size: 14px; }
   .q-page .q-tete { margin-bottom: 6px; padding-bottom: 5px; }
   .q-page > .q-petit { margin-top: 4px; font-size: 10.5px; }
 }
+/* questionnaire : pas d'aplats de couleur (économie d'encre) */
+.q-table thead th { background: none; }
+.q-table .q-na { background: none; color: #999; }
+.q-table .q-na::after { content: "—"; }
