@@ -123,11 +123,15 @@ try {
     /* frais de notaire : calculés d'après notaire.be (245 000 € → 4 513 €), remplacés par un montant encodé */
     assert.match(await page.locator("details.notaire summary").innerText(), /4\s?513 €/);
     const avant = await page.locator(".vrai-cout .gros").innerText();
+    assert.ok(await page.locator('[data-f="fraisNotaire"]').isDisabled(), "case verrouillée par défaut");
+    await page.check("[data-notaire-reel]");
     await page.fill('[data-f="fraisNotaire"]', "5000");
     await page.locator('[data-f="fraisNotaire"]').dispatchEvent("change");
     const apres = await page.locator(".vrai-cout .gros").innerText();
     const n = s => +s.replace(/[^\d]/g, "");
     assert.ok(Math.abs(n(apres) - n(avant) - (5000 - 4512.69)) <= 100, "montant encodé"); // arrondi à la centaine
+    await page.uncheck("[data-notaire-reel]");
+    assert.equal(await page.locator(".vrai-cout .gros").innerText(), avant); // décocher : retour au calcul
 
     /* hypothèse : support abîmé → imprévus 15 % */
     assert.match(await page.locator(".recap").innerText(), /Imprévus \(15 %\)/);

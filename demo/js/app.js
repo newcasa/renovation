@@ -274,8 +274,13 @@ function ecranMaison(m) {
               <div class="ligne"><span>TVA 21 %</span><span>${euros2(c.notaireCalcul.tva)}</span></div>
             </details>
             <small class="mu">Calcul d'après le ${esc(c.notaireCalcul.source)}. À confirmer par le notaire.</small>` : ""}
-            <label>${c.notaireCalcul || c.notaireEncode ? "Montant de votre notaire, si vous avez son décompte (€)" : "Honoraires et frais du notaire (€)"}<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="${c.notaireCalcul ? "calculé : " + euros(c.notaireCalcul.total) : "à compléter"}"></label>
-            ${c.notaireEncode ? `<small class="mu">Montant encodé : il remplace le calcul. Videz la case pour revenir au calcul.</small>` : c.notaireCalcul ? "" : `<small class="mu">Pas de calcul automatique sous 64 095 € : encodez le montant du notaire (simulateur sur notaire.be).</small>`}
+            ${(() => {
+              /* case verrouillée : on utilise le calcul ; on coche pour encoder le vrai montant du notaire */
+              const reel = c.notaireCalcul == null && !c.notaireEncode ? true : m.notaireReel ?? m.fraisNotaire != null;
+              return `${c.notaireCalcul || c.notaireEncode ? `<label class="cb"><input type="checkbox" data-notaire-reel ${reel ? "checked" : ""}> J'ai le décompte de mon notaire : j'encode le vrai montant</label>` : ""}
+            <label class="${reel ? "" : "verrou"}">Honoraires et frais du notaire, TVA comprise (€)<span class="saisie"><input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(reel ? m.fraisNotaire ?? "" : "")}" placeholder="${!reel && c.notaireCalcul ? "calculé : " + euros(c.notaireCalcul.total) : "montant du notaire"}" ${reel ? "" : "disabled"}>${reel ? "" : `<i aria-hidden="true">🔒</i>`}</span></label>
+            ${reel ? (c.notaireCalcul || c.notaireEncode ? `<small class="mu">Ce montant remplace le calcul. Décochez la case pour revenir au calcul.</small>` : `<small class="mu">Pas de calcul automatique sous 64 095 € : encodez le montant du notaire (simulateur sur notaire.be).</small>`) : `<small class="mu">Case verrouillée : le montant calculé est utilisé.</small>`}`;
+            })()}
             <small class="mu">Si vous empruntez, l'acte de crédit a ses propres frais (pas encore comptés).</small>
           </div>
         </section>
@@ -644,7 +649,10 @@ document.addEventListener("change", e => {
   if (t.form && t.form.id === "f-ajout" && t.name) { brouillon[t.name] = t.type === "checkbox" ? t.checked : t.value; return; }
   if (!m) return;
   /* écran maison */
-  if (t.dataset.f) {
+  if (t.dataset.notaireReel != null) {
+    m.notaireReel = t.checked;
+    if (!t.checked) m.fraisNotaire = null; // retour au calcul
+  } else if (t.dataset.f) {
     const f = t.dataset.f;
     m[f] = t.type === "checkbox" ? t.checked : t.value === "" ? null : +t.value;
   } else if (t.dataset.h) {

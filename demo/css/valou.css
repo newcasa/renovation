@@ -412,3 +412,7 @@ details.notaire > summary::before { content: "›"; display: inline-block; width
 details.notaire[open] > summary::before { transform: rotate(90deg); }
 details.notaire > summary > span { flex: 1; }
 details.notaire .ligne { padding: 3px 0 0 12px; color: var(--mu); }
+
+/* case des frais de notaire verrouillée */
+label.verrou input { background: #F1ECE4; color: var(--mu); cursor: not-allowed; }
+label.verrou .saisie i { font-size: 14px; }
