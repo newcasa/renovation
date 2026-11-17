@@ -63,7 +63,8 @@ export function ecranPro(ctx, onglet, metier) {
       <label class="metier">Votre métier<select data-metier>${METIERS.map(x => `<option value="${x.id}" ${x.id === M.id ? "selected" : ""}>${esc(x.t)}</option>`).join("")}</select></label>
       ${demandes.length ? demandes.map(x => {
         const t = x.lots.reduce((s, p) => [s[0] + p.total[0], s[1] + p.total[1], s[2] + p.total[2]], [0, 0, 0]);
-        return `<article class="carte demande">
+        const deja = (x.m.reponses || []).find(r => r.metier === M.id);
+        return `<article class="carte demande" data-maison="${x.m.id}" data-metier="${M.id}">
           <div class="d-tete"><div><span class="badge b-reference">Nouvelle demande</span><h3>${esc(x.m.commune || x.m.nom)}</h3>
             <small class="mu">${esc([x.m.annee && `Maison de ${x.m.annee}`, x.m.surface && `${nombre(x.m.surface)} m²`].filter(Boolean).join(" · "))}</small></div>
             <div class="d-budget"><small>Budget estimé du client pour ces travaux</small><b>${euros(t[0], 100)} – ${euros(t[2], 100)}</b><small class="mu">TVA ${x.b.rate} % comprise</small></div></div>
@@ -71,7 +72,8 @@ export function ecranPro(ctx, onglet, metier) {
           <table class="d-lots">${x.lots.map(p => `<tr><td>${esc(p.n)}</td><td class="r">${esc(qte(p.QL, p.u))}</td><td>${badge(p.fiab)}</td></tr>`).join("")}</table>
           ${(P => (P.length ? `<div class="d-photos"><small class="mu">📷 ${P.length} photo${P.length > 1 ? "s" : ""} de la visite</small><div class="galerie mini">${P.slice(0, 8).map(p => `<figure class="vignette"><a href="${p.url}" target="_blank" rel="noopener"><img src="${p.url}" alt="${esc(p.nomPiece)}"></a><figcaption><small>${esc(p.nomPiece)}</small></figcaption></figure>`).join("")}</div></div>` : `<p class="mu petit-t">Pas encore de photos pour ces pièces.</p>`))(photosDemande(x))}
           <div class="d-pied"><small class="mu">${x.m.fin && x.m.fin.apport ? "✓ Dossier de financement préparé" : "Financement en préparation"} · Coordonnées du client transmises quand vous acceptez</small>
-            <span class="d-act"><button class="btn sec" data-action="pro-visite">Proposer une visite</button><button class="btn" data-action="pro-ok">Envoyer un devis</button><button class="btn lien" data-action="pro-non">Pas disponible</button></span></div>
+            ${deja ? `<span class="d-act ok">✓ Vous avez répondu : ${deja.type === "visite" ? "visite proposée" : deja.type === "devis" ? "devis envoyé" : "pas disponible"}.</span>`
+              : `<span class="d-act"><button class="btn sec" data-action="pro-visite">Proposer une visite</button><button class="btn" data-action="pro-ok">Envoyer un devis</button><button class="btn lien" data-action="pro-non">Pas disponible</button></span>`}</div>
         </article>`;
       }).join("") : `<div class="carte vide"><p>Aucune demande pour ce métier dans les maisons du prototype.</p></div>`}`;
   }
@@ -183,6 +185,14 @@ export function ecranPro(ctx, onglet, metier) {
 
   return `${entete("pro")}<main>${nav}${simule}${corps}</main>`;
 }
+
+/* ---------- artisans de démonstration (fictifs) : coordonnées montrées au client quand l'artisan répond ---------- */
+export const ARTISANS_EXEMPLE = {
+  general: { nom: "Rénovation Exemple", tel: "081 00 00 01" }, carreleur: { nom: "Carrelage Exemple", tel: "081 00 00 02" },
+  peintre: { nom: "Peinture Exemple", tel: "081 00 00 03" }, electricien: { nom: "Électricité Exemple", tel: "081 00 00 04" },
+  chauffagiste: { nom: "Chauffage Exemple", tel: "081 00 00 05" }, menuisier: { nom: "Menuiserie Exemple", tel: "081 00 00 06" },
+  couvreur: { nom: "Toitures Exemple", tel: "081 00 00 07" },
+};
 
 /* ---------- fiche publique d'un négociant ---------- */
 export const JOURS = [["lun", "Lundi"], ["mar", "Mardi"], ["mer", "Mercredi"], ["jeu", "Jeudi"], ["ven", "Vendredi"], ["sam", "Samedi"], ["dim", "Dimanche"]];

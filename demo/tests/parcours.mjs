@@ -77,6 +77,12 @@ try {
     /* l'artisan peut proposer une visite */
     await page.locator('.demande [data-action="pro-visite"]').first().click();
     assert.match(await page.locator(".demande").first().innerText(), /proposition de visite/);
+    /* section « Contacter » : résumé du projet et coordonnées de l'artisan qui a répondu */
+    await page.locator('.nav-i[href="#/contacts"]').click();
+    await page.locator('.grille .maison:has-text("Maison de démonstration A")').click();
+    await page.locator(".resume").waitFor();
+    assert.match(await page.locator("main").innerText(), /Carreleur[\s\S]*Visite proposée[\s\S]*Carrelage Exemple[\s\S]*Négociants de votre région/);
+    await page.screenshot({ path: `${OUT}/${nom}-0e-contacts.png`, fullPage: nom === "ordi" });
     /* négociant : sa fiche (services, coordonnées, horaires), visible sur la fiche de la maison ; pas d'offres */
     await page.goto(URL + "#/pro/negociant");
     await page.fill('[data-negfiche="nom"]', "Négoce Test");
@@ -129,8 +135,8 @@ try {
     await page.selectOption("[data-metier]", "carreleur");
     await page.locator(".demande").first().waitFor();
     assert.match(await page.locator(".d-lots").first().innerText(), /carrelage/i);
-    await page.getByText("Envoyer un devis").first().click();
-    await page.locator(".d-act.ok").waitFor();
+    if (await page.getByText("Envoyer un devis").count()) await page.getByText("Envoyer un devis").first().click(); // sinon : l'artisan a déjà répondu
+    await page.locator(".d-act.ok").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-artisan.png`, fullPage: nom === "ordi" });
     for (const [o, sel] of [["courtier", ".dossier-c"], ["agence", ".annonce"]]) {
       await page.goto(URL + "#/pro/" + o);

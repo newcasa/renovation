@@ -3,7 +3,7 @@ import { chargerReferences } from "./donnees.js";
 import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant } from "./vitrine.js";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE } from "./vitrine.js";
 import { ecranQuestionnaire, PIECES_QUESTIONNAIRE } from "./questionnaire.js";
 import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js";
 
@@ -30,7 +30,7 @@ function entete(actif) {
       : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   return `<header class="top">
     <a href="#/" class="marque" aria-label="Valou, accueil"><img src="../logo.png" alt="Valou"></a>
-    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
+    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
   </header>`;
 }
 
@@ -811,11 +811,64 @@ function preparerPresentation(direct) {
   prixNeg = {}; appliquerPrixNeg(); envoiOuvert = null;
   negFiche = JSON.parse(JSON.stringify(FICHE_EXEMPLE)); ecrire("valou_demo_negfiche", negFiche);
   annonce = { titre: "", prix: "", texte: "", valou: false }; ecrire("valou_demo_annonce", annonce);
-  maisons.forEach(m => { if (m.demo) delete m.envoi; });
+  maisons.forEach(m => { if (m.demo) { delete m.envoi; delete m.reponses; } });
   sim = { k: "sol_carrelage", n: 25 }; metier = "general"; selection = null;
   fermerCamera(); visite = { maisonId: null, nom: "", saisie: true };
   location.hash = "#/";
   afficher();
+}
+
+/* ---------- écran : contacter un professionnel ---------- */
+function ecranContacts(id) {
+  const m = id && trouver(id);
+  if (!m) {
+    return `${entete("contacts")}<main>
+      <h1>Contacter un professionnel</h1>
+      <p class="intro mu">Choisissez une maison : vous verrez le résumé du projet et les contacts des artisans et des négociants.</p>
+      ${maisons.length ? `<div class="grille">${maisons.map(x => {
+        const b = calculerBudget(R, x), c = coutTotal(x, b), rep = (x.reponses || []).filter(r => r.type !== "non").length;
+        return `<a class="carte maison" href="#/contacts/${x.id}">
+          <div class="m-tete"><b>${esc(x.nom || "Maison")}</b>${pebBadge(x.peb)}</div>
+          <div class="mu">${esc(x.commune || "")}</div>
+          <div class="m-chiffres"><div><small>Vrai coût</small><b>${euros(c.total[1], 100)}</b></div><div><small>Artisans</small><b class="or">${x.envoi ? (rep ? `${rep} réponse${rep > 1 ? "s" : ""}` : "envoyé") : "à contacter"}</b></div></div>
+        </a>`;
+      }).join("")}</div>` : `<div class="carte vide"><p>Aucune maison pour l'instant.</p><a class="btn" href="#/ajouter">＋ Ajouter une maison</a></div>`}
+    </main>`;
+  }
+  const b = calculerBudget(R, m), c = coutTotal(m, b), P = photosDe(m);
+  const metiers = METIERS.filter(x => x.id !== "general").map(x => ({ x, lots: b.postes.filter(p => x.f(p.k) && p.QL > 0) })).filter(o => o.lots.length);
+  const ligneMetier = ({ x, lots }) => {
+    const t = lots.reduce((s, p) => s + p.total[1], 0);
+    const envoye = m.envoi && m.envoi.metiers.includes(x.id), r = (m.reponses || []).find(y => y.metier === x.id), A = ARTISANS_EXEMPLE[x.id] || ARTISANS_EXEMPLE.general;
+    const etat = !envoye ? `<span class="badge b-fourchette">Pas encore envoyé</span>`
+      : !r ? `<span class="badge b-estimation">Envoyé · en attente de réponse</span>`
+      : r.type === "non" ? `<span class="badge b-fourchette">Artisan pas disponible</span>`
+      : `<span class="badge b-reference">${r.type === "visite" ? "Visite proposée" : "Devis envoyé"}</span>`;
+    return `<div class="contact-ligne"><div><b>${esc(x.t)}</b><small class="mu">${lots.map(p => esc(p.n)).join(", ")}</small></div>
+      <div class="r"><small class="mu">Budget moyen</small><b>${euros(t, 10)}</b></div>
+      <div class="ct-etat">${etat}${r && r.type !== "non" ? `<div class="ct-coord"><b>${esc(A.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><span>📞 ${esc(A.tel)}</span><small class="mu">Répondu le ${esc(new Date(r.date).toLocaleDateString("fr-BE"))}</small></div>` : ""}</div></div>`;
+  };
+  return `${entete("contacts")}<main>
+    <a href="#/contacts" class="retour">← Mes maisons</a>
+    <div class="titre-maison"><h1>${esc(m.nom || "Maison")}</h1>${pebBadge(m.peb, true)}${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m²`].filter(Boolean).map(esc).join(" · ")}</p></div>
+    <section class="carte resume">
+      <h2>Résumé du projet</h2>
+      <div class="res-chiffres">
+        <div><small>Vrai coût</small><b>${euros(c.total[1], 100)}</b></div>
+        <div><small>Travaux (moyen)</small><b>${euros(b.T[1], 100)}</b></div>
+        <div><small>Pièces</small><b>${(m.pieces || []).length}</b></div>
+        <div><small>Photos de la visite</small><b>${P.length}</b></div>
+      </div>
+      <p><a class="btn sec petit-btn" href="#/maison/${m.id}">Voir la fiche complète →</a></p>
+    </section>
+    <section class="carte">
+      <div class="gp-tete"><h2>Artisans</h2>${m.envoi ? `<small class="mu">Projet envoyé le ${esc(new Date(m.envoi.date).toLocaleDateString("fr-BE"))}</small>` : `<a class="btn petit-btn" href="#/maison/${m.id}">📨 Envoyer le projet aux artisans</a>`}</div>
+      ${metiers.length ? metiers.map(ligneMetier).join("") : `<p class="mu">Aucun travail encodé pour l'instant.</p>`}
+      <p class="mu petit-t">Les coordonnées d'un artisan apparaissent quand il répond à votre projet (visite ou devis).</p>
+    </section>
+    <section class="carte"><h2>Négociants de votre région</h2>${ficheNegociant(negFiche)}</section>
+  </main>`;
 }
 
 /* ---------- routeur ---------- */
@@ -827,6 +880,7 @@ function afficher() {
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/);
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
+  else if (h === "/contacts" || h.startsWith("/contacts/")) html = ecranContacts(h.split("/")[2]);
   else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
   else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs, prixNeg, negFiche, annonce, photos: m => photosDe(m) }, h.split("/")[2] || "", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
   else if (h === "/demo-artisan" || h === "/demo-negociant") html = ecranDemoPro({ entete, maisonDemo: maisons.find(m => m.demo) }, h === "/demo-negociant" ? "negociant" : "artisan");
@@ -869,6 +923,12 @@ document.addEventListener("click", e => {
   if (el.dataset.simN != null) { sim.n = +el.dataset.simN; afficher(); }
   if (a === "pro-ok" || a === "pro-non" || a === "pro-visite") {
     const carte = el.closest(".demande");
+    const mm = trouver(carte.dataset.maison || "");
+    if (mm && carte.dataset.metier) {
+      mm.reponses = (mm.reponses || []).filter(r => r.metier !== carte.dataset.metier);
+      mm.reponses.push({ metier: carte.dataset.metier, type: a === "pro-ok" ? "devis" : a === "pro-visite" ? "visite" : "non", date: Date.now() });
+      sauver();
+    }
     carte.querySelector(".d-act").outerHTML = a === "pro-ok"
       ? `<span class="d-act ok">✓ Le client est prévenu : il recevra votre devis dans son espace Valou.</span>`
       : a === "pro-visite"

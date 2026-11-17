@@ -617,3 +617,14 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .avantages li::before, .av-liste li::before { content: "✓ "; color: var(--vert); font-weight: 900; }
 .av-liste { grid-template-columns: 1fr; font-size: 13.5px; margin: 2px 0 6px; }
 .av-particulier { margin-top: 4px; }
+
+/* contacter un professionnel */
+.res-chiffres { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 10px; }
+.res-chiffres > div { background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 10px 12px; }
+.res-chiffres small { display: block; color: var(--mu); font-weight: 600; }
+.res-chiffres b { font: 900 20px Outfit, sans-serif; }
+.contact-ligne { display: grid; grid-template-columns: 1.4fr auto 1.3fr; gap: 8px 16px; align-items: center; padding: 12px 0; border-top: 1px solid var(--bord); }
+.contact-ligne small { display: block; }
+.contact-ligne .r b { font-size: 16px; }
+.ct-coord { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-top: 6px; font-size: 14px; }
+@media (max-width: 700px) { .contact-ligne { grid-template-columns: 1fr auto; } .ct-etat { grid-column: 1 / -1; } }
