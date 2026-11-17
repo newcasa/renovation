@@ -223,3 +223,37 @@ test("coût total : frais de notaire calculés, ou montant encodé s'il existe",
   proche(coutTotal(m, b).notaire, 11862.70 - 7350.01, "calculé");
   assert.equal(coutTotal({ ...m, fraisNotaire: 4000 }, b).notaire, 4000);
 });
+
+import { maisonDepuisQuestionnaire } from "../js/questionnaire.js";
+
+test("questionnaire rempli → maison Valou (pièces, chauffage, structure)", () => {
+  let n = 0;
+  const m = maisonDepuisQuestionnaire({
+    maison: { nom: "Rue des Lilas", commune: "Namur", prix: "245000", annee: 1965, surface: 120, etat: "renover", unique: true },
+    chauffage: { actuel: "mazout", souhaite: "gaz" },
+    pieces: [
+      { nom: "Séjour", type: "standard", sol: 30, sol_refaire: "carrelage", murs: ["peinture"], plafond: "peinture", chassis: 2, radiateurs: 2 },
+      { nom: "WC", type: "wc", sol: 2, wc: ["sp", "ev", "inconnu"] },
+      { nom: "Garage", type: "garage", sol: 18, chassis: 1 }, // garage : la colonne « nombre » = portes de garage
+      { nom: "", sol: null }, // bloc vide : ignoré
+    ],
+    structure: { i_re: 120, i_es_1: 16, i_pe: "" },
+  }, () => "id" + n++);
+  assert.equal(m.prix, 245000);
+  assert.equal(m.pieces.length, 3);
+  assert.equal(m.pieces[2].pg, 1);
+  assert.equal(m.pieces[2].chOn, false);
+  assert.equal(m.rep.etat, "oui");
+  const b = calculerBudget(R, { ...m, travaux: [...m.travaux, { k: "i_cha", q: 1 }] }, 2026);
+  const k = b.lignes.map(l => [l.k, l.q]);
+  assert.deepEqual(k.slice(0, 5), [["sol_carrelage", 30], ["mur_peinture", 81], ["pl_peinture", 30], ["i_ch", 2], ["i_rad", 2]]);
+  assert.ok(k.some(([kk, q]) => kk === "wc_sp" && q === 1) && !k.some(([kk]) => kk === "wc_inconnu"));
+  assert.ok(k.some(([kk, q]) => kk === "i_es_1" && q === 1)); // 16 marches = 1 escalier
+  assert.ok(!k.some(([kk]) => kk === "i_pe")); // case vide : pas comptée
+  assert.ok(k.some(([kk, q]) => kk === "i_pg" && q === 1));
+});
+
+test("châssis aluminium dans une pièce", () => {
+  const t = travauxEffectifs({ pieces: [{ id: "a", nom: "Véranda", type: "standard", sol: 15, chOn: true, chN: 3, chT: "alu" }] });
+  assert.deepEqual(t.map(l => [l.k, l.q]), [["i_ca", 3]]);
+});

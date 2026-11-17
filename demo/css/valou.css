@@ -430,3 +430,88 @@ label.verrou .saisie i { font-size: 14px; }
 @media (max-width: 900px) { .fin-page { grid-template-columns: 1fr; } }
 
 .rapides h4.lieu { margin: 12px 0 4px; font-size: 14px; color: var(--or-fonce); text-transform: uppercase; letter-spacing: .04em; }
+
+/* questionnaire de visite (A4) */
+.questionnaire { max-width: 860px; }
+.q-intro { margin: 0 0 14px; }
+.q-page { background: #fff; color: #222; border: 1px solid var(--bord); box-shadow: var(--ombre); border-radius: 4px; padding: 28px 32px; margin: 0 auto 20px; font-size: 13px; }
+.q-tete { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 2px solid var(--bordeaux); padding-bottom: 8px; margin-bottom: 10px; }
+.q-tete img { height: 26px; } .q-tete div { text-align: right; } .q-tete b { display: block; font: 900 17px Outfit, sans-serif; color: var(--bordeaux); } .q-tete small { color: #666; font-size: 11px; }
+.q-page h2 { font-size: 16px; color: var(--bordeaux); margin: 14px 0 6px; padding-bottom: 3px; border-bottom: 1px solid #ddd; }
+.q-page h3 { font-size: 13px; color: var(--bordeaux); margin: 8px 0 4px; }
+.q-grille { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 6px; }
+.q-champ { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
+.q-lab { font-weight: 600; }
+.q-box { display: inline-block; width: 90px; height: 26px; border: 1.5px solid #333; border-radius: 3px; background: #fff; }
+.q-champ.large .q-box { width: 220px; }
+.q-box.petit { width: 64px; height: 22px; }
+.q-u { color: #555; font-size: 12px; }
+.q-cb { display: inline-flex; align-items: center; gap: 5px; margin: 2px 14px 2px 0; }
+.q-carre { width: 15px; height: 15px; border: 1.5px solid #333; border-radius: 2px; display: inline-block; flex: none; }
+.q-ligne { display: grid; grid-template-columns: 130px 1fr; gap: 8px; padding: 5px 0; border-bottom: 1px dotted #ccc; align-items: center; }
+.q-ligne > b { font-size: 12.5px; }
+.q-piece { border: 1.5px solid #999; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; break-inside: avoid; }
+.q-ptete { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }
+.q-num { background: var(--bordeaux); color: #fff; font-weight: 800; padding: 3px 10px; border-radius: 4px; }
+.q-aide { margin: 0; padding-left: 18px; } .q-aide li { margin: 3px 0; }
+.q-notes { height: 150px; border: 1.5px solid #999; border-radius: 4px; background: repeating-linear-gradient(#fff 0 27px, #ddd 27px 28px); }
+.q-petit { font-size: 12px; color: #555; margin: 0 0 6px; }
+.q-colonnes { columns: 2; column-gap: 24px; }
+.q-grp { break-inside: avoid; margin-bottom: 6px; }
+.q-poste { display: grid; grid-template-columns: 1fr auto 56px; gap: 6px; align-items: center; padding: 2px 0; font-size: 11.5px; }
+@media (max-width: 640px) { .q-page { padding: 16px; } .q-ligne { grid-template-columns: 1fr; } .q-colonnes { columns: 1; } .q-champ.large .q-box { width: 160px; } }
+@media print {
+  .questionnaire { max-width: none; }
+  .q-page { border: 0; box-shadow: none; border-radius: 0; padding: 0; margin: 0; break-after: page; }
+  .q-page:last-child { break-after: auto; }
+}
+
+/* questionnaire : version 2 pages à l'horizontale */
+@page paysage { size: A4 landscape; margin: 8mm; }
+.q-page { page: paysage; }
+.questionnaire { max-width: 1120px; }
+.q-deux { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; }
+.q-deux .q-notes { height: 110px; }
+.q-aide2 { margin-top: 10px; }
+.q-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+.q-table th, .q-table td { border: 1px solid #555; padding: 0 3px; text-align: center; }
+.q-table thead th { background: #F3ECE0; color: var(--bordeaux); font-weight: 800; line-height: 1.15; padding: 3px 2px; }
+.q-table tbody tr { height: 7.2mm; }
+.q-table tbody th { text-align: left; font-weight: 700; white-space: nowrap; overflow: hidden; width: 30mm; }
+.q-table thead tr:first-child th:first-child { width: 30mm; }
+.q-table thead tr:first-child th:nth-child(2) { width: 12mm; }
+.q-table thead tr:first-child th:nth-last-child(2) { width: 22mm; }
+.q-table thead tr:first-child th:last-child { width: 46mm; }
+.q-table .q-carre { width: 13px; height: 13px; vertical-align: middle; }
+.q-table .q-c small { font-size: 8.5px; color: #555; margin-left: 2px; }
+.q-table .q-na { background: repeating-linear-gradient(45deg, #fff 0 4px, #e6e6e6 4px 5px); }
+.q-trait { display: inline-block; width: 16mm; border-bottom: 1px solid #555; }
+@media (max-width: 900px) { .q-deux { grid-template-columns: 1fr; } .q-page:has(.q-table) { overflow-x: auto; } .q-table { min-width: 900px; } }
+@media print {
+  .q-deux { grid-template-columns: 1.15fr 1fr !important; }
+  .q-page:has(.q-table) { overflow: visible; }
+  .q-table { min-width: 0 !important; }
+  .q-table tbody tr { height: 6.6mm; }
+  .q-page .q-tete { margin-bottom: 6px; padding-bottom: 5px; }
+  .q-page > .q-petit { margin-top: 4px; font-size: 10.5px; }
+}
+/* questionnaire : pas d'aplats de couleur (économie d'encre) */
+.q-table thead th { background: none; }
+.q-table .q-na { background: none; color: #999; }
+.q-table .q-na::after { content: "—"; }
+/* questionnaire : zone des notes sans cadre ni lignes (économie d'encre) */
+.q-notes { border: 0 !important; background: none !important; }
+
+/* photos de la visite */
+.prise { display: grid; gap: 10px; max-width: 560px; }
+.btn-photo { justify-content: center; font-size: 16px; padding: 15px 20px; }
+.galerie { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.vignette { margin: 0; background: #fff; border: 1px solid var(--bord); border-radius: 12px; overflow: hidden; }
+.vignette img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.vignette figcaption { display: flex; gap: 4px; align-items: center; padding: 6px; }
+.vignette select { font-size: 12.5px; padding: 6px 8px; }
+.groupe-photos { border-left: 6px solid var(--pc-acc, var(--bord)); }
+.gp-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 10px; }
+.gp-tete h2 { margin: 0; flex: 1; }
+.petit-btn { padding: 8px 12px; font-size: 13.5px; }
+.pc-photos { font-weight: 700; color: var(--mu); }
