@@ -94,8 +94,8 @@ try {
     /* questionnaire de visite à imprimer */
     await page.goto(URL + "#/questionnaire");
     await page.locator(".q-page").first().waitFor();
-    assert.equal(await page.locator(".q-page").count(), 7);
-    assert.equal(await page.locator(".q-piece").count(), 10);
+    assert.equal(await page.locator(".q-page").count(), 2);
+    assert.equal(await page.locator(".q-table tbody tr").count(), 22);
     await page.locator('.nav-i[href="#/feuille-de-route"]').click();
     await page.locator(".phases").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-10-feuille.png`, fullPage: nom === "ordi" });

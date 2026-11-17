@@ -1,6 +1,6 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
 import { chargerReferences } from "./donnees.js";
-import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER } from "./moteur.js";
+import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
@@ -411,7 +411,7 @@ function ecranPiece(m, pc) {
       <div class="ligne-q"><span>Surface</span><b>${String(sol).replace(".", ",")} m²</b><small class="mu">= sol de la pièce</small></div>
     </div>${cb("pMe", "Je le fais moi-même")}` : ""}`)}
 
-    ${pc.type !== "wc" && pc.type !== "garage" ? rub("🪟", "Châssis", "chassis", `${cb("chOn", "Châssis à remplacer")}${pc.chOn ? `<div class="champs">${num("chN", "Nombre de châssis", "ex. 2")}</div>` : ""}`) : ""}
+    ${pc.type !== "wc" && pc.type !== "garage" ? rub("🪟", "Châssis", "chassis", `${cb("chOn", "Châssis à remplacer")}${pc.chOn ? `<div class="champs">${num("chN", "Nombre de châssis", "ex. 2")}<label>Type de châssis${sel("chT", CHASSIS)}</label></div>` : ""}`) : ""}
 
     ${pc.type !== "garage" ? rub("🔥", "Chauffage", "chauffage", `<div class="champs"><label>Dans cette pièce${sel("hc", [["", "Aucun"], ["ra", "Radiateurs"], ["sol", "Chauffage au sol"]])}</label></div>
       ${pc.hc ? cb("hr", pc.hc === "ra" ? "Radiateurs à remplacer ou à poser" : "Chauffage au sol à poser") : ""}

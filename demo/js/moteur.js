@@ -377,9 +377,10 @@ export const TYPES_PIECE = [["standard", "Pièce standard", "🏠"], ["cuisine",
 export const SOLS = [["carrelage", "Carrelage", "sol_carrelage"], ["parquet", "Parquet", "sol_parquet"]];
 export const MURS = [["mpf", "Plafonnage", "mur_plafonnage"], ["mpe", "Peinture", "mur_peinture"], ["mca", "Carrelage mural", "mur_carrelage"]];
 export const PLAFONDS = [["peinture", "Peinture", "pl_peinture"], ["plafonnage", "Plafonnage", "pl_plafonnage"], ["plaques", "Plaques de plâtre", "pl"]];
+export const CHASSIS = [["pvc", "PVC"], ["alu", "Aluminium"]];
 export const WC = [["sp", "WC suspendu", "wc_sp"], ["cl", "WC classique (sur pied)", "wc_cl"], ["ev", "Évier / lave-mains", "wc_ev"], ["mb", "Meuble sous lavabo", "wc_mb"], ["rb", "Robinetterie", "wc_rb"]];
 /* postes gérés dans les pièces (ils n'apparaissent pas dans la liste « toute la maison ») */
-export const POSTES_PIECES = /^(sol_.+|mur_.+|pl|pl_.+|meu_.+|wc_.+|i_ch|i_rad|i_chs|i_pg|i_cha|i_pac)$/;
+export const POSTES_PIECES = /^(sol_.+|mur_.+|pl|pl_.+|meu_.+|wc_.+|i_ch|i_ca|i_rad|i_chs|i_pg|i_cha|i_pac)$/;
 
 /* lignes de travaux d'une pièce, à partir de ses valeurs */
 export function travauxPiece(pc) {
@@ -388,7 +389,7 @@ export function travauxPiece(pc) {
   if (pc.sOn) L("sol", (SOLS.find(x => x[0] === pc.sT) || SOLS[0])[2], sol, pc.sMe);
   MURS.forEach(([f, , k]) => { if (pc[f]) L("murs", k, f === "mca" && +pc.mcaM2 > 0 ? +pc.mcaM2 : murs, pc.mMe); });
   if (pc.pOn) L("plafond", (PLAFONDS.find(x => x[0] === pc.pT) || PLAFONDS[0])[2], sol, pc.pMe);
-  if (pc.chOn) L("chassis", "i_ch", +pc.chN || 0);
+  if (pc.chOn) L("chassis", pc.chT === "alu" ? "i_ca" : "i_ch", +pc.chN || 0);
   if (pc.hc === "ra" && pc.hr) L("chauffage", "i_rad", +pc.hn || 0);
   if (pc.hc === "sol" && pc.hr) L("chauffage", "i_chs", sol);
   if (pc.type === "cuisine" && pc.meu) L("equipe", "meu_cuisine", 1);

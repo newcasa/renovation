@@ -234,12 +234,15 @@ test("questionnaire rempli → maison Valou (pièces, chauffage, structure)", ()
     pieces: [
       { nom: "Séjour", type: "standard", sol: 30, sol_refaire: "carrelage", murs: ["peinture"], plafond: "peinture", chassis: 2, radiateurs: 2 },
       { nom: "WC", type: "wc", sol: 2, wc: ["sp", "ev", "inconnu"] },
+      { nom: "Garage", type: "garage", sol: 18, chassis: 1 }, // garage : la colonne « nombre » = portes de garage
       { nom: "", sol: null }, // bloc vide : ignoré
     ],
     structure: { i_re: 120, i_es_1: 16, i_pe: "" },
   }, () => "id" + n++);
   assert.equal(m.prix, 245000);
-  assert.equal(m.pieces.length, 2);
+  assert.equal(m.pieces.length, 3);
+  assert.equal(m.pieces[2].pg, 1);
+  assert.equal(m.pieces[2].chOn, false);
   assert.equal(m.rep.etat, "oui");
   const b = calculerBudget(R, { ...m, travaux: [...m.travaux, { k: "i_cha", q: 1 }] }, 2026);
   const k = b.lignes.map(l => [l.k, l.q]);
@@ -247,4 +250,10 @@ test("questionnaire rempli → maison Valou (pièces, chauffage, structure)", ()
   assert.ok(k.some(([kk, q]) => kk === "wc_sp" && q === 1) && !k.some(([kk]) => kk === "wc_inconnu"));
   assert.ok(k.some(([kk, q]) => kk === "i_es_1" && q === 1)); // 16 marches = 1 escalier
   assert.ok(!k.some(([kk]) => kk === "i_pe")); // case vide : pas comptée
+  assert.ok(k.some(([kk, q]) => kk === "i_pg" && q === 1));
+});
+
+test("châssis aluminium dans une pièce", () => {
+  const t = travauxEffectifs({ pieces: [{ id: "a", nom: "Véranda", type: "standard", sol: 15, chOn: true, chN: 3, chT: "alu" }] });
+  assert.deepEqual(t.map(l => [l.k, l.q]), [["i_ca", 3]]);
 });
