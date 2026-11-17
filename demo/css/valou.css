@@ -428,3 +428,5 @@ label.verrou .saisie i { font-size: 14px; }
 .fin-page > .carte { margin-bottom: 0; }
 .fin-page .champs { grid-template-columns: 1fr; gap: 8px; margin-bottom: 0; }
 @media (max-width: 900px) { .fin-page { grid-template-columns: 1fr; } }
+
+.rapides h4.lieu { margin: 12px 0 4px; font-size: 14px; color: var(--or-fonce); text-transform: uppercase; letter-spacing: .04em; }

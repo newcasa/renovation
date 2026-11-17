@@ -142,7 +142,7 @@ function chargerDemo() {
   if (!DEMO || !DEMO.maisons) return null;
   maisons = maisons.filter(m => !m.demo);
   const L = DEMO.maisons.map(d => {
-    const m = { ...d, id: nouvelId(), demo: true, exemple: true, rep: { ...(d.rep || {}) }, pieces: (d.pieces || []).map(p => ({ ...p, wi: [...(p.wi || [])] })), travaux: d.travaux.map(t => ({ ...t, id: nouvelId() })) };
+    const m = { ...d, id: nouvelId(), demo: true, exemple: true, demoVersion: DEMO.version, rep: { ...(d.rep || {}) }, pieces: (d.pieces || []).map(p => ({ ...p, wi: [...(p.wi || [])] })), travaux: d.travaux.map(t => ({ ...t, id: nouvelId() })) };
     if (m.chauffage) appliquerChauffage(m);
     return m;
   });
@@ -209,12 +209,14 @@ function ecranMaison(m) {
   }).join("");
   /* estimation rapide sans pièces (cases cochées à l'ajout de la maison) */
   const rapides = horsPieces.filter(l => POSTES_PIECES.test(l.k));
-  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide (faite à l'ajout de la maison)</h3>
-      <p class="mu petit-t">Calculée à l'ajout de la maison. Pour plus de précision, ajoutez les pièces et supprimez ces lignes.</p>
-      <table class="fixes">${rapides.map(l => { const p = R.postes[l.k]; return `<tr><td>${esc(p ? p.n : l.k)}${l.auto ? ` <small class="mu">(${esc(l.auto)})</small>` : ""}</td>
-        <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-l="${l.id}:q" value="${esc(l.q ?? "")}" aria-label="Quantité"><small>${esc(p ? unitePoste(p.u, l.k) : "")}</small></td>
+  const lieux = [...new Set(rapides.map(l => l.piece || "Toute la maison"))];
+  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide (sans pièces)</h3>
+      <p class="mu petit-t">Travaux encodés sans passer par les pièces. Pour plus de précision, ajoutez les pièces (plus haut) et supprimez ces lignes.</p>
+      ${lieux.map(lieu => `<h4 class="lieu">${esc(lieu)}</h4>
+      <table class="fixes">${rapides.filter(l => (l.piece || "Toute la maison") === lieu).map(l => { const p = R.postes[l.k]; return `<tr><td>${esc(p ? p.n : l.k)}${l.auto ? ` <small class="mu">(${esc(l.auto)})</small>` : ""}</td>
+        <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-l="${l.id}:q" value="${esc(l.q ?? "")}" aria-label="Quantité : ${esc(lieu)}, ${esc(p ? p.n : l.k)}"><small>${esc(p ? unitePoste(p.u, l.k) : "")}</small></td>
         <td class="c"><label class="mm"><input type="checkbox" data-l="${l.id}:soiMeme" ${l.soiMeme ? "checked" : ""}> moi-même</label></td>
-        <td class="r">${l.fiab ? euros(l.total[1], 10) : ""} <button class="x" data-action="suppr-ligne" data-id="${l.id}" aria-label="Supprimer">✕</button></td></tr>`; }).join("")}</table></div>` : "";
+        <td class="r">${l.fiab ? euros(l.total[1], 10) : ""} <button class="x" data-action="suppr-ligne" data-id="${l.id}" aria-label="Supprimer">✕</button></td></tr>`; }).join("")}</table>`).join("")}</div>` : "";
 
   /* chauffage */
   const chf = travauxChauffage(m.chauffage, m.surface);
@@ -745,6 +747,8 @@ Promise.all([chargerReferences(), fetch("maison-demo.json", { cache: "no-cache" 
     let vu = false;
     try { vu = !!localStorage.getItem("valou_demo_vu"); localStorage.setItem("valou_demo_vu", "1"); } catch (e) {}
     if (!vu && DEMO && !maisons.some(m => m.demo)) chargerDemo();
+    /* maisons de démonstration d'une ancienne version (enregistrées sur l'appareil) : remplacées par la version actuelle */
+    else if (DEMO && maisons.some(m => m.demo && m.demoVersion !== DEMO.version)) chargerDemo();
     afficher();
   })
   .catch(() => { $app.innerHTML = `<main><div class="alerte">Impossible de charger les prix de référence. Vérifiez la connexion et rechargez la page.</div></main>`; });
