@@ -1,6 +1,6 @@
-/* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison. */
+/* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
 import { chargerReferences } from "./donnees.js";
-import { calculerBudget, coutTotal, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste } from "./moteur.js";
+import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 
@@ -16,6 +16,7 @@ const groupe = p => (/^(meu_|wc_)/.test(p.k) ? "Cuisine et salle de bain" : p.g 
 
 /* ---------- petits composants ---------- */
 const badge = f => (f ? `<span class="badge b-${f}" title="${esc(FIABILITE[f].d)}">${esc(FIABILITE[f].t)}</span>` : "");
+const qte = (Q, u) => `${nombre(Q)} ${Q > 1 && (u === "pièce" || u === "escalier") ? u + "s" : u}`;
 const fourchette = t => `${euros(t[0], 100)} – ${euros(t[2], 100)}`;
 
 function entete(actif) {
@@ -25,7 +26,7 @@ function entete(actif) {
       : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   return `<header class="top">
     <a href="#/" class="marque" aria-label="Valou, accueil"><img src="../logo.png" alt="Valou"></a>
-    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("", "Comparer", "", 1)}${lien("", "Professionnels", "", 1)}${lien("", "Notre moteur", "", 1)}${lien("", "Feuille de route", "", 1)}</nav>
+    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("", "Professionnels", "", 1)}${lien("", "Notre moteur", "", 1)}${lien("", "Feuille de route", "", 1)}</nav>
   </header>`;
 }
 
@@ -49,7 +50,7 @@ function ecranAccueil() {
       <a class="btn" href="#/ajouter">＋ Ajouter une maison</a>
     </section>
     ${maisons.length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>Aucune maison pour l'instant.</p></div>`}
-    ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="exemple">${maisons.some(m => m.demo) ? "Remettre la maison de démonstration à zéro" : "Charger la maison de démonstration"}</button></p>` : ""}
+    ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="exemple">${maisons.some(m => m.demo) ? "Remettre les maisons de démonstration à zéro" : "Charger les maisons de démonstration"}</button></p>` : ""}
   </main>`;
 }
 
@@ -108,16 +109,16 @@ function creerMaison(b, exemple = false) {
   return m;
 }
 
-/* maison de démonstration : demo/maison-demo.json (fictive, à remplacer par une vraie maison) */
+/* maisons de démonstration : demo/maison-demo.json (fictives, à remplacer par de vraies maisons) */
 let DEMO = null;
 function chargerDemo() {
-  if (!DEMO) return null;
+  if (!DEMO || !DEMO.maisons) return null;
   maisons = maisons.filter(m => !m.demo);
-  const { note, ...d } = DEMO;
-  const m = { ...d, id: nouvelId(), demo: true, exemple: true, rep: { ...(d.rep || {}) }, travaux: d.travaux.map(t => ({ ...t, id: nouvelId() })) };
-  maisons.unshift(m);
+  const L = DEMO.maisons.map(d => ({ ...d, id: nouvelId(), demo: true, exemple: true, rep: { ...(d.rep || {}) }, travaux: d.travaux.map(t => ({ ...t, id: nouvelId() })) }));
+  maisons.unshift(...L);
+  selection = null;
   sauver();
-  return m;
+  return L[0];
 }
 
 /* ---------- écran : le vrai coût d'une maison ---------- */
@@ -138,7 +139,7 @@ function ecranMaison(m) {
   const lignesG = GROUPES.filter(g => parG[g]).map(g => {
     const L = parG[g], t = L.reduce((s, p) => [s[0] + p.total[0], s[1] + p.total[1], s[2] + p.total[2]], [0, 0, 0]);
     return `<details class="grp"><summary><span>${esc(g)}</span><span class="r">${euros(t[1], 100)}</span></summary>
-      ${L.map(p => `<details class="poste"><summary><span>${esc(p.n)} <small class="mu">${nombre(p.Q)} ${esc(p.u)}</small></span><span class="r">${badge(p.fiab)} ${euros(p.total[1], 10)}</span></summary>${detailPoste(p, b)}</details>`).join("")}
+      ${L.map(p => `<details class="poste"><summary><span>${esc(p.n)} <small class="mu">${esc(qte(p.Q, p.u))}</small></span><span class="r">${badge(p.fiab)} ${euros(p.total[1], 10)}</span></summary>${detailPoste(p, b)}</details>`).join("")}
     </details>`;
   }).join("");
 
@@ -237,7 +238,7 @@ function ecranMaison(m) {
     </section>
 
     <div class="actions">
-      <span class="btn off" title="Prochaine étape">Dossier pour la banque <small>bientôt</small></span>
+      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
     </div>
   </main>`;
@@ -263,13 +264,133 @@ function aides() {
   </section>`;
 }
 
+/* ---------- écran : comparer ---------- */
+let selection = null; // identifiants des maisons comparées (3 au plus)
+
+function resume(m) {
+  const b = calculerBudget(R, m), c = coutTotal(m, b);
+  const tot = b.postes.reduce((s, p) => s + p.total[1], 0) || 1;
+  const part = f => Math.round((b.postes.filter(p => f.includes(p.fiab)).reduce((s, p) => s + p.total[1], 0) / tot) * 100);
+  return { m, b, c, detail: part(["reference", "estimation"]), fourch: part(["fourchette", "incomplet"]) };
+}
+
+function ecranComparer() {
+  if (!selection) selection = maisons.slice(0, 3).map(m => m.id);
+  selection = selection.filter(id => trouver(id));
+  const choix = maisons.map(m => `<label class="puce ${selection.includes(m.id) ? "on" : ""}"><input type="checkbox" data-comp="${m.id}" ${selection.includes(m.id) ? "checked" : ""}> ${esc(m.nom || "Maison")}</label>`).join("");
+  const L = selection.map(id => resume(trouver(id)));
+  if (L.length < 2) {
+    return `${entete("comparer")}<main><h1>Comparer</h1><div class="puces">${choix}</div>
+      <div class="carte vide"><p>Choisissez au moins deux maisons à comparer.</p><a class="btn" href="#/ajouter">＋ Ajouter une maison</a></div></main>`;
+  }
+  const best = L.reduce((a, x) => (x.c.total[1] < a.c.total[1] ? x : a));
+  const autres = L.filter(x => x !== best);
+  /* la phrase qui résume la comparaison */
+  const plusCher = autres.find(x => x.c.prix < best.c.prix);
+  const phrase = plusCher
+    ? `<b>${esc(best.m.nom)}</b> coûte <b>${euros(best.c.prix - plusCher.c.prix)}</b> de plus à l'achat que <b>${esc(plusCher.m.nom)}</b>, mais revient <b class="or">${euros(plusCher.c.total[1] - best.c.total[1], 100)} moins cher</b> au final, travaux compris.`
+    : `<b>${esc(best.m.nom)}</b> revient le moins cher au final, travaux compris.`;
+  const max = Math.max(...L.map(x => x.c.total[1]));
+  const barres = L.map(x => {
+    const w = v => (v / max) * 100;
+    return `<div class="cmp-barre"><div class="cmp-nom"><b>${esc(x.m.nom)}</b>${x === best ? ` <span class="badge b-reference">Le moins cher au final</span>` : ""}</div>
+      <div class="barre clair"><span class="p1" style="width:${w(x.c.prix)}%" title="Prix d'achat"></span><span class="p2" style="width:${w(x.c.droits + (x.c.notaire || 0))}%" title="Droits et notaire"></span><span class="p4" style="width:${w(x.c.travaux[1])}%" title="Travaux"></span></div>
+      <div class="cmp-tot">${euros(x.c.total[1], 100)}</div></div>`;
+  }).join("");
+  const ligne = (t, f, cls = "") => `<tr class="${cls}"><th>${t}</th>${L.map(x => `<td class="${x === best ? "best" : ""}">${f(x)}</td>`).join("")}</tr>`;
+  const tableau = `<div class="defile cmp"><table>
+    <thead><tr><th></th>${L.map(x => `<th class="${x === best ? "best" : ""}"><a href="#/maison/${x.m.id}">${esc(x.m.nom)}</a><small class="mu">${esc([x.m.annee, x.m.surface && nombre(x.m.surface) + " m²"].filter(Boolean).join(" · "))}</small></th>`).join("")}</tr></thead>
+    <tbody>
+      ${ligne("Prix demandé", x => euros(x.c.prix))}
+      ${ligne("Droits d'enregistrement", x => euros(x.c.droits))}
+      ${ligne("Notaire", x => (x.c.notaire == null ? `<span class="manque">à compléter</span>` : euros(x.c.notaire)))}
+      ${ligne("Travaux (moyen)", x => `${euros(x.c.travaux[1], 100)}<small class="mu">${fourchette(x.c.travaux)}</small>`)}
+      ${ligne("<b>Vrai coût</b>", x => `<b>${euros(x.c.total[1], 100)}</b><small class="mu">${fourchette(x.c.total)}</small>`, "fort")}
+      ${ligne("Écart avec le prix affiché", x => `+${euros(x.c.total[1] - x.c.prix, 100)} <small class="mu">(+${x.c.prix ? Math.round(((x.c.total[1] - x.c.prix) / x.c.prix) * 100) : 0} %)</small>`)}
+      ${ligne("Vrai coût par m²", x => (x.m.surface ? euros(x.c.total[1] / x.m.surface, 10) + " /m²" : "–"))}
+      ${ligne("Fiabilité du budget travaux", x => `<span class="badge b-reference">${x.detail} % détaillé</span> <span class="badge b-fourchette">${x.fourch} % fourchette</span>`)}
+    </tbody></table></div>`;
+  return `${entete("comparer")}
+  <main>
+    <h1>Comparer</h1>
+    <p class="mu">Le prix affiché ne dit pas tout : comparez le vrai coût, travaux compris.</p>
+    <div class="puces">${choix}</div>
+    <section class="carte verdict"><p>${phrase}</p>${barres}
+      <ul class="legende sombre"><li><i class="p1"></i>Prix d'achat</li><li><i class="p2"></i>Droits et notaire</li><li><i class="p4"></i>Travaux</li></ul></section>
+    <section class="carte">${tableau}</section>
+  </main>`;
+}
+
+/* ---------- écran : dossier pour la banque (imprimable en PDF) ---------- */
+function ecranDossier(m) {
+  const b = calculerBudget(R, m), c = coutTotal(m, b), f = m.fin || {};
+  const apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport);
+  const mens = mensualite(emprunt, f.taux, f.duree);
+  const champ = (k, t, suffixe, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suffixe}</i></span><b class="imprime">${f[k] != null && f[k] !== "" ? (suffixe === "€" ? euros(+f[k]) : esc(String(f[k]).replace(".", ",")) + " " + suffixe) : "à compléter"}</b></label>`;
+  const parG = {};
+  b.postes.forEach(p => (parG[groupe(p)] = parG[groupe(p)] || []).push(p));
+  const postes = GROUPES.filter(g => parG[g]).map(g => `<tr class="g"><td colspan="3">${esc(g)}</td></tr>${parG[g].map(p => `<tr><td>${esc(p.n)}<small class="mu"> · ${esc(qte(p.Q, p.u))}</small></td><td>${badge(p.fiab)}</td><td class="r">${euros(p.total[1], 10)}</td></tr>`).join("")}`).join("");
+  const hyp = [`TVA sur les travaux par un artisan : ${b.rate} %`, `Imprévus : ${b.pi} %`, ...b.hypo.filter(h => h !== "etat").map(h => `${HYPOTHESES[h].t} : ${(HYPOTHESES[h].o.find(o => o[0] === b.rep[h]) || [, ""])[1]}`)];
+  const auj = new Date().toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" });
+  return `${entete("maisons")}
+  <main class="dossier">
+    <div class="no-print barre-outils"><a href="#/maison/${m.id}" class="retour">← Retour à la maison</a><button class="btn" data-action="imprimer">Télécharger en PDF</button></div>
+    <article class="feuille">
+      <header class="f-tete"><img src="../logo.png" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
+      ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
+      <h1>${esc(m.nom || "Maison")}</h1>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
+      ${m.description ? `<p>${esc(m.description)}</p>` : ""}
+
+      <h2>1. Le coût total du projet</h2>
+      <table class="f-table">
+        <tr><td>Prix d'achat</td><td class="r">${euros(c.prix)}</td></tr>
+        <tr><td>Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")} %, taux légal wallon à confirmer par le notaire)</td><td class="r">${euros(c.droits)}</td></tr>
+        <tr><td>Honoraires et frais du notaire</td><td class="r">${c.notaire == null ? `<span class="manque">à compléter</span>` : euros(c.notaire)}</td></tr>
+        <tr><td>Travaux, TVA et imprévus compris <small class="mu">(fourchette ${fourchette(c.travaux)})</small></td><td class="r">${euros(c.travaux[1], 100)}</td></tr>
+        <tr class="tot"><td>Coût total du projet</td><td class="r">${euros(c.total[1], 100)}</td></tr>
+      </table>
+
+      <h2>2. Le financement</h2>
+      <div class="champs f-fin">
+        ${champ("apport", "Apport personnel", "€", "à compléter")}
+        ${champ("taux", "Taux annuel du crédit", "%", "taux proposé par la banque")}
+        ${champ("duree", "Durée du crédit", "ans", "ex. 25")}
+      </div>
+      <table class="f-table">
+        <tr><td>Montant à emprunter</td><td class="r">${euros(emprunt, 100)}</td></tr>
+        <tr class="tot"><td>Mensualité estimée (hors assurance)</td><td class="r">${mens ? euros(mens) + " / mois" : `<span class="manque">indiquez le taux et la durée</span>`}</td></tr>
+      </table>
+      ${R.aides && R.aides.aides && R.aides.aides[0] ? `<p class="mu petit-t">Aide possible : ${esc(R.aides.aides[0].nom)}. Conditions à vérifier, non déduite du budget.</p>` : ""}
+
+      <h2>3. Le budget des travaux, poste par poste</h2>
+      <table class="f-table postes">${postes}
+        <tr class="sous"><td colspan="2">Matériaux (HTVA)</td><td class="r">${euros(b.MAT[1])}</td></tr>
+        <tr class="sous"><td colspan="2">Main-d'œuvre (HTVA)</td><td class="r">${euros(b.MO[1])}</td></tr>
+        <tr class="sous"><td colspan="2">TVA</td><td class="r">${euros(b.TVA[1])}</td></tr>
+        ${b.ANN[1] ? `<tr class="sous"><td colspan="2">Container à gravats</td><td class="r">${euros(b.ANN[1])}</td></tr>` : ""}
+        <tr class="sous"><td colspan="2">Imprévus (${b.pi} %)</td><td class="r">${euros(b.IM[1])}</td></tr>
+        <tr class="tot"><td colspan="2">Total des travaux (moyen)</td><td class="r">${euros(b.T[1], 100)}</td></tr>
+      </table>
+
+      <h2>4. Hypothèses et fiabilité</h2>
+      <ul class="f-liste">${hyp.map(h => `<li>${esc(h)}</li>`).join("")}</ul>
+      <p class="f-fiab">${Object.keys(FIABILITE).map(k => `${badge(k)} ${esc(FIABILITE[k].d)}`).join("<br>")}</p>
+
+      <footer class="f-pied">Estimation indicative établie avec Valou à partir de prix de référence hors TVA (main-d'œuvre : ${esc(R.sources.mo || "")} ; matériaux : ${esc(R.sources.hubo || "")}). Elle ne remplace pas les devis des entrepreneurs ni la simulation du notaire.</footer>
+    </article>
+  </main>`;
+}
+
 /* ---------- routeur ---------- */
 function afficher() {
   const h = location.hash.replace(/^#/, "") || "/";
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
-  const mm = h.match(/^\/maison\/(\w+)/);
+  const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/);
   if (h === "/ajouter") html = ecranAjouter();
+  else if (h === "/comparer") html = ecranComparer();
+  else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
   $app.innerHTML = html;
@@ -279,7 +400,7 @@ function afficher() {
 
 /* ---------- interactions ---------- */
 const maisonCourante = () => {
-  const mm = location.hash.match(/^#\/maison\/(\w+)/);
+  const mm = location.hash.match(/^#\/(?:maison|dossier)\/(\w+)/);
   return mm && trouver(mm[1]);
 };
 
@@ -287,6 +408,7 @@ document.addEventListener("click", e => {
   const el = e.target.closest("[data-action]");
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
+  if (a === "imprimer") window.print();
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "suppr-ligne" && m) { m.travaux.splice(+el.dataset.i, 1); sauver(); afficher(); }
   if (a === "ajout-ligne" && m) { m.travaux.push({ id: nouvelId(), piece: "", k: "mur_peinture", q: "" }); sauver(); afficher(); }
@@ -295,6 +417,20 @@ document.addEventListener("click", e => {
 
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  /* comparer */
+  if (t.dataset.comp) {
+    const id = t.dataset.comp;
+    selection = t.checked ? [...selection.filter(x => x !== id), id].slice(-3) : selection.filter(x => x !== id);
+    afficher();
+    return;
+  }
+  /* dossier : financement */
+  if (t.dataset.fin && m) {
+    m.fin = { ...(m.fin || {}), [t.dataset.fin]: t.value === "" ? null : +t.value };
+    sauver();
+    afficher();
+    return;
+  }
   /* formulaire d'ajout */
   if (t.dataset.choix) {
     const id = t.dataset.choix, c = (brouillon.choix[id] = brouillon.choix[id] || {});

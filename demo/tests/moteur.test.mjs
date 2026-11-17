@@ -115,11 +115,14 @@ test("tous les postes de la grille se calculent sans erreur", () => {
   b.postes.forEach(p => p.total.forEach(v => assert.ok(Number.isFinite(v), p.k)));
 });
 
-test("maison de démonstration : tous ses travaux existent dans la grille et se calculent", () => {
-  const d = lire("demo/maison-demo.json");
-  d.travaux.forEach(t => assert.ok(R.postes[t.k], t.k));
-  const b = calculerBudget(R, d, 2026);
-  assert.equal(b.postes.filter(p => p.fiab === "incomplet").length, 0);
-  assert.ok(b.T[1] > 0 && b.T[0] < b.T[1] && b.T[1] < b.T[2]);
-  assert.ok(coutTotal(d, b).total[1] > d.prix);
+test("maisons de démonstration : travaux valides, et B moins chère au final que A", () => {
+  const L = lire("demo/maison-demo.json").maisons.map(d => {
+    d.travaux.forEach(t => assert.ok(R.postes[t.k], t.k));
+    const b = calculerBudget(R, d, 2026);
+    assert.equal(b.postes.filter(p => p.fiab === "incomplet").length, 0);
+    assert.ok(b.T[0] < b.T[1] && b.T[1] < b.T[2]);
+    return { d, c: coutTotal(d, b) };
+  });
+  const [A, B] = L;
+  assert.ok(B.d.prix > A.d.prix && B.c.total[1] < A.c.total[1], "l'histoire de la comparaison");
 });

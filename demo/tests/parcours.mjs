@@ -31,6 +31,26 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-0-demo-complet.png`, fullPage: nom === "ordi" });
     await page.getByText("← Mes maisons").click();
 
+    /* comparer les deux maisons de démonstration */
+    await page.locator('.nav-i[href="#/comparer"]').click();
+    await page.locator(".verdict").waitFor();
+    assert.match(await page.locator(".verdict p").innerText(), /moins cher au final/);
+    await page.screenshot({ path: `${OUT}/${nom}-6-comparer.png`, fullPage: nom === "ordi" });
+
+    /* dossier pour la banque de la maison A */
+    await page.locator('.cmp thead a').first().click();
+    await page.getByText("Dossier pour la banque").click();
+    await page.locator(".feuille").waitFor();
+    for (const [k, v] of [["apport", "40000"], ["taux", "3.2"], ["duree", "25"]]) {
+      await page.fill(`[data-fin="${k}"]`, v);
+      await page.locator(`[data-fin="${k}"]`).dispatchEvent("change");
+    }
+    assert.match(await page.locator(".feuille").innerText(), /\/ mois/);
+    await page.screenshot({ path: `${OUT}/${nom}-7-dossier.png`, fullPage: nom === "ordi" });
+    if (nom === "ordi") await page.pdf({ path: `${OUT}/dossier-banque-exemple.pdf`, format: "A4", printBackground: true });
+    await page.goto(URL);
+    await page.locator(".maison").first().waitFor();
+
     /* ajouter une maison en 30 secondes */
     await page.getByText("Ajouter une maison").first().click();
     await page.fill('input[name="nom"]', "Maison test");
