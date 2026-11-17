@@ -3,7 +3,7 @@ import { chargerReferences } from "./donnees.js";
 import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
-import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS } from "./vitrine.js";
 import { ecranQuestionnaire, PIECES_QUESTIONNAIRE } from "./questionnaire.js";
 import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js";
 
@@ -158,6 +158,21 @@ function chargerDemo() {
 }
 
 const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite${n ? ` (${n})` : ""}</a>`; };
+
+/* ---------- envoyer le projet aux artisans (démonstration) ---------- */
+function panneauEnvoi(m, b) {
+  const metiers = METIERS.filter(x => x.id !== "general" && b.postes.some(p => x.f(p.k) && p.QL > 0));
+  const nbPhotos = photosDe(m).length;
+  if (m.envoi && envoiOuvert !== m.id) return `<section class="carte envoi ok-envoi"><b>📨 Projet envoyé aux artisans le ${esc(new Date(m.envoi.date).toLocaleDateString("fr-BE"))}</b>
+    <p class="mu">${esc(m.envoi.metiers.map(id => (METIERS.find(x => x.id === id) || {}).t).filter(Boolean).join(", "))} · avec le budget${nbPhotos ? ` et ${nbPhotos} photo${nbPhotos > 1 ? "s" : ""}` : ""}. Démonstration : aucun envoi réel.</p>
+    <span class="actions-g"><a class="btn sec" href="#/pro/artisan">Voir ce que reçoit l'artisan →</a><button class="btn lien" data-action="envoi-ouvrir">Renvoyer</button></span></section>`;
+  if (envoiOuvert !== m.id) return `<section class="carte envoi"><div class="env-tete"><div><b>Trouver les artisans</b><p class="mu">Envoyez le projet chiffré${nbPhotos ? `, avec ses ${nbPhotos} photo${nbPhotos > 1 ? "s" : ""},` : ""} aux artisans de votre zone : ils comprennent le chantier sans se déplacer.</p></div>
+    <button class="btn" data-action="envoi-ouvrir" ${metiers.length ? "" : "disabled"}>📨 Envoyer le projet aux artisans</button></div></section>`;
+  return `<section class="carte envoi"><b>À quels artisans envoyer le projet ?</b>
+    <div class="choix-liste">${metiers.map(x => `<label class="cb"><input type="checkbox" data-envoi-metier="${x.id}" checked> ${esc(x.t)} <small class="mu">(${b.postes.filter(p => x.f(p.k) && p.QL > 0).length} poste${b.postes.filter(p => x.f(p.k) && p.QL > 0).length > 1 ? "s" : ""})</small></label>`).join("")}</div>
+    <p class="mu petit-t">Chaque artisan reçoit les travaux de son métier, le budget estimé et les photos des pièces concernées. Vos coordonnées ne sont transmises que si vous acceptez son devis.</p>
+    <span class="actions-g"><button class="btn" data-action="envoi-ok">Envoyer</button><button class="btn lien" data-action="envoi-annuler">Annuler</button></span></section>`;
+}
 
 /* ---------- carte « Performance énergétique (PEB) » ---------- */
 function carteEnergie(m, b) {
@@ -378,6 +393,8 @@ function ecranMaison(m) {
         })()}
     </div>
 
+    ${panneauEnvoi(m, b)}
+
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
@@ -493,6 +510,17 @@ let selection = null; // identifiants des maisons comparées (3 au plus)
 let metier = "general"; // métier choisi sur l'écran artisan
 let sim = { k: "sol_carrelage", n: 25 }; // simulation des prix locaux (Notre moteur)
 let tarifs = (() => { try { return JSON.parse(localStorage.getItem("valou_demo_tarifs") || "null") || { p: {} }; } catch (e) { return { p: {} }; } })();
+let prixNeg = (() => { try { return JSON.parse(localStorage.getItem("valou_demo_prixneg") || "null") || {}; } catch (e) { return {}; } })();
+let negOrigine = null;
+/* prix du négociant (démonstration) : utilisés comme prix négociant dans le moteur */
+function appliquerPrixNeg() {
+  if (!R) return;
+  if (!negOrigine) negOrigine = { ...R.px.neg };
+  R.px.neg = { ...negOrigine };
+  Object.entries(prixNeg).forEach(([id, p]) => { R.px.neg[id] = { ...(negOrigine[id] || {}), p, s: "Votre négoce (démo)" }; });
+  try { localStorage.setItem("valou_demo_prixneg", JSON.stringify(prixNeg)); } catch (e) {}
+}
+let envoiOuvert = null; // maison dont le panneau « envoyer aux artisans » est ouvert
 const sauverTarifs = () => { try { localStorage.setItem("valou_demo_tarifs", JSON.stringify(tarifs)); } catch (e) {} };
 
 function resume(m) {
@@ -761,6 +789,8 @@ function preparerPresentation(direct) {
   maisons.filter(m => m.demo).forEach(m => { supprimerPhotosMaison(m.id).catch(() => {}); delete photosCache[m.id]; });
   chargerDemo();
   tarifs = { p: {} }; sauverTarifs();
+  prixNeg = {}; appliquerPrixNeg(); envoiOuvert = null;
+  maisons.forEach(m => { if (m.demo) delete m.envoi; });
   sim = { k: "sol_carrelage", n: 25 }; metier = "general"; selection = null;
   fermerCamera(); visite = { maisonId: null, nom: "", saisie: true };
   location.hash = "#/";
@@ -777,7 +807,8 @@ function afficher() {
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
   else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
-  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs }, h.split("/")[2] || "artisan", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
+  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs, prixNeg, photos: m => photosDe(m) }, h.split("/")[2] || "artisan", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
+  else if (h === "/demo-artisan" || h === "/demo-negociant") html = ecranDemoPro({ entete, maisonDemo: maisons.find(m => m.demo) }, h === "/demo-negociant" ? "negociant" : "artisan");
   else if (h === "/moteur") html = ecranMoteur({ R, entete, sim, tarifs });
   else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
@@ -804,6 +835,13 @@ document.addEventListener("click", e => {
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
   if (a === "imprimer") window.print();
+  if (a === "envoi-ouvrir" && m) { envoiOuvert = m.id; afficher(); }
+  if (a === "envoi-annuler") { envoiOuvert = null; afficher(); }
+  if (a === "envoi-ok" && m) {
+    const ids = [...document.querySelectorAll("[data-envoi-metier]")].filter(x => x.checked).map(x => x.dataset.envoiMetier);
+    if (!ids.length) return;
+    m.envoi = { date: Date.now(), metiers: ids }; envoiOuvert = null; sauver(); afficher();
+  }
   if (a === "envoyer-banque") {
     document.getElementById("envoi").innerHTML = `<p class="alerte ok">✓ Dossier envoyé à votre banque. <small>(Démonstration : aucun envoi réel.)</small></p>`;
   }
@@ -870,6 +908,7 @@ document.addEventListener("change", e => {
     return;
   }
   if (t.dataset.peb && m) { m[t.dataset.peb] = t.dataset.peb === "peb" ? t.value || null : t.value === "" ? null : +t.value; sauver(); afficher(); return; }
+  if (t.dataset.negprix) { const v = t.value === "" ? null : +t.value; if (v > 0) prixNeg[t.dataset.negprix] = v; else delete prixNeg[t.dataset.negprix]; appliquerPrixNeg(); afficher(); return; }
   if (t.dataset.metier != null) { metier = t.value; afficher(); return; }
   if (t.dataset.simK != null) { sim.k = t.value; afficher(); return; }
   if (t.dataset.tarif) { tarifs.p[t.dataset.tarif] = t.value === "" ? null : +t.value; sauverTarifs(); afficher(); return; }
@@ -972,6 +1011,7 @@ Promise.all([chargerReferences(), fetch("maison-demo.json", { cache: "no-cache" 
   .then(([r, d]) => {
     R = r;
     DEMO = d;
+    appliquerPrixNeg();
     /* première visite : la maison de démonstration est déjà là */
     let vu = false;
     try { vu = !!localStorage.getItem("valou_demo_vu"); localStorage.setItem("valou_demo_vu", "1"); } catch (e) {}

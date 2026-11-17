@@ -117,3 +117,37 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 - **« Comment gagnez-vous de l'argent ? »** Les artisans (demandes chiffrées), puis les courtiers et les agences. Le particulier ne paie pas.
 - **« C'est légal, le partage des tarifs ? »** Les tarifs ne sont jamais montrés aux artisans, seulement des moyennes d'au moins 5 artisans aux particuliers. Le principe sera validé par un avocat (concurrence, RGPD, FSMA pour le crédit).
 - **« Les maisons sont réelles ? »** Non, elles sont fictives pour la démonstration. La prochaine version utilisera une vraie maison avec de vrais devis d'artisans.
+
+---
+
+# Démo pour un artisan (4 minutes)
+
+**Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-artisan`. Dans la maison A, prendre 2 ou 3 photos de la cuisine avec « 📷 Photos de la visite » (mode visite, nom « Cuisine »).
+
+1. **La maison visitée** : les pièces en couleur et le vrai coût. En bas, « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
+   > « Le client a visité, chiffré, photographié. Il vous envoie son projet en un clic. »
+2. **La demande reçue** (« Voir ce que reçoit l'artisan → », métier « Carreleur ») : les travaux de votre métier, le budget du client et les photos de la cuisine.
+   > « Vous savez tout de suite si le chantier est pour vous, sans vous déplacer. Le client connaît déjà son budget. »
+3. **Vos tarifs** (« Artisan : mes tarifs ») : l'encadré de confidentialité, un prix tapé, l'accord coché.
+   > « Vos prix ne sont jamais montrés. Ils servent à des moyennes d'au moins 5 artisans, et vous recevez les demandes en priorité. »
+4. **Les prix de votre zone** (« Notre moteur », en bas) : la carte 5 à 20 km, avec votre prix en vert.
+
+**Questions à poser :** voir le dossier « points faibles », partie 3 (artisan), puis proposer la lettre d'intention.
+
+---
+
+# Démo pour un négociant (4 minutes)
+
+**Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-negociant`.
+
+1. **Une maison et ses travaux** (maison A) : ouvrir un poste dans « Budget travaux » (par exemple « Sol – carrelage ») pour montrer le détail des matériaux.
+2. **La liste de matériaux reçue** (« Négociant : commandes ») : 12 articles, quantités arrondies au conditionnement (« 31 × boîte 1,80 m² »), montant total.
+   > « Chaque chantier arrive avec sa liste exacte. Vous envoyez votre offre, le client ou son artisan commande. »
+3. **Vos prix** (« Négociant : mes prix ») : taper 2 ou 3 prix, par exemple le carrelage de sol (R19) et la colle (R21).
+4. **Le résultat** (« Négociant : commandes ») : vos prix apparaissent, marqués « votre prix ». Le budget de la maison change aussi.
+   > « Vos prix sont utilisés pour les chantiers de votre zone faits par des artisans. »
+
+**Questions à poser :**
+1. Comment recevez-vous aujourd'hui les demandes de prix des particuliers et des artisans ?
+2. Une liste de matériaux déjà calculée, par chantier, vous ferait-elle gagner du temps ?
+3. Seriez-vous prêt à publier vos prix (ou une remise) pour recevoir ces listes ? Sous quelle forme paieriez-vous : abonnement, commission sur les ventes ?

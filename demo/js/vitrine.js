@@ -2,7 +2,7 @@
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
 import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js";
-import { euros, nombre, esc } from "./format.js";
+import { euros, euros2, nombre, esc } from "./format.js";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
 export const METIERS = [
@@ -22,14 +22,21 @@ const simule = `<p class="simule">Démonstration : écran simulé à partir des 
 /* ---------- Professionnels ---------- */
 export function ecranPro(ctx, onglet, metier) {
   const { R, maisons, entete } = ctx;
-  const tabs = [["artisan", "Artisan : demandes"], ["tarifs", "Artisan : mes tarifs"], ["courtier", "Courtier et banque"], ["agence", "Agence immobilière"]];
+  const tabs = [["artisan", "Artisan : demandes"], ["tarifs", "Artisan : mes tarifs"], ["negociant", "Négociant : commandes"], ["negprix", "Négociant : mes prix"], ["courtier", "Courtier et banque"], ["agence", "Agence immobilière"]];
   const nav = `<div class="onglets" role="tablist">${tabs.map(([id, t]) => `<a role="tab" class="onglet ${onglet === id ? "on" : ""}" href="#/pro/${id}" aria-selected="${onglet === id}">${t}</a>`).join("")}</div>`;
   const L = maisons.map(m => { const b = calculerBudget(R, m); return { m, b, c: coutTotal(m, b) }; });
   let corps = "";
 
   if (onglet === "artisan") {
     const M = METIERS.find(x => x.id === metier) || METIERS[0];
-    const demandes = L.map(x => ({ ...x, lots: x.b.postes.filter(p => M.f(p.k) && p.QL > 0) })).filter(x => x.lots.length);
+    const demandes = L.map(x => ({ ...x, lots: x.b.postes.filter(p => M.f(p.k) && p.QL > 0) })).filter(x => x.lots.length)
+      .sort((a, b) => (b.m.envoi ? 1 : 0) - (a.m.envoi ? 1 : 0));
+    /* photos des pièces concernées par ce métier (toutes si « entreprise générale ») */
+    const photosDemande = x => {
+      const P = (ctx.photos ? ctx.photos(x.m) : []);
+      const pieces = new Set(x.b.lignes.filter(l => l.pieceId && M.f(l.k)).map(l => l.piece.toLowerCase().trim()));
+      return M.id === "general" ? P : P.filter(p => pieces.has(String(p.nomPiece).toLowerCase().trim()));
+    };
     corps = `<div class="pro-intro"><h2>Des clients qui savent déjà ce que coûtent leurs travaux</h2>
       <p class="mu">L'artisan reçoit des projets déjà chiffrés et décrits poste par poste, avec le budget du client. Moins de visites pour rien, des devis plus rapides.</p></div>
       <label class="metier">Votre métier<select data-metier>${METIERS.map(x => `<option value="${x.id}" ${x.id === M.id ? "selected" : ""}>${esc(x.t)}</option>`).join("")}</select></label>
@@ -39,7 +46,9 @@ export function ecranPro(ctx, onglet, metier) {
           <div class="d-tete"><div><span class="badge b-reference">Nouvelle demande</span><h3>${esc(x.m.commune || x.m.nom)}</h3>
             <small class="mu">${esc([x.m.annee && `Maison de ${x.m.annee}`, x.m.surface && `${nombre(x.m.surface)} m²`].filter(Boolean).join(" · "))}</small></div>
             <div class="d-budget"><small>Budget estimé du client pour ces travaux</small><b>${euros(t[0], 100)} – ${euros(t[2], 100)}</b><small class="mu">TVA ${x.b.rate} % comprise</small></div></div>
+          ${x.m.envoi ? `<p class="envoye">📨 Projet envoyé par le client le ${esc(new Date(x.m.envoi.date).toLocaleDateString("fr-BE"))}</p>` : ""}
           <table class="d-lots">${x.lots.map(p => `<tr><td>${esc(p.n)}</td><td class="r">${esc(qte(p.QL, p.u))}</td><td>${badge(p.fiab)}</td></tr>`).join("")}</table>
+          ${(P => (P.length ? `<div class="d-photos"><small class="mu">📷 ${P.length} photo${P.length > 1 ? "s" : ""} de la visite</small><div class="galerie mini">${P.slice(0, 8).map(p => `<figure class="vignette"><a href="${p.url}" target="_blank" rel="noopener"><img src="${p.url}" alt="${esc(p.nomPiece)}"></a><figcaption><small>${esc(p.nomPiece)}</small></figcaption></figure>`).join("")}</div></div>` : `<p class="mu petit-t">Pas encore de photos pour ces pièces.</p>`))(photosDemande(x))}
           <div class="d-pied"><small class="mu">${x.m.fin && x.m.fin.apport ? "✓ Dossier de financement préparé" : "Financement en préparation"} · Coordonnées du client transmises quand vous acceptez</small>
             <span class="d-act"><button class="btn" data-action="pro-ok">Proposer un devis</button><button class="btn sec" data-action="pro-non">Pas disponible</button></span></div>
         </article>`;
@@ -71,6 +80,48 @@ export function ecranPro(ctx, onglet, metier) {
         <label class="cb"><input type="checkbox" data-tarif-ok ${T.ok ? "checked" : ""}> J'accepte que mes tarifs servent uniquement au calcul de prix moyens anonymes, selon les règles ci-dessus.</label>
         ${T.ok && Object.values(T.p).some(v => v > 0) ? `<p class="d-act ok">✓ Tarifs enregistrés. Ils sont repris dans la simulation de « Notre moteur ».</p>` : `<p class="mu">Démonstration : vos tarifs restent sur cet appareil.</p>`}
       </section>`;
+  }
+
+  if (onglet === "negociant") {
+    const PX = ctx.prixNeg || {};
+    corps = `<div class="pro-intro"><h2>Des listes de matériaux déjà calculées</h2>
+      <p class="mu">Pour chaque chantier, Valou calcule les quantités exactes, arrondies au conditionnement (boîtes, sacs, rouleaux). Le négociant reçoit la liste et propose son offre.</p></div>
+      ${L.map(x => {
+        const A = {};
+        x.b.postes.forEach(p => p.articles.filter(a => a.id).forEach(a => {
+          const k = a.id + "|" + a.sc;
+          const o = (A[k] = A[k] || { id: a.id, n: a.n, sc: a.sc, nb: 0, cond: a.cond, pu: a.pu, tot: 0, defaut: a.defaut });
+          o.nb += a.nb; o.tot += a.tot;
+        }));
+        const lignes = Object.values(A).sort((a, b) => b.tot - a.tot);
+        if (!lignes.length) return "";
+        const total = lignes.reduce((s, a) => s + a.tot, 0);
+        const sansListe = x.b.postes.filter(p => p.mode === "fourchette" || p.matFourchette).map(p => p.n);
+        return `<article class="carte demande">
+          <div class="d-tete"><div><span class="badge b-reference">Liste de matériaux</span><h3>${esc(x.m.commune || x.m.nom)}</h3>
+            <small class="mu">${esc([x.m.annee && `Maison de ${x.m.annee}`, x.m.surface && `${nombre(x.m.surface)} m²`].filter(Boolean).join(" · "))}</small></div>
+            <div class="d-budget"><small>Montant des matériaux (HTVA)</small><b>${euros(total, 10)}</b><small class="mu">${lignes.length} articles</small></div></div>
+          <table class="d-lots neg"><thead><tr><th>Article</th><th class="r">Quantité</th><th class="r">Prix HTVA</th><th class="r">Total</th></tr></thead><tbody>
+          ${lignes.map(a => `<tr><td>${esc(a.id)} ${esc(a.n)} <small class="mu">${a.sc === "neg" ? "· pour un artisan" : "· fait soi-même"}</small></td><td class="r">${nombre(a.nb)} × ${esc(a.cond)}</td>
+            <td class="r">${euros2(a.pu)}${PX[a.id] ? ` <small class="ok-prix">votre prix</small>` : a.defaut ? ` <small class="mu">prix magasin</small>` : ""}</td><td class="r">${euros2(a.tot)}</td></tr>`).join("")}</tbody></table>
+          ${sansListe.length ? `<p class="mu petit-t">Sans liste détaillée pour l'instant (à chiffrer par vous) : ${esc(sansListe.join(", "))}.</p>` : ""}
+          <div class="d-pied"><small class="mu">Coordonnées transmises quand le client accepte votre offre</small>
+            <span class="d-act"><button class="btn" data-action="pro-ok">Envoyer mon offre</button><button class="btn sec" data-action="pro-non">Pas intéressé</button></span></div>
+        </article>`;
+      }).join("")}`;
+  }
+
+  if (onglet === "negprix") {
+    const PX = ctx.prixNeg || {};
+    const arts = Object.values(R.art);
+    corps = `<div class="pro-intro"><h2>Vos prix, dans les budgets des chantiers</h2>
+      <p class="mu">Le négociant encode ses prix hors TVA. Valou les utilise pour les travaux faits par un artisan, dans les budgets des chantiers de sa zone.</p></div>
+      <p class="simule">Démonstration : vos prix restent sur cet appareil et s'appliquent tout de suite aux maisons du prototype. Dans la vraie appli, ils passent par le tableau de bord des calculs.</p>
+      <section class="carte"><table class="d-lots tarifs neg"><thead><tr><th>Article</th><th>Conditionnement</th><th class="r">Prix magasin HTVA</th><th>Votre prix HTVA</th></tr></thead><tbody>
+      ${arts.map(a => { const m = a.prix != null ? Math.round(a.prix / 1.21 * 100) / 100 : null; return `<tr><td>${esc(a.id)} ${esc(a.nom)}</td><td><small>${esc(a.cond)}</small></td><td class="r">${m != null ? euros2(m) : `<span class="manque">à compléter</span>`}</td>
+        <td><span class="saisie"><input type="number" min="0" step="0.01" inputmode="decimal" data-negprix="${esc(a.id)}" value="${esc(PX[a.id] ?? "")}" aria-label="Votre prix : ${esc(a.nom)}"><i>€</i></span></td></tr>`; }).join("")}
+      </tbody></table>
+      ${Object.keys(PX).length ? `<p class="d-act ok">✓ ${Object.keys(PX).length} prix encodé${Object.keys(PX).length > 1 ? "s" : ""} : ils sont utilisés dans les budgets (onglet « Négociant : commandes »).</p>` : ""}</section>`;
   }
 
   if (onglet === "courtier") {
@@ -106,7 +157,9 @@ export function ecranPro(ctx, onglet, metier) {
       </article>` : ""}`;
   }
 
-  return `${entete("pro")}<main><h1>Côté professionnels</h1>${simule}${nav}${corps}</main>`;
+  return `${entete("pro")}<main><h1>Côté professionnels</h1>${simule}
+    <p class="liens-demo"><a class="btn sec petit-btn" href="#/demo-artisan">🎬 Démo pour un artisan</a><a class="btn sec petit-btn" href="#/demo-negociant">🎬 Démo pour un négociant</a></p>
+    ${nav}${corps}</main>`;
 }
 
 /* ---------- Notre moteur ---------- */
@@ -231,5 +284,41 @@ export function ecranFeuille(ctx) {
     <section class="carte"><h2>Modèle économique envisagé</h2><p class="mu">Pistes à valider avec les premiers partenaires.</p>
       <div class="revenus">${revenus.map(([t, x]) => `<div><b>${esc(t)}</b><p class="mu">${esc(x)}</p></div>`).join("")}</div>
     </section>
+  </main>`;
+}
+
+/* ---------- démos guidées pour les rendez-vous : artisan et négociant ---------- */
+export function ecranDemoPro(ctx, type) {
+  const { entete, maisonDemo } = ctx;
+  const A = maisonDemo ? `#/maison/${maisonDemo.id}` : "#/";
+  const D = type === "negociant" ? {
+    titre: "Valou pour les négociants",
+    accroche: "Des listes de matériaux déjà calculées, pour chaque chantier de votre zone.",
+    atouts: [["📋", "Les quantités exactes", "Valou calcule les matériaux de chaque chantier, arrondis au conditionnement réel : boîtes, sacs, rouleaux."],
+      ["🏷️", "Vos prix dans les budgets", "Vos prix hors TVA sont utilisés pour les travaux faits par les artisans de votre zone."],
+      ["🤝", "Des clients qui achètent", "Particuliers et artisans arrivent avec un projet chiffré : vous envoyez une offre, ils commandent."]],
+    etapes: [[A, "Une maison et ses travaux", "Le vrai coût, pièce par pièce, avec le détail des matériaux de chaque poste."],
+      ["#/pro/negociant", "La liste de matériaux reçue", "Les articles, quantités et montants, prêts pour une offre."],
+      ["#/pro/negprix", "Encodez vos prix", "Tapez 2 ou 3 prix : la liste et le budget de la maison changent tout de suite."],
+      ["#/pro/negociant", "Le résultat", "Vos prix apparaissent dans la liste, marqués « votre prix »."]],
+  } : {
+    titre: "Valou pour les artisans",
+    accroche: "Des projets déjà chiffrés, avec les photos des pièces, sans vous déplacer pour comprendre.",
+    atouts: [["📷", "Le projet avec les photos", "Pièce par pièce : travaux, surfaces et photos de la visite. Vous savez tout de suite si le chantier est pour vous."],
+      ["💶", "Un client qui connaît son budget", "Le budget est calculé avant votre devis : moins de visites pour rien, moins de devis refusés."],
+      ["🔒", "Vos tarifs restent confidentiels", "Ils servent seulement à des moyennes de 5 artisans ou plus, jamais montrées aux autres artisans."]],
+    etapes: [[A, "La maison visitée", "Pièces, photos, vrai coût. En bas de la page : « Envoyer le projet aux artisans »."],
+      ["#/pro/artisan", "La demande reçue", "Choisissez votre métier : travaux, budget du client et photos des pièces concernées."],
+      ["#/pro/tarifs", "Vos tarifs confidentiels", "Encodez un ou deux prix et cochez l'accord."],
+      ["#/moteur", "Les prix de votre zone", "En bas : la carte des prix moyens à 5, 10, 15 et 20 km, avec votre prix en vert."]],
+  };
+  return `${entete("pro")}<main class="demo-pro">
+    <p class="simule">Démonstration : maisons fictives, aucun envoi réel.</p>
+    <h1>${esc(D.titre)}</h1>
+    <p class="intro">${esc(D.accroche)}</p>
+    <div class="atouts">${D.atouts.map(([i, t, x]) => `<div class="carte atout"><span class="at-ico">${i}</span><b>${esc(t)}</b><p class="mu">${esc(x)}</p></div>`).join("")}</div>
+    <h2>La démonstration en ${D.etapes.length} étapes</h2>
+    <ol class="etapes-demo">${D.etapes.map(([h, t, x], i) => `<li><a class="carte etape-demo" href="${h}"><span class="num">${i + 1}</span><div><b>${esc(t)}</b><p class="mu">${esc(x)}</p></div><span class="go">→</span></a></li>`).join("")}</ol>
+    <p><a class="btn sec" href="${type === "negociant" ? "#/demo-artisan" : "#/demo-negociant"}">Voir la démo ${type === "negociant" ? "artisan" : "négociant"}</a></p>
   </main>`;
 }
