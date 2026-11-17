@@ -21,6 +21,11 @@ try {
     page.on("pageerror", e => erreurs.push(`${nom} : ${e.message}`));
     page.on("console", m => m.type() === "error" && !/supabase|valou_tarifs|Failed to load resource/i.test(m.text()) && erreurs.push(`${nom} : ${m.text()}`));
     await page.goto(URL);
+    /* page d'intro : logo, phrase d'accroche, bouton « Commencer la démo » */
+    await page.locator(".intro-logo").waitFor();
+    assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo/);
+    await page.screenshot({ path: `${OUT}/${nom}-00-intro.png` });
+    await page.getByText("Commencer la démo →").click();
     await page.getByText("Ajouter une maison").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-1-accueil.png` });
 
@@ -60,7 +65,7 @@ try {
     await page.locator('.groupe-photos:has(h2:has-text("Cuisine")) >> text=Ouvrir la pièce').click();
     await page.locator(".titre-piece").waitFor();
     assert.equal(await page.locator(".galerie .vignette").count(), 2); // la pièce affiche ses photos
-    await page.goto(URL);
+    await page.goto(URL + "#/");
     await page.getByText("Maison de démonstration A").first().click();
 
     /* envoi du projet aux artisans, puis ce que reçoit le carreleur (avec les photos de la cuisine) */
@@ -153,7 +158,7 @@ try {
     assert.equal(await page.locator('[data-annonce="valou"]').isChecked(), false);
     assert.equal(await page.locator(".a-valou").count(), 0);
     for (const d of ["demo-artisan", "demo-negociant"]) { await page.goto(URL + "#/" + d); await page.locator(".etapes-demo li").nth(3).waitFor(); }
-    await page.goto(URL);
+    await page.goto(URL + "#/");
     await page.getByText("Maison de démonstration A").first().click();
     await page.getByText("← Mes maisons").click();
 
@@ -227,13 +232,14 @@ try {
     assert.equal(await page.locator(".q-table tbody tr").count(), 22);
     /* mode présentation : hoono.be/demo/#/presentation remet les maisons de démonstration à zéro */
     await page.goto(URL + "#/presentation");
-    await page.waitForFunction(() => location.hash === "#/");
+    await page.waitForFunction(() => location.hash === "#/bienvenue"); // la remise à zéro ramène à la page d'intro
+    await page.getByText("Commencer la démo →").click();
     await page.locator(".maison").first().waitFor();
     assert.match(await page.locator(".grille").innerText(), /Maison de démonstration A[\s\S]*Maison de démonstration B/);
     await page.locator('.nav-i[href="#/feuille-de-route"]').click();
     await page.locator(".phases").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-10-feuille.png`, fullPage: nom === "ordi" });
-    await page.goto(URL);
+    await page.goto(URL + "#/");
     await page.locator(".maison").first().waitFor();
 
     /* ajouter une maison en 30 secondes */

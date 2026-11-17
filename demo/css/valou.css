@@ -730,3 +730,21 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .demande details > .d-tete { margin-top: 14px; }
 .demande:hover { border-color: var(--or); }
 .demande .d-tete > div > small { display: block; }
+
+/* page d'intro */
+.intro-page { max-width: none; width: 100%; margin: 0; box-sizing: border-box; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background:
+  radial-gradient(circle at 85% 10%, rgba(236, 130, 36, .14), transparent 45%),
+  radial-gradient(circle at 10% 90%, rgba(2, 34, 80, .10), transparent 50%), var(--creme); }
+.intro-boite { max-width: 760px; text-align: center; }
+.intro-logo { width: min(420px, 80vw); height: auto; margin: 0 auto 28px; display: block; }
+.intro-boite h1 { font: 900 clamp(28px, 5vw, 48px)/1.12 Outfit, sans-serif; color: var(--bordeaux); margin: 0 0 16px; }
+.intro-boite h1 span { color: var(--or); }
+.intro-sous { font-size: clamp(16px, 2.2vw, 19px); color: var(--mu); margin: 0 auto 30px; max-width: 600px; }
+.intro-btn { font-size: 18px; padding: 16px 34px; border-radius: 14px; box-shadow: 0 8px 24px rgba(2, 34, 80, .22); }
+.intro-btn:hover { transform: translateY(-1px); }
+.intro-pour { list-style: none; padding: 0; margin: 40px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.intro-pour li { background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 12px 10px; display: grid; gap: 2px; }
+.intro-pour b { font-size: 14px; color: var(--bordeaux); }
+.intro-pour span { font-size: 12.5px; color: var(--mu); }
+.intro-note { margin-top: 26px; font-size: 12.5px; color: var(--mu); }
+@media (max-width: 700px) { .intro-pour { grid-template-columns: 1fr 1fr; } }

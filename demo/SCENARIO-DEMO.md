@@ -8,7 +8,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 ## Avant la réunion (2 minutes)
 
 1. Sur le téléphone ou l'ordinateur de la démo, ouvrir **https://hoono.be/demo/#/presentation**.
-   Tout est remis à zéro : les 2 maisons de démonstration, sans photos ni montants tapés lors d'une démo précédente.
+   Tout est remis à zéro (les 2 maisons de démonstration, sans photos ni montants tapés lors d'une démo précédente) et la **page d'intro** s'affiche : logo, phrase d'accroche et bouton « Commencer la démo ». Laissez-la à l'écran pendant que les gens s'installent.
 2. Ouvrir la page dans **Chrome** (ou Safari sur iPhone) et autoriser la caméra une première fois (écran « 📷 Photos de la visite »).
 3. Garder le téléphone chargé et la luminosité au maximum. Si vous projetez, préférez l'ordinateur et gardez le téléphone pour la photo.
 

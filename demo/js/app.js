@@ -859,7 +859,7 @@ function preparerPresentation(direct) {
   maisons.forEach(m => { if (m.demo) { delete m.envoi; delete m.reponses; } });
   sim = { k: "sol_carrelage", n: 25 }; metier = "general"; selection = null;
   fermerCamera(); visite = { maisonId: null, nom: "", saisie: true };
-  location.hash = "#/";
+  location.hash = "#/bienvenue";
   afficher();
 }
 
@@ -986,14 +986,35 @@ function ecranContacts(id) {
   </main>`;
 }
 
+/* ---------- page d'intro ---------- */
+function ecranIntro() {
+  return `<main class="intro-page">
+    <div class="intro-boite">
+      <img class="intro-logo" src="img/logo-valou.png" alt="Valou">
+      <h1>Le vrai coût d'une maison à rénover, <span>avant de faire une offre.</span></h1>
+      <p class="intro-sous">Prix, notaire, travaux pièce par pièce : Valou chiffre tout, puis envoie votre projet aux bons artisans.</p>
+      <a class="btn intro-btn" href="#/">Commencer la démo →</a>
+      <ul class="intro-pour">
+        <li><b>🏠 Acheteurs</b><span>le vrai budget, gratuit</span></li>
+        <li><b>🔨 Artisans</b><span>des projets déjà chiffrés</span></li>
+        <li><b>🧱 Négociants</b><span>visibles sur les chantiers</span></li>
+        <li><b>🏦 Courtiers et agences</b><span>des dossiers complets</span></li>
+      </ul>
+      <p class="intro-note">Version de démonstration · maisons et professionnels fictifs</p>
+    </div>
+  </main>`;
+}
+
 /* ---------- routeur ---------- */
 function afficher() {
-  const h = location.hash.replace(/^#/, "") || "/";
+  const brut = location.hash.replace(/^#/, "");
+  const h = brut === "" ? "/bienvenue" : brut; // première ouverture de la démo : la page d'intro
   if (h === "/presentation" && R) { preparerPresentation(true); return; }
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/);
-  if (h === "/ajouter") html = ecranAjouter();
+  if (h === "/bienvenue") html = ecranIntro();
+  else if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
   else if (h === "/contacts" || h.startsWith("/contacts/")) html = ecranContacts(h.split("/")[2]);
   else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
