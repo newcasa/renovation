@@ -126,7 +126,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 1. **La maison visitée** : les pièces en couleur et le vrai coût. Tout en bas, dernière étape : « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
    > « Le client a visité, chiffré, photographié. Il vous envoie son projet en un clic. »
-2. **La demande reçue** (« Voir ce que reçoit l'artisan → », dans l'espace artisan, métier « Carreleur ») : les travaux de votre métier, le budget du client et les photos de la cuisine. Trois boutons : « Proposer une visite », « Envoyer un devis », « Pas disponible ».
+2. **La demande reçue** (« Voir ce que reçoit l'artisan → », dans l'espace artisan, métier « Carreleur ») : chaque nouvelle demande est fermée et ne montre que l'adresse ; un clic sur l'adresse ouvre le détail : les travaux de votre métier, le budget du client et les photos de la cuisine. Trois boutons : « Proposer une visite », « Envoyer un devis », « Pas disponible ».
    > « Vous savez tout de suite si le chantier est pour vous, sans vous déplacer. Le client connaît déjà son budget. »
 3. **Vos tarifs** (onglet « Mes tarifs » de l'espace artisan) : l'encadré de confidentialité, un prix tapé, l'accord coché.
    > « Vos prix ne sont jamais montrés. Ils servent à des moyennes d'au moins 5 artisans, et vous recevez les demandes en priorité. »

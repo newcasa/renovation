@@ -75,8 +75,13 @@ export function ecranPro(ctx, onglet, metier) {
       ${demandes.length ? demandes.map(x => {
         const t = x.lots.reduce((s, p) => [s[0] + p.total[0], s[1] + p.total[1], s[2] + p.total[2]], [0, 0, 0]);
         const deja = (x.m.reponses || []).find(r => r.metier === M.id);
-        return `<article class="carte demande" data-maison="${x.m.id}" data-metier="${M.id}">
-          <div class="d-tete"><div><span class="badge b-reference">Nouvelle demande</span><h3>${esc(x.m.commune || x.m.nom)}</h3>
+        const cle = `${x.m.id}:${M.id}`;
+        return `<article class="carte demande ${demandesOuvertes.has(cle) ? "ouverte" : ""}" data-maison="${x.m.id}" data-metier="${M.id}">
+          <details data-demande="${cle}" ${demandesOuvertes.has(cle) ? "open" : ""}><summary class="d-resume">
+            <span class="badge ${deja ? "b-estimation" : "b-reference"}">${deja ? "Répondu" : "Nouvelle demande"}</span>
+            <b class="d-adresse">📍 ${esc(x.m.commune || x.m.nom)}</b>
+            <span class="d-voir">Voir le détail <span>▾</span></span></summary>
+          <div class="d-tete"><div><b>La maison</b>
             <small class="mu">${esc([x.m.annee && `Maison de ${x.m.annee}`, x.m.surface && `${nombre(x.m.surface)} m²`].filter(Boolean).join(" · "))}</small></div>
             <div class="d-budget"><small>Budget estimé du client pour ces travaux</small><b>${euros(t[0], 100)} – ${euros(t[2], 100)}</b><small class="mu">TVA ${x.b.rate} % comprise</small></div></div>
           ${x.m.envoi ? `<p class="envoye">📨 Projet envoyé par le client le ${esc(new Date(x.m.envoi.date).toLocaleDateString("fr-BE"))}</p>` : ""}
@@ -89,6 +94,7 @@ export function ecranPro(ctx, onglet, metier) {
           <div class="d-pied"><small class="mu">${x.m.fin && x.m.fin.apport ? "✓ Dossier de financement préparé" : "Financement en préparation"} · Coordonnées du client transmises quand vous acceptez</small>
             ${deja ? `<span class="d-act ok">✓ Vous avez répondu : ${deja.type === "visite" ? "visite proposée" : deja.type === "devis" ? "devis envoyé" : "pas disponible"}.</span>`
               : `<span class="d-act"><button class="btn sec" data-action="pro-visite">Proposer une visite</button><button class="btn" data-action="pro-ok">Envoyer un devis</button><button class="btn lien" data-action="pro-non">Pas disponible</button></span>`}</div>
+          </details>
         </article>`;
       }).join("") : `<div class="carte vide"><p>Aucune demande pour ce métier dans les maisons du prototype.</p></div>`}`;
   }
@@ -213,6 +219,15 @@ export const ARTISANS_EXEMPLE = {
   chauffagiste: { nom: "Chauffage Exemple", tel: "081 00 00 05" }, menuisier: { nom: "Menuiserie Exemple", tel: "081 00 00 06" },
   couvreur: { nom: "Toitures Exemple", tel: "081 00 00 07" },
 };
+
+/* demandes reçues par l'artisan : fermées par défaut (on ne voit que l'adresse), ouvertes d'un clic */
+const demandesOuvertes = new Set();
+document.addEventListener("toggle", e => {
+  const d = e.target;
+  if (!d.dataset || !d.dataset.demande) return;
+  d.open ? demandesOuvertes.add(d.dataset.demande) : demandesOuvertes.delete(d.dataset.demande);
+  d.closest(".demande")?.classList.toggle("ouverte", d.open);
+}, true);
 
 /* ---------- types de matériaux vendus par un négociant (à cocher, obligatoire) ---------- */
 export const RAYONS_NEG = [

@@ -714,3 +714,19 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .fn-rayons > div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .fn-rayon { font-size: 13px; padding: 4px 9px; border-radius: 999px; background: var(--carte); border: 1px solid var(--bord); }
 .fn-rayon.utile { background: #E5F2E8; border-color: #9CCBA8; font-weight: 700; color: #1F5A30; }
+
+/* demandes reçues par l'artisan : repliées sur l'adresse */
+.demande { padding: 0; }
+.demande > details > summary { list-style: none; }
+.demande > details > summary::-webkit-details-marker { display: none; }
+.d-resume { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 18px; cursor: pointer; }
+.d-adresse { font: 800 17px Outfit, Manrope, sans-serif; color: var(--bordeaux); flex: 1; }
+.d-voir { font: 700 13.5px Manrope, sans-serif; color: var(--or-fonce); white-space: nowrap; }
+.d-voir span { display: inline-block; transition: transform .15s; }
+.demande details[open] .d-voir span { transform: rotate(180deg); }
+.demande details[open] > summary { border-bottom: 1px solid var(--bord); }
+.demande > details[open] { padding: 0 18px 16px; }
+.demande > details[open] > summary { margin: 0 -18px; }
+.demande details > .d-tete { margin-top: 14px; }
+.demande:hover { border-color: var(--or); }
+.demande .d-tete > div > small { display: block; }

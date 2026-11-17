@@ -72,6 +72,11 @@ try {
     await page.getByText("Voir ce que reçoit l'artisan →").click();
     await page.selectOption("[data-metier]", "carreleur");
     await page.locator(".demande").first().waitFor();
+    /* la demande est fermée : on ne voit que l'adresse ; un clic l'ouvre */
+    assert.equal(await page.locator(".demande .d-lots").first().isVisible(), false);
+    assert.match(await page.locator(".demande .d-resume").first().innerText(), /Nouvelle demande|Répondu/);
+    await page.locator(".demande .d-resume").first().click();
+    await page.locator(".demande .d-lots").first().waitFor();
     assert.match(await page.locator(".demande").first().innerText(), /Projet envoyé[\s\S]*photos? de la visite/);
     await page.screenshot({ path: `${OUT}/${nom}-0c-artisan-photos.png`, fullPage: nom === "ordi" });
     /* l'artisan peut proposer une visite */
@@ -118,6 +123,7 @@ try {
     assert.match(await L().innerText(), /Envoyé à 3 artisans/);
     await page.goto(URL + "#/pro/artisan");
     await page.selectOption("[data-metier]", metierTest);
+    for (const d of await page.locator(".demande .d-resume").all()) await d.click();
     assert.match(await page.locator(".demande").filter({ hasText: "Grès cérame 60×60 test" }).innerText(), /Souhaits du client[\s\S]*Grès cérame 60×60 test[\s\S]*Joints gris test/);
     await page.screenshot({ path: `${OUT}/${nom}-0h-souhaits-artisan.png`, fullPage: nom === "ordi" });
 
@@ -183,6 +189,7 @@ try {
     await page.locator(".demande").first().waitFor();
     await page.selectOption("[data-metier]", "carreleur");
     await page.locator(".demande").first().waitFor();
+    if (!(await page.locator(".demande .d-lots").first().isVisible())) await page.locator(".demande .d-resume").first().click();
     assert.match(await page.locator(".d-lots").first().innerText(), /carrelage/i);
     if (await page.getByText("Envoyer un devis").count()) await page.getByText("Envoyer un devis").first().click(); // sinon : l'artisan a déjà répondu
     await page.locator(".d-act.ok").first().waitFor();
