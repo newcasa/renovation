@@ -499,3 +499,5 @@ label.verrou .saisie i { font-size: 14px; }
 .q-table thead th { background: none; }
 .q-table .q-na { background: none; color: #999; }
 .q-table .q-na::after { content: "—"; }
+/* questionnaire : zone des notes sans cadre ni lignes (économie d'encre) */
+.q-notes { border: 0 !important; background: none !important; }
