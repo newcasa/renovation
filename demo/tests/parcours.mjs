@@ -29,6 +29,26 @@ try {
     await page.locator(".vrai-cout .gros").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-0-demo.png` });
     await page.screenshot({ path: `${OUT}/${nom}-0-demo-complet.png`, fullPage: nom === "ordi" });
+
+    /* photos de la visite : rangées par pièce, associées par le nom */
+    const png = { name: "photo.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAIAAABxZ0isAAAAFklEQVR4nGP8//8/AwMDAxMDFgDHAwBkVQMJtYt0YgAAAABJRU5ErkJggg==", "base64") };
+    await page.getByText("📷 Photos de la visite").first().click();
+    await page.selectOption("[data-photo-piece]", "Cuisine");
+    await page.setInputFiles("[data-photo-input]", [png, { ...png, name: "photo2.png" }]);
+    await page.locator(".vignette").nth(1).waitFor();
+    assert.match(await page.locator(".groupe-photos").first().innerText(), /Cuisine[\s\S]*2 photos[\s\S]*Ouvrir la pièce/);
+    await page.selectOption("[data-photo-piece]", "__autre");
+    await page.fill("[data-photo-autre]", "Mezzanine");
+    await page.locator("[data-photo-autre]").dispatchEvent("change");
+    await page.setInputFiles("[data-photo-input]", png);
+    await page.getByText("Créer la pièce « Mezzanine »").click();
+    await page.locator('.groupe-photos:has(h2:has-text("Mezzanine")) >> text=Ouvrir la pièce').waitFor();
+    await page.screenshot({ path: `${OUT}/${nom}-0b-photos.png`, fullPage: nom === "ordi" });
+    await page.locator('.groupe-photos:has(h2:has-text("Cuisine")) >> text=Ouvrir la pièce').click();
+    await page.locator(".titre-piece").waitFor();
+    assert.equal(await page.locator(".galerie .vignette").count(), 2); // la pièce affiche ses photos
+    await page.goto(URL);
+    await page.getByText("Maison de démonstration A").first().click();
     await page.getByText("← Mes maisons").click();
 
     /* comparer les deux maisons de démonstration */

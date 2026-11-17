@@ -501,3 +501,17 @@ label.verrou .saisie i { font-size: 14px; }
 .q-table .q-na::after { content: "—"; }
 /* questionnaire : zone des notes sans cadre ni lignes (économie d'encre) */
 .q-notes { border: 0 !important; background: none !important; }
+
+/* photos de la visite */
+.prise { display: grid; gap: 10px; max-width: 560px; }
+.btn-photo { justify-content: center; font-size: 16px; padding: 15px 20px; }
+.galerie { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.vignette { margin: 0; background: #fff; border: 1px solid var(--bord); border-radius: 12px; overflow: hidden; }
+.vignette img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.vignette figcaption { display: flex; gap: 4px; align-items: center; padding: 6px; }
+.vignette select { font-size: 12.5px; padding: 6px 8px; }
+.groupe-photos { border-left: 6px solid var(--pc-acc, var(--bord)); }
+.gp-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 10px; }
+.gp-tete h2 { margin: 0; flex: 1; }
+.petit-btn { padding: 8px 12px; font-size: 13.5px; }
+.pc-photos { font-weight: 700; color: var(--mu); }

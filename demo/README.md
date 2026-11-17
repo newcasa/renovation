@@ -47,3 +47,13 @@ Pour la vraie appli, il faudra une table privée dans Supabase, où le calcul de
 - **Pièces** : on encode la surface au sol de chaque pièce. Les murs sont calculés automatiquement (sol × 2,7) et restent corrigeables. Le plafond est égal au sol. Les travaux d'une pièce (sol, murs, plafond) suivent ces surfaces ; une quantité tapée à la main n'est plus recalculée.
 - **Postes plafond ajoutés par le prototype** : « Plafond – plafonnage » (articles du plafonnage, tarif M13) et « Plafond – peinture » (articles de la peinture, tarif M16 des murs, signalé « Estimation »). Ils seront à ajouter au tableau de bord des calculs.
 - **Chauffage** : chauffage existant, chauffage souhaité (chaudière gaz à condensation ou pompe à chaleur) et radiateurs ou chauffage au sol. Les lignes de travaux sont créées automatiquement. Les radiateurs sont comptés en « remplacement » si un chauffage existe, sinon en « nouveau raccordement ». Le démontage d'une cuve à mazout est signalé « à compléter ».
+
+## Photos de la visite
+
+Bouton « 📷 Photos de la visite » sur la fiche d'une maison :
+- on choisit la pièce photographiée (une pièce de la maison, une pièce courante, ou un autre nom), puis on prend autant de photos qu'on veut ;
+- chaque photo garde le **nom** de sa pièce et s'associe automatiquement à la pièce du même nom. Sans pièce de ce nom, un bouton la crée ;
+- on peut changer la pièce d'une photo ou la supprimer ;
+- dans chaque pièce, ses photos s'affichent, avec un bouton pour en ajouter.
+
+Les photos restent sur l'appareil (IndexedDB), réduites à 1600 px. Code : `js/photos.js`.

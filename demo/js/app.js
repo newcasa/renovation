@@ -4,7 +4,8 @@ import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHES
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
-import { ecranQuestionnaire } from "./questionnaire.js";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE } from "./questionnaire.js";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js";
 
 let R = null;
 let maisons = lireMaisons();
@@ -153,6 +154,8 @@ function chargerDemo() {
   return L[0];
 }
 
+const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite${n ? ` (${n})` : ""}</a>`; };
+
 /* ---------- écran : le vrai coût d'une maison ---------- */
 function ecranMaison(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
@@ -189,7 +192,7 @@ function ecranMaison(m) {
         <span class="pc-ico">${iconePiece(pc)}</span><b>${esc(pc.nom)}</b>
         <small class="mu">${pc.sol ? `${String(pc.sol).replace(".", ",")} m²` : "surface à remplir"}</small>
         <small class="pc-res">${esc(resumePiece(pc)) || "Rien de prévu"}</small>
-        <span class="pc-bud">${t ? euros(t, 10) : "–"}</span></a>
+        <span class="pc-bud">${t ? euros(t, 10) : "–"}</span>${(n => (n ? `<small class="pc-photos">📷 ${n}</small>` : ""))(photosDe(m).filter(p => memeNom(p.nomPiece, pc.nom)).length)}</a>
       <button class="x" data-action="suppr-piece" data-id="${pc.id}" aria-label="Supprimer ${esc(pc.nom)}">✕</button></div>`;
   }).join("");
 
@@ -275,6 +278,7 @@ function ecranMaison(m) {
     <section class="carte">
       <h2>Les pièces</h2>
       <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
+      <p>${boutonPhotosMaison(m)}</p>
       <div class="grille-pieces">${cartesPieces}</div>
       <div class="ajout-piece">
         <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
@@ -422,6 +426,13 @@ function ecranPiece(m, pc) {
     ${pc.type === "sdb" ? rub("🛁", "Salle de bain équipée", "equipe", cb("meu", "Remplacer la salle de bain équipée")) : ""}
     ${pc.type === "wc" ? rub("🚽", "Équipements du WC", "wc", WC.map(([f, t]) => `<label class="cb"><input type="checkbox" data-pcwi="${f}" ${(pc.wi || []).includes(f) ? "checked" : ""}> ${t}</label>`).join("")) : ""}
     ${pc.type === "garage" ? rub("🚪", "Porte de garage", "garage", `<div class="champs">${num("pg", "Nombre de portes de garage", "ex. 1")}</div>`) : ""}
+
+    ${(() => {
+      const P = photosDe(m).filter(p => memeNom(p.nomPiece, pc.nom));
+      return `<section class="carte rubrique"><div class="rb-tete"><span class="rb-ico">📷</span><h2>Photos</h2><small class="mu">${P.length ? `${P.length} photo${P.length > 1 ? "s" : ""}` : "aucune photo"}</small></div>
+        ${P.length ? `<div class="galerie">${P.map(p => vignette(m, p)).join("")}</div>` : ""}
+        <p>${boutonPhoto(`📷 Ajouter une photo de « ${esc(pc.nom)} »`, pc.nom)}</p></section>`;
+    })()}
 
     <p><a class="btn" href="#/maison/${m.id}">✓ Pièce terminée</a></p>
   </main>`;
@@ -580,12 +591,75 @@ function ecranDossier(m) {
   </main>`;
 }
 
+/* ---------- photos de la visite ---------- */
+const photosCache = {}, photosEnCours = {};
+let photoPiece = null, photoAutre = "";
+function photosDe(m) {
+  if (!photosCache[m.id] && !photosEnCours[m.id] && typeof indexedDB !== "undefined") {
+    photosEnCours[m.id] = true;
+    listerPhotos(m.id)
+      .then(L => { photosCache[m.id] = L.map(p => ({ ...p, url: URL.createObjectURL(p.blob) })); })
+      .catch(() => { photosCache[m.id] = []; })
+      .finally(() => { delete photosEnCours[m.id]; afficher(); });
+  }
+  return photosCache[m.id] || [];
+}
+function rechargerPhotos(m) {
+  (photosCache[m.id] || []).forEach(p => URL.revokeObjectURL(p.url));
+  delete photosCache[m.id];
+  photosDe(m);
+}
+/* noms proposés : les pièces de la maison, puis les pièces courantes d'une maison */
+const nomsPieces = m => {
+  const deja = (m.pieces || []).map(pc => pc.nom);
+  const types = PIECES_QUESTIONNAIRE.map(x => x[0]).filter(n => n !== "Autre :" && !deja.some(d => memeNom(d, n)));
+  return { deja, types };
+};
+const optionsPieces = (m, sel) => {
+  const { deja, types } = nomsPieces(m);
+  const autres = !sel || sel === "__autre" || deja.concat(types).some(n => memeNom(n, sel)) ? [] : [sel];
+  return `${deja.length ? `<optgroup label="Pièces de la maison">${deja.map(n => `<option ${memeNom(n, sel) ? "selected" : ""}>${esc(n)}</option>`).join("")}</optgroup>` : ""}
+    <optgroup label="Autres pièces">${autres.concat(types).map(n => `<option ${memeNom(n, sel) ? "selected" : ""}>${esc(n)}</option>`).join("")}</optgroup>
+    <option value="__autre" ${sel === "__autre" ? "selected" : ""}>Autre nom…</option>`;
+};
+const boutonPhoto = (texte, nom) => `<label class="btn btn-photo">${texte}<input type="file" accept="image/*" capture="environment" multiple data-photo-input ${nom ? `data-nom="${esc(nom)}"` : ""} hidden></label>`;
+const vignette = (m, p) => `<figure class="vignette"><a href="${p.url}" target="_blank" rel="noopener"><img src="${p.url}" alt="Photo : ${esc(p.nomPiece)}" loading="lazy"></a>
+    <figcaption><select data-photo-renommer="${p.id}" aria-label="Pièce de la photo">${optionsPieces(m, p.nomPiece)}</select>
+    <button class="x" data-action="suppr-photo" data-id="${p.id}" aria-label="Supprimer la photo">✕</button></figcaption></figure>`;
+
+function ecranPhotos(m) {
+  const P = photosDe(m);
+  const { deja, types } = nomsPieces(m);
+  if (!photoPiece) photoPiece = deja[0] || types[0];
+  const nomActuel = photoPiece === "__autre" ? photoAutre : photoPiece;
+  const groupes = [...new Set(P.map(p => p.nomPiece))];
+  return `${entete("maisons")}
+  <main>
+    <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
+    <h1>📷 Photos de la visite</h1>
+    <section class="carte prise">
+      <label>Pièce photographiée<select data-photo-piece>${optionsPieces(m, photoPiece)}</select></label>
+      ${photoPiece === "__autre" ? `<label>Nom de la pièce<input data-photo-autre value="${esc(photoAutre)}" placeholder="ex. Mezzanine"></label>` : ""}
+      ${nomActuel ? boutonPhoto(`📷 Prendre une photo · ${esc(nomActuel)}`) : `<span class="btn off">📷 Tapez d'abord le nom de la pièce</span>`}
+      <small class="mu">Choisissez la pièce, puis prenez autant de photos que vous voulez : elles sont rangées sous ce nom et s'associent à la pièce du même nom. Les photos restent sur cet appareil.</small>
+    </section>
+    ${P.length ? groupes.map(g => {
+      const L = P.filter(p => p.nomPiece === g), pc = pieceDePhoto(m, L[0]);
+      return `<section class="carte groupe-photos" ${pc ? `style="${stylePiece(m, pc)}"` : ""}>
+        <div class="gp-tete"><h2>${esc(g)} <small class="mu">${L.length} photo${L.length > 1 ? "s" : ""}</small></h2>
+          ${pc ? `<a class="btn sec petit-btn" href="#/maison/${m.id}/piece/${pc.id}">Ouvrir la pièce →</a>` : `<span class="badge b-estimation">Pas encore de pièce</span><button class="btn sec petit-btn" data-action="creer-piece-photo" data-nom="${esc(g)}">＋ Créer la pièce « ${esc(g)} »</button>`}</div>
+        <div class="galerie">${L.map(p => vignette(m, p)).join("")}</div>
+      </section>`;
+    }).join("") : `<div class="carte vide"><p>Aucune photo pour l'instant.</p></div>`}
+  </main>`;
+}
+
 /* ---------- routeur ---------- */
 function afficher() {
   const h = location.hash.replace(/^#/, "") || "/";
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
-  const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/);
+  const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/);
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
   else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
@@ -593,6 +667,7 @@ function afficher() {
   else if (h === "/moteur") html = ecranMoteur({ R, entete, sim, tarifs });
   else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
+  else if (mph && trouver(mph[1])) html = ecranPhotos(trouver(mph[1]));
   else if (mp && trouver(mp[1]) && (trouver(mp[1]).pieces || []).some(p => p.id === mp[2])) html = ecranPiece(trouver(mp[1]), trouver(mp[1]).pieces.find(p => p.id === mp[2]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
@@ -644,11 +719,38 @@ document.addEventListener("click", e => {
     appliquerChauffage(m);
     sauver(); afficher();
   }
-  if (a === "suppr-maison" && m && confirm("Supprimer cette maison ?")) { maisons = maisons.filter(x => x !== m); sauver(); location.hash = "#/"; }
+  if (a === "suppr-maison" && m && confirm("Supprimer cette maison ?")) { supprimerPhotosMaison(m.id).catch(() => {}); maisons = maisons.filter(x => x !== m); sauver(); location.hash = "#/"; }
+  if (a === "suppr-photo" && m && confirm("Supprimer cette photo ?")) { supprimerPhoto(el.dataset.id).then(() => rechargerPhotos(m)); }
+  if (a === "creer-piece-photo" && m) {
+    const nom = el.dataset.nom, T = PIECES_QUESTIONNAIRE.find(x => memeNom(x[0], nom));
+    m.pieces = m.pieces || [];
+    m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; });
+    const prises = new Set(m.pieces.map(x => x.c % COULEURS.length));
+    const c = [...Array(COULEURS.length).keys()].find(i => !prises.has(i)) ?? m.pieces.length % COULEURS.length;
+    m.pieces.push({ id: nouvelId(), nom, type: T ? T[1] : "standard", sol: null, murs: null, wi: [], c });
+    appliquerChauffage(m);
+    sauver(); afficher();
+  }
 });
 
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  /* photos de la visite */
+  if (t.dataset.photoInput != null && m) {
+    const nom = t.dataset.nom || (photoPiece === "__autre" ? photoAutre.trim() : photoPiece);
+    const fichiers = [...(t.files || [])];
+    if (!nom || !fichiers.length) return;
+    Promise.all(fichiers.map(f => ajouterPhoto(m.id, nom, f))).then(() => rechargerPhotos(m)).catch(() => alert("La photo n'a pas pu être enregistrée sur cet appareil."));
+    return;
+  }
+  if (t.dataset.photoPiece != null) { photoPiece = t.value; afficher(); return; }
+  if (t.dataset.photoAutre != null) { photoAutre = t.value; afficher(); return; }
+  if (t.dataset.photoRenommer && m) {
+    let nom = t.value;
+    if (nom === "__autre") nom = (prompt("Nom de la pièce") || "").trim();
+    if (nom) renommerPhoto(t.dataset.photoRenommer, nom).then(() => rechargerPhotos(m)); else afficher();
+    return;
+  }
   if (t.dataset.metier != null) { metier = t.value; afficher(); return; }
   if (t.dataset.simK != null) { sim.k = t.value; afficher(); return; }
   if (t.dataset.tarif) { tarifs.p[t.dataset.tarif] = t.value === "" ? null : +t.value; sauverTarifs(); afficher(); return; }
