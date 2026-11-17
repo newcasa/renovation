@@ -319,3 +319,26 @@ h3 { font: 900 19px Outfit, sans-serif; margin: 6px 0 2px; }
 .legende-carte i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #CDBFB3; }
 .legende-carte i.on { background: var(--or-fonce); } .legende-carte i.vous { background: var(--vert); }
 @media (max-width: 760px) { .sim { grid-template-columns: 1fr; } .tarifs td:last-child { width: auto; } }
+
+/* pièces : sol, murs, plafond */
+.piece { border: 1px solid var(--bord); border-radius: 14px; background: #fff; padding: 12px 14px 6px; margin-bottom: 12px; }
+.piece.autre { background: transparent; }
+.pc-tete { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 16px; padding-bottom: 8px; }
+.pc-tete label { font-size: 12.5px; gap: 2px; }
+.pc-tete label .saisie input { width: 86px; padding: 7px 9px; font-size: 14px; }
+.pc-tete small { font-size: 11px; font-weight: 600; }
+.pc-nom { font: 800 16px Manrope, sans-serif; width: 200px; padding: 7px 10px; }
+.pc-titre { font-size: 16px; }
+.pc-pl, .pc-tot { display: grid; gap: 2px; font-size: 12.5px; font-weight: 700; padding-bottom: 6px; }
+.pc-pl b, .pc-tot b { font-size: 15px; }
+.pc-tot { margin-left: auto; text-align: right; }
+.pc-tete .x { align-self: center; }
+.piece .table { margin-bottom: 4px; }
+.btn.petit { padding: 6px 4px; font-size: 13.5px; }
+.sous-titre { margin: 20px 0 10px; }
+.chauffage { margin-bottom: 6px; }
+@media (max-width: 640px) {
+  .pc-nom { width: 100%; }
+  .pc-tot { margin-left: 0; text-align: left; }
+  .table td[data-l="Travail"] { padding-right: 40px; }
+}

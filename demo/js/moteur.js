@@ -32,9 +32,22 @@ export function unitePoste(u, k) {
 /* Prépare les données de référence.
    ref = tarifs-reference.json, mo = main-oeuvre.json, hubo = prix-hubo.json,
    pub = table Supabase valou_tarifs (prix publiés depuis le tableau de bord), facultatif. */
+/* Postes « plafond » ajoutés par le prototype, construits à partir des références existantes
+   (ils ne sont ajoutés que s'ils n'existent pas encore dans tarifs-reference.json). */
+export function postesPlafond(ref) {
+  const P = Object.fromEntries(ref.postes.map(p => [p.k, p]));
+  const out = [];
+  if (P.mur_plafonnage) out.push({ ...P.mur_plafonnage, k: "pl_plafonnage", n: "Plafond – plafonnage", mo: "M13", lm: undefined, l: undefined, note: "Articles du plafonnage des murs, tarif M13 « Plafonnage plafond »." });
+  if (P.mur_peinture) out.push({ ...P.mur_peinture, k: "pl_peinture", n: "Plafond – peinture", c: P.mur_peinture.c.map(x => ({ ...x })), moTemp: true, note: "Tarif de la peinture des murs (M16), pas encore de tarif propre aux plafonds." });
+  return out;
+}
+
 export function indexer({ ref, mo, hubo, pub }) {
-  const R = { postes: {}, mos: {}, art: {}, pub: {}, px: { mag: {}, neg: {} }, liste: ref.postes };
-  ref.postes.forEach(p => (R.postes[p.k] = p));
+  const ajoutes = postesPlafond(ref).filter(p => !ref.postes.some(x => x.k === p.k));
+  const liste = [...ref.postes];
+  ajoutes.forEach(p => { const i = liste.findIndex(x => x.k === "pl"); liste.splice(i + 1, 0, p); });
+  const R = { postes: {}, mos: {}, art: {}, pub: {}, px: { mag: {}, neg: {} }, liste };
+  liste.forEach(p => (R.postes[p.k] = p));
   mo.postes.forEach(m => (R.mos[m.id] = m));
   (hubo.articles || []).forEach(a => (R.art[a.id] = a));
   if (pub && pub.p) R.pub = pub.p;
@@ -158,6 +171,7 @@ function calculerPoste(R, k, Q, QL, rep, rate) {
       const b = publie ? +pb.l[0] : m.b, h = publie ? +pb.l[1] : m.h, mm = publie ? (pb.lm != null ? +pb.lm : moy(b, h)) : m.m;
       o.mo = [QL * b, QL * mm, QL * h];
       o.main = { id: moId, n: m.n, b, m: mm, h, u: m.u, e: m.e, publie };
+      if (p.moTemp) { o.moTemp = true; o.notes.push(p.note); }
       if (QD > 0) o.notes.push(`Fait vous-même sur ${QD} ${u} : pas de main-d'œuvre comptée.`);
     } else if (QL > 0) {
       if (p.moinc) o.notes.push(`Main-d'œuvre ${p.moinc}.`);
@@ -182,7 +196,7 @@ function calculerPoste(R, k, Q, QL, rep, rate) {
 export function fiabilite(o) {
   if (o.manques.length) return "incomplet";
   if (o.mode === "fourchette") return "fourchette";
-  if (o.matFourchette || o.moFourchette || (o.main && o.main.e > 0) || o.articles.some(a => a.promo || a.ver || a.indicatif || a.defaut)) return "estimation";
+  if (o.matFourchette || o.moFourchette || o.moTemp || (o.main && o.main.e > 0) || o.articles.some(a => a.promo || a.ver || a.indicatif || a.defaut)) return "estimation";
   return "reference";
 }
 
@@ -199,7 +213,7 @@ export function calculerBudget(R, maison, annee) {
   const rep = { ...Object.fromEntries(Object.entries(HYPOTHESES).map(([k, v]) => [k, v.d])), ...(maison.rep || {}) };
   const rate = tauxProjet(maison, annee);
   const parPoste = {};
-  (maison.travaux || []).forEach(l => {
+  travauxEffectifs(maison).forEach(l => {
     const q = num(l.q);
     if (!R.postes[l.k] || !(q > 0)) return;
     const g = (parPoste[l.k] = parPoste[l.k] || { Q: 0, QL: 0 });
@@ -223,7 +237,7 @@ export function calculerBudget(R, maison, annee) {
 
   /* part de chaque ligne (pièce) dans son poste, pour l'affichage pièce par pièce */
   const idx = Object.fromEntries(postes.map(p => [p.k, p]));
-  const lignes = (maison.travaux || []).map(l => {
+  const lignes = travauxEffectifs(maison).map(l => {
     const p = idx[l.k], q = num(l.q);
     if (!p || !(q > 0)) return { ...l, total: T0(), fiab: null };
     return { ...l, total: mul3(p.total, q / p.Q), fiab: p.fiab };
@@ -265,8 +279,6 @@ export const RAPIDE = [
   { id: "cuisine", t: "Cuisine équipée", k: "meu_cuisine", q: () => 1 },
   { id: "sdb", t: "Salle de bain équipée", k: "meu_sdb", q: () => 1 },
   { id: "chassis", t: "Châssis (PVC)", k: "i_ch", nombre: "Nombre de châssis" },
-  { id: "chaudiere", t: "Chaudière gaz à condensation", k: "i_cha", q: () => 1 },
-  { id: "radiateurs", t: "Radiateurs", k: "i_rad", nombre: "Nombre de radiateurs" },
   { id: "toiture", t: "Toiture (tuiles terre cuite + sous-toiture)", k: ["i_cv_1", "i_st", "i_dp"], nombre: "Surface de toiture (m²)" },
   { id: "isol", t: "Isolation de la toiture (sous rampants)", k: "i_to_1", nombre: "Surface à isoler (m²)" },
 ];
@@ -312,4 +324,45 @@ export function prixLocaux(tarifs, rayons = RAYONS, min = MIN_ARTISANS) {
     }
   }
   return null; // pas assez d'artisans : on garde la grille de référence
+}
+
+/* ---------- Pièces : murs et plafond calculés à partir du sol (même règle que l'appli Valou) ----------
+   murs = sol × 2,5 (modifiable pièce par pièce), plafond = sol. */
+export const RATIO_MURS = 2.5;
+export const lienPoste = k => (/^sol_/.test(k) || k === "i_chs" ? "sol" : /^mur_/.test(k) ? "murs" : k === "pl" || /^pl_/.test(k) ? "plafond" : null);
+export const mursPiece = pc => (pc.murs != null && pc.murs !== "" ? +pc.murs : Math.round((+pc.sol || 0) * RATIO_MURS * 10) / 10);
+export function surfacePiece(pc, lien) {
+  if (!pc) return null;
+  if (lien === "sol" || lien === "plafond") return +pc.sol || 0;
+  if (lien === "murs") return mursPiece(pc);
+  return null;
+}
+/* quantités réelles : une ligne liée à une pièce prend la surface de la pièce */
+export function travauxEffectifs(maison) {
+  const P = Object.fromEntries((maison.pieces || []).map(p => [p.id, p]));
+  return (maison.travaux || []).map(l => {
+    const pc = l.pieceId && P[l.pieceId];
+    if (pc && l.lien) return { ...l, piece: pc.nom, q: surfacePiece(pc, l.lien) };
+    return pc ? { ...l, piece: pc.nom } : l;
+  });
+}
+
+/* ---------- Chauffage ---------- */
+export const CHAUFFAGE_ACTUEL = [["aucun", "Aucun / à créer"], ["gaz", "Gaz"], ["mazout", "Mazout"], ["electrique", "Électrique"], ["pac", "Pompe à chaleur"], ["pellets", "Pellets"], ["autre", "Autre"]];
+export const CHAUFFAGE_SOUHAITE = [["garder", "Garder le chauffage actuel"], ["gaz", "Chaudière gaz à condensation", "i_cha"], ["pac", "Pompe à chaleur", "i_pac"]];
+export const EMETTEURS = [["garder", "Garder les radiateurs existants"], ["rad", "Radiateurs à poser"], ["sol", "Chauffage au sol"]];
+
+/* lignes de travaux du chauffage + hypothèse radiateurs (remplacement si un chauffage existe, sinon nouveau raccordement) */
+export function travauxChauffage(ch, surface) {
+  const c = { actuel: "gaz", souhaite: "garder", emetteurs: "garder", ...(ch || {}) };
+  const out = [], notes = [];
+  const prod = CHAUFFAGE_SOUHAITE.find(x => x[0] === c.souhaite);
+  if (prod && prod[2] && c.souhaite !== c.actuel) out.push({ piece: "Chauffage", k: prod[2], q: 1, src: "chauffage" });
+  if (prod && prod[2] && c.souhaite === c.actuel) notes.push("Le chauffage souhaité est déjà en place : pas de remplacement compté.");
+  if (c.emetteurs === "rad" && +c.nbRad > 0) out.push({ piece: "Chauffage", k: "i_rad", q: +c.nbRad, src: "chauffage" });
+  if (c.emetteurs === "sol" && +(c.solM2 || surface) > 0) out.push({ piece: "Chauffage", k: "i_chs", q: +(c.solM2 || surface), src: "chauffage" });
+  if (c.actuel === "mazout" && c.souhaite !== "garder") notes.push("Démontage et évacuation de la cuve à mazout : à compléter (pas encore de prix de référence).");
+  if (c.actuel === "aucun" && c.souhaite === "garder") notes.push("Aucun chauffage existant : choisissez le chauffage à installer.");
+  const rad = c.actuel === "aucun" ? "nouv" : "rempl";
+  return { lignes: out, notes, rad, c };
 }

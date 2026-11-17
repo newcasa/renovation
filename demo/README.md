@@ -41,3 +41,9 @@ Sur l'écran « Notre moteur », une simulation montre le fonctionnement prévu 
 Les tarifs des artisans y sont **fictifs** : ils sont tirés au hasard dans la fourchette de référence du poste, et ils ne changent jamais le budget des maisons. Le calcul est dans `js/moteur.js` (`prixLocaux`) et il est testé.
 
 Pour la vraie appli, il faudra une table privée dans Supabase, où le calcul de la moyenne se fait sur le serveur et ne renvoie que des moyennes d'au moins 5 artisans. Le principe est à faire valider par un avocat (droit de la concurrence et RGPD).
+
+## Pièces et chauffage
+
+- **Pièces** : on encode la surface au sol de chaque pièce. Les murs sont calculés automatiquement (sol × 2,5, la même règle que l'appli Valou) et restent corrigeables. Le plafond est égal au sol. Les travaux d'une pièce (sol, murs, plafond) suivent ces surfaces ; une quantité tapée à la main n'est plus recalculée.
+- **Postes plafond ajoutés par le prototype** : « Plafond – plafonnage » (articles du plafonnage, tarif M13) et « Plafond – peinture » (articles de la peinture, tarif M16 des murs, signalé « Estimation »). Ils seront à ajouter au tableau de bord des calculs.
+- **Chauffage** : chauffage existant, chauffage souhaité (chaudière gaz à condensation ou pompe à chaleur) et radiateurs ou chauffage au sol. Les lignes de travaux sont créées automatiquement. Les radiateurs sont comptés en « remplacement » si un chauffage existe, sinon en « nouveau raccordement ». Le démontage d'une cuve à mazout est signalé « à compléter ».
