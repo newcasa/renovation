@@ -292,6 +292,23 @@ function ecranMaison(m) {
             ${hyp}
           </div>
         </section>
+        ${(() => {
+          /* le financement : mêmes valeurs que le dossier pour la banque */
+          const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
+          const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
+          return `<section class="carte">
+          <h2>Le financement</h2>
+          <div class="champs">
+            ${ch("apport", "Apport personnel", "€", "ex. 40000")}
+            <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
+            <small class="mu">Vrai coût moyen ${euros(c.total[1], 100)} − apport${apport ? "" : " (à compléter)"}.</small>
+            ${ch("taux", "Taux annuel du crédit (si vous l'avez)", "%", "taux de la banque")}
+            ${ch("duree", "Durée du crédit", "ans", "ex. 25")}
+            ${mens ? `<div class="ligne"><span>Mensualité estimée (hors assurance)</span><b>${euros(mens)} / mois</b></div>` : ""}
+            <small class="mu">Ces valeurs sont reprises dans le dossier bancaire.</small>
+          </div>
+        </section>`;
+        })()}
         ${aides()}
       </div>
     </div>

@@ -127,6 +127,11 @@ try {
     await page.locator(".poste > summary").first().click();
     await page.screenshot({ path: `${OUT}/${nom}-4-detail.png`, fullPage: true });
 
+    /* apport sur la fiche : montant à emprunter = vrai coût − apport */
+    await page.fill('.carte [data-fin="apport"]', "40000");
+    await page.locator('.carte [data-fin="apport"]').dispatchEvent("change");
+    assert.equal(await page.inputValue('[data-fin="apport"]'), "40000");
+    assert.match(await page.locator("main").innerText(), /Montant à emprunter/);
     /* frais de notaire : calculés d'après notaire.be (245 000 € → 4 513 €), remplacés par un montant encodé */
     assert.match(await page.locator("details.notaire summary").innerText(), /4\s?513 €/);
     const avant = await page.locator(".vrai-cout .gros").innerText();
