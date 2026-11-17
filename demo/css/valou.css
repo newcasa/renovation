@@ -1,0 +1,166 @@
+/* Valou — identité : bordeaux #5E1A2A, or #C9A35A, crème #F5EFE3 ; titres Outfit 900, texte Manrope. */
+:root {
+  --bordeaux: #5E1A2A;
+  --bordeaux-2: #8A3446;
+  --bordeaux-3: #C99AA4;
+  --or: #C9A35A;
+  --or-fonce: #8C6A2C;
+  --creme: #F5EFE3;
+  --carte: #FBF7EF;
+  --bord: #E8DDCC;
+  --mu: #7A5C63;
+  --vert: #2E7D5B;
+  --rouge: #B3261E;
+  --ombre: 0 4px 14px rgba(94, 26, 42, .08);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--creme); color: var(--bordeaux); font: 15px/1.5 Manrope, system-ui, sans-serif; }
+h1, h2, .gros { font-family: Outfit, Manrope, sans-serif; font-weight: 900; letter-spacing: -.01em; line-height: 1.15; }
+h1 { font-size: clamp(26px, 5vw, 40px); margin: 6px 0 8px; }
+h2 { font-size: 20px; margin: 0 0 12px; }
+a { color: var(--bordeaux); }
+small { font-size: 12.5px; }
+.mu { color: var(--mu); }
+.r { text-align: right; }
+.c { text-align: center; }
+.or { color: var(--or-fonce); }
+
+/* en-tête */
+.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: rgba(245, 239, 227, .94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--bord); }
+.marque img { height: 34px; display: block; }
+.top nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.nav-i { white-space: nowrap; padding: 7px 12px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; }
+.nav-i.on { background: var(--bordeaux); color: var(--creme); }
+.nav-i.off { color: var(--mu); opacity: .7; cursor: default; }
+.nav-i small, .btn small { margin-left: 6px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--or-fonce); }
+
+main { max-width: 1080px; margin: 0 auto; padding: 20px 16px 60px; }
+main.etroit { max-width: 760px; }
+.retour { display: inline-block; margin-bottom: 4px; font-weight: 700; text-decoration: none; font-size: 14px; }
+
+/* boutons */
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 12px; padding: 13px 20px; background: var(--bordeaux); color: var(--creme); font: 800 15px Manrope, sans-serif; text-decoration: none; cursor: pointer; }
+.btn:hover { background: var(--bordeaux-2); }
+.btn.sec { background: transparent; color: var(--bordeaux); border: 1.5px solid var(--bordeaux); }
+.btn.sec:hover { background: rgba(94, 26, 42, .06); }
+.btn.off { background: var(--bord); color: var(--mu); cursor: default; }
+.btn.lien { background: none; color: var(--mu); text-decoration: underline; padding: 8px; }
+:focus-visible { outline: 3px solid var(--or); outline-offset: 2px; }
+
+/* cartes */
+.carte { background: var(--carte); border: 1px solid var(--bord); border-radius: 18px; padding: 18px; box-shadow: var(--ombre); margin-bottom: 16px; }
+.grille { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.maison { display: block; text-decoration: none; transition: transform .15s; }
+.maison:hover { transform: translateY(-2px); }
+.m-tete { display: flex; align-items: center; gap: 8px; justify-content: space-between; font-size: 17px; }
+.m-chiffres { display: flex; gap: 18px; margin-top: 12px; }
+.m-chiffres small, .trois small, .vc-g small { display: block; color: var(--mu); font-weight: 600; }
+.m-chiffres b { font-size: 18px; }
+.vide { text-align: center; padding: 30px; }
+
+/* accueil */
+.hero { padding: 28px 0 22px; max-width: 720px; }
+.hero h1 { font-size: clamp(30px, 6vw, 50px); }
+.hero em { font-style: normal; color: var(--or-fonce); }
+.hero p { font-size: 17px; color: var(--mu); margin: 0 0 20px; }
+
+/* formulaires */
+.champs { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin-bottom: 18px; }
+.pile .champs { grid-template-columns: 1fr; margin-bottom: 0; gap: 8px; }
+label { display: grid; gap: 4px; font-weight: 700; font-size: 13.5px; }
+input, select { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); background: #fff; border: 1.5px solid var(--bord); border-radius: 10px; padding: 10px 12px; width: 100%; min-width: 0; }
+input:focus, select:focus { border-color: var(--or); outline: none; }
+.cb { display: flex; align-items: flex-start; gap: 10px; font-weight: 600; cursor: pointer; }
+.cb input { width: 20px; height: 20px; flex: none; margin: 1px 0 0; accent-color: var(--bordeaux); }
+.large { grid-column: 1 / -1; }
+.choix-liste { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-bottom: 20px; }
+.choix { border: 1.5px solid var(--bord); border-radius: 12px; padding: 12px; display: grid; gap: 8px; background: #fff; }
+.choix.on { border-color: var(--bordeaux); background: #fff; box-shadow: inset 0 0 0 1px var(--bordeaux); }
+.petit { font-size: 12.5px; }
+.ligne { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+
+/* le vrai coût */
+.titre-maison { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.titre-maison p { flex-basis: 100%; margin: 0 0 12px; }
+.vrai-cout { display: grid; gap: 22px; grid-template-columns: 1fr 1.3fr; align-items: center; background: var(--bordeaux); color: var(--creme); border: 0; padding: 24px; }
+.vrai-cout .mu, .vrai-cout small { color: #E8D9C4; }
+.gros { font-size: clamp(38px, 7vw, 60px); color: #fff; margin: 2px 0; }
+.choc { margin: 12px 0 0; font-size: 16px; }
+.choc b { color: var(--or); }
+.barre { display: flex; height: 22px; border-radius: 8px; overflow: hidden; background: rgba(255, 255, 255, .15); }
+.barre span { display: block; min-width: 3px; }
+.p1 { background: #F5EFE3; } .p2 { background: var(--or); } .p3 { background: #E3C98F; } .p4 { background: #D9667E; }
+.legende { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; font-size: 14px; }
+.legende li { display: flex; align-items: center; gap: 8px; }
+.legende i { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.legende b { margin-left: auto; color: #fff; }
+.legende .manque { color: var(--or); font-weight: 700; }
+
+.alerte { background: #FCEEEC; border: 1px solid #F0C2BD; color: #7A1F18; border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; font-size: 14px; }
+.alerte ul { margin: 6px 0 0; padding-left: 18px; }
+
+.deux { display: grid; gap: 16px; grid-template-columns: 1.5fr 1fr; align-items: start; }
+.deux > .carte, .pile > .carte { margin-bottom: 0; }
+.pile { display: grid; gap: 16px; }
+.deux { margin-bottom: 16px; }
+.trois { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.trois > div { background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 10px; text-align: center; }
+.trois b { font-size: 17px; }
+.trois .moy { background: var(--bordeaux); color: var(--creme); border-color: var(--bordeaux); }
+.trois .moy small { color: #E8D9C4; }
+.recap { display: grid; gap: 4px; font-size: 14px; padding: 10px 0 14px; border-bottom: 1px solid var(--bord); margin-bottom: 8px; }
+.recap div { display: flex; justify-content: space-between; gap: 10px; }
+
+details summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+details summary::-webkit-details-marker { display: none; }
+.grp { border-bottom: 1px solid var(--bord); }
+.grp > summary { padding: 12px 0; font-weight: 800; }
+.grp > summary::before, .poste > summary::before { content: "›"; display: inline-block; width: 14px; transition: transform .15s; color: var(--or-fonce); font-weight: 900; }
+.grp[open] > summary::before, .poste[open] > summary::before { transform: rotate(90deg); }
+.grp > summary > span:first-child, .poste > summary > span:first-child { flex: 1; }
+.poste { margin: 0 0 6px 14px; }
+.poste > summary { padding: 6px 0; font-size: 14px; font-weight: 600; }
+.poste summary .r { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.det { margin: 4px 0 10px 14px; padding: 10px 12px; background: #fff; border-radius: 10px; border: 1px solid var(--bord); }
+.det table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.det td { padding: 3px 4px; vertical-align: top; }
+.det .tva td { border-top: 1px solid var(--bord); color: var(--mu); }
+
+.badge { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.b-reference { background: #E0F0E8; color: var(--vert); }
+.b-estimation { background: #F6EBD3; color: var(--or-fonce); }
+.b-fourchette { background: #ECE5DC; color: var(--mu); }
+.b-incomplet { background: #FCEEEC; color: var(--rouge); }
+.b-exemple { background: var(--or); color: var(--bordeaux); }
+.legende-f { margin: 14px 0 0; line-height: 2; }
+
+/* tableau des travaux */
+.table { overflow-x: auto; margin: 0 -4px 12px; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 12.5px; color: var(--mu); padding: 6px 4px; border-bottom: 1px solid var(--bord); }
+tbody td { padding: 5px 4px; border-bottom: 1px solid var(--bord); vertical-align: middle; }
+td input, td select { padding: 8px 10px; font-size: 14px; }
+td.q { white-space: nowrap; } td.q input { width: 90px; } td.q small { margin-left: 4px; }
+.auto { display: inline-block; margin-left: 4px; padding: 0 5px; border: 1px dashed var(--or); border-radius: 6px; }
+.x { border: 0; background: none; color: var(--mu); font-size: 16px; cursor: pointer; padding: 6px 8px; border-radius: 8px; }
+.x:hover { background: #FCEEEC; color: var(--rouge); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+
+/* téléphone */
+@media (max-width: 800px) {
+  .vrai-cout, .deux { grid-template-columns: 1fr; }
+  .top { gap: 10px; }
+  .marque img { height: 28px; }
+}
+@media (max-width: 640px) {
+  .table thead { display: none; }
+  .table table, .table tbody, .table tr, .table td { display: block; }
+  .table tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 12px 0; border-bottom: 1px solid var(--bord); position: relative; }
+  .table tbody td { border: 0; padding: 0; }
+  .table tbody td[data-l]::before { content: attr(data-l); display: block; font-size: 11.5px; font-weight: 700; color: var(--mu); }
+  .table td[data-l="Travail"] { grid-column: 1 / -1; order: -1; padding-right: 40px; }
+  .table td.c:last-child { position: absolute; top: 26px; right: 0; }
+  .table td.c, .table td.r { text-align: left; }
+  td.q input { width: 80px; }
+}
