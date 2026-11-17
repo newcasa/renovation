@@ -27,7 +27,7 @@ const carre = `<span class="q-carre"></span>`;
 
 export function ecranQuestionnaire(ctx) {
   const { entete } = ctx;
-  const tete = (n, t) => `<header class="q-tete"><img src="../logo.png" alt="Valou"><div><b>Questionnaire de visite</b><small>Page ${n} / 2 · ${t}</small></div></header>`;
+  const tete = (n, t) => `<header class="q-tete"><img src="img/logo-valou.png" alt="Valou"><div><b>Questionnaire de visite</b><small>Page ${n} / 2 · ${t}</small></div></header>`;
   const p1 = `<article class="q-page">${tete(1, "à remplir au stylo, en chiffres bien lisibles")}
     <div class="q-deux">
       <div>

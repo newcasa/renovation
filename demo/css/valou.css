@@ -1,17 +1,17 @@
-/* Valou — identité : bordeaux #5E1A2A, or #C9A35A, crème #F5EFE3 ; titres Outfit 900, texte Manrope. */
+/* Valou — identité : bordeaux #022250, or #EC8224, crème #F2F5F9 ; titres Outfit 900, texte Manrope. */
 :root {
-  --bordeaux: #5E1A2A;
-  --bordeaux-2: #8A3446;
-  --bordeaux-3: #C99AA4;
-  --or: #C9A35A;
-  --or-fonce: #8C6A2C;
-  --creme: #F5EFE3;
-  --carte: #FBF7EF;
-  --bord: #E8DDCC;
-  --mu: #7A5C63;
+  --bordeaux: #022250;
+  --bordeaux-2: #1F4A8A;
+  --bordeaux-3: #A9B8D0;
+  --or: #EC8224;
+  --or-fonce: #B35A0E;
+  --creme: #F2F5F9;
+  --carte: #FAFBFD;
+  --bord: #DCE3ED;
+  --mu: #56657D;
   --vert: #2E7D5B;
   --rouge: #B3261E;
-  --ombre: 0 4px 14px rgba(94, 26, 42, .08);
+  --ombre: 0 4px 14px rgba(2, 34, 80, .08);
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -27,7 +27,7 @@ small { font-size: 12.5px; }
 .or { color: var(--or-fonce); }
 
 /* en-tête */
-.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: rgba(245, 239, 227, .94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--bord); }
+.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: rgba(242, 245, 249, .94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--bord); }
 .marque img { height: 34px; display: block; }
 .top nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
 .nav-i { white-space: nowrap; padding: 7px 12px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; }
@@ -43,7 +43,7 @@ main.etroit { max-width: 760px; }
 .btn { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 12px; padding: 13px 20px; background: var(--bordeaux); color: var(--creme); font: 800 15px Manrope, sans-serif; text-decoration: none; cursor: pointer; }
 .btn:hover { background: var(--bordeaux-2); }
 .btn.sec { background: transparent; color: var(--bordeaux); border: 1.5px solid var(--bordeaux); }
-.btn.sec:hover { background: rgba(94, 26, 42, .06); }
+.btn.sec:hover { background: rgba(2, 34, 80, .06); }
 .btn.off { background: var(--bord); color: var(--mu); cursor: default; }
 .btn.lien { background: none; color: var(--mu); text-decoration: underline; padding: 8px; }
 :focus-visible { outline: 3px solid var(--or); outline-offset: 2px; }
@@ -86,13 +86,13 @@ input:focus, select:focus { border-color: var(--or); outline: none; }
 .titre-maison .desc { margin: 0 0 4px; max-width: 760px; }
 .reinit { margin-top: 18px; text-align: center; }
 .vrai-cout { display: grid; gap: 22px; grid-template-columns: 1fr 1.3fr; align-items: center; background: var(--bordeaux); color: var(--creme); border: 0; padding: 24px; }
-.vrai-cout .mu, .vrai-cout small { color: #E8D9C4; }
+.vrai-cout .mu, .vrai-cout small { color: #D5DDE8; }
 .gros { font-size: clamp(38px, 7vw, 60px); color: #fff; margin: 2px 0; }
 .choc { margin: 12px 0 0; font-size: 16px; }
 .choc b { color: var(--or); }
 .barre { display: flex; height: 22px; border-radius: 8px; overflow: hidden; background: rgba(255, 255, 255, .15); }
 .barre span { display: block; min-width: 3px; }
-.p1 { background: #F5EFE3; } .p2 { background: var(--or); } .p3 { background: #E3C98F; } .p4 { background: #D9667E; }
+.p1 { background: #F2F5F9; } .p2 { background: var(--or); } .p3 { background: #F5B57A; } .p4 { background: #5B7BB0; }
 .legende { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; font-size: 14px; }
 .legende li { display: flex; align-items: center; gap: 8px; }
 .legende i { width: 12px; height: 12px; border-radius: 3px; flex: none; }
@@ -110,7 +110,7 @@ input:focus, select:focus { border-color: var(--or); outline: none; }
 .trois > div { background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 10px; text-align: center; }
 .trois b { font-size: 17px; }
 .trois .moy { background: var(--bordeaux); color: var(--creme); border-color: var(--bordeaux); }
-.trois .moy small { color: #E8D9C4; }
+.trois .moy small { color: #D5DDE8; }
 .recap { display: grid; gap: 4px; font-size: 14px; padding: 10px 0 14px; border-bottom: 1px solid var(--bord); margin-bottom: 8px; }
 .recap div { display: flex; justify-content: space-between; gap: 10px; }
 
@@ -131,8 +131,8 @@ details summary::-webkit-details-marker { display: none; }
 
 .badge { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .b-reference { background: #E0F0E8; color: var(--vert); }
-.b-estimation { background: #F6EBD3; color: var(--or-fonce); }
-.b-fourchette { background: #ECE5DC; color: var(--mu); }
+.b-estimation { background: #FDEBDC; color: var(--or-fonce); }
+.b-fourchette { background: #E6EBF2; color: var(--mu); }
 .b-incomplet { background: #FCEEEC; color: var(--rouge); }
 .b-exemple { background: var(--or); color: var(--bordeaux); }
 .legende-f { margin: 14px 0 0; line-height: 2; }
@@ -181,7 +181,7 @@ td.q { white-space: nowrap; } td.q input { width: 90px; } td.q small { margin-le
 .cmp-barre { display: grid; grid-template-columns: minmax(150px, 1.1fr) 3fr auto; gap: 14px; align-items: center; margin-bottom: 12px; }
 .cmp-nom { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .cmp-tot { font: 900 20px Outfit, sans-serif; color: #fff; white-space: nowrap; }
-.legende.sombre { display: flex; flex-wrap: wrap; gap: 6px 18px; color: #E8D9C4; }
+.legende.sombre { display: flex; flex-wrap: wrap; gap: 6px 18px; color: #D5DDE8; }
 .legende.sombre li { gap: 6px; }
 .defile { overflow-x: auto; }
 .cmp table { min-width: 560px; }
@@ -196,15 +196,15 @@ td.q { white-space: nowrap; } td.q input { width: 90px; } td.q small { margin-le
 
 /* dossier pour la banque */
 .barre-outils { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-.feuille { background: #fff; border: 1px solid var(--bord); border-radius: 6px; box-shadow: var(--ombre); padding: 40px 44px; max-width: 840px; margin: 0 auto; color: #2B1218; }
+.feuille { background: #fff; border: 1px solid var(--bord); border-radius: 6px; box-shadow: var(--ombre); padding: 40px 44px; max-width: 840px; margin: 0 auto; color: #011733; }
 .feuille h1 { font-size: 30px; color: var(--bordeaux); margin-top: 18px; }
 .feuille h2 { font-size: 17px; color: var(--bordeaux); margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--or); }
 .f-tete { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--bord); }
 .f-tete img { height: 34px; }
 .f-tete div { text-align: right; } .f-tete b { display: block; font: 900 18px Outfit, sans-serif; color: var(--bordeaux); } .f-tete small { color: var(--mu); }
-.fictif { margin: 12px 0 0; padding: 6px 12px; border-radius: 8px; background: #F6EBD3; color: var(--or-fonce); font-weight: 700; font-size: 13px; display: inline-block; }
+.fictif { margin: 12px 0 0; padding: 6px 12px; border-radius: 8px; background: #FDEBDC; color: var(--or-fonce); font-weight: 700; font-size: 13px; display: inline-block; }
 .f-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.f-table td { padding: 7px 4px; border-bottom: 1px solid #EFE7DA; vertical-align: top; }
+.f-table td { padding: 7px 4px; border-bottom: 1px solid #E6EBF2; vertical-align: top; }
 .f-table tr.tot td { font-weight: 800; font-size: 15.5px; border-top: 2px solid var(--bordeaux); border-bottom: 0; color: var(--bordeaux); }
 .f-table tr.g td { padding-top: 14px; font-weight: 800; color: var(--bordeaux); border-bottom: 1px solid var(--bord); }
 .f-table tr.sous td { color: var(--mu); }
@@ -237,7 +237,7 @@ td.q { white-space: nowrap; } td.q input { width: 90px; } td.q small { margin-le
 }
 
 /* professionnels */
-.simule { display: inline-block; margin: 0 0 14px; padding: 6px 12px; border-radius: 8px; background: #F6EBD3; color: var(--or-fonce); font-weight: 700; font-size: 13px; }
+.simule { display: inline-block; margin: 0 0 14px; padding: 6px 12px; border-radius: 8px; background: #FDEBDC; color: var(--or-fonce); font-weight: 700; font-size: 13px; }
 .onglets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; border-bottom: 1px solid var(--bord); }
 .onglet { padding: 10px 16px; font-weight: 800; text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -1px; color: var(--mu); }
 .onglet.on { color: var(--bordeaux); border-bottom-color: var(--or); }
@@ -257,7 +257,7 @@ h3 { font: 900 19px Outfit, sans-serif; margin: 6px 0 2px; }
 .a-corps { padding: 20px; display: grid; gap: 8px; align-content: start; }
 .a-prix { font: 900 28px Outfit, sans-serif; }
 .a-valou { display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: 12px; background: var(--bordeaux); color: var(--creme); }
-.a-valou img { width: 30px; height: 30px; } .a-valou small { display: block; color: #E8D9C4; } .a-valou b { font-size: 18px; color: #fff; }
+.a-valou img { width: 30px; height: 30px; } .a-valou small { display: block; color: #D5DDE8; } .a-valou b { font-size: 18px; color: #fff; }
 
 /* notre moteur */
 .intro { font-size: 17px; max-width: 720px; margin: 0 0 18px; }
@@ -267,7 +267,7 @@ h3 { font: 900 19px Outfit, sans-serif; margin: 6px 0 2px; }
 .etapes li { display: flex; gap: 12px; } .etapes p { margin: 2px 0 0; font-size: 14px; }
 .num { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--or); color: var(--bordeaux); display: grid; place-items: center; font: 900 16px Outfit, sans-serif; }
 .barre.fiab { background: var(--bord); margin-bottom: 12px; } .barre.fiab span { border-radius: 0; }
-.barre.fiab .b-reference { background: var(--vert); } .barre.fiab .b-estimation { background: var(--or); } .barre.fiab .b-fourchette { background: #B9A99B; } .barre.fiab .b-incomplet { background: var(--rouge); }
+.barre.fiab .b-reference { background: var(--vert); } .barre.fiab .b-estimation { background: var(--or); } .barre.fiab .b-fourchette { background: #A9B4C3; } .barre.fiab .b-incomplet { background: var(--rouge); }
 .f-liste.nb { list-style: none; padding: 0; display: grid; gap: 8px; }
 .f-liste li + li { margin-top: 6px; }
 
@@ -307,16 +307,16 @@ h3 { font: 900 19px Outfit, sans-serif; margin: 6px 0 2px; }
 .sim { display: grid; grid-template-columns: minmax(240px, 340px) 1fr; gap: 22px; align-items: start; }
 .carte-km { width: 100%; height: auto; background: #fff; border: 1px solid var(--bord); border-radius: 16px; }
 .carte-km .rayon { fill: none; stroke: var(--bord); stroke-width: 1.5; stroke-dasharray: 4 4; }
-.carte-km .rayon.on { stroke: var(--or); stroke-width: 2.5; stroke-dasharray: none; fill: rgba(201, 163, 90, .08); }
+.carte-km .rayon.on { stroke: var(--or); stroke-width: 2.5; stroke-dasharray: none; fill: rgba(236, 130, 36, .08); }
 .carte-km .km { font: 700 10px Manrope, sans-serif; fill: var(--mu); }
-.pt { fill: #CDBFB3; } .pt.on { fill: var(--or-fonce); } .pt.vous { fill: var(--vert); stroke: #fff; stroke-width: 2; }
+.pt { fill: #BFC9D6; } .pt.on { fill: var(--or-fonce); } .pt.vous { fill: var(--vert); stroke: #fff; stroke-width: 2; }
 .chantier circle { fill: var(--bordeaux); } .chantier text { fill: #fff; font-size: 12px; font-weight: 900; }
 .sim-res h3 { margin: 8px 0 6px; }
 .ref-l { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--bord); }
 .ref-l .trois .moy { background: #fff; color: var(--bordeaux); border-color: var(--bord); } .ref-l .trois .moy small { color: var(--mu); }
 .legende-carte { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
 .legende-carte li { display: flex; align-items: center; gap: 6px; }
-.legende-carte i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #CDBFB3; }
+.legende-carte i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #BFC9D6; }
 .legende-carte i.on { background: var(--or-fonce); } .legende-carte i.vous { background: var(--vert); }
 @media (max-width: 760px) { .sim { grid-template-columns: 1fr; } .tarifs td:last-child { width: auto; } }
 
@@ -396,7 +396,7 @@ small.bloc { display: block; margin: 2px 0 0; font-size: 11px; }
 
 /* couleur de chaque pièce */
 .carte-piece { background: var(--pc-fond, #fff); border: 0; border-left: 7px solid var(--pc-acc, var(--bord)); box-shadow: var(--ombre); }
-.carte-piece:hover { border-color: var(--pc-acc, var(--or)); box-shadow: 0 6px 18px rgba(94, 26, 42, .14); }
+.carte-piece:hover { border-color: var(--pc-acc, var(--or)); box-shadow: 0 6px 18px rgba(2, 34, 80, .14); }
 .carte-piece .pc-bud { color: var(--pc-acc, var(--or-fonce)); filter: brightness(.8); }
 .carte-piece .x:hover { background: rgba(255, 255, 255, .7); }
 .piece-ecran .titre-piece { background: var(--pc-fond); border-left: 8px solid var(--pc-acc); border-radius: 18px; padding: 16px 18px; }
@@ -414,7 +414,7 @@ details.notaire > summary > span { flex: 1; }
 details.notaire .ligne { padding: 3px 0 0 12px; color: var(--mu); }
 
 /* case des frais de notaire verrouillée */
-label.verrou input { background: #F1ECE4; color: var(--mu); cursor: not-allowed; }
+label.verrou input { background: #EEF2F7; color: var(--mu); cursor: not-allowed; }
 label.verrou .saisie i { font-size: 14px; }
 
 /* envoi à la banque verrouillé */
@@ -475,7 +475,7 @@ label.verrou .saisie i { font-size: 14px; }
 .q-aide2 { margin-top: 10px; }
 .q-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
 .q-table th, .q-table td { border: 1px solid #555; padding: 0 3px; text-align: center; }
-.q-table thead th { background: #F3ECE0; color: var(--bordeaux); font-weight: 800; line-height: 1.15; padding: 3px 2px; }
+.q-table thead th { background: #E9EEF5; color: var(--bordeaux); font-weight: 800; line-height: 1.15; padding: 3px 2px; }
 .q-table tbody tr { height: 7.2mm; }
 .q-table tbody th { text-align: left; font-weight: 700; white-space: nowrap; overflow: hidden; width: 30mm; }
 .q-table thead tr:first-child th:first-child { width: 30mm; }
@@ -632,11 +632,11 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 /* les travaux : menu à gauche, panneau à droite (inspiré d'une liste claire, ligne par ligne) */
 .atelier { display: grid; grid-template-columns: 290px 1fr; gap: 18px; align-items: start; }
 .at-menu { background: #fff; border: 1px solid var(--bord); border-radius: 14px; overflow: hidden; }
-.at-titre { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; background: #F3ECE0; font: 800 13.5px Manrope, sans-serif; color: var(--bordeaux); }
+.at-titre { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; background: #E9EEF5; font: 800 13.5px Manrope, sans-serif; color: var(--bordeaux); }
 .at-lien { font-size: 12px; font-weight: 700; }
 .at-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; border: 0; border-top: 1px solid var(--bord); background: #fff; text-align: left; cursor: pointer; font: 700 14.5px Manrope, sans-serif; color: var(--bordeaux); border-left: 4px solid var(--pc-acc, transparent); }
 .at-item:hover { background: var(--carte); }
-.at-item.on { background: var(--pc-fond, #F6EBD3); }
+.at-item.on { background: var(--pc-fond, #FDEBDC); }
 .at-ico { font-size: 20px; width: 26px; text-align: center; flex: none; }
 .at-ico.grand { font-size: 30px; width: 40px; }
 .at-nom { flex: 1; }
@@ -646,7 +646,7 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .at-ajout { display: grid; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--bord); }
 .at-ajout input, .at-ajout select { padding: 8px 10px; font-size: 14px; }
 .at-panneau { background: #fff; border: 1px solid var(--bord); border-radius: 14px; overflow: hidden; min-width: 0; }
-.at-tete { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--pc-fond, #F3ECE0); border-bottom: 1px solid var(--bord); }
+.at-tete { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--pc-fond, #E9EEF5); border-bottom: 1px solid var(--bord); }
 .at-tete h2 { margin: 0; font-size: 20px; }
 .at-tete > div { flex: 1; }
 .at-corps { padding: 14px 18px; }

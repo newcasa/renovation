@@ -29,7 +29,7 @@ function entete(actif) {
       ? `<span class="nav-i off" title="Prochaine étape">${t}<small>bientôt</small></span>`
       : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   return `<header class="top">
-    <a href="#/" class="marque" aria-label="Valou, accueil"><img src="../logo.png" alt="Valou"></a>
+    <a href="#/" class="marque" aria-label="Valou, accueil"><img src="img/logo-valou.png" alt="Valou"></a>
     <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
   </header>`;
 }
@@ -449,8 +449,8 @@ function ecranMaison(m) {
 
 /* ---------- pièces : icône, résumé, écran d'une pièce ---------- */
 /* une couleur par pièce : fond doux + bord marqué (gardée quand on supprime une autre pièce) */
-const COULEURS = [["#F6E9D2", "#C9A35A"], ["#E1F0E7", "#3E8E66"], ["#E4EBF7", "#4C72B0"], ["#F7E1E7", "#C0587A"], ["#ECE4F5", "#7B5EA7"],
-  ["#DFF1F0", "#2F8F8A"], ["#FBE6D6", "#D9793A"], ["#EAEFD9", "#7D8F36"], ["#F3DEDA", "#A8503F"], ["#E2E8EC", "#5C7080"]];
+const COULEURS = [["#FDEBDC", "#EC8224"], ["#E1F0E7", "#3E8E66"], ["#E4EBF7", "#4C72B0"], ["#F7E1E7", "#C0587A"], ["#ECE4F5", "#7B5EA7"],
+  ["#DFF1F0", "#2F8F8A"], ["#FFF4D1", "#C29A0C"], ["#EAEFD9", "#7D8F36"], ["#F3DEDA", "#A8503F"], ["#E2E8EC", "#5C7080"]];
 const couleurPiece = (m, pc) => COULEURS[(pc.c ?? Math.max(0, (m.pieces || []).indexOf(pc))) % COULEURS.length];
 const stylePiece = (m, pc) => { const [f, a] = couleurPiece(m, pc); return `--pc-fond:${f};--pc-acc:${a}`; };
 const iconePiece = pc => (TYPES_PIECE.find(t => t[0] === pc.type) || TYPES_PIECE[0])[2];
@@ -668,7 +668,7 @@ function ecranDossier(m) {
       ${m.notaireReel || !c.notaireCalcul ? `<label>Honoraires et frais du notaire, TVA comprise (€)<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="montant du notaire"></label>` : ""}
     </section>`}
     <article class="feuille">
-      <header class="f-tete"><img src="../logo.png" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
+      <header class="f-tete"><img src="img/logo-valou.png" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
       ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
       <h1>${esc(m.nom || "Maison")}</h1>
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>

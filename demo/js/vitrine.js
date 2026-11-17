@@ -197,7 +197,7 @@ export function ecranPro(ctx, onglet, metier) {
             <div class="a-corps"><h3>${esc(A.titre || "Titre de l'annonce")}</h3>
               ${A.prix ? `<div class="a-prix">${euros(+A.prix)}</div>` : ""}
               ${A.texte ? `<p class="a-texte">${esc(A.texte)}</p>` : `<p class="mu">Votre texte apparaîtra ici.</p>`}
-              ${A.valou && x ? `<div class="a-valou"><img src="../favicon-48.png" alt=""><div><small>Estimation Valou des travaux (${esc(x.m.nom)})</small><b>${euros(x.b.T[0], 1000)} – ${euros(x.b.T[2], 1000)}</b></div></div>` : ""}
+              ${A.valou && x ? `<div class="a-valou"><img src="img/favicon-valou-48.png" alt=""><div><small>Estimation Valou des travaux (${esc(x.m.nom)})</small><b>${euros(x.b.T[0], 1000)} – ${euros(x.b.T[2], 1000)}</b></div></div>` : ""}
             </div>
           </article></section>
       </div>`;
