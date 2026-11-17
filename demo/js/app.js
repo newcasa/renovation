@@ -209,7 +209,7 @@ function ecranMaison(m) {
   }).join("");
   /* estimation rapide sans pièces (cases cochées à l'ajout de la maison) */
   const rapides = horsPieces.filter(l => POSTES_PIECES.test(l.k));
-  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide, pour toute la maison</h3>
+  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide (faite à l'ajout de la maison)</h3>
       <p class="mu petit-t">Calculée à l'ajout de la maison. Pour plus de précision, ajoutez les pièces et supprimez ces lignes.</p>
       <table class="fixes">${rapides.map(l => { const p = R.postes[l.k]; return `<tr><td>${esc(p ? p.n : l.k)}${l.auto ? ` <small class="mu">(${esc(l.auto)})</small>` : ""}</td>
         <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-l="${l.id}:q" value="${esc(l.q ?? "")}" aria-label="Quantité"><small>${esc(p ? unitePoste(p.u, l.k) : "")}</small></td>
@@ -289,8 +289,8 @@ function ecranMaison(m) {
     </section>
 
     <section class="carte">
-      <h2>Travaux pour toute la maison</h2>
-      <p class="mu">Remplissez seulement les quantités des postes à prévoir. Un poste vide n'est pas compté.</p>
+      <h2>Travaux hors pièces</h2>
+      <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
       ${rapidesHTML}
       ${grpFixes}
     </section>
