@@ -41,7 +41,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 ## 3. Pièce par pièce — 1 minute
 
-**Clic :** descendre jusqu'à « Les pièces » (cartes en couleur), puis ouvrir **Cuisine**.
+**Clic :** descendre jusqu'à « Les travaux » : à gauche le menu (« Rénovations générales » puis « Pièces » en couleur), à droite le détail. Cliquer sur **Cuisine**, puis sur **Toiture** pour montrer la liste des postes ligne par ligne.
 
 **À montrer :** la surface au sol, les murs calculés automatiquement (sol × 2,7), le plafond (= sol), les cases sol / murs / plafond / châssis / chauffage, et le budget qui change quand on coche ou décoche une case.
 
