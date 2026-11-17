@@ -114,3 +114,12 @@ test("tous les postes de la grille se calculent sans erreur", () => {
   assert.equal(b.postes.length, R.liste.length);
   b.postes.forEach(p => p.total.forEach(v => assert.ok(Number.isFinite(v), p.k)));
 });
+
+test("maison de démonstration : tous ses travaux existent dans la grille et se calculent", () => {
+  const d = lire("demo/maison-demo.json");
+  d.travaux.forEach(t => assert.ok(R.postes[t.k], t.k));
+  const b = calculerBudget(R, d, 2026);
+  assert.equal(b.postes.filter(p => p.fiab === "incomplet").length, 0);
+  assert.ok(b.T[1] > 0 && b.T[0] < b.T[1] && b.T[1] < b.T[2]);
+  assert.ok(coutTotal(d, b).total[1] > d.prix);
+});

@@ -35,7 +35,7 @@ function ecranAccueil() {
     .map(m => {
       const b = calculerBudget(R, m), c = coutTotal(m, b);
       return `<a class="carte maison" href="#/maison/${m.id}">
-        <div class="m-tete"><b>${esc(m.nom || "Maison sans nom")}</b>${m.exemple ? `<span class="badge b-exemple">Exemple</span>` : ""}</div>
+        <div class="m-tete"><b>${esc(m.nom || "Maison sans nom")}</b>${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}</div>
         <div class="mu">${esc(m.commune || "")}${m.annee ? ` · ${esc(m.annee)}` : ""}${m.surface ? ` · ${nombre(m.surface)} m²` : ""}</div>
         <div class="m-chiffres"><div><small>Prix demandé</small><b>${euros(c.prix)}</b></div><div><small>Vrai coût estimé</small><b class="or">${euros(c.total[1], 100)}</b></div></div>
       </a>`;
@@ -48,7 +48,8 @@ function ecranAccueil() {
       <p>Prix d'achat, droits d'enregistrement, notaire et travaux : le vrai budget, poste par poste, avant de faire une offre.</p>
       <a class="btn" href="#/ajouter">＋ Ajouter une maison</a>
     </section>
-    ${maisons.length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>Aucune maison pour l'instant.</p><button class="btn sec" data-action="exemple">Charger une maison d'exemple</button></div>`}
+    ${maisons.length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>Aucune maison pour l'instant.</p></div>`}
+    ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="exemple">${maisons.some(m => m.demo) ? "Remettre la maison de démonstration à zéro" : "Charger la maison de démonstration"}</button></p>` : ""}
   </main>`;
 }
 
@@ -107,10 +108,17 @@ function creerMaison(b, exemple = false) {
   return m;
 }
 
-const EXEMPLE = {
-  nom: "Maison d'exemple", commune: "À remplacer par la vraie maison", prix: 245000, annee: 1965, surface: 120, etat: "renover", uniqueHabitation: true,
-  choix: { peinture: { on: true }, sols: { on: true }, elec: { on: true }, cuisine: { on: true }, sdb: { on: true }, chaudiere: { on: true }, radiateurs: { on: true, n: 7 }, isol: { on: true, n: 60 } },
-};
+/* maison de démonstration : demo/maison-demo.json (fictive, à remplacer par une vraie maison) */
+let DEMO = null;
+function chargerDemo() {
+  if (!DEMO) return null;
+  maisons = maisons.filter(m => !m.demo);
+  const { note, ...d } = DEMO;
+  const m = { ...d, id: nouvelId(), demo: true, exemple: true, rep: { ...(d.rep || {}) }, travaux: d.travaux.map(t => ({ ...t, id: nouvelId() })) };
+  maisons.unshift(m);
+  sauver();
+  return m;
+}
 
 /* ---------- écran : le vrai coût d'une maison ---------- */
 function ecranMaison(m) {
@@ -161,7 +169,8 @@ function ecranMaison(m) {
     <a href="#/" class="retour">← Mes maisons</a>
     <div class="titre-maison">
       <h1>${esc(m.nom || "Maison")}</h1>
-      ${m.exemple ? `<span class="badge b-exemple">Exemple</span>` : ""}
+      ${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
+      ${m.description ? `<p class="desc">${esc(m.description)}</p>` : ""}
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
@@ -278,7 +287,7 @@ document.addEventListener("click", e => {
   const el = e.target.closest("[data-action]");
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
-  if (a === "exemple") { const x = creerMaison(EXEMPLE, true); location.hash = `#/maison/${x.id}`; }
+  if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "suppr-ligne" && m) { m.travaux.splice(+el.dataset.i, 1); sauver(); afficher(); }
   if (a === "ajout-ligne" && m) { m.travaux.push({ id: nouvelId(), piece: "", k: "mur_peinture", q: "" }); sauver(); afficher(); }
   if (a === "suppr-maison" && m && confirm("Supprimer cette maison ?")) { maisons = maisons.filter(x => x !== m); sauver(); location.hash = "#/"; }
@@ -330,6 +339,14 @@ document.addEventListener("submit", e => {
 
 window.addEventListener("hashchange", afficher);
 
-chargerReferences()
-  .then(r => { R = r; afficher(); })
+Promise.all([chargerReferences(), fetch("maison-demo.json", { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null)])
+  .then(([r, d]) => {
+    R = r;
+    DEMO = d;
+    /* première visite : la maison de démonstration est déjà là */
+    let vu = false;
+    try { vu = !!localStorage.getItem("valou_demo_vu"); localStorage.setItem("valou_demo_vu", "1"); } catch (e) {}
+    if (!vu && DEMO && !maisons.some(m => m.demo)) chargerDemo();
+    afficher();
+  })
   .catch(() => { $app.innerHTML = `<main><div class="alerte">Impossible de charger les prix de référence. Vérifiez la connexion et rechargez la page.</div></main>`; });

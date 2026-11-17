@@ -14,6 +14,7 @@ Adresse une fois en ligne : https://hoono.be/demo/
 | `js/moteur.js` | **Le moteur de calcul** (bas / moyen / haut, TVA, imprévus, coût total). Aucun affichage : seulement des calculs |
 | `js/donnees.js` | Charge les fichiers de prix de la racine (`tarifs-reference.json`, `main-oeuvre.json`, `prix-hubo.json`, `aides-renovation.json`) et les prix publiés depuis le tableau de bord (Supabase) |
 | `js/app.js` | Les écrans |
+| `maison-demo.json` | **La maison de démonstration (fictive)**, affichée dès la première visite. Pour la remplacer par une vraie maison : changer ce fichier (mêmes champs). Seules les caractéristiques et les quantités y sont, les prix viennent toujours des références |
 | `js/stockage.js`, `js/format.js` | Enregistrement des maisons sur l'appareil, mise en forme des montants |
 | `tests/moteur.test.mjs` | Tests du moteur : `node --test demo/tests/moteur.test.mjs` |
 | `tests/parcours.mjs` | Test du parcours complet dans un navigateur, avec captures : `node demo/tests/parcours.mjs captures` |

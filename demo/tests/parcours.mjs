@@ -24,6 +24,13 @@ try {
     await page.getByText("Ajouter une maison").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-1-accueil.png` });
 
+    /* la maison de démonstration est déjà là à la première visite */
+    await page.getByText("Maison de démonstration").first().click();
+    await page.locator(".vrai-cout .gros").waitFor();
+    await page.screenshot({ path: `${OUT}/${nom}-0-demo.png` });
+    await page.screenshot({ path: `${OUT}/${nom}-0-demo-complet.png`, fullPage: nom === "ordi" });
+    await page.getByText("← Mes maisons").click();
+
     /* ajouter une maison en 30 secondes */
     await page.getByText("Ajouter une maison").first().click();
     await page.fill('input[name="nom"]', "Maison test");

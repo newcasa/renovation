@@ -83,6 +83,8 @@ input:focus, select:focus { border-color: var(--or); outline: none; }
 /* le vrai coût */
 .titre-maison { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .titre-maison p { flex-basis: 100%; margin: 0 0 12px; }
+.titre-maison .desc { margin: 0 0 4px; max-width: 760px; }
+.reinit { margin-top: 18px; text-align: center; }
 .vrai-cout { display: grid; gap: 22px; grid-template-columns: 1fr 1.3fr; align-items: center; background: var(--bordeaux); color: var(--creme); border: 0; padding: 24px; }
 .vrai-cout .mu, .vrai-cout small { color: #E8D9C4; }
 .gros { font-size: clamp(38px, 7vw, 60px); color: #fff; margin: 2px 0; }
