@@ -289,7 +289,7 @@ function ecranMaison(m) {
     </section>
 
     <section class="carte">
-      <h2>Travaux hors pièces</h2>
+      <h2>Structure, toiture et équipements</h2>
       <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
       ${rapidesHTML}
       ${grpFixes}
