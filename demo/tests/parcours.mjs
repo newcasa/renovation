@@ -86,15 +86,30 @@ try {
     /* maison B : pour un métier, on consulte le projet personnalisé, on coche 3 artisans (pas plus) et on envoie */
     await page.locator(".retour").click();
     await page.locator('.grille .maison:has-text("Maison de démonstration B")').click();
-    const ligne = page.locator(".contact-ligne").first();
-    await ligne.locator('summary:has-text("Voir le projet")').click();
-    assert.match(await ligne.locator(".ct-projet").innerText(), /Poste[\s\S]*Total[\s\S]*€/);
-    await ligne.locator('summary:has-text("Choisir les artisans")').click();
-    for (let i = 0; i < 3; i++) await page.locator(".contact-ligne").first().locator("[data-art]").nth(i).check();
-    assert.ok(await page.locator(".contact-ligne").first().locator("[data-art]").nth(3).isDisabled(), "4e artisan bloqué");
-    await page.screenshot({ path: `${OUT}/${nom}-0f-choix-artisans.png`, fullPage: nom === "ordi" });
-    await page.locator(".contact-ligne").first().locator('[data-action="envoi-metier"]').click();
-    assert.match(await page.locator(".contact-ligne").first().innerText(), /Envoyé à 3 artisans/);
+    /* un métier avec au moins 2 parties : on n'en envoie qu'une (ex. le séjour mais pas la salle de bain) */
+    await page.locator(".contact-ligne").first().waitFor();
+    const nbL = await page.locator(".contact-ligne").count();
+    let iL = -1;
+    for (let i = 0; i < nbL && iL < 0; i++) {
+      await page.locator(".contact-ligne").nth(i).locator('[data-v="p"]').click();
+      if (await page.locator(".contact-ligne").nth(i).locator("[data-part]").count() >= 2) iL = i;
+      else await page.locator(".contact-ligne").nth(i).locator('[data-v="p"]').click();
+    }
+    assert.ok(iL >= 0, "un métier avec 2 parties");
+    const L = () => page.locator(".contact-ligne").nth(iL);
+    assert.match(await L().locator(".ct-projet").innerText(), /Pièce[\s\S]*Poste[\s\S]*À envoyer : \d+ parties/);
+    const nParts = await L().locator("[data-part]").count();
+    await L().locator("[data-part]").first().uncheck();
+    assert.match(await L().locator(".ct-projet").innerText(), new RegExp(`À envoyer : ${nParts - 1} partie`));
+    assert.equal(await L().locator("tr.exclu").count(), 1);
+    await page.screenshot({ path: `${OUT}/${nom}-0f-parties.png`, fullPage: nom === "ordi" });
+    await L().locator('[data-v="a"]').click();
+    for (let i = 0; i < 3; i++) await L().locator("[data-art]").nth(i).check();
+    assert.ok(await L().locator("[data-art]").nth(3).isDisabled(), "4e artisan bloqué");
+    await page.screenshot({ path: `${OUT}/${nom}-0g-choix-artisans.png`, fullPage: nom === "ordi" });
+    await L().locator('[data-action="envoi-metier"]').click();
+    assert.match(await L().innerText(), /Envoyé à 3 artisans/);
+
     /* négociant : sa fiche (services, coordonnées, horaires), visible sur la fiche de la maison ; pas d'offres */
     await page.goto(URL + "#/pro/negociant");
     await page.fill('[data-negfiche="nom"]', "Négoce Test");

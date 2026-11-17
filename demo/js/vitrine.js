@@ -5,6 +5,9 @@ import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, M
 import { euros, euros2, nombre, esc } from "./format.js";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
+/* une partie du projet : un poste dans une pièce (ou pour toute la maison) */
+export const cleLigne = l => `${l.k}|${l.pieceId || "maison"}`;
+
 export const METIERS = [
   { id: "general", t: "Entreprise générale", f: () => true },
   { id: "carreleur", t: "Carreleur", f: k => /^(sol|mur)_carrelage$/.test(k) },
@@ -50,7 +53,15 @@ export function ecranPro(ctx, onglet, metier) {
 
   if (onglet === "artisan") {
     const M = METIERS.find(x => x.id === metier) || METIERS[0];
-    const demandes = L.map(x => ({ ...x, lots: x.b.postes.filter(p => M.f(p.k) && p.QL > 0) })).filter(x => x.lots.length)
+    /* si le client n'a envoyé qu'une partie (ex. le séjour mais pas la salle de bain), l'artisan ne reçoit que cette partie */
+    const partiesEnvoyees = (x, p) => {
+      const E = x.m.envoiMetier && x.m.envoiMetier[M.id];
+      if (!E || !E.parts) return p;
+      const q = x.b.lignes.filter(l => l.k === p.k && !l.soiMeme && E.parts.includes(cleLigne(l))).reduce((s, l) => s + (Number(String(l.q).replace(",", ".")) || 0), 0);
+      const r = p.QL ? q / p.QL : 0;
+      return { ...p, QL: q, total: p.total.map(v => v * r) };
+    };
+    const demandes = L.map(x => ({ ...x, lots: x.b.postes.filter(p => M.f(p.k) && p.QL > 0).map(p => partiesEnvoyees(x, p)).filter(p => p.QL > 0) })).filter(x => x.lots.length)
       .sort((a, b) => (b.m.envoi ? 1 : 0) - (a.m.envoi ? 1 : 0));
     /* photos des pièces concernées par ce métier (toutes si « entreprise générale ») */
     const photosDemande = x => {

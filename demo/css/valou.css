@@ -672,17 +672,23 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 
 /* contacter : projet par métier et choix des artisans */
 
-.ct-plus { grid-column: 1 / -1; display: grid; gap: 6px; margin-top: 4px; }
-.ct-det { border: 1px solid var(--bord); border-radius: 10px; background: #fff; }
-.ct-det > summary { cursor: pointer; padding: 9px 12px; font: 700 14px Manrope, sans-serif; color: var(--bordeaux); }
-.ct-det[open] > summary { border-bottom: 1px solid var(--bord); }
+.contact-ligne { grid-template-columns: 1.4fr auto 1fr auto; }
+.ct-boutons { display: flex; gap: 6px; }
+.ct-btn { display: inline-flex; gap: 6px; align-items: center; padding: 8px 12px; border: 1px solid var(--bord); border-radius: 10px; background: #fff; cursor: pointer; font: 700 13.5px Manrope, sans-serif; color: var(--bordeaux); white-space: nowrap; }
+.ct-btn span { color: var(--or-fonce); transition: transform .15s; }
+.ct-btn.on { background: var(--bordeaux); color: #fff; border-color: var(--bordeaux); }
+.ct-btn.on span { color: #fff; transform: rotate(180deg); }
+.ct-panneau { grid-column: 1 / -1; border: 1px solid var(--bord); border-radius: 12px; background: #fff; padding: 4px 12px 12px; }
+.ct-projet tr.exclu td { color: var(--mu); text-decoration: line-through; }
+.ct-projet tr.exclu td:first-child { text-decoration: none; }
+.ct-projet td:first-child { width: 28px; }
 .ct-projet { width: 100%; border-collapse: collapse; font-size: 14px; }
 .ct-projet th { text-align: left; font-size: 12px; color: var(--mu); padding: 8px 12px; }
 .ct-projet td { padding: 8px 12px; border-top: 1px solid var(--bord); vertical-align: top; }
 .ct-projet .r { text-align: right; white-space: nowrap; }
 .ct-projet .tot td { background: var(--carte); }
-.ct-det > .petit-t, .ct-choix { padding: 4px 12px 10px; }
 .ct-art { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--bord); }
 .ct-art small { display: block; }
 .ct-choix .btn { margin-top: 10px; }
-@media (max-width: 600px) { .ct-projet .ct-ou { display: none; } }
+@media (max-width: 900px) { .contact-ligne { grid-template-columns: 1fr auto; } .ct-etat, .ct-boutons { grid-column: 1 / -1; } .ct-btn { flex: 1; justify-content: center; } }
+@media (max-width: 600px) { .ct-panneau { padding: 4px 6px 10px; } .ct-projet th, .ct-projet td { padding: 7px 4px; font-size: 13px; } .ct-projet .badge { display: none; } .ct-projet td:first-child { width: 22px; } }

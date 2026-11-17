@@ -3,7 +3,7 @@ import { chargerReferences } from "./donnees.js";
 import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE } from "./vitrine.js";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, cleLigne } from "./vitrine.js";
 import { ecranQuestionnaire, PIECES_QUESTIONNAIRE } from "./questionnaire.js";
 import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js";
 
@@ -866,6 +866,16 @@ function artisansDuMetier(id) {
   return LIEUX_DEMO.map(([lieu, km], i) => ({ id: `${id}-${i + 1}`, nom: i ? `${base} Exemple ${String.fromCharCode(65 + i)}` : A.nom, lieu, km, tarifs: i < 3 }));
 }
 const ctOuvert = {};
+/* les parties du projet d'un métier : chaque poste, pièce par pièce (sans ce que l'on fait soi-même) */
+function partiesMetier(m, b, x) {
+  const P = {};
+  b.lignes.filter(l => x.f(l.k) && !l.soiMeme && R.postes[l.k] && Number(String(l.q).replace(",", ".")) > 0).forEach(l => {
+    const cle = cleLigne(l), pc = l.pieceId && (m.pieces || []).find(y => y.id === l.pieceId);
+    const o = (P[cle] = P[cle] || { cle, k: l.k, n: R.postes[l.k].n, u: unitePoste(R.postes[l.k].u, l.k), piece: pc ? pc.nom : "Toute la maison", q: 0, total: 0, fiab: l.fiab });
+    o.q += Number(String(l.q).replace(",", ".")); o.total += l.fiab ? l.total[1] : 0;
+  });
+  return Object.values(P).sort((u, v) => (u.piece === "Toute la maison") - (v.piece === "Toute la maison") || u.piece.localeCompare(v.piece, "fr"));
+}
 
 function ecranContacts(id) {
   const m = id && trouver(id);
@@ -890,30 +900,41 @@ function ecranContacts(id) {
     const envoye = m.envoi && m.envoi.metiers.includes(x.id), r = (m.reponses || []).find(y => y.metier === x.id), A = ARTISANS_EXEMPLE[x.id] || ARTISANS_EXEMPLE.general;
     const choisis = (m.artisansChoisis || {})[x.id] || [], liste = artisansDuMetier(x.id);
     const nomsChoisis = choisis.map(id => (liste.find(a => a.id === id) || {}).nom).filter(Boolean);
+    /* les parties du projet de ce métier : un poste dans une pièce (ou pour toute la maison) */
+    const parts = partiesMetier(m, b, x);
+    const exclues = new Set((m.partiesExclues || {})[x.id] || []);
+    const envoi = (m.envoiMetier || {})[x.id];
+    const incluse = q => (envoye && envoi && envoi.parts ? envoi.parts.includes(q.cle) : !exclues.has(q.cle));
+    const tSel = parts.filter(incluse).reduce((s, q) => s + q.total, 0), nSel = parts.filter(incluse).length;
     const etat = !envoye ? `<span class="badge b-fourchette">Pas encore envoyé</span>`
-      : !r ? `<span class="badge b-estimation">Envoyé${nomsChoisis.length ? ` à ${nomsChoisis.length} artisan${nomsChoisis.length > 1 ? "s" : ""}` : ""} · en attente de réponse</span>`
+      : !r ? `<span class="badge b-estimation">Envoyé${nomsChoisis.length ? ` à ${nomsChoisis.length} artisan${nomsChoisis.length > 1 ? "s" : ""}` : ""} · en attente</span>`
       : r.type === "non" ? `<span class="badge b-fourchette">Artisan pas disponible</span>`
       : `<span class="badge b-reference">${r.type === "visite" ? "Visite proposée" : "Devis envoyé"}</span>`;
-    /* le projet personnalisé de ce métier : chaque poste, sa quantité, les pièces concernées et son prix */
-    const ouPoste = k => [...new Set(b.lignes.filter(l => l.k === k && l.pieceId && !l.soiMeme).map(l => ((m.pieces || []).find(pc => pc.id === l.pieceId) || {}).nom).filter(Boolean))];
-    const projet = `<table class="ct-projet"><thead><tr><th>Poste</th><th class="ct-ou">Pièces</th><th class="r">Quantité</th><th class="r">Budget moyen</th></tr></thead><tbody>
-      ${lots.map(p => `<tr><td>${esc(p.n)} ${badge(p.fiab)}</td><td class="mu ct-ou">${esc(ouPoste(p.k).join(", ") || "Toute la maison")}</td><td class="r">${esc(qte(p.QL, p.u))}</td><td class="r"><b>${euros(p.total[1], 10)}</b></td></tr>`).join("")}
-      <tr class="tot"><td colspan="3">Total ${esc(x.t.toLowerCase())} (TVA ${b.rate} % comprise)</td><td class="r"><b>${euros(t, 10)}</b></td></tr></tbody></table>
-      <p class="mu petit-t">C'est exactement ce que reçoivent les artisans choisis, avec les photos des pièces concernées.</p>`;
-    const choix = `<div class="ct-choix" data-metier-choix="${x.id}">
+    const ouvert = ctOuvert[m.id + ":" + x.id];
+    const projet = `<div class="ct-panneau"><p class="mu petit-t">Cochez les parties à envoyer. Exemple : vous carrelez vous-même la salle de bain, mais pas le séjour → ne cochez que le séjour.</p>
+      <table class="ct-projet"><thead><tr><th></th><th>Pièce</th><th>Poste</th><th class="r">Quantité</th><th class="r">Budget</th></tr></thead><tbody>
+      ${parts.map(q => `<tr class="${incluse(q) ? "" : "exclu"}"><td><input type="checkbox" data-part="${esc(q.cle)}" ${incluse(q) ? "checked" : ""} ${envoye ? "disabled" : ""} aria-label="Envoyer : ${esc(q.piece)}, ${esc(q.n)}"></td>
+        <td><b>${esc(q.piece)}</b></td><td>${esc(q.n)} ${badge(q.fiab)}</td><td class="r">${esc(qte(q.q, q.u))}</td><td class="r">${q.total ? euros(q.total, 10) : "–"}</td></tr>`).join("")}
+      <tr class="tot"><td colspan="4">À envoyer : ${nSel} partie${nSel > 1 ? "s" : ""} sur ${parts.length} (TVA ${b.rate} % comprise)</td><td class="r"><b>${euros(tSel, 10)}</b></td></tr></tbody></table>
+      <p class="mu petit-t">C'est exactement ce que reçoivent les artisans choisis, avec les photos des pièces cochées.</p></div>`;
+    const choix = `<div class="ct-panneau ct-choix" data-metier-choix="${x.id}">
       <p class="mu petit-t">Cochez jusqu'à <b>3 artisans</b>, puis envoyez.</p>
       ${liste.map(a => { const on = choisis.includes(a.id); return `<label class="cb ct-art"><input type="checkbox" data-art="${a.id}" ${on ? "checked" : ""} ${envoye || (!on && choisis.length >= 3) ? "disabled" : ""}>
         <span><b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><small class="mu">${esc(a.lieu)} · à ${a.km} km${a.tarifs ? " · tarifs partagés avec Valou" : ""}</small></span></label>`; }).join("")}
-      ${envoye ? `<p class="envoye">📨 Projet envoyé${nomsChoisis.length ? ` à ${esc(nomsChoisis.join(", "))}` : ""} le ${esc(new Date(((m.envoiMetier || {})[x.id] || m.envoi).date).toLocaleDateString("fr-BE"))}. Démonstration : aucun envoi réel.</p>`
-        : `<button class="btn petit-btn" data-action="envoi-metier" data-metier="${x.id}" ${choisis.length ? "" : "disabled"}>📨 Envoyer${choisis.length ? ` à ${choisis.length} artisan${choisis.length > 1 ? "s" : ""}` : ""}</button>`}
+      ${envoye ? `<p class="envoye">📨 Projet envoyé${nomsChoisis.length ? ` à ${esc(nomsChoisis.join(", "))}` : ""} le ${esc(new Date((envoi || m.envoi).date).toLocaleDateString("fr-BE"))}. Démonstration : aucun envoi réel.</p>`
+        : `<button class="btn petit-btn" data-action="envoi-metier" data-metier="${x.id}" ${choisis.length && nSel ? "" : "disabled"}>📨 Envoyer ${nSel} partie${nSel > 1 ? "s" : ""}${choisis.length ? ` à ${choisis.length} artisan${choisis.length > 1 ? "s" : ""}` : ""}</button>
+          ${!nSel ? `<small class="mu"> Aucune partie cochée dans le projet.</small>` : ""}`}
     </div>`;
-    return `<div class="contact-ligne"><div><b>${esc(x.t)}</b><small class="mu">${lots.map(p => esc(p.n)).join(", ")}</small></div>
-      <div class="r"><small class="mu">Budget moyen</small><b>${euros(t, 10)}</b></div>
-      <div class="ct-etat">${etat}${r && r.type !== "non" ? `<div class="ct-coord"><b>${esc(A.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><span>📞 ${esc(A.tel)}</span><small class="mu">Répondu le ${esc(new Date(r.date).toLocaleDateString("fr-BE"))}</small></div>` : ""}</div>
-      <div class="ct-plus">
-        <details class="ct-det" ${ctOuvert[m.id + ":p:" + x.id] ? "open" : ""} data-ct="${m.id}:p:${x.id}"><summary>📋 Voir le projet ${esc(x.t.toLowerCase())}</summary>${projet}</details>
-        <details class="ct-det" ${ctOuvert[m.id + ":a:" + x.id] ? "open" : ""} data-ct="${m.id}:a:${x.id}"><summary>👷 Choisir les artisans${choisis.length ? ` (${choisis.length}/3)` : ""}</summary>${choix}</details>
-      </div></div>`;
+    return `<div class="contact-ligne">
+      <div><b>${esc(x.t)}</b><small class="mu">${lots.map(p => esc(p.n)).join(", ")}</small></div>
+      <div class="r"><small class="mu">${nSel < parts.length ? "À envoyer" : "Budget moyen"}</small><b>${euros(tSel, 10)}</b></div>
+      <div class="ct-etat">${etat}${r && r.type !== "non" ? `<div class="ct-coord"><b>${esc(A.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><span>📞 ${esc(A.tel)}</span></div>` : ""}</div>
+      <div class="ct-boutons">
+        <button class="ct-btn ${ouvert === "p" ? "on" : ""}" data-action="ct-ouvrir" data-metier="${x.id}" data-v="p">📋 Projet${nSel < parts.length ? ` (${nSel}/${parts.length})` : ""} <span>▾</span></button>
+        <button class="ct-btn ${ouvert === "a" ? "on" : ""}" data-action="ct-ouvrir" data-metier="${x.id}" data-v="a">👷 Artisans${choisis.length ? ` (${choisis.length}/3)` : ""} <span>▾</span></button>
+      </div>
+      ${ouvert === "p" ? projet : ouvert === "a" ? choix : ""}
+    </div>`;
   };
   return `${entete("contacts")}<main>
     <a href="#/contacts" class="retour">← Mes maisons</a>
@@ -982,12 +1003,14 @@ document.addEventListener("click", e => {
     if (window.innerWidth < 800) document.getElementById("at-panneau")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   if (a === "envoi-ouvrir" && m) { envoiOuvert = m.id; afficher(); }
+  if (a === "ct-ouvrir" && m) { const c = m.id + ":" + el.dataset.metier; ctOuvert[c] = ctOuvert[c] === el.dataset.v ? null : el.dataset.v; afficher(); }
   if (a === "envoi-metier" && m) {
-    const id = el.dataset.metier, choisis = (m.artisansChoisis || {})[id] || [];
-    if (!choisis.length) return;
+    const id = el.dataset.metier, choisis = (m.artisansChoisis || {})[id] || [], x = METIERS.find(y => y.id === id);
+    const exclues = new Set((m.partiesExclues || {})[id] || []), parts = partiesMetier(m, calculerBudget(R, m), x).map(q => q.cle).filter(c => !exclues.has(c));
+    if (!choisis.length || !parts.length) return;
     m.envoi = m.envoi || { date: Date.now(), metiers: [] };
     if (!m.envoi.metiers.includes(id)) m.envoi.metiers.push(id);
-    m.envoiMetier = { ...(m.envoiMetier || {}), [id]: { date: Date.now(), artisans: choisis } };
+    m.envoiMetier = { ...(m.envoiMetier || {}), [id]: { date: Date.now(), artisans: choisis, parts } };
     sauver(); afficher();
   }
   if (a === "envoi-annuler") { envoiOuvert = null; afficher(); }
@@ -1054,9 +1077,15 @@ document.addEventListener("click", e => {
   }
 });
 
-document.addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.ct) ctOuvert[d.dataset.ct] = d.open; }, true);
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  /* contacter : parties du projet à envoyer */
+  if (t.dataset.part && m) {
+    const id = t.closest(".contact-ligne").querySelector("[data-action=ct-ouvrir]").dataset.metier, X = new Set((m.partiesExclues || {})[id] || []);
+    if (t.checked) X.delete(t.dataset.part); else X.add(t.dataset.part);
+    m.partiesExclues = { ...(m.partiesExclues || {}), [id]: [...X] };
+    sauver(); afficher(); return;
+  }
   /* contacter : choix de 3 artisans au maximum par métier */
   if (t.dataset.art && m) {
     const id = t.closest("[data-metier-choix]").dataset.metierChoix, L = new Set((m.artisansChoisis || {})[id] || []);
