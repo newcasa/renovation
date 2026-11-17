@@ -27,6 +27,8 @@ try {
     /* la maison de démonstration est déjà là à la première visite */
     await page.getByText("Maison de démonstration").first().click();
     await page.locator(".vrai-cout .gros").waitFor();
+    /* PEB : maison A classée G → obligation annoncée et travaux énergétiques chiffrés */
+    assert.match(await page.locator(".energie").innerText(), /PEB G[\s\S]*Obligation de rénovation annoncée[\s\S]*label D[\s\S]*Total des travaux énergétiques/);
     await page.screenshot({ path: `${OUT}/${nom}-0-demo.png` });
     await page.screenshot({ path: `${OUT}/${nom}-0-demo-complet.png`, fullPage: nom === "ordi" });
 
@@ -66,6 +68,7 @@ try {
     await page.locator('.nav-i[href="#/comparer"]').click();
     await page.locator(".verdict").waitFor();
     assert.match(await page.locator(".verdict p").innerText(), /moins cher au final/);
+    assert.match(await page.locator(".cmp").innerText(), /Label PEB[\s\S]*PEB G[\s\S]*PEB C/);
     await page.screenshot({ path: `${OUT}/${nom}-6-comparer.png`, fullPage: nom === "ordi" });
 
     /* dossier pour la banque de la maison A */
@@ -127,6 +130,11 @@ try {
     await page.locator(".q-page").first().waitFor();
     assert.equal(await page.locator(".q-page").count(), 2);
     assert.equal(await page.locator(".q-table tbody tr").count(), 22);
+    /* mode présentation : hoono.be/demo/#/presentation remet les maisons de démonstration à zéro */
+    await page.goto(URL + "#/presentation");
+    await page.waitForFunction(() => location.hash === "#/");
+    await page.locator(".maison").first().waitFor();
+    assert.match(await page.locator(".grille").innerText(), /Maison de démonstration A[\s\S]*Maison de démonstration B/);
     await page.locator('.nav-i[href="#/feuille-de-route"]').click();
     await page.locator(".phases").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-10-feuille.png`, fullPage: nom === "ordi" });
@@ -182,7 +190,7 @@ try {
     assert.equal(await page.locator(".vrai-cout .gros").innerText(), avant); // décocher : retour au calcul
 
     /* hypothèse : support abîmé → imprévus 15 % */
-    assert.match(await page.locator(".recap").innerText(), /Imprévus \(15 %\)/);
+    assert.match(await page.locator(".recap:not(.recap-en)").innerText(), /Imprévus \(15 %\)/);
 
     /* pièce par pièce : passer la peinture en « moi-même » */
     /* chauffage repris : pompe à chaleur + 7 radiateurs */

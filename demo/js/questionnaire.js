@@ -35,6 +35,7 @@ export function ecranQuestionnaire(ctx) {
         <div class="q-grille">${box("Nom", "", true)}${box("Commune", "", true)}${box("Prix demandé", "€")}${box("Année")}${box("Surface habitable", "m²")}</div>
         ${ligne("État général", cases(["Bon état", "À rafraîchir", "À rénover"]))}
         ${ligne("Seule habitation", cases(["Oui", "Non"]))}
+        ${ligne("PEB (annonce)", cases(["A++", "A+", "A", "B", "C", "D", "E", "F", "G"]) + box("", "kWh/m²/an"))}
         <h2>Le chauffage de la maison</h2>
         ${ligne("Existant", cases(CHAUFFAGE_ACTUEL.map(c => c[1])))}
         ${ligne("Souhaité", cases(["Garder l'actuel", "Chaudière gaz à condensation", "Pompe à chaleur"]))}
@@ -80,7 +81,7 @@ export function ecranQuestionnaire(ctx) {
 }
 
 /* ---------- réponses lues sur la photo → maison Valou ----------
-   r = { maison: { nom, commune, prix, annee, surface, etat: "bon"|"rafraichir"|"renover", unique: true|false },
+   r = { maison: { nom, commune, prix, annee, surface, etat: "bon"|"rafraichir"|"renover", unique: true|false, peb: "A++"…"G", peb_conso },
          chauffage: { actuel, souhaite },
          pieces: [{ nom, type, sol, sol_refaire: "carrelage"|"parquet"|null, sol_moi, murs: ["plafonnage","peinture","carrelage"], carrelage_m2, murs_moi,
                     plafond: "peinture"|"plafonnage"|"plaques"|null, plafond_moi, chassis, chassis_type: "pvc"|"alu", radiateurs, chauffage_sol,
@@ -98,6 +99,7 @@ export function maisonDepuisQuestionnaire(r, nouvelId) {
     etat, uniqueHabitation: M.unique !== false, fraisNotaire: null, rep: { etat: etat === "renover" ? "oui" : "non" },
     chauffage: { actuel: CHAUFFAGE_ACTUEL.some(c => c[0] === C.actuel) ? C.actuel : "gaz", souhaite: CHAUFFAGE_SOUHAITE.some(c => c[0] === C.souhaite) ? C.souhaite : "garder" },
     description: r.notes || "", source: "questionnaire",
+    peb: ["A++", "A+", "A", "B", "C", "D", "E", "F", "G"].includes(M.peb) ? M.peb : null, pebConso: nombreOuNull(M.peb_conso),
   };
   m.pieces = (r.pieces || []).filter(p => p && (p.nom || p.sol)).map((p, i) => {
     const murs = p.murs || [];

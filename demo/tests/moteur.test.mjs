@@ -257,3 +257,14 @@ test("châssis aluminium dans une pièce", () => {
   const t = travauxEffectifs({ pieces: [{ id: "a", nom: "Véranda", type: "standard", sol: 15, chOn: true, chN: 3, chT: "alu" }] });
   assert.deepEqual(t.map(l => [l.k, l.q]), [["i_ca", 3]]);
 });
+
+import { travauxEnergie, concerneParObligation } from "../js/moteur.js";
+
+test("PEB : travaux énergétiques isolés, obligation annoncée pour E, F, G", () => {
+  const b = calculerBudget(R, maison([{ k: "i_to_1", q: 50 }, { k: "i_ch", q: 4 }, { k: "i_cha", q: 1 }, { k: "mur_peinture", q: 40 }]), 2026);
+  const e = travauxEnergie(b);
+  assert.deepEqual(e.postes.map(p => p.k).sort(), ["i_ch", "i_cha", "i_to_1"]);
+  assert.ok(e.total[1] > 0 && e.total[1] < b.T[1]);
+  assert.equal(concerneParObligation("F"), true);
+  assert.equal(concerneParObligation("D"), false);
+});

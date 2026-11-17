@@ -213,16 +213,16 @@ export function ecranMoteur(ctx) {
 export function ecranFeuille(ctx) {
   const { entete } = ctx;
   const phases = [
-    { t: "Aujourd'hui", s: "Prototype", on: true, l: ["Le vrai coût d'une maison : achat, frais et travaux", "Budget pièce par pièce, bas / moyen / haut, avec sa fiabilité", "Comparaison de plusieurs maisons", "Dossier pour la banque en PDF", "Tableau de bord des prix de référence"] },
-    { t: "Étape 1", s: "Lancement en Wallonie", l: ["Comptes et synchronisation entre appareils", "Partenariats avec des courtiers en crédit", "Tarifs confidentiels des artisans : prix moyens à 5, 10, 15 et 20 km du chantier", "Devis réels des utilisateurs pour affiner les prix"] },
-    { t: "Étape 2", s: "Mise en relation", l: ["Envoi du projet chiffré aux artisans", "Réponses et devis dans l'appli", "Suivi du chantier : budget prévu et dépenses réelles", "Aides à la rénovation à jour, avec leurs échéances"] },
-    { t: "Étape 3", s: "Tout l'immobilier", l: ["Agences : vrai coût affiché sur les annonces, annonces mises en avant", "Vente d'un bien et estimation", "Espaces négociants, investisseurs et notaires", "Bruxelles et Flandre, en néerlandais et en anglais"] },
+    { t: "Aujourd'hui", s: "Prototype : j'achète", on: true, l: ["Le vrai coût d'une maison : achat, notaire et travaux", "Pièces avec leurs postes imposés, budget bas / moyen / haut et fiabilité", "Visite : photos en rafale par pièce, questionnaire papier", "Comparaison de plusieurs maisons", "Dossier pour la banque, verrouillé jusqu'au montant du notaire", "Tableau de bord des prix de référence"] },
+    { t: "Étape 1", s: "Lancement en Wallonie", l: ["Profil « Je rénove ma maison » : le même outil pour les propriétaires", "Comptes et synchronisation entre appareils (photos comprises)", "Tarifs confidentiels des artisans : prix moyens à 5, 10, 15 et 20 km du chantier", "Devis réels pour fiabiliser les prix"] },
+    { t: "Étape 2", s: "Mise en relation", l: ["Envoi du projet chiffré aux artisans de la zone", "Réponses et devis dans l'appli", "Dossier de crédit transmis au courtier", "Suivi du chantier : budget prévu et dépenses réelles", "Lecture automatique du questionnaire photographié"] },
+    { t: "Étape 3", s: "Tout l'immobilier", l: ["Profil « Je vends » : fiche « travaux à prévoir » jointe à l'annonce", "Agences : vrai coût affiché sur les annonces", "Estimation du prix de vente, avec une source de données fiable", "Bruxelles et Flandre, en néerlandais et en anglais"] },
   ];
   const revenus = [
-    ["Courtiers en crédit", "Commission sur les dossiers de crédit transmis"],
-    ["Particuliers", "Estimation gratuite ; rapport détaillé payant"],
-    ["Artisans", "Demandes de projets déjà chiffrés et qualifiés"],
-    ["Agences", "Badge « vrai coût » sur les annonces et mise en avant"],
+    ["Particuliers", "Gratuit : c'est ce qui fait venir les utilisateurs (acheteurs et propriétaires)"],
+    ["Artisans", "Demandes de projets déjà chiffrés dans leur zone : à la demande ou par abonnement ; priorité pour ceux qui partagent leurs tarifs"],
+    ["Courtiers et banques", "Accès aux dossiers de crédit complets (achat + travaux) ; forme à valider juridiquement (FSMA)"],
+    ["Agences", "Fiche « vrai coût, travaux compris » sur les annonces de maisons à rénover"],
   ];
   return `${entete("feuille")}<main>
     <h1>Feuille de route</h1>
