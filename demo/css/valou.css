@@ -536,3 +536,14 @@ label.verrou .saisie i { font-size: 14px; }
 .declencheur { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: 76px; height: 76px; border-radius: 50%; border: 5px solid #fff; background: rgba(255, 255, 255, .25); cursor: pointer; padding: 0; }
 .declencheur span { display: block; width: 100%; height: 100%; border-radius: 50%; background: #fff; transform: scale(.82); transition: transform .08s; }
 .declencheur:active span { transform: scale(.7); }
+
+/* PEB */
+.peb { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 6px 14px 14px 6px; background: var(--peb); color: #fff; font: 900 12px Outfit, Manrope, sans-serif; letter-spacing: .02em; white-space: nowrap; text-shadow: 0 1px 1px rgba(0,0,0,.25); }
+.peb.grand { font-size: 17px; padding: 4px 14px; }
+.m-tete .peb { margin-left: auto; }
+.energie .en-tete { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.energie .en-tete h2 { margin: 0; }
+.energie .champs { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-bottom: 8px; }
+.energie h3 { font-size: 16px; margin: 12px 0 4px; }
+.peb-alerte p { margin: 6px 0; }
+.tot-en { font-weight: 800; border-top: 1px solid var(--bord); padding-top: 4px; }

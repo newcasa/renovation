@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "note": "Maisons FICTIVES pour la démonstration. À remplacer par de vraies maisons (mêmes champs). Seules les caractéristiques et les quantités sont ici : tous les prix viennent des références Valou.",
   "maisons": [
     {
@@ -187,7 +187,8 @@
       "chauffage": {
         "actuel": "mazout",
         "souhaite": "gaz"
-      }
+      },
+      "peb": "G"
     },
     {
       "nom": "Maison de démonstration B",
@@ -255,7 +256,8 @@
       "chauffage": {
         "actuel": "gaz",
         "souhaite": "garder"
-      }
+      },
+      "peb": "C"
     }
   ]
 }

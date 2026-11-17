@@ -1,6 +1,6 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
 import { chargerReferences } from "./donnees.js";
-import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS } from "./moteur.js";
+import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
@@ -20,6 +20,7 @@ const groupe = p => (/^(meu_|wc_)/.test(p.k) ? "Cuisine et salle de bain" : p.g 
 /* ---------- petits composants ---------- */
 const badge = f => (f ? `<span class="badge b-${f}" title="${esc(FIABILITE[f].d)}">${esc(FIABILITE[f].t)}</span>` : "");
 const qte = (Q, u) => `${nombre(Q)} ${Q > 1 && (u === "pièce" || u === "escalier") ? u + "s" : u}`;
+const pebBadge = (l, grand) => (l ? `<span class="peb ${grand ? "grand" : ""}" style="--peb:${COULEURS_PEB[l]}" title="Label PEB ${l}">PEB ${l}</span>` : "");
 const fourchette = t => `${euros(t[0], 100)} – ${euros(t[2], 100)}`;
 
 function entete(actif) {
@@ -39,7 +40,7 @@ function ecranAccueil() {
     .map(m => {
       const b = calculerBudget(R, m), c = coutTotal(m, b);
       return `<a class="carte maison" href="#/maison/${m.id}">
-        <div class="m-tete"><b>${esc(m.nom || "Maison sans nom")}</b>${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}</div>
+        <div class="m-tete"><b>${esc(m.nom || "Maison sans nom")}</b>${pebBadge(m.peb)}${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}</div>
         <div class="mu">${esc(m.commune || "")}${m.annee ? ` · ${esc(m.annee)}` : ""}${m.surface ? ` · ${nombre(m.surface)} m²` : ""}</div>
         <div class="m-chiffres"><div><small>Prix demandé</small><b>${euros(c.prix)}</b></div><div><small>Vrai coût estimé</small><b class="or">${euros(c.total[1], 100)}</b></div></div>
       </a>`;
@@ -91,6 +92,8 @@ function ecranAjouter() {
         ${champ("prix", "Prix demandé (€)", "number", 'min="0" inputmode="numeric" required')}
         ${champ("annee", "Année de construction", "number", 'min="1800" max="2030" inputmode="numeric" required')}
         ${champ("surface", "Surface habitable (m²)", "number", 'min="10" inputmode="numeric" required')}
+        <label>Label PEB (certificat de l'annonce)<select name="peb"><option value="">Je ne sais pas</option>${LABELS_PEB.map(l => `<option ${b.peb === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+        ${champ("pebConso", "Consommation (kWh/m²/an)", "number", 'min="0" inputmode="numeric" placeholder="sur le certificat"')}
         <label>État général<select name="etat">
           ${[["bon", "Bon état"], ["rafraichir", "À rafraîchir"], ["renover", "À rénover (support abîmé)"]].map(([v, t]) => `<option value="${v}" ${b.etat === v ? "selected" : ""}>${t}</option>`).join("")}
         </select></label>
@@ -119,7 +122,7 @@ function creerMaison(b, exemple = false) {
   const m = {
     id: nouvelId(),
     nom: b.nom, commune: b.commune, prix: +b.prix || 0, annee: +b.annee || null, surface: +b.surface || 0,
-    etat: b.etat, uniqueHabitation: !!b.uniqueHabitation, fraisNotaire: null, exemple,
+    etat: b.etat, uniqueHabitation: !!b.uniqueHabitation, fraisNotaire: null, exemple, peb: b.peb || null, pebConso: +b.pebConso || null,
     rep: { etat: b.etat === "renover" ? "oui" : "non" },
   };
   m.travaux = travauxRapides(m, b.choix).map(t => ({ ...t, id: nouvelId() }));
@@ -155,6 +158,29 @@ function chargerDemo() {
 }
 
 const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite${n ? ` (${n})` : ""}</a>`; };
+
+/* ---------- carte « Performance énergétique (PEB) » ---------- */
+function carteEnergie(m, b) {
+  const e = travauxEnergie(b), oblig = concerneParObligation(m.peb);
+  const grp = [...new Set(e.postes.map(p => p.groupe))].map(g => [g, e.postes.filter(p => p.groupe === g).reduce((s, p) => s + p.total[1], 0)]);
+  return `<section class="carte energie">
+    <div class="en-tete"><h2>Performance énergétique (PEB)</h2>${pebBadge(m.peb, true)}</div>
+    <div class="champs">
+      <label>Label du certificat PEB<select data-peb="peb"><option value="">Je ne sais pas</option>${LABELS_PEB.map(l => `<option ${m.peb === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      <label>Consommation (kWh/m²/an)<input type="number" min="0" inputmode="numeric" data-peb="pebConso" value="${esc(m.pebConso ?? "")}" placeholder="sur le certificat"></label>
+    </div>
+    ${!m.peb ? `<p class="mu petit-t">Le certificat PEB est obligatoire dans les annonces de vente en Wallonie : demandez-le à l'agence ou au vendeur.</p>` : ""}
+    ${oblig ? `<div class="alerte peb-alerte"><b>⚠️ Obligation de rénovation annoncée</b>
+      <p>Pour un logement classé ${OBLIGATION_PEB.labels.join(", ")} acheté à partir de ${OBLIGATION_PEB.aPartirDe}, l'acheteur devrait atteindre au moins le label <b>${OBLIGATION_PEB.cible}</b> dans les <b>${OBLIGATION_PEB.delaiAns} ans</b> après l'acte.</p>
+      <small>${esc(OBLIGATION_PEB.statut)}</small></div>` : ""}
+    <h3>Travaux de cette maison qui améliorent le PEB</h3>
+    ${e.postes.length ? `<div class="recap recap-en">${grp.map(([g, t]) => `<div><span>${esc(g)}</span><b>${euros(t, 10)}</b></div>`).join("")}
+      <div class="tot-en"><span>Total des travaux énergétiques (moyen)</span><b>${euros(e.total[1], 100)}</b></div></div>`
+      : `<p class="mu">Aucun pour l'instant : isolation (toiture, façades), châssis, porte d'entrée, chauffage.${oblig ? " Avec ce label, ils seront sans doute nécessaires." : ""}</p>`}
+    ${["F", "G"].includes(m.peb) ? `<p class="mu petit-t">Logement à faible label PEB : les aides wallonnes à la rénovation (Rénopack) visent ces logements. Conditions à vérifier.</p>` : ""}
+    <p class="mu petit-t">Valou ne calcule pas le label obtenu après travaux : seul un auditeur agréé peut le faire (audit logement). Il dira aussi quels travaux faire en premier.</p>
+  </section>`;
+}
 
 /* ---------- écran : le vrai coût d'une maison ---------- */
 function ecranMaison(m) {
@@ -230,6 +256,7 @@ function ecranMaison(m) {
     <a href="#/" class="retour">← Mes maisons</a>
     <div class="titre-maison">
       <h1>${esc(m.nom || "Maison")}</h1>
+      ${pebBadge(m.peb, true)}
       ${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
       ${m.description ? `<p class="desc">${esc(m.description)}</p>` : ""}
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
@@ -244,6 +271,8 @@ function ecranMaison(m) {
       </div>
       <div class="vc-d">${barre}</div>
     </section>
+
+    ${carteEnergie(m, b)}
 
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
@@ -506,6 +535,8 @@ function ecranComparer() {
       ${ligne("Travaux (moyen)", x => `${euros(x.c.travaux[1], 100)}<small class="mu">${fourchette(x.c.travaux)}</small>`)}
       ${ligne("<b>Vrai coût</b>", x => `<b>${euros(x.c.total[1], 100)}</b><small class="mu">${fourchette(x.c.total)}</small>`, "fort")}
       ${ligne("Écart avec le prix affiché", x => `+${euros(x.c.total[1] - x.c.prix, 100)} <small class="mu">(+${x.c.prix ? Math.round(((x.c.total[1] - x.c.prix) / x.c.prix) * 100) : 0} %)</small>`)}
+      ${ligne("Label PEB", x => (x.m.peb ? pebBadge(x.m.peb) + (concerneParObligation(x.m.peb) ? ` <small class="mu">obligation annoncée : label ${OBLIGATION_PEB.cible} en ${OBLIGATION_PEB.delaiAns} ans</small>` : "") : `<span class="mu">inconnu</span>`))}
+      ${ligne("Travaux énergétiques (moyen)", x => euros(travauxEnergie(x.b).total[1], 100))}
       ${ligne("Vrai coût par m²", x => (x.m.surface ? euros(x.c.total[1] / x.m.surface, 10) + " /m²" : "–"))}
       ${ligne("Fiabilité du budget travaux", x => `<span class="badge b-reference">${x.detail} % détaillé</span> <span class="badge b-fourchette">${x.fourch} % fourchette</span>`)}
     </tbody></table></div>`;
@@ -550,6 +581,7 @@ function ecranDossier(m) {
       <h1>${esc(m.nom || "Maison")}</h1>
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
       ${m.description ? `<p>${esc(m.description)}</p>` : ""}
+      ${m.peb ? `<p>Performance énergétique : ${pebBadge(m.peb)}${m.pebConso ? ` · ${esc(m.pebConso)} kWh/m²/an` : ""} · travaux énergétiques prévus : ${euros(travauxEnergie(b).total[1], 100)}</p>` : ""}
 
       <h2>1. Le coût total du projet</h2>
       <table class="f-table">
@@ -837,6 +869,7 @@ document.addEventListener("change", e => {
     if (nom) renommerPhoto(t.dataset.photoRenommer, nom).then(() => rechargerPhotos(m)); else afficher();
     return;
   }
+  if (t.dataset.peb && m) { m[t.dataset.peb] = t.dataset.peb === "peb" ? t.value || null : t.value === "" ? null : +t.value; sauver(); afficher(); return; }
   if (t.dataset.metier != null) { metier = t.value; afficher(); return; }
   if (t.dataset.simK != null) { sim.k = t.value; afficher(); return; }
   if (t.dataset.tarif) { tarifs.p[t.dataset.tarif] = t.value === "" ? null : +t.value; sauverTarifs(); afficher(); return; }

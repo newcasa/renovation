@@ -424,3 +424,26 @@ export function travauxChauffage(ch, surface) {
   const rad = c.actuel === "aucun" ? "nouv" : "rempl";
   return { lignes: out, notes, rad, c };
 }
+
+/* ---------- Performance énergétique (PEB) ----------
+   Valou ne calcule PAS de label PEB : seul un certificateur ou un auditeur agréé peut le faire.
+   On encode le label du certificat (obligatoire dans les annonces de vente en Wallonie),
+   on signale l'obligation annoncée, et on isole les travaux qui améliorent la performance énergétique. */
+export const LABELS_PEB = ["A++", "A+", "A", "B", "C", "D", "E", "F", "G"];
+export const COULEURS_PEB = { "A++": "#00843D", "A+": "#1E9B3E", A: "#4CB848", B: "#B5D334", C: "#FFDD00", D: "#FBB900", E: "#F07D00", F: "#E2401C", G: "#C8102E" };
+/* obligation annoncée (statut à confirmer) : achat à partir de 2028 d'un logement E, F ou G → label D dans les 5 ans */
+export const OBLIGATION_PEB = {
+  labels: ["E", "F", "G"], cible: "D", delaiAns: 5, aPartirDe: 2028,
+  statut: "Annoncée par la Région wallonne, statut juridique à confirmer (projet selon certaines sources). À vérifier auprès du SPW Énergie ou de votre notaire.",
+};
+export const concerneParObligation = label => OBLIGATION_PEB.labels.includes(label);
+/* travaux qui améliorent la performance énergétique */
+export const POSTES_ENERGIE = [
+  [/^i_to_\d$/, "Isolation de la toiture"], [/^i_fa_(2|3)$/, "Isolation des façades"],
+  [/^i_(ch|ca|bv)$/, "Châssis et vitrages"], [/^i_pe$/, "Porte d'entrée"], [/^i_(cha|pac)$/, "Production de chauffage"],
+];
+export function travauxEnergie(budget) {
+  const L = budget.postes.map(p => { const g = POSTES_ENERGIE.find(([re]) => re.test(p.k)); return g ? { k: p.k, n: p.n, groupe: g[1], total: p.total } : null; }).filter(Boolean);
+  const t = L.reduce((s, p) => [s[0] + p.total[0], s[1] + p.total[1], s[2] + p.total[2]], [0, 0, 0]);
+  return { postes: L, total: t };
+}
