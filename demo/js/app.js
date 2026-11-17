@@ -184,7 +184,7 @@ function ecranMaison(m) {
   const parPiece = id => b.lignes.filter(l => l.pieceId === id);
   const cartesPieces = (m.pieces || []).map(pc => {
     const L = parPiece(pc.id), t = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
-    return `<div class="carte-piece"><a href="#/maison/${m.id}/piece/${pc.id}">
+    return `<div class="carte-piece" style="${stylePiece(m, pc)}"><a href="#/maison/${m.id}/piece/${pc.id}">
         <span class="pc-ico">${iconePiece(pc)}</span><b>${esc(pc.nom)}</b>
         <small class="mu">${pc.sol ? `${String(pc.sol).replace(".", ",")} m²` : "surface à remplir"}</small>
         <small class="pc-res">${esc(resumePiece(pc)) || "Rien de prévu"}</small>
@@ -315,6 +315,11 @@ function ecranMaison(m) {
 }
 
 /* ---------- pièces : icône, résumé, écran d'une pièce ---------- */
+/* une couleur par pièce : fond doux + bord marqué (gardée quand on supprime une autre pièce) */
+const COULEURS = [["#F6E9D2", "#C9A35A"], ["#E1F0E7", "#3E8E66"], ["#E4EBF7", "#4C72B0"], ["#F7E1E7", "#C0587A"], ["#ECE4F5", "#7B5EA7"],
+  ["#DFF1F0", "#2F8F8A"], ["#FBE6D6", "#D9793A"], ["#EAEFD9", "#7D8F36"], ["#F3DEDA", "#A8503F"], ["#E2E8EC", "#5C7080"]];
+const couleurPiece = (m, pc) => COULEURS[(pc.c ?? Math.max(0, (m.pieces || []).indexOf(pc))) % COULEURS.length];
+const stylePiece = (m, pc) => { const [f, a] = couleurPiece(m, pc); return `--pc-fond:${f};--pc-acc:${a}`; };
 const iconePiece = pc => (TYPES_PIECE.find(t => t[0] === pc.type) || TYPES_PIECE[0])[2];
 function resumePiece(pc) {
   const x = [];
@@ -341,7 +346,7 @@ function ecranPiece(m, pc) {
   const rub = (ico, t, sec, corps) => `<section class="carte rubrique"><div class="rb-tete"><span class="rb-ico">${ico}</span><h2>${t}</h2>${fiab(sec)}${bud(sec)}</div>${corps}</section>`;
   const total = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
   return `${entete("maisons")}
-  <main class="etroit">
+  <main class="etroit piece-ecran" style="${stylePiece(m, pc)}">
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
     <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}</h1><p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
 
@@ -572,13 +577,17 @@ document.addEventListener("click", e => {
     const nom = (document.getElementById("np-nom").value || "").trim(), type = document.getElementById("np-type").value;
     const T = TYPES_PIECE.find(t => t[0] === type);
     m.pieces = m.pieces || [];
-    const pc = { id: nouvelId(), nom: nom || (type === "standard" ? `Pièce ${m.pieces.length + 1}` : T[1]), type, sol: null, murs: null, wi: [] };
+    const prises = new Set(m.pieces.map((x, i) => (x.c ?? i) % COULEURS.length));
+    const c = [...Array(COULEURS.length).keys()].find(i => !prises.has(i)) ?? m.pieces.length % COULEURS.length;
+    m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; }); // fige les couleurs existantes
+    const pc = { id: nouvelId(), nom: nom || (type === "standard" ? `Pièce ${m.pieces.length + 1}` : T[1]), type, sol: null, murs: null, wi: [], c };
     m.pieces.push(pc);
     appliquerChauffage(m);
     sauver();
     location.hash = `#/maison/${m.id}/piece/${pc.id}`;
   }
   if (a === "suppr-piece" && m && confirm("Supprimer cette pièce et ses travaux ?")) {
+    m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; }); // chaque pièce garde sa couleur
     m.pieces = m.pieces.filter(p => p.id !== el.dataset.id);
     appliquerChauffage(m);
     sauver(); afficher();

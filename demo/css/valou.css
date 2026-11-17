@@ -393,3 +393,14 @@ table.fixes td.c { width: 1%; white-space: nowrap; } table.fixes td.r { width: 1
 }
 
 small.bloc { display: block; margin: 2px 0 0; font-size: 11px; }
+
+/* couleur de chaque pièce */
+.carte-piece { background: var(--pc-fond, #fff); border: 0; border-left: 7px solid var(--pc-acc, var(--bord)); box-shadow: var(--ombre); }
+.carte-piece:hover { border-color: var(--pc-acc, var(--or)); box-shadow: 0 6px 18px rgba(94, 26, 42, .14); }
+.carte-piece .pc-bud { color: var(--pc-acc, var(--or-fonce)); filter: brightness(.8); }
+.carte-piece .x:hover { background: rgba(255, 255, 255, .7); }
+.piece-ecran .titre-piece { background: var(--pc-fond); border-left: 8px solid var(--pc-acc); border-radius: 18px; padding: 16px 18px; }
+.piece-ecran .carte { border-left: 6px solid var(--pc-acc); }
+.piece-ecran .rb-ico { width: 38px; height: 38px; border-radius: 50%; background: var(--pc-fond); display: grid; place-items: center; }
+.piece-ecran .cb input, .piece-ecran input[type="checkbox"] { accent-color: var(--pc-acc); }
+.piece-ecran .btn { background: var(--pc-acc); filter: brightness(.85); }
