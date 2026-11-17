@@ -574,7 +574,7 @@ function appliquerPrixNeg() {
 let envoiOuvert = null;
 /* fiche du négociant et annonce de l'agence (démonstration, gardées sur cet appareil) */
 const FICHE_EXEMPLE = { nom: "Matériaux Exemple", fictif: true, adresse: "Rue de l'Exemple 1, 5100 Jambes", tel: "081 00 00 00", email: "contact@exemple.be", site: "",
-  rayons: ["gros", "toiture", "isolation", "bois", "carrelage", "peinture", "outillage"],
+  rayons: ["gros", "toiture", "isolation", "bois", "carrelage", "peinture", "outillage", "echafaudage", "conteneur"],
   services: "Livraison sur chantier\nLocation de matériel\nDécoupe sur mesure\nConseil en isolation",
   horaires: { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" } };
 const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; } };

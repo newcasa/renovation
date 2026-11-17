@@ -228,7 +228,10 @@ export const RAYONS_NEG = [
   ["peinture", "🎨", "Peinture et plâtre", ["peintre"]],
   ["cuisine", "🍳", "Cuisines", ["menuisier"]],
   ["exterieur", "🌳", "Extérieurs et aménagements", ["general"]],
-  ["outillage", "🔧", "Outillage et location", []],
+  ["outillage", "🔧", "Outillage et petit matériel", []],
+  ["engins", "🚜", "Location d'engins (mini-pelle, chargeuse…)", ["general"]],
+  ["echafaudage", "🏗️", "Location d'échafaudages", ["couvreur", "general"]],
+  ["conteneur", "🗑️", "Conteneurs à déchets", ["general"]],
 ];
 
 /* ---------- fiche publique d'un négociant ---------- */

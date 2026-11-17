@@ -133,6 +133,9 @@ try {
     await page.locator(".alerte-mini").waitFor();
     await page.check('[data-negrayon="sanitaire"]');
     await page.check('[data-negrayon="gros"]');
+    await page.check('[data-negrayon="conteneur"]');
+    assert.match(await page.locator(".fiche-neg").innerText(), /Conteneurs à déchets/);
+    for (const r of ["engins", "echafaudage"]) assert.equal(await page.locator(`[data-negrayon="${r}"]`).count(), 1);
     assert.equal(await page.locator(".alerte-mini").count(), 0);
     assert.equal(await page.getByText("Envoyer mon offre").count(), 0);
     await page.screenshot({ path: `${OUT}/${nom}-0d-negociant.png`, fullPage: nom === "ordi" });
