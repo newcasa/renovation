@@ -525,3 +525,14 @@ label.verrou .saisie i { font-size: 14px; }
 .vis-suite { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .vis-suite .btn.sec { flex: 1; justify-content: center; font-size: 16px; }
 .vis-suite .btn { white-space: nowrap; }
+
+/* viseur intégré */
+.viseur { position: relative; border-radius: 16px; overflow: hidden; background: #111; aspect-ratio: 3 / 4; max-height: 62vh; width: 100%; }
+@media (min-width: 700px) { .viseur { aspect-ratio: 4 / 3; } }
+.viseur video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.flash.on { animation: flash .25s ease-out; }
+@keyframes flash { from { opacity: .8; } to { opacity: 0; } }
+.declencheur { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: 76px; height: 76px; border-radius: 50%; border: 5px solid #fff; background: rgba(255, 255, 255, .25); cursor: pointer; padding: 0; }
+.declencheur span { display: block; width: 100%; height: 100%; border-radius: 50%; background: #fff; transform: scale(.82); transition: transform .08s; }
+.declencheur:active span { transform: scale(.7); }

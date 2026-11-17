@@ -13,7 +13,7 @@ const PORT = 8765, URL = `http://localhost:${PORT}/demo/`;
 const serveur = spawn("python3", ["-m", "http.server", String(PORT)], { stdio: "ignore" });
 await new Promise(r => setTimeout(r, 800));
 
-const navigateur = await chromium.launch();
+const navigateur = await chromium.launch({ args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] }); // caméra simulée pour le viseur
 const erreurs = [];
 try {
   for (const [nom, vue] of [["ordi", { width: 1280, height: 900 }], ["tel", { width: 390, height: 844 }]]) {
@@ -36,18 +36,22 @@ try {
     /* mode visite : on tape le nom, on enchaîne les photos, « Pièce suivante », etc. */
     await page.fill("#visite-nom", "Cuisine");
     await page.getByText("Commencer la visite →").click();
-    await page.setInputFiles("[data-photo-input]", png);
+    /* viseur intégré : 2 photos de suite, sans valider */
+    await page.waitForFunction(() => { const v = document.getElementById("viseur"); return v && v.videoWidth > 0; });
+    await page.locator('[data-action="declencher"]').click();
     await page.locator(".vis-miniatures img").first().waitFor();
-    await page.setInputFiles("[data-photo-input]", { ...png, name: "photo2.png" });
+    await page.locator('[data-action="declencher"]').click();
     await page.locator(".vis-miniatures img").nth(1).waitFor();
     assert.match(await page.locator(".vis-nom").innerText(), /Cuisine\s*2 photos/);
     await page.getByText("Pièce suivante →").click();
     await page.fill("#visite-nom", "Mezzanine");
     await page.getByText("Commencer cette pièce →").click();
-    await page.setInputFiles("[data-photo-input]", png);
+    await page.waitForFunction(() => { const v = document.getElementById("viseur"); return v && v.videoWidth > 0; });
+    await page.locator('[data-action="declencher"]').click();
+    await page.locator(".vis-miniatures img").first().waitFor();
+    await page.getByText("Terminer la visite").click();
     await page.locator('.groupe-photos:has(h2:has-text("Mezzanine"))').waitFor();
     assert.match(await page.locator('.groupe-photos:has(h2:has-text("Cuisine"))').innerText(), /2 photos[\s\S]*Ouvrir la pièce/);
-    await page.getByText("Terminer la visite").click();
     await page.getByText("Créer la pièce « Mezzanine »").click();
     await page.locator('.groupe-photos:has(h2:has-text("Mezzanine")) >> text=Ouvrir la pièce').waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-0b-photos.png`, fullPage: nom === "ordi" });
