@@ -273,7 +273,7 @@ export function mensualite(montant, tauxAnnuel, ans) {
 /* Premier budget en 30 secondes : quelques cases à cocher.
    Les QUANTITÉS sont estimées à partir de la surface (hypothèses affichées), les PRIX viennent toujours des références. */
 export const RAPIDE = [
-  { id: "peinture", t: "Peinture des murs", k: "mur_peinture", q: m => Math.round(m.surface * 2.5), hyp: "surface des murs ≈ 2,5 × surface habitable" },
+  { id: "peinture", t: "Peinture des murs", k: "mur_peinture", q: m => Math.round(m.surface * RATIO_MURS), hyp: "surface des murs ≈ 2,7 × surface habitable" },
   { id: "sols", t: "Sols (carrelage)", k: "sol_carrelage", q: m => Math.round(m.surface), hyp: "toute la surface habitable" },
   { id: "elec", t: "Électricité complète", k: "i_re", q: m => Math.round(m.surface), hyp: "toute la surface habitable" },
   { id: "cuisine", t: "Cuisine équipée", k: "meu_cuisine", q: () => 1 },
@@ -327,24 +327,43 @@ export function prixLocaux(tarifs, rayons = RAYONS, min = MIN_ARTISANS) {
 }
 
 /* ---------- Pièces : murs et plafond calculés à partir du sol (même règle que l'appli Valou) ----------
-   murs = sol × 2,5 (modifiable pièce par pièce), plafond = sol. */
-export const RATIO_MURS = 2.5;
-export const lienPoste = k => (/^sol_/.test(k) || k === "i_chs" ? "sol" : /^mur_/.test(k) ? "murs" : k === "pl" || /^pl_/.test(k) ? "plafond" : null);
+   murs = sol × 2,7 (modifiable pièce par pièce), plafond = sol. */
+export const RATIO_MURS = 2.7;
+/* escalier : on encode le nombre de marches, 16 marches = 1 escalier */
+export const MARCHES_PAR_ESCALIER = 16;
 export const mursPiece = pc => (pc.murs != null && pc.murs !== "" ? +pc.murs : Math.round((+pc.sol || 0) * RATIO_MURS * 10) / 10);
-export function surfacePiece(pc, lien) {
-  if (!pc) return null;
-  if (lien === "sol" || lien === "plafond") return +pc.sol || 0;
-  if (lien === "murs") return mursPiece(pc);
-  return null;
+
+/* Types de pièces et postes imposés par l'appli (comme dans l'appli Valou) :
+   chaque pièce a ses rubriques fixes ; on ne choisit pas les postes, on remplit leurs valeurs. */
+export const TYPES_PIECE = [["standard", "Pièce standard", "🏠"], ["cuisine", "Cuisine", "🍳"], ["sdb", "Salle de bain", "🛁"], ["wc", "WC séparé", "🚽"], ["garage", "Garage", "🚗"]];
+export const SOLS = [["carrelage", "Carrelage", "sol_carrelage"], ["parquet", "Parquet", "sol_parquet"]];
+export const MURS = [["mpf", "Plafonnage", "mur_plafonnage"], ["mpe", "Peinture", "mur_peinture"], ["mca", "Carrelage mural", "mur_carrelage"]];
+export const PLAFONDS = [["peinture", "Peinture", "pl_peinture"], ["plafonnage", "Plafonnage", "pl_plafonnage"], ["plaques", "Plaques de plâtre", "pl"]];
+export const WC = [["sp", "WC suspendu", "wc_sp"], ["cl", "WC classique (sur pied)", "wc_cl"], ["ev", "Évier / lave-mains", "wc_ev"], ["mb", "Meuble sous lavabo", "wc_mb"], ["rb", "Robinetterie", "wc_rb"]];
+/* postes gérés dans les pièces (ils n'apparaissent pas dans la liste « toute la maison ») */
+export const POSTES_PIECES = /^(sol_.+|mur_.+|pl|pl_.+|meu_.+|wc_.+|i_ch|i_rad|i_chs|i_pg|i_cha|i_pac)$/;
+
+/* lignes de travaux d'une pièce, à partir de ses valeurs */
+export function travauxPiece(pc) {
+  const out = [], sol = +pc.sol || 0, murs = mursPiece(pc);
+  const L = (sec, k, q, soiMeme) => { if (q > 0) out.push({ pieceId: pc.id, piece: pc.nom, sec, k, q, soiMeme: !!soiMeme }); };
+  if (pc.sOn) L("sol", (SOLS.find(x => x[0] === pc.sT) || SOLS[0])[2], sol, pc.sMe);
+  MURS.forEach(([f, , k]) => { if (pc[f]) L("murs", k, f === "mca" && +pc.mcaM2 > 0 ? +pc.mcaM2 : murs, pc.mMe); });
+  if (pc.pOn) L("plafond", (PLAFONDS.find(x => x[0] === pc.pT) || PLAFONDS[0])[2], sol, pc.pMe);
+  if (pc.chOn) L("chassis", "i_ch", +pc.chN || 0);
+  if (pc.hc === "ra" && pc.hr) L("chauffage", "i_rad", +pc.hn || 0);
+  if (pc.hc === "sol" && pc.hr) L("chauffage", "i_chs", sol);
+  if (pc.type === "cuisine" && pc.meu) L("equipe", "meu_cuisine", 1);
+  if (pc.type === "sdb" && pc.meu) L("equipe", "meu_sdb", 1);
+  if (pc.type === "wc") WC.forEach(([f, , k]) => { if ((pc.wi || []).includes(f)) L("wc", k, 1); });
+  if (pc.type === "garage") L("garage", "i_pg", +pc.pg || 0);
+  return out;
 }
-/* quantités réelles : une ligne liée à une pièce prend la surface de la pièce */
+
+/* toutes les lignes : celles des pièces + celles de « toute la maison » */
 export function travauxEffectifs(maison) {
-  const P = Object.fromEntries((maison.pieces || []).map(p => [p.id, p]));
-  return (maison.travaux || []).map(l => {
-    const pc = l.pieceId && P[l.pieceId];
-    if (pc && l.lien) return { ...l, piece: pc.nom, q: surfacePiece(pc, l.lien) };
-    return pc ? { ...l, piece: pc.nom } : l;
-  });
+  const esc = l => (l.marches != null ? { ...l, q: +l.marches / MARCHES_PAR_ESCALIER } : l);
+  return [...(maison.pieces || []).flatMap(travauxPiece), ...(maison.travaux || []).filter(l => !l.pieceId).map(esc)];
 }
 
 /* ---------- Chauffage ---------- */

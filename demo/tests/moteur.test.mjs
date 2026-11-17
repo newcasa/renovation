@@ -117,7 +117,7 @@ test("mensualité d'un crédit", () => {
 
 test("premier budget rapide : quantités tirées de la surface", () => {
   const t = travauxRapides({ surface: 100 }, { peinture: { on: true }, toiture: { on: true, n: 80 }, chassis: { on: true, n: "" } });
-  assert.deepEqual(t.map(x => [x.k, x.q]), [["mur_peinture", 250], ["i_cv_1", 80], ["i_st", 80], ["i_dp", 80]]);
+  assert.deepEqual(t.map(x => [x.k, x.q]), [["mur_peinture", 270], ["i_cv_1", 80], ["i_st", 80], ["i_dp", 80]]);
 });
 
 test("tous les postes de la grille se calculent sans erreur", () => {
@@ -168,13 +168,16 @@ test("quartiles", () => {
 
 import { travauxEffectifs, mursPiece, travauxChauffage } from "../js/moteur.js";
 
-test("pièces : murs = sol × 2,5, plafond = sol, murs corrigeables", () => {
-  assert.equal(mursPiece({ sol: 12 }), 30);
-  assert.equal(mursPiece({ sol: 12, murs: 26 }), 26);
-  const m = { pieces: [{ id: "a", nom: "Chambre", sol: 12 }], travaux: [{ pieceId: "a", k: "mur_peinture", lien: "murs" }, { pieceId: "a", k: "pl_peinture", lien: "plafond" }, { pieceId: "a", k: "sol_parquet", lien: "sol" }, { pieceId: "a", k: "mur_carrelage", q: 8 }] };
-  assert.deepEqual(travauxEffectifs(m).map(l => l.q), [30, 12, 12, 8]);
-  m.pieces[0].sol = 20;
-  assert.deepEqual(travauxEffectifs(m).map(l => l.q), [50, 20, 20, 8]); // la pièce change : les quantités suivent
+test("pièces : postes imposés, murs = sol × 2,7, plafond = sol", () => {
+  const pc = { id: "a", nom: "Chambre", type: "standard", sol: 12, sOn: true, sT: "parquet", mpe: true, mMe: true, pOn: true, pT: "peinture", chOn: true, chN: 2, hc: "ra", hr: true, hn: 1 };
+  assert.equal(mursPiece(pc), 32.4);
+  const t = travauxEffectifs({ pieces: [pc], travaux: [{ piece: "Toute la maison", k: "i_re", q: 100 }] });
+  assert.deepEqual(t.map(l => [l.k, l.q, !!l.soiMeme]), [["sol_parquet", 12, false], ["mur_peinture", 32.4, true], ["pl_peinture", 12, false], ["i_ch", 2, false], ["i_rad", 1, false], ["i_re", 100, false]]);
+  assert.equal(mursPiece({ ...pc, murs: 26 }), 26); // surface des murs mesurée
+  const sdb = travauxEffectifs({ pieces: [{ id: "b", nom: "SDB", type: "sdb", sol: 6, meu: true, mca: true, mcaM2: 20, hc: "sol", hr: true }] });
+  assert.deepEqual(sdb.map(l => [l.k, l.q]), [["mur_carrelage", 20], ["i_chs", 6], ["meu_sdb", 1]]);
+  const wc = travauxEffectifs({ pieces: [{ id: "c", nom: "WC", type: "wc", sol: 2, wi: ["sp", "ev"] }] });
+  assert.deepEqual(wc.map(l => l.k), ["wc_sp", "wc_ev"]);
 });
 
 test("postes plafond ajoutés : plafonnage (M13) et peinture (signalée en estimation)", () => {
@@ -194,4 +197,9 @@ test("chauffage : remplacement, déjà en place, radiateurs nouveaux si rien n'e
   const c = travauxChauffage({ actuel: "aucun", souhaite: "gaz", emetteurs: "sol" }, 90);
   assert.deepEqual(c.lignes.map(l => [l.k, l.q]), [["i_cha", 1], ["i_chs", 90]]);
   assert.equal(c.rad, "nouv");
+});
+
+test("escalier : 16 marches = 1 escalier", () => {
+  const t = travauxEffectifs({ travaux: [{ piece: "Toute la maison", k: "i_es_1", marches: 16 }, { piece: "Toute la maison", k: "i_es_0", marches: 8 }] });
+  assert.deepEqual(t.map(l => l.q), [1, 0.5]);
 });
