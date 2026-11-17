@@ -351,3 +351,43 @@ h3 { font: 900 19px Outfit, sans-serif; margin: 6px 0 2px; }
   .surfaces tbody tr { grid-template-columns: 1fr 1fr 1fr; }
   .surfaces td[data-l="Pièce"] { grid-column: 1 / -1; padding-right: 40px; }
 }
+
+/* pièces (comme l'appli Valou) : cartes, ajout, écran d'une pièce */
+.grille-pieces { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); margin-bottom: 14px; }
+.carte-piece { position: relative; background: #fff; border: 1.5px solid var(--bord); border-radius: 16px; transition: border-color .15s, transform .15s; }
+.carte-piece:hover { border-color: var(--or); transform: translateY(-2px); }
+.carte-piece a { display: grid; gap: 2px; padding: 14px 14px 12px; text-decoration: none; }
+.carte-piece b { font-size: 16px; padding-right: 26px; }
+.carte-piece .x { position: absolute; top: 6px; right: 6px; }
+.pc-ico { font-size: 26px; line-height: 1; margin-bottom: 4px; }
+.pc-ico.grand { font-size: 40px; }
+.pc-res { color: var(--bordeaux); font-weight: 600; min-height: 18px; }
+.pc-bud { font: 900 18px Outfit, sans-serif; margin-top: 6px; color: var(--or-fonce); }
+.ajout-piece { display: flex; flex-wrap: wrap; gap: 8px; }
+.ajout-piece input { flex: 2 1 220px; width: auto; } .ajout-piece select { flex: 1 1 160px; width: auto; }
+.titre-piece { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+.titre-piece h1 { margin: 0; } .titre-piece p { margin: 2px 0 0; }
+.rubrique { display: grid; gap: 10px; }
+.rubrique .champs { margin: 0; }
+.rb-tete { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rb-tete h2 { margin: 0; font-size: 19px; }
+.rb-ico { font-size: 22px; }
+.rb-bud { margin-left: auto; font: 900 18px Outfit, sans-serif; color: var(--bordeaux); }
+.ligne-q { display: grid; gap: 2px; font-size: 13.5px; font-weight: 700; align-content: end; }
+.ligne-q b { font-size: 17px; }
+/* toute la maison : liste fixe des postes */
+.grp.fixe > summary { padding: 10px 0; }
+table.fixes { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 8px; }
+table.fixes td { padding: 5px 4px; border-top: 1px solid var(--bord); vertical-align: middle; }
+table.fixes td.q { white-space: nowrap; width: 1%; } table.fixes td.q input { width: 90px; padding: 7px 9px; font-size: 14px; } table.fixes td.q small { margin-left: 4px; }
+table.fixes td.c { width: 1%; white-space: nowrap; } table.fixes td.r { width: 1%; white-space: nowrap; min-width: 80px; }
+.mm { display: inline-flex; gap: 5px; align-items: center; font-size: 12.5px; font-weight: 600; color: var(--mu); }
+.mm input { width: 16px; height: 16px; accent-color: var(--bordeaux); }
+.rapides { margin-bottom: 10px; padding: 12px; border-radius: 12px; background: #fff; border: 1px dashed var(--or); }
+.rapides h3 { font-size: 16px; margin: 0; }
+@media (max-width: 640px) {
+  table.fixes tr { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 8px 0; border-top: 1px solid var(--bord); }
+  table.fixes td { border: 0; padding: 0; width: auto !important; }
+  table.fixes td:first-child { grid-column: 1 / -1; font-weight: 600; }
+  table.fixes td.r { text-align: right; }
+}

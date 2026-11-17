@@ -136,13 +136,27 @@ try {
     const tout = await page.locator("main").innerText();
     assert.match(tout, /Pompe à chaleur/);
     assert.match(tout, /cuve à mazout/);
-    /* une pièce : sol 12 m² → murs 30 m² et plafond 12 m² calculés */
-    await page.getByText("Ajouter une pièce").click();
-    await page.locator('.surfaces [data-pc$=":sol"]').first().fill("12");
-    await page.locator('.surfaces [data-pc$=":sol"]').first().dispatchEvent("change");
-    assert.equal(await page.locator('.surfaces [data-pc$=":murs"]').first().getAttribute("placeholder"), "30");
-    await page.getByText("＋ Ajouter un travail").click();
-    assert.equal(await page.locator('.table:not(.surfaces) tbody tr:last-child input[data-l$=":q"]').inputValue(), "30");
+    /* une pièce : on l'ajoute, on l'ouvre, on remplit les postes imposés */
+    await page.fill("#np-nom", "Chambre test");
+    await page.getByText("＋ Ajouter une pièce").click();
+    await page.locator(".titre-piece").waitFor();
+    await page.fill('[data-pc="sol"]', "12");
+    await page.locator('[data-pc="sol"]').dispatchEvent("change");
+    assert.equal(await page.getAttribute('[data-pc="murs"]', "placeholder"), "30");
+    await page.check('[data-pc="mpe"]');
+    await page.check('[data-pc="pOn"]');
+    await page.check('[data-pc="chOn"]');
+    await page.fill('[data-pc="chN"]', "2");
+    await page.locator('[data-pc="chN"]').dispatchEvent("change");
+    assert.match(await page.locator(".titre-piece").innerText(), /Budget de la pièce : [1-9]/);
+    await page.screenshot({ path: `${OUT}/${nom}-3b-piece.png`, fullPage: nom === "ordi" });
+    await page.getByText("✓ Pièce terminée").click();
+    await page.locator(".carte-piece").first().waitFor();
+    assert.match(await page.locator(".carte-piece").first().innerText(), /Murs · Plafond · 2 châssis/);
+    /* toute la maison : liste fixe, on remplit une quantité */
+    await page.locator('details:has([data-mq="i_pi"]) > summary').click();
+    await page.fill('[data-mq="i_pi"]', "4");
+    await page.locator('[data-mq="i_pi"]').dispatchEvent("change");
     await page.locator('[data-l$=":soiMeme"]').first().check();
     await page.locator(".vrai-cout .gros").waitFor();
     assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), apres);

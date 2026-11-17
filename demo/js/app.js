@@ -1,6 +1,6 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
 import { chargerReferences } from "./donnees.js";
-import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, lienPoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS } from "./moteur.js";
+import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
@@ -60,15 +60,15 @@ let brouillon = null;
 const brouillonVide = () => ({ nom: "", commune: "", prix: "", annee: "", surface: "", etat: "rafraichir", uniqueHabitation: true, choix: {}, chauffage: { actuel: "gaz", souhaite: "garder", emetteurs: "garder" } });
 
 /* bloc chauffage, utilisé dans le formulaire et sur la fiche maison */
-function blocChauffage(ch, attr) {
+function blocChauffage(ch, attr, sansEmetteurs) {
   const c = { actuel: "gaz", souhaite: "garder", emetteurs: "garder", ...(ch || {}) };
   const sel = (f, t, L) => `<label>${t}<select ${attr}="${f}">${L.map(([v, x]) => `<option value="${v}" ${c[f] === v ? "selected" : ""}>${esc(x)}</option>`).join("")}</select></label>`;
   return `<div class="champs chauffage">
     ${sel("actuel", "Chauffage existant", CHAUFFAGE_ACTUEL)}
     ${sel("souhaite", "Chauffage souhaité", CHAUFFAGE_SOUHAITE)}
-    ${sel("emetteurs", "Radiateurs ou chauffage au sol", EMETTEURS)}
-    ${c.emetteurs === "rad" ? `<label>Nombre de radiateurs<input type="number" min="0" inputmode="numeric" ${attr}="nbRad" value="${esc(c.nbRad ?? "")}"></label>` : ""}
-    ${c.emetteurs === "sol" ? `<label>Surface chauffée au sol (m²)<input type="number" min="0" inputmode="numeric" ${attr}="solM2" value="${esc(c.solM2 ?? "")}" placeholder="surface habitable"></label>` : ""}
+    ${sansEmetteurs ? "" : sel("emetteurs", "Radiateurs ou chauffage au sol", EMETTEURS)}
+    ${sansEmetteurs ? "" : c.emetteurs === "rad" ? `<label>Nombre de radiateurs<input type="number" min="0" inputmode="numeric" ${attr}="nbRad" value="${esc(c.nbRad ?? "")}"></label>` : ""}
+    ${sansEmetteurs ? "" : c.emetteurs === "sol" ? `<label>Surface chauffée au sol (m²)<input type="number" min="0" inputmode="numeric" ${attr}="solM2" value="${esc(c.solM2 ?? "")}" placeholder="surface habitable"></label>` : ""}
   </div>`;
 }
 
@@ -130,7 +130,8 @@ function creerMaison(b, exemple = false) {
 
 /* (re)génère les lignes du chauffage à partir des choix */
 function appliquerChauffage(m) {
-  const r = travauxChauffage(m.chauffage, m.surface);
+  /* avec des pièces, les radiateurs et le chauffage au sol se remplissent pièce par pièce */
+  const r = travauxChauffage((m.pieces || []).length ? { ...m.chauffage, emetteurs: "garder" } : m.chauffage, m.surface);
   m.travaux = (m.travaux || []).filter(l => l.src !== "chauffage").concat(r.lignes.map(l => ({ ...l, id: nouvelId() })));
   m.rep = { ...(m.rep || {}), rad: r.rad };
 }
@@ -141,7 +142,7 @@ function chargerDemo() {
   if (!DEMO || !DEMO.maisons) return null;
   maisons = maisons.filter(m => !m.demo);
   const L = DEMO.maisons.map(d => {
-    const m = { ...d, id: nouvelId(), demo: true, exemple: true, rep: { ...(d.rep || {}) }, pieces: (d.pieces || []).map(p => ({ ...p })), travaux: d.travaux.map(t => ({ ...t, id: nouvelId() })) };
+    const m = { ...d, id: nouvelId(), demo: true, exemple: true, rep: { ...(d.rep || {}) }, pieces: (d.pieces || []).map(p => ({ ...p, wi: [...(p.wi || [])] })), travaux: d.travaux.map(t => ({ ...t, id: nouvelId() })) };
     if (m.chauffage) appliquerChauffage(m);
     return m;
   });
@@ -179,34 +180,39 @@ function ecranMaison(m) {
     return `<label>${esc(H.t)}<select data-h="${h}">${H.o.map(([v, t]) => `<option value="${v}" ${b.rep[h] === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></label>`;
   }).join("");
 
-  /* travaux pièce par pièce */
-  const options = sel =>
-    [...new Set(R.liste.map(groupe))].sort((a, z) => GROUPES.indexOf(a) - GROUPES.indexOf(z)).map(g =>
-      `<optgroup label="${esc(g)}">${R.liste.filter(p => groupe(p) === g).map(p => `<option value="${p.k}" ${p.k === sel ? "selected" : ""}>${esc(p.n)}</option>`).join("")}</optgroup>`).join("");
-  /* une seule liste de travaux, comme avant ; la colonne « Pièce » choisit une pièce (surfaces calculées) ou un groupe libre */
-  const libres = [...new Set(["Toute la maison", ...b.lignes.filter(l => !l.pieceId).map(l => l.piece || "Toute la maison")])];
-  const choixPiece = l => `<select data-l="${l.id}:lieu" aria-label="Pièce">
-      ${(m.pieces || []).length ? `<optgroup label="Pièces">${m.pieces.map(pc => `<option value="id:${pc.id}" ${l.pieceId === pc.id ? "selected" : ""}>${esc(pc.nom)}</option>`).join("")}</optgroup>` : ""}
-      <optgroup label="Autres">${libres.map(n => `<option value="nom:${esc(n)}" ${!l.pieceId && (l.piece || "Toute la maison") === n ? "selected" : ""}>${esc(n)}</option>`).join("")}</optgroup>
-    </select>`;
-  const lignes = b.lignes.map(l => {
-    const p = R.postes[l.k];
-    return `<tr>
-      <td data-l="Pièce">${choixPiece(l)}</td>
-      <td data-l="Travail"><select data-l="${l.id}:k" aria-label="Travail">${options(l.k)}</select></td>
-      <td data-l="Quantité" class="q"><input type="number" min="0" step="any" inputmode="decimal" data-l="${l.id}:q" value="${esc(l.q ?? "")}" aria-label="Quantité"><small>${esc(p ? unitePoste(p.u, l.k) : "")}</small>${l.lien && l.pieceId ? `<small class="mu auto" title="Calculé à partir de la surface de la pièce">${l.lien}</small>` : l.auto ? `<small class="mu auto" title="${esc(l.auto)}">auto</small>` : ""}</td>
-      <td data-l="Moi-même" class="c"><input type="checkbox" data-l="${l.id}:soiMeme" ${l.soiMeme ? "checked" : ""} aria-label="Je le fais moi-même"></td>
-      <td data-l="Budget" class="r">${l.fiab ? euros(l.total[1], 10) : "–"}</td>
-      <td class="c"><button class="x" data-action="suppr-ligne" data-id="${l.id}" aria-label="Supprimer">✕</button></td>
-    </tr>`;
+  /* les pièces (cartes) */
+  const parPiece = id => b.lignes.filter(l => l.pieceId === id);
+  const cartesPieces = (m.pieces || []).map(pc => {
+    const L = parPiece(pc.id), t = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
+    return `<div class="carte-piece"><a href="#/maison/${m.id}/piece/${pc.id}">
+        <span class="pc-ico">${iconePiece(pc)}</span><b>${esc(pc.nom)}</b>
+        <small class="mu">${pc.sol ? `${String(pc.sol).replace(".", ",")} m²` : "surface à remplir"}</small>
+        <small class="pc-res">${esc(resumePiece(pc)) || "Rien de prévu"}</small>
+        <span class="pc-bud">${t ? euros(t, 10) : "–"}</span></a>
+      <button class="x" data-action="suppr-piece" data-id="${pc.id}" aria-label="Supprimer ${esc(pc.nom)}">✕</button></div>`;
   }).join("");
-  const surfaces = (m.pieces || []).map(pc => `<tr>
-      <td data-l="Pièce"><input data-pc="${pc.id}:nom" value="${esc(pc.nom)}" aria-label="Nom de la pièce"></td>
-      <td data-l="Sol (m²)" class="q"><input type="number" min="0" step="any" inputmode="decimal" data-pc="${pc.id}:sol" value="${esc(pc.sol ?? "")}" aria-label="Sol"></td>
-      <td data-l="Murs (m²)" class="q"><input type="number" min="0" step="any" inputmode="decimal" data-pc="${pc.id}:murs" value="${esc(pc.murs ?? "")}" placeholder="${String(mursPiece(pc)).replace(".", ",")}" aria-label="Murs"><small class="mu auto" title="${pc.murs != null && pc.murs !== "" ? "Surface encodée" : "Sol × 2,5"}">${pc.murs != null && pc.murs !== "" ? "encodé" : "auto"}</small></td>
-      <td data-l="Plafond (m²)" class="r">${String(+pc.sol || 0).replace(".", ",")}</td>
-      <td class="c"><button class="x" data-action="suppr-piece" data-id="${pc.id}" aria-label="Supprimer la pièce">✕</button></td>
-    </tr>`).join("");
+
+  /* toute la maison : liste fixe des postes (on remplit seulement les quantités) */
+  const horsPieces = b.lignes.filter(l => !l.pieceId && l.src !== "chauffage");
+  const ligneDe = k => horsPieces.find(l => l.k === k);
+  const fixes = R.liste.filter(p => !POSTES_PIECES.test(p.k));
+  const grpFixes = [...new Set(fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y)).map(g => {
+    const P = fixes.filter(p => groupe(p) === g), rempli = P.filter(p => ligneDe(p.k)), t = rempli.reduce((s, p) => s + (ligneDe(p.k).fiab ? ligneDe(p.k).total[1] : 0), 0);
+    return `<details class="grp fixe" ${rempli.length ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
+      <table class="fixes">${P.map(p => { const l = ligneDe(p.k); return `<tr>
+        <td>${esc(p.n)}</td>
+        <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small></td>
+        <td class="c"><label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label></td>
+        <td class="r">${l && l.fiab ? euros(l.total[1], 10) : ""}</td></tr>`; }).join("")}</table></details>`;
+  }).join("");
+  /* estimation rapide sans pièces (cases cochées à l'ajout de la maison) */
+  const rapides = horsPieces.filter(l => POSTES_PIECES.test(l.k));
+  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide, pour toute la maison</h3>
+      <p class="mu petit-t">Calculée à l'ajout de la maison. Pour plus de précision, ajoutez les pièces et supprimez ces lignes.</p>
+      <table class="fixes">${rapides.map(l => { const p = R.postes[l.k]; return `<tr><td>${esc(p ? p.n : l.k)}${l.auto ? ` <small class="mu">(${esc(l.auto)})</small>` : ""}</td>
+        <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-l="${l.id}:q" value="${esc(l.q ?? "")}" aria-label="Quantité"><small>${esc(p ? unitePoste(p.u, l.k) : "")}</small></td>
+        <td class="c"><label class="mm"><input type="checkbox" data-l="${l.id}:soiMeme" ${l.soiMeme ? "checked" : ""}> moi-même</label></td>
+        <td class="r">${l.fiab ? euros(l.total[1], 10) : ""} <button class="x" data-action="suppr-ligne" data-id="${l.id}" aria-label="Supprimer">✕</button></td></tr>`; }).join("")}</table></div>` : "";
 
   /* chauffage */
   const chf = travauxChauffage(m.chauffage, m.surface);
@@ -274,31 +280,105 @@ function ecranMaison(m) {
     </div>
 
     <section class="carte">
-      <h2>Le chauffage</h2>
-      ${blocChauffage(m.chauffage, "data-mchf")}
-      ${chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
-      <p class="mu petit-t">Les lignes du chauffage sont ajoutées automatiquement dans « Chauffage » ci-dessous.${chf.rad === "nouv" ? " Radiateurs : nouveau raccordement (pas de chauffage existant)." : ""}</p>
+      <h2>Les pièces</h2>
+      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
+      <div class="grille-pieces">${cartesPieces}</div>
+      <div class="ajout-piece">
+        <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
+        <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
+        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
+      </div>
     </section>
 
     <section class="carte">
-      <h2>Les travaux, pièce par pièce</h2>
-      <p class="mu">Encodez la surface au sol de chaque pièce : les murs (sol × ${String(RATIO_MURS).replace(".", ",")}, corrigeables) et le plafond (= sol) sont calculés automatiquement, et les travaux de sol, de murs et de plafond de la pièce suivent. Cochez « Moi-même » si vous faites le travail (pas de main-d'œuvre, matériel au prix magasin).</p>
-      ${surfaces ? `<div class="table surfaces"><table>
-        <thead><tr><th>Pièce</th><th>Sol (m²)</th><th>Murs (m²)</th><th class="r">Plafond (m²)</th><th></th></tr></thead>
-        <tbody>${surfaces}</tbody>
-      </table></div>` : ""}
-      <button class="btn lien petit" data-action="ajout-piece">＋ Ajouter une pièce</button>
-      <div class="table"><table>
-        <thead><tr><th>Pièce</th><th>Travail</th><th>Quantité</th><th>Moi-même</th><th class="r">Budget moyen</th><th></th></tr></thead>
-        <tbody>${lignes}</tbody>
-      </table></div>
-      <button class="btn sec" data-action="ajout-ligne">＋ Ajouter un travail</button>
+      <h2>Le chauffage</h2>
+      ${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
+      ${chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
+      ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
+      ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
+    </section>
+
+    <section class="carte">
+      <h2>Travaux pour toute la maison</h2>
+      <p class="mu">Remplissez seulement les quantités des postes à prévoir. Un poste vide n'est pas compté.</p>
+      ${rapidesHTML}
+      ${grpFixes}
     </section>
 
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
     </div>
+  </main>`;
+}
+
+/* ---------- pièces : icône, résumé, écran d'une pièce ---------- */
+const iconePiece = pc => (TYPES_PIECE.find(t => t[0] === pc.type) || TYPES_PIECE[0])[2];
+function resumePiece(pc) {
+  const x = [];
+  if (pc.sOn) x.push("Sol");
+  if (MURS.some(([f]) => pc[f])) x.push("Murs");
+  if (pc.pOn) x.push("Plafond");
+  if (pc.chOn && +pc.chN) x.push(`${pc.chN} châssis`);
+  if (pc.hc === "ra" && pc.hr && +pc.hn) x.push(`${pc.hn} radiateur${pc.hn > 1 ? "s" : ""}`);
+  if (pc.hc === "sol" && pc.hr) x.push("Chauffage au sol");
+  if (pc.meu) x.push(pc.type === "sdb" ? "Salle de bain équipée" : "Cuisine équipée");
+  if (pc.type === "wc" && (pc.wi || []).length) x.push(`${pc.wi.length} équipement${pc.wi.length > 1 ? "s" : ""} WC`);
+  if (pc.type === "garage" && +pc.pg) x.push(`${pc.pg} porte${pc.pg > 1 ? "s" : ""} de garage`);
+  return x.join(" · ");
+}
+
+function ecranPiece(m, pc) {
+  const b = calculerBudget(R, m), L = b.lignes.filter(l => l.pieceId === pc.id);
+  const bud = sec => { const t = L.filter(l => l.sec === sec).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0); return t ? `<span class="rb-bud">${euros(t, 10)}</span>` : ""; };
+  const fiab = sec => { const l = L.find(x => x.sec === sec); return l ? badge(l.fiab) : ""; };
+  const cb = (f, t) => `<label class="cb"><input type="checkbox" data-pc="${f}" ${pc[f] ? "checked" : ""}> ${t}</label>`;
+  const sel = (f, L2) => `<select data-pc="${f}">${L2.map(([v, t]) => `<option value="${v}" ${(pc[f] || L2[0][0]) === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
+  const num = (f, t, ph = "") => `<label>${t}<input type="number" min="0" step="any" inputmode="decimal" data-pc="${f}" value="${esc(pc[f] ?? "")}" placeholder="${esc(ph)}"></label>`;
+  const sol = +pc.sol || 0, murs = mursPiece(pc);
+  const rub = (ico, t, sec, corps) => `<section class="carte rubrique"><div class="rb-tete"><span class="rb-ico">${ico}</span><h2>${t}</h2>${fiab(sec)}${bud(sec)}</div>${corps}</section>`;
+  const total = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
+  return `${entete("maisons")}
+  <main class="etroit">
+    <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
+    <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}</h1><p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
+
+    <section class="carte"><div class="champs">
+      <label>Nom de la pièce<input data-pc="nom" value="${esc(pc.nom)}"></label>
+      <label>Type de pièce${sel("type", TYPES_PIECE.map(([v, t]) => [v, t]))}</label>
+      ${num("sol", "Surface au sol (m²)", "ex. 15")}
+    </div></section>
+
+    ${rub("🟫", "Sol", "sol", `${cb("sOn", "Sol à refaire")}${pc.sOn ? `<div class="champs">
+      <label>Revêtement${sel("sT", SOLS)}</label>
+      <div class="ligne-q"><span>Surface</span><b>${String(sol).replace(".", ",")} m²</b><small class="mu">= sol de la pièce</small></div>
+    </div>${cb("sMe", "Je le fais moi-même")}` : ""}`)}
+
+    ${rub("🧱", "Murs", "murs", `<div class="champs">
+      <label>Surface des murs (m²)<input type="number" min="0" step="any" inputmode="decimal" data-pc="murs" value="${esc(pc.murs ?? "")}" placeholder="${String(murs).replace(".", ",")}"><small class="mu">${pc.murs != null && pc.murs !== "" ? "surface mesurée" : `calculée : sol × ${String(RATIO_MURS).replace(".", ",")}`}</small></label>
+    </div>
+    ${MURS.map(([f, t]) => cb(f, t)).join("")}
+    ${pc.mca ? `<div class="champs">${num("mcaM2", "Surface de carrelage mural (m²)", String(murs).replace(".", ","))}</div>` : ""}
+    ${MURS.some(([f]) => pc[f]) ? cb("mMe", "Je le fais moi-même") : ""}`)}
+
+    ${rub("☁️", "Plafond", "plafond", `${cb("pOn", "Plafond à refaire")}${pc.pOn ? `<div class="champs">
+      <label>Travail${sel("pT", PLAFONDS)}</label>
+      <div class="ligne-q"><span>Surface</span><b>${String(sol).replace(".", ",")} m²</b><small class="mu">= sol de la pièce</small></div>
+    </div>${cb("pMe", "Je le fais moi-même")}` : ""}`)}
+
+    ${pc.type !== "wc" && pc.type !== "garage" ? rub("🪟", "Châssis", "chassis", `${cb("chOn", "Châssis à remplacer")}${pc.chOn ? `<div class="champs">${num("chN", "Nombre de châssis", "ex. 2")}</div>` : ""}`) : ""}
+
+    ${pc.type !== "garage" ? rub("🔥", "Chauffage", "chauffage", `<div class="champs"><label>Dans cette pièce${sel("hc", [["", "Aucun"], ["ra", "Radiateurs"], ["sol", "Chauffage au sol"]])}</label></div>
+      ${pc.hc ? cb("hr", pc.hc === "ra" ? "Radiateurs à remplacer ou à poser" : "Chauffage au sol à poser") : ""}
+      ${pc.hc === "ra" && pc.hr ? `<div class="champs">${num("hn", "Nombre de radiateurs", "ex. 1")}</div>` : ""}
+      ${pc.hc === "sol" && pc.hr ? `<div class="ligne-q"><span>Surface chauffée</span><b>${String(sol).replace(".", ",")} m²</b><small class="mu">= sol de la pièce</small></div>` : ""}`) : ""}
+
+    ${pc.type === "cuisine" ? rub("🍳", "Cuisine équipée", "equipe", cb("meu", "Remplacer la cuisine équipée")) : ""}
+    ${pc.type === "sdb" ? rub("🛁", "Salle de bain équipée", "equipe", cb("meu", "Remplacer la salle de bain équipée")) : ""}
+    ${pc.type === "wc" ? rub("🚽", "Équipements du WC", "wc", WC.map(([f, t]) => `<label class="cb"><input type="checkbox" data-pcwi="${f}" ${(pc.wi || []).includes(f) ? "checked" : ""}> ${t}</label>`).join("")) : ""}
+    ${pc.type === "garage" ? rub("🚪", "Porte de garage", "garage", `<div class="champs">${num("pg", "Nombre de portes de garage", "ex. 1")}</div>`) : ""}
+
+    <p><a class="btn" href="#/maison/${m.id}">✓ Pièce terminée</a></p>
   </main>`;
 }
 
@@ -450,13 +530,14 @@ function afficher() {
   const h = location.hash.replace(/^#/, "") || "/";
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
-  const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/);
+  const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/);
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
   else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs }, h.split("/")[2] || "artisan", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
   else if (h === "/moteur") html = ecranMoteur({ R, entete, sim, tarifs });
   else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
+  else if (mp && trouver(mp[1]) && (trouver(mp[1]).pieces || []).some(p => p.id === mp[2])) html = ecranPiece(trouver(mp[1]), trouver(mp[1]).pieces.find(p => p.id === mp[2]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
   $app.innerHTML = html;
@@ -465,8 +546,7 @@ function afficher() {
 }
 
 /* ---------- interactions ---------- */
-/* quantité actuelle d'une ligne liée à une pièce (gardée quand on la détache de la pièce) */
-const b0 = (m, l) => { const pc = (m.pieces || []).find(p => p.id === l.pieceId); return pc ? (l.lien === "murs" ? mursPiece(pc) : +pc.sol || 0) : l.q; };
+
 const maisonCourante = () => {
   const mm = location.hash.match(/^#\/(?:maison|dossier)\/(\w+)/);
   return mm && trouver(mm[1]);
@@ -486,19 +566,19 @@ document.addEventListener("click", e => {
   }
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "suppr-ligne" && m) { m.travaux = m.travaux.filter(l => l.id !== el.dataset.id); sauver(); afficher(); }
-  if (a === "ajout-ligne" && m) {
-    const pc = (m.pieces || [])[0];
-    m.travaux.push(pc ? { id: nouvelId(), pieceId: pc.id, k: "mur_peinture", lien: "murs" } : { id: nouvelId(), piece: "Toute la maison", k: "mur_peinture", q: "" });
-    sauver(); afficher();
-  }
   if (a === "ajout-piece" && m) {
+    const nom = (document.getElementById("np-nom").value || "").trim(), type = document.getElementById("np-type").value;
+    const T = TYPES_PIECE.find(t => t[0] === type);
     m.pieces = m.pieces || [];
-    m.pieces.push({ id: nouvelId(), nom: `Pièce ${m.pieces.length + 1}`, sol: null, murs: null });
-    sauver(); afficher();
+    const pc = { id: nouvelId(), nom: nom || (type === "standard" ? `Pièce ${m.pieces.length + 1}` : T[1]), type, sol: null, murs: null, wi: [] };
+    m.pieces.push(pc);
+    appliquerChauffage(m);
+    sauver();
+    location.hash = `#/maison/${m.id}/piece/${pc.id}`;
   }
   if (a === "suppr-piece" && m && confirm("Supprimer cette pièce et ses travaux ?")) {
     m.pieces = m.pieces.filter(p => p.id !== el.dataset.id);
-    m.travaux = m.travaux.filter(l => l.pieceId !== el.dataset.id);
+    appliquerChauffage(m);
     sauver(); afficher();
   }
   if (a === "suppr-maison" && m && confirm("Supprimer cette maison ?")) { maisons = maisons.filter(x => x !== m); sauver(); location.hash = "#/"; }
@@ -552,18 +632,20 @@ document.addEventListener("change", e => {
     const [id, f] = t.dataset.l.split(":"), l = m.travaux.find(x => x.id === id);
     if (!l) return;
     l[f] = t.type === "checkbox" ? t.checked : t.value;
-    if (f === "q") { delete l.auto; delete l.lien; } // quantité corrigée à la main : plus calculée depuis la pièce
-    if (f === "k") { delete l.auto; l.lien = l.pieceId ? lienPoste(l.k) : undefined; if (l.src === "chauffage") delete l.src; }
-    if (f === "lieu") {
-      delete l.lieu;
-      const [type, v] = [t.value.slice(0, t.value.indexOf(":")), t.value.slice(t.value.indexOf(":") + 1)];
-      if (type === "id") { l.pieceId = v; l.lien = lienPoste(l.k); if (l.lien) delete l.q; }
-      else { if (l.pieceId && l.lien) l.q = b0(m, l); delete l.pieceId; delete l.lien; l.piece = v; }
-    }
-  } else if (t.dataset.pc) {
-    const [id, f] = t.dataset.pc.split(":"), pc = (m.pieces || []).find(x => x.id === id);
+    if (f === "q") delete l.auto;
+  } else if (t.dataset.mq) {
+    /* liste fixe « toute la maison » : une ligne par poste, supprimée si la quantité est vide */
+    const k = t.dataset.mq, l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === k), q = t.value === "" ? 0 : +t.value;
+    if (q > 0) { if (l) { l.q = q; delete l.auto; } else m.travaux.push({ id: nouvelId(), piece: "Toute la maison", k, q }); }
+    else m.travaux = m.travaux.filter(x => x !== l);
+  } else if (t.dataset.mme) {
+    const l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === t.dataset.mme);
+    if (l) l.soiMeme = t.checked;
+  } else if (t.dataset.pc || t.dataset.pcwi) {
+    const mp = location.hash.match(/\/piece\/(\w+)/), pc = mp && (m.pieces || []).find(x => x.id === mp[1]);
     if (!pc) return;
-    pc[f] = f === "nom" ? t.value : t.value === "" ? null : +t.value;
+    if (t.dataset.pcwi) { const w = new Set(pc.wi || []); t.checked ? w.add(t.dataset.pcwi) : w.delete(t.dataset.pcwi); pc.wi = [...w]; }
+    else { const f = t.dataset.pc; pc[f] = t.type === "checkbox" ? t.checked : t.type === "number" ? (t.value === "" ? null : +t.value) : t.value; }
   } else if (t.dataset.mchf) {
     m.chauffage = { ...(m.chauffage || {}), [t.dataset.mchf]: t.value };
     appliquerChauffage(m);

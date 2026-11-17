@@ -20,130 +20,9 @@
       },
       "travaux": [
         {
-          "pieceId": "sejour",
+          "piece": "Toute la maison",
           "k": "i_dem",
-          "q": 12
-        },
-        {
-          "pieceId": "sejour",
-          "k": "sol_carrelage",
-          "lien": "sol"
-        },
-        {
-          "pieceId": "sejour",
-          "k": "mur_peinture",
-          "lien": "murs"
-        },
-        {
-          "pieceId": "sejour",
-          "k": "pl_peinture",
-          "lien": "plafond"
-        },
-        {
-          "pieceId": "cuisine",
-          "k": "meu_cuisine",
-          "q": 1
-        },
-        {
-          "pieceId": "cuisine",
-          "k": "sol_carrelage",
-          "lien": "sol"
-        },
-        {
-          "pieceId": "cuisine",
-          "k": "mur_peinture",
-          "lien": "murs"
-        },
-        {
-          "pieceId": "cuisine",
-          "k": "pl_peinture",
-          "lien": "plafond"
-        },
-        {
-          "pieceId": "sdb",
-          "k": "i_dem",
-          "q": 6
-        },
-        {
-          "pieceId": "sdb",
-          "k": "meu_sdb",
-          "q": 1
-        },
-        {
-          "pieceId": "sdb",
-          "k": "sol_carrelage",
-          "lien": "sol"
-        },
-        {
-          "pieceId": "sdb",
-          "k": "mur_carrelage",
-          "q": 20
-        },
-        {
-          "pieceId": "sdb",
-          "k": "pl_peinture",
-          "lien": "plafond"
-        },
-        {
-          "pieceId": "wc",
-          "k": "wc_sp",
-          "q": 1
-        },
-        {
-          "pieceId": "hall",
-          "k": "mur_peinture",
-          "lien": "murs"
-        },
-        {
-          "pieceId": "ch1",
-          "k": "sol_parquet",
-          "lien": "sol"
-        },
-        {
-          "pieceId": "ch1",
-          "k": "mur_peinture",
-          "lien": "murs",
-          "soiMeme": true
-        },
-        {
-          "pieceId": "ch1",
-          "k": "pl_peinture",
-          "lien": "plafond",
-          "soiMeme": true
-        },
-        {
-          "pieceId": "ch2",
-          "k": "sol_parquet",
-          "lien": "sol"
-        },
-        {
-          "pieceId": "ch2",
-          "k": "mur_peinture",
-          "lien": "murs",
-          "soiMeme": true
-        },
-        {
-          "pieceId": "ch2",
-          "k": "pl_peinture",
-          "lien": "plafond",
-          "soiMeme": true
-        },
-        {
-          "pieceId": "ch3",
-          "k": "sol_parquet",
-          "lien": "sol"
-        },
-        {
-          "pieceId": "ch3",
-          "k": "mur_peinture",
-          "lien": "murs",
-          "soiMeme": true
-        },
-        {
-          "pieceId": "ch3",
-          "k": "pl_peinture",
-          "lien": "plafond",
-          "soiMeme": true
+          "q": 18
         },
         {
           "piece": "Toute la maison",
@@ -157,11 +36,6 @@
         },
         {
           "piece": "Toute la maison",
-          "k": "i_ch",
-          "q": 9
-        },
-        {
-          "piece": "Toute la maison",
           "k": "i_pe",
           "q": 1
         },
@@ -171,12 +45,12 @@
           "q": 6
         },
         {
-          "piece": "Toiture",
+          "piece": "Toute la maison",
           "k": "i_to_1",
           "q": 70
         },
         {
-          "piece": "Toiture",
+          "piece": "Toute la maison",
           "k": "i_zi",
           "q": 18
         }
@@ -185,49 +59,133 @@
         {
           "id": "sejour",
           "nom": "Séjour",
-          "sol": 32
+          "type": "standard",
+          "sol": 32,
+          "sOn": true,
+          "sT": "carrelage",
+          "chOn": true,
+          "chN": 3,
+          "hc": "ra",
+          "hr": true,
+          "hn": 2,
+          "mpe": true,
+          "pOn": true,
+          "pT": "peinture"
         },
         {
           "id": "cuisine",
           "nom": "Cuisine",
-          "sol": 12
+          "type": "cuisine",
+          "sol": 12,
+          "meu": true,
+          "sOn": true,
+          "sT": "carrelage",
+          "chOn": true,
+          "chN": 1,
+          "hc": "ra",
+          "hr": true,
+          "hn": 1,
+          "mpe": true,
+          "pOn": true,
+          "pT": "peinture"
         },
         {
           "id": "sdb",
           "nom": "Salle de bain",
-          "sol": 6
+          "type": "sdb",
+          "sol": 6,
+          "meu": true,
+          "sOn": true,
+          "sT": "carrelage",
+          "mca": true,
+          "mcaM2": 20,
+          "pOn": true,
+          "pT": "peinture",
+          "chOn": true,
+          "chN": 1,
+          "hc": "ra",
+          "hr": true,
+          "hn": 1
         },
         {
           "id": "wc",
           "nom": "WC",
-          "sol": 2
+          "type": "wc",
+          "sol": 2,
+          "wi": [
+            "sp"
+          ]
         },
         {
           "id": "hall",
           "nom": "Hall et escalier",
-          "sol": 18
+          "type": "standard",
+          "sol": 18,
+          "mpe": true,
+          "chOn": true,
+          "chN": 1,
+          "hc": "ra",
+          "hr": true,
+          "hn": 1
         },
         {
           "id": "ch1",
           "nom": "Chambre 1",
-          "sol": 15
+          "type": "standard",
+          "sol": 15,
+          "sOn": true,
+          "sT": "parquet",
+          "mpe": true,
+          "mMe": true,
+          "pOn": true,
+          "pT": "peinture",
+          "pMe": true,
+          "chOn": true,
+          "chN": 1,
+          "hc": "ra",
+          "hr": true,
+          "hn": 1
         },
         {
           "id": "ch2",
           "nom": "Chambre 2",
-          "sol": 12
+          "type": "standard",
+          "sol": 12,
+          "sOn": true,
+          "sT": "parquet",
+          "mpe": true,
+          "mMe": true,
+          "pOn": true,
+          "pT": "peinture",
+          "pMe": true,
+          "chOn": true,
+          "chN": 1,
+          "hc": "ra",
+          "hr": true,
+          "hn": 1
         },
         {
           "id": "ch3",
           "nom": "Chambre 3",
-          "sol": 10
+          "type": "standard",
+          "sol": 10,
+          "sOn": true,
+          "sT": "parquet",
+          "mpe": true,
+          "mMe": true,
+          "pOn": true,
+          "pT": "peinture",
+          "pMe": true,
+          "chOn": true,
+          "chN": 1,
+          "hc": "ra",
+          "hr": true,
+          "hn": 1
         }
       ],
       "chauffage": {
         "actuel": "mazout",
-        "souhaite": "gaz",
-        "emetteurs": "rad",
-        "nbRad": 8
+        "souhaite": "gaz"
       }
     },
     {
@@ -248,38 +206,7 @@
       },
       "travaux": [
         {
-          "pieceId": "sejour",
-          "k": "mur_peinture",
-          "lien": "murs"
-        },
-        {
-          "pieceId": "sejour",
-          "k": "pl_peinture",
-          "lien": "plafond"
-        },
-        {
-          "pieceId": "hall",
-          "k": "mur_peinture",
-          "lien": "murs"
-        },
-        {
-          "pieceId": "chambres",
-          "k": "mur_peinture",
-          "lien": "murs",
-          "soiMeme": true
-        },
-        {
-          "pieceId": "chambres",
-          "k": "sol_parquet",
-          "lien": "sol"
-        },
-        {
-          "pieceId": "sdb",
-          "k": "wc_mb",
-          "q": 1
-        },
-        {
-          "piece": "Toiture",
+          "piece": "Toute la maison",
           "k": "i_to_0",
           "q": 65
         }
@@ -288,28 +215,45 @@
         {
           "id": "sejour",
           "nom": "Séjour et cuisine",
-          "sol": 45
+          "type": "standard",
+          "sol": 45,
+          "mpe": true,
+          "pOn": true,
+          "pT": "peinture",
+          "hc": "ra"
         },
         {
           "id": "hall",
           "nom": "Hall et escalier",
-          "sol": 15
+          "type": "standard",
+          "sol": 15,
+          "mpe": true,
+          "hc": "ra"
         },
         {
           "id": "chambres",
           "nom": "Chambres",
-          "sol": 40
+          "type": "standard",
+          "sol": 40,
+          "sOn": true,
+          "sT": "parquet",
+          "mpe": true,
+          "mMe": true,
+          "hc": "ra"
         },
         {
-          "id": "sdb",
-          "nom": "Salle de bain",
-          "sol": 8
+          "id": "wc",
+          "nom": "WC",
+          "type": "wc",
+          "sol": 2,
+          "wi": [
+            "mb"
+          ]
         }
       ],
       "chauffage": {
         "actuel": "gaz",
-        "souhaite": "garder",
-        "emetteurs": "garder"
+        "souhaite": "garder"
       }
     }
   ]
