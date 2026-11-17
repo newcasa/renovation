@@ -638,6 +638,49 @@ const vignette = (m, p) => `<figure class="vignette"><a href="${p.url}" target="
     <figcaption><select data-photo-renommer="${p.id}" aria-label="Pièce de la photo">${optionsPieces(m, p.nomPiece)}</select>
     <button class="x" data-action="suppr-photo" data-id="${p.id}" aria-label="Supprimer la photo">✕</button></figcaption></figure>`;
 
+/* ---------- viseur intégré : photos en rafale, sans valider chaque photo ---------- */
+const camera = { flux: null, erreur: "" };
+async function ouvrirCamera() {
+  const v = document.getElementById("viseur");
+  if (!v) return;
+  try {
+    if (!camera.flux) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("absent");
+      camera.flux = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+    }
+    if (v.srcObject !== camera.flux) v.srcObject = camera.flux;
+    await v.play().catch(() => {});
+  } catch (e) {
+    camera.erreur = "La caméra n'est pas accessible dans l'appli (autorisation refusée ou appareil non compatible). Utilisez l'appareil photo du téléphone :";
+    afficher();
+  }
+}
+function fermerCamera() {
+  if (camera.flux) camera.flux.getTracks().forEach(t => t.stop());
+  camera.flux = null;
+}
+async function declencher(m) {
+  const v = document.getElementById("viseur");
+  if (!v || !v.videoWidth || !visite.nom) return;
+  const k = Math.min(1, 1600 / Math.max(v.videoWidth, v.videoHeight));
+  const c = document.createElement("canvas");
+  c.width = Math.round(v.videoWidth * k); c.height = Math.round(v.videoHeight * k);
+  c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+  const f = document.getElementById("flash");
+  if (f) { f.classList.remove("on"); void f.offsetWidth; f.classList.add("on"); }
+  if (navigator.vibrate) navigator.vibrate(30);
+  const blob = await new Promise(ok => c.toBlob(ok, "image/jpeg", 0.82));
+  const p = await ajouterPhoto(m.id, visite.nom, blob);
+  /* mise à jour sur place (sans redessiner l'écran, pour ne pas couper la caméra) */
+  const url = URL.createObjectURL(p.blob);
+  (photosCache[m.id] = photosCache[m.id] || []).push({ ...p, url });
+  const n = photosCache[m.id].filter(x => memeNom(x.nomPiece, visite.nom)).length;
+  const compte = document.getElementById("vis-compte");
+  if (compte) compte.textContent = `${n} photo${n > 1 ? "s" : ""}`;
+  const mini = document.getElementById("vis-miniatures");
+  if (mini) mini.insertAdjacentHTML("afterbegin", `<img src="${url}" alt="">`);
+}
+
 function ecranPhotos(m) {
   const P = photosDe(m);
   if (visite.maisonId !== m.id) visite = { maisonId: m.id, nom: "", saisie: true };
@@ -654,9 +697,12 @@ function ecranPhotos(m) {
       </form>`
     : `<section class="carte prise en-cours">
         <small class="mu">Pièce en cours</small>
-        <div class="vis-nom"><b>${esc(visite.nom)}</b><span class="badge b-reference">${enCours.length} photo${enCours.length > 1 ? "s" : ""}</span></div>
-        ${boutonPhoto("📷 Prendre une photo", visite.nom)}
-        ${enCours.length ? `<div class="vis-miniatures">${enCours.slice(-8).map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}
+        <div class="vis-nom"><b>${esc(visite.nom)}</b><span class="badge b-reference" id="vis-compte">${enCours.length} photo${enCours.length > 1 ? "s" : ""}</span></div>
+        ${camera.erreur
+          ? `<p class="mu petit-t">${esc(camera.erreur)}</p>${boutonPhoto("📷 Prendre une photo (appareil du téléphone)", visite.nom)}`
+          : `<div class="viseur"><video id="viseur" playsinline muted autoplay></video><div class="flash" id="flash"></div>
+             <button class="declencheur" data-action="declencher" aria-label="Prendre la photo"><span></span></button></div>`}
+        <div class="vis-miniatures" id="vis-miniatures">${enCours.slice(-12).reverse().map(p => `<img src="${p.url}" alt="">`).join("")}</div>
         <div class="vis-suite"><button class="btn sec" data-action="visite-suivante">Pièce suivante →</button><button class="btn lien" data-action="visite-fin">Terminer la visite</button></div>
       </section>`;
   return `${entete("maisons")}
@@ -692,7 +738,9 @@ function afficher() {
   else if (mp && trouver(mp[1]) && (trouver(mp[1]).pieces || []).some(p => p.id === mp[2])) html = ecranPiece(trouver(mp[1]), trouver(mp[1]).pieces.find(p => p.id === mp[2]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
+  if (!mph && camera.flux) fermerCamera(); // on quitte l'écran photos : la caméra s'éteint
   $app.innerHTML = html;
+  if (document.getElementById("viseur")) ouvrirCamera();
   afficher.dernier = h;
   window.scrollTo(0, meme ? y : 0);
 }
@@ -744,7 +792,8 @@ document.addEventListener("click", e => {
   if (a === "suppr-photo" && m && confirm("Supprimer cette photo ?")) { supprimerPhoto(el.dataset.id).then(() => rechargerPhotos(m)); }
   if (a === "visite-suivante") { visite.saisie = true; afficher(); setTimeout(() => { const i = document.getElementById("visite-nom"); if (i) i.focus(); }, 0); }
   if (a === "visite-annuler") { visite.saisie = false; afficher(); }
-  if (a === "visite-fin" && m) { visite = { maisonId: m.id, nom: "", saisie: true }; afficher(); document.querySelector(".sous-titre")?.scrollIntoView({ behavior: "smooth" }); }
+  if (a === "declencher" && m) { declencher(m); return; }
+  if (a === "visite-fin" && m) { fermerCamera(); visite = { maisonId: m.id, nom: "", saisie: true }; afficher(); document.querySelector(".sous-titre")?.scrollIntoView({ behavior: "smooth" }); }
   if (a === "creer-pieces-photos" && m) {
     [...new Set(photosDe(m).map(p => p.nomPiece))].filter(g => !pieceDePhoto(m, { nomPiece: g })).forEach(g => ajouterPieceNommee(m, g));
     appliquerChauffage(m); sauver(); afficher();
