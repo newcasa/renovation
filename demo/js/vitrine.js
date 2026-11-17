@@ -22,8 +22,24 @@ const simule = `<p class="simule">Démonstration : écran simulé à partir des 
 /* ---------- Professionnels ---------- */
 export function ecranPro(ctx, onglet, metier) {
   const { R, maisons, entete } = ctx;
-  const tabs = [["artisan", "Artisan : demandes"], ["tarifs", "Artisan : mes tarifs"], ["negociant", "Négociant : commandes"], ["negprix", "Négociant : mes prix"], ["courtier", "Courtier et banque"], ["agence", "Agence immobilière"]];
-  const nav = `<div class="onglets" role="tablist">${tabs.map(([id, t]) => `<a role="tab" class="onglet ${onglet === id ? "on" : ""}" href="#/pro/${id}" aria-selected="${onglet === id}">${t}</a>`).join("")}</div>`;
+  /* 4 profils, chacun avec ses propres onglets */
+  const PROFILS = [
+    { id: "artisan", t: "Je suis artisan", ico: "🔨", d: "Recevoir des projets déjà chiffrés, avec les photos des pièces.", tabs: [["artisan", "Demandes reçues"], ["tarifs", "Mes tarifs"]], demo: "#/demo-artisan" },
+    { id: "negociant", t: "Je suis négociant", ico: "🧱", d: "Recevoir les listes de matériaux de chaque chantier, avec vos prix.", tabs: [["negociant", "Listes de matériaux"], ["negprix", "Mes prix"]], demo: "#/demo-negociant" },
+    { id: "courtier", t: "Je suis courtier ou banque", ico: "🏦", d: "Recevoir des dossiers de crédit complets : achat, notaire et travaux.", tabs: [["courtier", "Dossiers reçus"]] },
+    { id: "agence", t: "Je suis une agence", ico: "🏠", d: "Afficher le vrai coût, travaux compris, sur vos annonces.", tabs: [["agence", "Mon annonce"]] },
+  ];
+  if (!onglet) {
+    return `${entete("pro")}<main><h1>Côté professionnels</h1>${simule}
+      <p class="intro">Choisissez votre métier pour voir ce que Valou vous apporte.</p>
+      <div class="profils">${PROFILS.map(P => `<a class="carte profil" href="#/pro/${P.tabs[0][0]}"><span class="pf-ico">${P.ico}</span><b>${esc(P.t)}</b><p class="mu">${esc(P.d)}</p><span class="go">Entrer →</span></a>`).join("")}</div>
+    </main>`;
+  }
+  const profil = PROFILS.find(P => P.tabs.some(([id]) => id === onglet)) || PROFILS[0];
+  const nav = `<div class="espace-tete"><a href="#/pro" class="retour">← Changer de profil</a>
+      <h1><span>${profil.ico}</span> Espace ${esc(profil.t.replace(/^Je suis (une? )?/, ""))}</h1>
+      ${profil.demo ? `<a class="btn sec petit-btn" href="${profil.demo}">🎬 Démo guidée</a>` : ""}</div>
+    ${profil.tabs.length > 1 ? `<div class="onglets" role="tablist">${profil.tabs.map(([id, t]) => `<a role="tab" class="onglet ${onglet === id ? "on" : ""}" href="#/pro/${id}" aria-selected="${onglet === id}">${t}</a>`).join("")}</div>` : ""}`;
   const L = maisons.map(m => { const b = calculerBudget(R, m); return { m, b, c: coutTotal(m, b) }; });
   let corps = "";
 
@@ -157,9 +173,7 @@ export function ecranPro(ctx, onglet, metier) {
       </article>` : ""}`;
   }
 
-  return `${entete("pro")}<main><h1>Côté professionnels</h1>${simule}
-    <p class="liens-demo"><a class="btn sec petit-btn" href="#/demo-artisan">🎬 Démo pour un artisan</a><a class="btn sec petit-btn" href="#/demo-negociant">🎬 Démo pour un négociant</a></p>
-    ${nav}${corps}</main>`;
+  return `${entete("pro")}<main>${nav}${simule}${corps}</main>`;
 }
 
 /* ---------- Notre moteur ---------- */

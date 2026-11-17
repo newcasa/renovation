@@ -569,3 +569,25 @@ label.verrou .saisie i { font-size: 14px; }
 .etape-demo:hover { border-color: var(--or); }
 .etape-demo p { margin: 2px 0 0; font-size: 14px; } .etape-demo div { flex: 1; }
 .go { font: 900 22px Outfit, sans-serif; color: var(--or-fonce); }
+
+/* espace professionnels : choix du profil */
+.profils { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.profil { display: grid; gap: 6px; text-decoration: none; margin: 0; transition: transform .15s, border-color .15s; }
+.profil:hover { transform: translateY(-2px); border-color: var(--or); }
+.profil b { font: 900 20px Outfit, sans-serif; }
+.profil p { margin: 0; font-size: 14px; }
+.pf-ico { font-size: 34px; }
+.profil .go { font-size: 15px; }
+.espace-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-bottom: 8px; }
+.espace-tete .retour { flex-basis: 100%; }
+.espace-tete h1 { margin: 0; flex: 1; }
+@media (max-width: 640px) {
+  .d-lots.neg thead { display: none; }
+  .d-lots.neg tbody tr { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 8px 0; border-top: 1px solid var(--bord); }
+  .d-lots.neg tbody td { border: 0; padding: 0; text-align: left !important; white-space: normal !important; width: auto !important; }
+  .d-lots.neg tbody td:first-child { grid-column: 1 / -1; font-weight: 600; }
+  .d-lots.neg tbody td:nth-child(2) { color: var(--mu); }
+  .d-lots.neg tbody td:nth-child(3) { grid-column: 1; font-size: 13px; }
+  .d-lots.neg tbody td:nth-child(4) { grid-column: 2; grid-row: 2; text-align: right !important; font-weight: 800; }
+  .d-lots.tarifs.neg tbody td:nth-child(4) { grid-row: auto; text-align: left !important; }
+}

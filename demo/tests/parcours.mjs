@@ -111,7 +111,8 @@ try {
     if (nom === "ordi") await page.pdf({ path: `${OUT}/dossier-banque-exemple.pdf`, format: "A4", printBackground: true });
 
     /* professionnels, moteur, feuille de route */
-    await page.locator('.nav-i[href="#/pro/artisan"]').click();
+    await page.locator('.nav-i[href="#/pro"]').click();
+    await page.getByText("Je suis artisan").click();
     await page.locator(".demande").first().waitFor();
     await page.selectOption("[data-metier]", "carreleur");
     await page.locator(".demande").first().waitFor();
@@ -120,12 +121,12 @@ try {
     await page.locator(".d-act.ok").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-artisan.png`, fullPage: nom === "ordi" });
     for (const [o, sel] of [["courtier", ".dossier-c"], ["agence", ".annonce"]]) {
-      await page.locator(`.onglet[href="#/pro/${o}"]`).click();
+      await page.goto(URL + "#/pro/" + o);
       await page.locator(sel).first().waitFor();
       await page.screenshot({ path: `${OUT}/${nom}-8-${o}.png`, fullPage: nom === "ordi" });
     }
     /* l'artisan encode ses tarifs (confidentiels) */
-    await page.locator('.onglet[href="#/pro/tarifs"]').click();
+    await page.goto(URL + "#/pro/tarifs");
     await page.locator(".confidentiel").waitFor();
     await page.fill('[data-tarif="sol_carrelage"]', "48");
     await page.locator('[data-tarif="sol_carrelage"]').dispatchEvent("change");

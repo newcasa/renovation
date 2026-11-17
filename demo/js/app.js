@@ -30,7 +30,7 @@ function entete(actif) {
       : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   return `<header class="top">
     <a href="#/" class="marque" aria-label="Valou, accueil"><img src="../logo.png" alt="Valou"></a>
-    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/pro/artisan", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
+    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
   </header>`;
 }
 
@@ -807,7 +807,7 @@ function afficher() {
   if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
   else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
-  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs, prixNeg, photos: m => photosDe(m) }, h.split("/")[2] || "artisan", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
+  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs, prixNeg, photos: m => photosDe(m) }, h.split("/")[2] || "", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
   else if (h === "/demo-artisan" || h === "/demo-negociant") html = ecranDemoPro({ entete, maisonDemo: maisons.find(m => m.demo) }, h === "/demo-negociant" ? "negociant" : "artisan");
   else if (h === "/moteur") html = ecranMoteur({ R, entete, sim, tarifs });
   else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
