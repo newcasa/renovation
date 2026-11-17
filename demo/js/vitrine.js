@@ -29,8 +29,8 @@ export function ecranPro(ctx, onglet, metier) {
   const PROFILS = [
     { id: "artisan", t: "Je suis artisan", ico: "🔨", d: "Recevoir des projets déjà chiffrés, avec les photos des pièces.", tabs: [["artisan", "Demandes reçues"], ["tarifs", "Mes tarifs"]], demo: "#/demo-artisan",
       av: ["Des projets déjà chiffrés, avec les photos des pièces", "Un client qui connaît son budget : moins de devis refusés", "Vous choisissez : visite, devis ou pas disponible", "Vos tarifs restent confidentiels"] },
-    { id: "negociant", t: "Je suis négociant", ico: "🧱", d: "Être vu des particuliers et des artisans de votre zone : vos services, coordonnées et horaires.", tabs: [["negociant", "Ma fiche"], ["negprix", "Mes prix"]], demo: "#/demo-negociant",
-      av: ["Visible sur les projets des maisons de votre zone", "Vos services, coordonnées et horaires mis en avant", "Des clients avec un chantier déjà chiffré", "Aucune offre à envoyer : les clients viennent à vous"] },
+    { id: "negociant", t: "Je suis négociant", ico: "🧱", d: "Être vu des particuliers et des artisans de votre zone : vos matériaux, services, coordonnées et horaires.", tabs: [["negociant", "Ma fiche"], ["negprix", "Mes prix"]], demo: "#/demo-negociant",
+      av: ["Visible sur les projets des maisons de votre zone", "Vos types de matériaux, services, coordonnées et horaires mis en avant", "Des clients avec un chantier déjà chiffré", "Aucune offre à envoyer : les clients viennent à vous"] },
     { id: "courtier", t: "Je suis courtier ou banque", ico: "🏦", d: "Recevoir des dossiers de crédit complets : achat, notaire et travaux.", tabs: [["courtier", "Dossiers reçus"]],
       av: ["Un dossier complet : achat, notaire validé, travaux poste par poste", "Moins de temps à reconstituer le budget du client", "Le PEB et les travaux énergétiques déjà identifiés"] },
     { id: "agence", t: "Je suis une agence", ico: "🏠", d: "Publier vos annonces librement, avec l'estimation des travaux en option.", tabs: [["agence", "Mon annonce"]],
@@ -124,7 +124,7 @@ export function ecranPro(ctx, onglet, metier) {
     const F = ctx.negFiche || {}, H = F.horaires || {};
     const champ = (k, t, ph = "", type = "text") => `<label>${t}<input type="${type}" data-negfiche="${k}" value="${esc(F[k] ?? "")}" placeholder="${esc(ph)}"></label>`;
     corps = `<div class="pro-intro"><h2>Soyez vu des particuliers et des artisans de votre zone</h2>
-      <p class="mu">Votre fiche apparaît sur les projets des maisons proches de votre négoce : vos services, vos coordonnées et vos horaires. Les clients viennent chez vous ou vous appellent.</p></div>
+      <p class="mu">Votre fiche apparaît sur les projets des maisons proches de votre négoce : les matériaux que vous vendez, vos services, vos coordonnées et vos horaires. Les clients viennent chez vous ou vous appellent.</p></div>
       <div class="deux">
         <section class="carte"><h2>Ma fiche</h2><div class="champs">
           ${champ("nom", "Nom du négoce", "ex. Matériaux Dupont")}
@@ -132,6 +132,11 @@ export function ecranPro(ctx, onglet, metier) {
           ${champ("tel", "Téléphone", "", "tel")}
           ${champ("email", "E-mail", "", "email")}
           ${champ("site", "Site internet", "")}
+          <fieldset class="large rayons-neg"><legend>Types de matériaux vendus <b class="oblig">obligatoire</b></legend>
+            <p class="mu petit-t">Cochez tout ce que vous vendez : les particuliers et les artisans voient tout de suite si vous avez ce qu'il faut pour leurs travaux.</p>
+            <div class="rayons-grille">${RAYONS_NEG.map(([id, ico, nom]) => `<label class="cb"><input type="checkbox" data-negrayon="${id}" ${(F.rayons || []).includes(id) ? "checked" : ""}> ${ico} ${esc(nom)}</label>`).join("")}</div>
+            ${(F.rayons || []).length ? "" : `<p class="alerte-mini">⚠️ Cochez au moins un type de matériaux : sans cela, votre fiche n'apparaît pas sur les projets.</p>`}
+          </fieldset>
           <label class="large">Services (un par ligne)<textarea data-negfiche="services" rows="5" placeholder="Livraison sur chantier&#10;Location de matériel&#10;Découpe sur mesure">${esc(F.services || "")}</textarea></label>
         </div>
         <h3>Horaires d'ouverture</h3>
@@ -209,14 +214,34 @@ export const ARTISANS_EXEMPLE = {
   couvreur: { nom: "Toitures Exemple", tel: "081 00 00 07" },
 };
 
+/* ---------- types de matériaux vendus par un négociant (à cocher, obligatoire) ---------- */
+export const RAYONS_NEG = [
+  ["gros", "🧱", "Gros œuvre (blocs, briques, ciment, béton)", ["general"]],
+  ["toiture", "🏠", "Toiture et zinguerie", ["couvreur"]],
+  ["isolation", "🧤", "Isolation", ["couvreur", "general"]],
+  ["bois", "🪵", "Bois et panneaux", ["menuisier"]],
+  ["menuiseries", "🚪", "Portes et châssis", ["menuisier"]],
+  ["carrelage", "◼️", "Carrelage et revêtements de sol", ["carreleur"]],
+  ["sanitaire", "🚿", "Sanitaire et plomberie", ["chauffagiste"]],
+  ["chauffage", "🔥", "Chauffage", ["chauffagiste"]],
+  ["electricite", "💡", "Électricité et éclairage", ["electricien"]],
+  ["peinture", "🎨", "Peinture et plâtre", ["peintre"]],
+  ["cuisine", "🍳", "Cuisines", ["menuisier"]],
+  ["exterieur", "🌳", "Extérieurs et aménagements", ["general"]],
+  ["outillage", "🔧", "Outillage et location", []],
+];
+
 /* ---------- fiche publique d'un négociant ---------- */
 export const JOURS = [["lun", "Lundi"], ["mar", "Mardi"], ["mer", "Mercredi"], ["jeu", "Jeudi"], ["ven", "Vendredi"], ["sam", "Samedi"], ["dim", "Dimanche"]];
-export function ficheNegociant(F) {
+export function ficheNegociant(F, metiersMaison) {
   if (!F || !F.nom) return `<div class="carte vide"><p class="mu">Aucun négociant inscrit pour l'instant.</p></div>`;
+  const rayons = RAYONS_NEG.filter(r => (F.rayons || []).includes(r[0]));
+  const utile = r => metiersMaison && r[3].some(id => metiersMaison.includes(id));
   const services = String(F.services || "").split("\n").map(x => x.trim()).filter(Boolean);
   const H = F.horaires || {};
   return `<article class="carte fiche-neg">
     <div class="fn-tete"><span class="pf-ico">🧱</span><div><b>${esc(F.nom)}</b>${F.fictif ? ` <span class="badge b-exemple">Exemple fictif</span>` : ""}${F.adresse ? `<small class="mu">${esc(F.adresse)}</small>` : ""}</div></div>
+    ${rayons.length ? `<div class="fn-rayons"><small class="mu">Matériaux vendus${metiersMaison && rayons.some(utile) ? " · ✓ = utile pour vos travaux" : ""}</small><div>${rayons.map(r => `<span class="fn-rayon ${utile(r) ? "utile" : ""}">${utile(r) ? "✓ " : ""}${r[1]} ${esc(r[2])}</span>`).join("")}</div></div>` : ""}
     ${services.length ? `<ul class="fn-services">${services.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
     <div class="fn-contact">${F.tel ? `<span>📞 ${esc(F.tel)}</span>` : ""}${F.email ? `<span>✉️ ${esc(F.email)}</span>` : ""}${F.site ? `<span>🌐 ${esc(F.site)}</span>` : ""}</div>
     ${JOURS.some(([k]) => H[k]) ? `<table class="fn-horaires">${JOURS.map(([k, j]) => `<tr><td>${j}</td><td>${esc(H[k] || "—")}</td></tr>`).join("")}</table>` : ""}

@@ -435,8 +435,8 @@ function ecranMaison(m) {
     </div>
 
     <section class="carte negs"><h2>Négociants de votre région</h2>
-      <p class="mu">Pour vos matériaux : services, coordonnées et horaires.</p>
-      ${ficheNegociant(negFiche)}</section>
+      <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
+      ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
 
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
@@ -574,11 +574,16 @@ function appliquerPrixNeg() {
 let envoiOuvert = null;
 /* fiche du négociant et annonce de l'agence (démonstration, gardées sur cet appareil) */
 const FICHE_EXEMPLE = { nom: "Matériaux Exemple", fictif: true, adresse: "Rue de l'Exemple 1, 5100 Jambes", tel: "081 00 00 00", email: "contact@exemple.be", site: "",
+  rayons: ["gros", "toiture", "isolation", "bois", "carrelage", "peinture", "outillage"],
   services: "Livraison sur chantier\nLocation de matériel\nDécoupe sur mesure\nConseil en isolation",
   horaires: { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" } };
 const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; } };
 const ecrire = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 let negFiche = lire("valou_demo_negfiche", JSON.parse(JSON.stringify(FICHE_EXEMPLE)));
+if (negFiche.fictif && !negFiche.rayons) negFiche.rayons = [...FICHE_EXEMPLE.rayons]; // fiche d'exemple d'une version précédente
+/* la fiche n'apparaît sur les projets que si le négociant a précisé ses types de matériaux */
+const negVisible = () => negFiche && negFiche.nom && (negFiche.rayons || []).length;
+const metiersDe = b => METIERS.filter(x => x.id !== "general" && b.postes.some(p => x.f(p.k) && p.QL > 0)).map(x => x.id).concat("general");
 let annonce = lire("valou_demo_annonce", { titre: "", prix: "", texte: "", valou: false }); // maison dont le panneau « envoyer aux artisans » est ouvert
 const sauverTarifs = () => { try { localStorage.setItem("valou_demo_tarifs", JSON.stringify(tarifs)); } catch (e) {} };
 
@@ -977,7 +982,7 @@ function ecranContacts(id) {
       ${metiers.length ? metiers.map(ligneMetier).join("") : `<p class="mu">Aucun travail encodé pour l'instant.</p>`}
       <p class="mu petit-t">Les coordonnées d'un artisan apparaissent quand il répond à votre projet (visite ou devis).</p>
     </section>
-    <section class="carte"><h2>Négociants de votre région</h2>${ficheNegociant(negFiche)}</section>
+    <section class="carte"><h2>Négociants de votre région</h2>${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
   </main>`;
 }
 
@@ -1133,7 +1138,7 @@ document.addEventListener("change", e => {
     return;
   }
   if (t.dataset.peb && m) { m[t.dataset.peb] = t.dataset.peb === "peb" ? t.value || null : t.value === "" ? null : +t.value; sauver(); afficher(); return; }
-  if (t.dataset.negfiche || t.dataset.neghor || t.dataset.annonce) { majProFormulaire(t); afficher(); return; }
+  if (t.dataset.negfiche || t.dataset.negrayon || t.dataset.neghor || t.dataset.annonce) { majProFormulaire(t); afficher(); return; }
   if (t.dataset.negprix) { const v = t.value === "" ? null : +t.value; if (v > 0) prixNeg[t.dataset.negprix] = v; else delete prixNeg[t.dataset.negprix]; appliquerPrixNeg(); afficher(); return; }
   if (t.dataset.metier != null) { metier = t.value; afficher(); return; }
   if (t.dataset.simK != null) { sim.k = t.value; afficher(); return; }
@@ -1214,6 +1219,10 @@ document.addEventListener("change", e => {
 
 function majProFormulaire(t) {
   if (t.dataset.negfiche) { negFiche[t.dataset.negfiche] = t.value; delete negFiche.fictif; ecrire("valou_demo_negfiche", negFiche); }
+  if (t.dataset.negrayon) {
+    const S = new Set(negFiche.rayons || []); t.checked ? S.add(t.dataset.negrayon) : S.delete(t.dataset.negrayon);
+    negFiche.rayons = [...S]; delete negFiche.fictif; ecrire("valou_demo_negfiche", negFiche);
+  }
   if (t.dataset.neghor) { negFiche.horaires = { ...(negFiche.horaires || {}), [t.dataset.neghor]: t.value }; delete negFiche.fictif; ecrire("valou_demo_negfiche", negFiche); }
   if (t.dataset.annonce) { annonce[t.dataset.annonce] = t.type === "checkbox" ? t.checked : t.value; ecrire("valou_demo_annonce", annonce); }
 }

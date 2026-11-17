@@ -66,7 +66,7 @@ try {
     /* envoi du projet aux artisans, puis ce que reçoit le carreleur (avec les photos de la cuisine) */
     await page.locator("main > .envoi").waitFor();
     assert.ok(await page.evaluate(() => { const m = document.querySelector("main"); return m.lastElementChild.classList.contains("envoi"); }), "l'envoi aux artisans est le dernier bloc");
-    assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Matériaux Exemple/);
+    assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Matériaux Exemple[\s\S]*Matériaux vendus[\s\S]*✓/);
     await page.getByText("📨 Envoyer le projet aux artisans").click();
     await page.locator('[data-action="envoi-ok"]').click();
     await page.getByText("Voir ce que reçoit l'artisan →").click();
@@ -126,6 +126,14 @@ try {
     await page.fill('[data-negfiche="nom"]', "Négoce Test");
     await page.locator('[data-negfiche="nom"]').dispatchEvent("change");
     assert.match(await page.locator(".fiche-neg").innerText(), /Négoce Test[\s\S]*Livraison sur chantier[\s\S]*Lundi/);
+    /* types de matériaux vendus : obligatoires */
+    await page.check('[data-negrayon="sanitaire"]');
+    assert.match(await page.locator(".fiche-neg").innerText(), /Matériaux vendus[\s\S]*Sanitaire et plomberie/);
+    while (await page.locator("[data-negrayon]:checked").count()) await page.locator("[data-negrayon]:checked").first().click();
+    await page.locator(".alerte-mini").waitFor();
+    await page.check('[data-negrayon="sanitaire"]');
+    await page.check('[data-negrayon="gros"]');
+    assert.equal(await page.locator(".alerte-mini").count(), 0);
     assert.equal(await page.getByText("Envoyer mon offre").count(), 0);
     await page.screenshot({ path: `${OUT}/${nom}-0d-negociant.png`, fullPage: nom === "ordi" });
     await page.goto(URL + "#/pro/negprix");

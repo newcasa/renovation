@@ -703,3 +703,14 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .d-mats ul { margin: 6px 0 0; padding-left: 18px; }
 .d-mats p { margin: 6px 0 0; font-style: italic; }
 @media (max-width: 760px) { .ct-projet .ct-mat { display: none; } .ct-mat-tel { display: block; } }
+
+/* négociant : types de matériaux vendus */
+.rayons-neg { border: 1px solid var(--bord); border-radius: 12px; padding: 10px 14px 12px; margin: 0; }
+.rayons-neg legend { font: 800 14px Manrope, sans-serif; color: var(--bordeaux); padding: 0 6px; }
+.oblig { font-size: 11px; background: var(--bordeaux); color: #fff; border-radius: 6px; padding: 2px 6px; margin-left: 6px; vertical-align: middle; }
+.rayons-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 14px; }
+.alerte-mini { background: #FCEBD9; border-radius: 8px; padding: 8px 10px; margin: 8px 0 0; font-size: 13.5px; }
+.fn-rayons { margin: 10px 0; }
+.fn-rayons > div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.fn-rayon { font-size: 13px; padding: 4px 9px; border-radius: 999px; background: var(--carte); border: 1px solid var(--bord); }
+.fn-rayon.utile { background: #E5F2E8; border-color: #9CCBA8; font-weight: 700; color: #1F5A30; }
