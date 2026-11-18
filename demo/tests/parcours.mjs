@@ -23,7 +23,7 @@ try {
     await page.goto(URL);
     /* page d'intro : logo, phrase d'accroche, bouton « Commencer la démo » */
     await page.locator(".intro-logo").waitFor();
-    assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo/);
+    assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo[\s\S]*acheteur confiant, un artisan gagnant, un négociant content… et une Wallonie qui va de l'avant/);
     await page.screenshot({ path: `${OUT}/${nom}-00-intro.png` });
     await page.getByText("Commencer la démo →").click();
     await page.getByText("Ajouter une maison").first().waitFor();
