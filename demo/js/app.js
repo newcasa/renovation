@@ -95,7 +95,7 @@ function ecranAjouter() {
       <h2>La maison</h2>
       <div class="champs">
         ${champ("nom", "Nom (pour vous)", "text", 'placeholder="Ex. : maison rue des Tilleuls" required')}
-        ${champ("commune", "Commune", "text", 'placeholder="Ex. : Namur"')}
+        ${champ("commune", "Commune", "text", 'placeholder="Ex. : Seraing"')}
         ${champ("prix", "Prix demandé (€)", "number", 'min="0" inputmode="numeric" required')}
         ${champ("annee", "Année de construction", "number", 'min="1800" max="2030" inputmode="numeric" required')}
         ${champ("surface", "Surface habitable (m²)", "number", 'min="10" inputmode="numeric" required')}
@@ -573,14 +573,14 @@ function appliquerPrixNeg() {
 }
 let envoiOuvert = null;
 /* fiche du négociant et annonce de l'agence (démonstration, gardées sur cet appareil) */
-const FICHE_EXEMPLE = { nom: "Matériaux Exemple", fictif: true, adresse: "Rue de l'Exemple 1, 5100 Jambes", tel: "081 00 00 00", email: "contact@exemple.be", site: "",
+const FICHE_EXEMPLE = { nom: "Matériaux Exemple", fictif: true, adresse: "Rue de l'Exemple 1, 4000 Liège", tel: "04 000 00 00", email: "contact@exemple.be", site: "",
   rayons: ["gros", "toiture", "isolation", "bois", "carrelage", "peinture", "outillage", "echafaudage", "conteneur"],
   services: "Livraison sur chantier\nLocation de matériel\nDécoupe sur mesure\nConseil en isolation",
   horaires: { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" } };
 const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; } };
 const ecrire = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 let negFiche = lire("valou_demo_negfiche", JSON.parse(JSON.stringify(FICHE_EXEMPLE)));
-if (negFiche.fictif && !negFiche.rayons) negFiche.rayons = [...FICHE_EXEMPLE.rayons]; // fiche d'exemple d'une version précédente
+if (negFiche.fictif) negFiche = JSON.parse(JSON.stringify(FICHE_EXEMPLE)); // fiche d'exemple pas encore modifiée : toujours la dernière version (adresse, types de matériaux)
 /* la fiche n'apparaît sur les projets que si le négociant a précisé ses types de matériaux */
 const negVisible = () => negFiche && negFiche.nom && (negFiche.rayons || []).length;
 const metiersDe = b => METIERS.filter(x => x.id !== "general" && b.postes.some(p => x.f(p.k) && p.QL > 0)).map(x => x.id).concat("general");
@@ -865,7 +865,7 @@ function preparerPresentation(direct) {
 
 /* ---------- écran : contacter un professionnel ---------- */
 /* artisans de démonstration par métier (fictifs) : le premier est celui qui répond dans la démo */
-const LIEUX_DEMO = [["Namur", 4], ["Gembloux", 9], ["Andenne", 14], ["Fosses-la-Ville", 17], ["Éghezée", 19]];
+const LIEUX_DEMO = [["Seraing", 3], ["Liège", 7], ["Grâce-Hollogne", 9], ["Flémalle", 11], ["Ans", 14]];
 function artisansDuMetier(id) {
   const A = ARTISANS_EXEMPLE[id] || ARTISANS_EXEMPLE.general, base = A.nom.replace(/ Exemple$/, "");
   return LIEUX_DEMO.map(([lieu, km], i) => ({ id: `${id}-${i + 1}`, nom: i ? `${base} Exemple ${String.fromCharCode(65 + i)}` : A.nom, lieu, km, tarifs: i < 3 }));

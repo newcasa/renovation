@@ -229,7 +229,7 @@ import { maisonDepuisQuestionnaire } from "../js/questionnaire.js";
 test("questionnaire rempli → maison Valou (pièces, chauffage, structure)", () => {
   let n = 0;
   const m = maisonDepuisQuestionnaire({
-    maison: { nom: "Rue des Lilas", commune: "Namur", prix: "245000", annee: 1965, surface: 120, etat: "renover", unique: true },
+    maison: { nom: "Rue des Lilas", commune: "Seraing", prix: "245000", annee: 1965, surface: 120, etat: "renover", unique: true },
     chauffage: { actuel: "mazout", souhaite: "gaz" },
     pieces: [
       { nom: "Séjour", type: "standard", sol: 30, sol_refaire: "carrelage", murs: ["peinture"], plafond: "peinture", chassis: 2, radiateurs: 2 },

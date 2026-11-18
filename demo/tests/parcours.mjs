@@ -245,7 +245,7 @@ try {
     /* ajouter une maison en 30 secondes */
     await page.getByText("Ajouter une maison").first().click();
     await page.fill('input[name="nom"]', "Maison test");
-    await page.fill('input[name="commune"]', "Namur");
+    await page.fill('input[name="commune"]', "Seraing");
     await page.fill('input[name="prix"]', "245000");
     await page.fill('input[name="annee"]', "1965");
     await page.fill('input[name="surface"]', "120");
