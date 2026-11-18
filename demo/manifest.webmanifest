@@ -5,12 +5,12 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#FFFFFF",
+  "background_color": "#022250",
   "theme_color": "#022250",
   "lang": "fr-BE",
   "icons": [
-    { "src": "img/tuile-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "img/tuile-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "img/tuile-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "img/tuile-marine-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/tuile-marine-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/tuile-marine-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
