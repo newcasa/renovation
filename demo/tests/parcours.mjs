@@ -21,6 +21,11 @@ try {
     page.on("pageerror", e => erreurs.push(`${nom} : ${e.message}`));
     page.on("console", m => m.type() === "error" && !/supabase|valou_tarifs|Failed to load resource/i.test(m.text()) && erreurs.push(`${nom} : ${m.text()}`));
     await page.goto(URL);
+    /* page d'intro : logo, phrase d'accroche, bouton « Commencer la démo » */
+    await page.locator(".intro-logo").waitFor();
+    assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo/);
+    await page.screenshot({ path: `${OUT}/${nom}-00-intro.png` });
+    await page.getByText("Commencer la démo →").click();
     await page.getByText("Ajouter une maison").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-1-accueil.png` });
 
@@ -60,7 +65,100 @@ try {
     await page.locator('.groupe-photos:has(h2:has-text("Cuisine")) >> text=Ouvrir la pièce').click();
     await page.locator(".titre-piece").waitFor();
     assert.equal(await page.locator(".galerie .vignette").count(), 2); // la pièce affiche ses photos
-    await page.goto(URL);
+    await page.goto(URL + "#/");
+    await page.getByText("Maison de démonstration A").first().click();
+
+    /* envoi du projet aux artisans, puis ce que reçoit le carreleur (avec les photos de la cuisine) */
+    await page.locator("main > .envoi").waitFor();
+    assert.ok(await page.evaluate(() => { const m = document.querySelector("main"); return m.lastElementChild.classList.contains("envoi"); }), "l'envoi aux artisans est le dernier bloc");
+    assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Matériaux Exemple[\s\S]*Matériaux vendus[\s\S]*✓/);
+    await page.getByText("📨 Envoyer le projet aux artisans").click();
+    await page.locator('[data-action="envoi-ok"]').click();
+    await page.getByText("Voir ce que reçoit l'artisan →").click();
+    await page.selectOption("[data-metier]", "carreleur");
+    await page.locator(".demande").first().waitFor();
+    /* la demande est fermée : on ne voit que l'adresse ; un clic l'ouvre */
+    assert.equal(await page.locator(".demande .d-lots").first().isVisible(), false);
+    assert.match(await page.locator(".demande .d-resume").first().innerText(), /Nouvelle demande|Répondu/);
+    await page.locator(".demande .d-resume").first().click();
+    await page.locator(".demande .d-lots").first().waitFor();
+    assert.match(await page.locator(".demande").first().innerText(), /Projet envoyé[\s\S]*photos? de la visite/);
+    await page.screenshot({ path: `${OUT}/${nom}-0c-artisan-photos.png`, fullPage: nom === "ordi" });
+    /* l'artisan peut proposer une visite */
+    await page.locator('.demande [data-action="pro-visite"]').first().click();
+    assert.match(await page.locator(".demande").first().innerText(), /proposition de visite/);
+    /* section « Contacter » : résumé du projet et coordonnées de l'artisan qui a répondu */
+    await page.locator('.nav-i[href="#/contacts"]').click();
+    await page.locator('.grille .maison:has-text("Maison de démonstration A")').click();
+    await page.locator(".resume").waitFor();
+    assert.match(await page.locator("main").innerText(), /Carreleur[\s\S]*Visite proposée[\s\S]*Carrelage Exemple[\s\S]*Négociants de votre région/);
+    await page.screenshot({ path: `${OUT}/${nom}-0e-contacts.png`, fullPage: nom === "ordi" });
+    /* maison B : pour un métier, on consulte le projet personnalisé, on coche 3 artisans (pas plus) et on envoie */
+    await page.locator(".retour").click();
+    await page.locator('.grille .maison:has-text("Maison de démonstration B")').click();
+    /* un métier avec au moins 2 parties : on n'en envoie qu'une (ex. le séjour mais pas la salle de bain) */
+    await page.locator(".contact-ligne").first().waitFor();
+    const nbL = await page.locator(".contact-ligne").count();
+    let iL = -1;
+    for (let i = 0; i < nbL && iL < 0; i++) {
+      await page.locator(".contact-ligne").nth(i).locator('[data-v="p"]').click();
+      if (await page.locator(".contact-ligne").nth(i).locator("[data-part]").count() >= 2) iL = i;
+      else await page.locator(".contact-ligne").nth(i).locator('[data-v="p"]').click();
+    }
+    assert.ok(iL >= 0, "un métier avec 2 parties");
+    const L = () => page.locator(".contact-ligne").nth(iL);
+    assert.match(await L().locator(".ct-projet").innerText(), /Pièce[\s\S]*Poste[\s\S]*À envoyer : \d+ parties/);
+    const nParts = await L().locator("[data-part]").count();
+    await L().locator("[data-part]").first().uncheck();
+    assert.match(await L().locator(".ct-projet").innerText(), new RegExp(`À envoyer : ${nParts - 1} partie`));
+    assert.equal(await L().locator("tr.exclu").count(), 1);
+    /* le matériau souhaité (ex. le type de carrelage) et une remarque partent avec le projet */
+    await L().locator("[data-mat]:visible").nth(1).fill("Grès cérame 60×60 test");
+    await L().locator("[data-mat]:visible").nth(1).dispatchEvent("change");
+    await L().locator("[data-note-metier]").fill("Joints gris test");
+    await L().locator("[data-note-metier]").dispatchEvent("change");
+    assert.equal(await L().locator("[data-mat]:visible").nth(1).inputValue(), "Grès cérame 60×60 test");
+    const metierTest = await L().locator('[data-v="p"]').getAttribute("data-metier");
+    await page.screenshot({ path: `${OUT}/${nom}-0f-parties.png`, fullPage: nom === "ordi" });
+    await L().locator('[data-v="a"]').click();
+    for (let i = 0; i < 3; i++) await L().locator("[data-art]").nth(i).check();
+    assert.ok(await L().locator("[data-art]").nth(3).isDisabled(), "4e artisan bloqué");
+    await page.screenshot({ path: `${OUT}/${nom}-0g-choix-artisans.png`, fullPage: nom === "ordi" });
+    await L().locator('[data-action="envoi-metier"]').click();
+    assert.match(await L().innerText(), /Envoyé à 3 artisans/);
+    await page.goto(URL + "#/pro/artisan");
+    await page.selectOption("[data-metier]", metierTest);
+    for (const d of await page.locator(".demande .d-resume").all()) await d.click();
+    assert.match(await page.locator(".demande").filter({ hasText: "Grès cérame 60×60 test" }).innerText(), /Souhaits du client[\s\S]*Grès cérame 60×60 test[\s\S]*Joints gris test/);
+    await page.screenshot({ path: `${OUT}/${nom}-0h-souhaits-artisan.png`, fullPage: nom === "ordi" });
+
+    /* négociant : sa fiche (services, coordonnées, horaires), visible sur la fiche de la maison ; pas d'offres */
+    await page.goto(URL + "#/pro/negociant");
+    await page.fill('[data-negfiche="nom"]', "Négoce Test");
+    await page.locator('[data-negfiche="nom"]').dispatchEvent("change");
+    assert.match(await page.locator(".fiche-neg").innerText(), /Négoce Test[\s\S]*Livraison sur chantier[\s\S]*Lundi/);
+    /* types de matériaux vendus : obligatoires */
+    await page.check('[data-negrayon="sanitaire"]');
+    assert.match(await page.locator(".fiche-neg").innerText(), /Matériaux vendus[\s\S]*Sanitaire et plomberie/);
+    while (await page.locator("[data-negrayon]:checked").count()) await page.locator("[data-negrayon]:checked").first().click();
+    await page.locator(".alerte-mini").waitFor();
+    await page.check('[data-negrayon="sanitaire"]');
+    await page.check('[data-negrayon="gros"]');
+    await page.check('[data-negrayon="conteneur"]');
+    assert.match(await page.locator(".fiche-neg").innerText(), /Conteneurs à déchets/);
+    for (const r of ["engins", "echafaudage"]) assert.equal(await page.locator(`[data-negrayon="${r}"]`).count(), 1);
+    assert.equal(await page.locator(".alerte-mini").count(), 0);
+    assert.equal(await page.getByText("Envoyer mon offre").count(), 0);
+    await page.screenshot({ path: `${OUT}/${nom}-0d-negociant.png`, fullPage: nom === "ordi" });
+    await page.goto(URL + "#/pro/negprix");
+    await page.fill('[data-negprix="R19"]', "25");
+    await page.locator('[data-negprix="R19"]').dispatchEvent("change");
+    /* agence : annonce libre, estimation Valou facultative (décochée au départ) */
+    await page.goto(URL + "#/pro/agence");
+    assert.equal(await page.locator('[data-annonce="valou"]').isChecked(), false);
+    assert.equal(await page.locator(".a-valou").count(), 0);
+    for (const d of ["demo-artisan", "demo-negociant"]) { await page.goto(URL + "#/" + d); await page.locator(".etapes-demo li").nth(3).waitFor(); }
+    await page.goto(URL + "#/");
     await page.getByText("Maison de démonstration A").first().click();
     await page.getByText("← Mes maisons").click();
 
@@ -91,21 +189,23 @@ try {
     if (nom === "ordi") await page.pdf({ path: `${OUT}/dossier-banque-exemple.pdf`, format: "A4", printBackground: true });
 
     /* professionnels, moteur, feuille de route */
-    await page.locator('.nav-i[href="#/pro/artisan"]').click();
+    await page.locator('.nav-i[href="#/pro"]').click();
+    await page.getByText("Je suis artisan").click();
     await page.locator(".demande").first().waitFor();
     await page.selectOption("[data-metier]", "carreleur");
     await page.locator(".demande").first().waitFor();
+    if (!(await page.locator(".demande .d-lots").first().isVisible())) await page.locator(".demande .d-resume").first().click();
     assert.match(await page.locator(".d-lots").first().innerText(), /carrelage/i);
-    await page.getByText("Proposer un devis").first().click();
-    await page.locator(".d-act.ok").waitFor();
+    if (await page.getByText("Envoyer un devis").count()) await page.getByText("Envoyer un devis").first().click(); // sinon : l'artisan a déjà répondu
+    await page.locator(".d-act.ok").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-artisan.png`, fullPage: nom === "ordi" });
     for (const [o, sel] of [["courtier", ".dossier-c"], ["agence", ".annonce"]]) {
-      await page.locator(`.onglet[href="#/pro/${o}"]`).click();
+      await page.goto(URL + "#/pro/" + o);
       await page.locator(sel).first().waitFor();
       await page.screenshot({ path: `${OUT}/${nom}-8-${o}.png`, fullPage: nom === "ordi" });
     }
     /* l'artisan encode ses tarifs (confidentiels) */
-    await page.locator('.onglet[href="#/pro/tarifs"]').click();
+    await page.goto(URL + "#/pro/tarifs");
     await page.locator(".confidentiel").waitFor();
     await page.fill('[data-tarif="sol_carrelage"]', "48");
     await page.locator('[data-tarif="sol_carrelage"]').dispatchEvent("change");
@@ -132,13 +232,14 @@ try {
     assert.equal(await page.locator(".q-table tbody tr").count(), 22);
     /* mode présentation : hoono.be/demo/#/presentation remet les maisons de démonstration à zéro */
     await page.goto(URL + "#/presentation");
-    await page.waitForFunction(() => location.hash === "#/");
+    await page.waitForFunction(() => location.hash === "#/bienvenue"); // la remise à zéro ramène à la page d'intro
+    await page.getByText("Commencer la démo →").click();
     await page.locator(".maison").first().waitFor();
     assert.match(await page.locator(".grille").innerText(), /Maison de démonstration A[\s\S]*Maison de démonstration B/);
     await page.locator('.nav-i[href="#/feuille-de-route"]').click();
     await page.locator(".phases").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-10-feuille.png`, fullPage: nom === "ordi" });
-    await page.goto(URL);
+    await page.goto(URL + "#/");
     await page.locator(".maison").first().waitFor();
 
     /* ajouter une maison en 30 secondes */
@@ -200,7 +301,7 @@ try {
     /* une pièce : on l'ajoute, on l'ouvre, on remplit les postes imposés */
     await page.fill("#np-nom", "Chambre test");
     await page.getByText("＋ Ajouter une pièce").click();
-    await page.locator(".titre-piece").waitFor();
+    await page.locator('.at-tete:has-text("Chambre test")').waitFor();
     await page.fill('[data-pc="sol"]', "12");
     await page.locator('[data-pc="sol"]').dispatchEvent("change");
     assert.equal(await page.getAttribute('[data-pc="murs"]', "placeholder"), "32,4");
@@ -209,21 +310,20 @@ try {
     await page.check('[data-pc="chOn"]');
     await page.fill('[data-pc="chN"]', "2");
     await page.locator('[data-pc="chN"]').dispatchEvent("change");
-    assert.match(await page.locator(".titre-piece").innerText(), /Budget de la pièce : [1-9]/);
+    assert.match(await page.locator(".at-tete").innerText(), /Budget de la pièce : [1-9]/);
     await page.screenshot({ path: `${OUT}/${nom}-3b-piece.png`, fullPage: nom === "ordi" });
-    await page.getByText("✓ Pièce terminée").click();
-    await page.locator(".carte-piece").first().waitFor();
-    assert.match(await page.locator(".carte-piece").first().innerText(), /Murs · Plafond · 2 châssis/);
-    /* toute la maison : liste fixe, on remplit une quantité */
-    await page.locator('details:has([data-mq="i_pi"]) > summary').click();
+    assert.match(await page.locator('.at-item.on').innerText(), /Chambre test[\s\S]*€/);
+    /* rénovations générales : liste fixe, on remplit une quantité */
+    await page.locator('.at-item:has-text("Menuiseries")').click();
+    await page.locator('[data-mq="i_pi"]').waitFor();
     await page.fill('[data-mq="i_pi"]', "4");
     await page.locator('[data-mq="i_pi"]').dispatchEvent("change");
     /* escalier : 16 marches = 1 escalier */
-    await page.locator('details:has([data-mmarches="i_es_1"]) > summary').click();
+    await page.locator('.at-item:has-text("Escalier")').click();
     await page.fill('[data-mmarches="i_es_1"]', "16");
     await page.locator('[data-mmarches="i_es_1"]').dispatchEvent("change");
-    assert.match(await page.locator('tr:has([data-mmarches="i_es_1"])').innerText(), /€/);
-    await page.locator('[data-l$=":soiMeme"]').first().check();
+    assert.match(await page.locator('.at-ligne:has([data-mmarches="i_es_1"])').innerText(), /€/);
+    if (await page.locator('.at-item:has-text("Estimation rapide")').count()) { await page.locator('.at-item:has-text("Estimation rapide")').click(); await page.locator('[data-l$=":soiMeme"]').first().check(); }
     await page.locator(".vrai-cout .gros").waitFor();
     assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), apres);
 

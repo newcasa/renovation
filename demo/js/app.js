@@ -3,7 +3,7 @@ import { chargerReferences } from "./donnees.js";
 import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
-import { ecranPro, ecranMoteur, ecranFeuille } from "./vitrine.js";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, cleLigne } from "./vitrine.js";
 import { ecranQuestionnaire, PIECES_QUESTIONNAIRE } from "./questionnaire.js";
 import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js";
 
@@ -29,8 +29,8 @@ function entete(actif) {
       ? `<span class="nav-i off" title="Prochaine étape">${t}<small>bientôt</small></span>`
       : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   return `<header class="top">
-    <a href="#/" class="marque" aria-label="Valou, accueil"><img src="../logo.png" alt="Valou"></a>
-    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/pro/artisan", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
+    <a href="#/" class="marque" aria-label="Valou, accueil"><img src="img/logo-valou.png" alt="Valou"></a>
+    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
   </header>`;
 }
 
@@ -53,6 +53,13 @@ function ecranAccueil() {
       <p>Prix d'achat, droits d'enregistrement, notaire et travaux : le vrai budget, poste par poste, avant de faire une offre.</p>
       <span class="actions-g"><a class="btn" href="#/ajouter">＋ Ajouter une maison</a><a class="btn sec" href="#/questionnaire">📝 Questionnaire de visite à imprimer</a></span>
     </section>
+    <section class="avantages av-particulier"><b>Pour vous, c'est gratuit</b><ul>
+      <li>Le vrai coût avant de faire une offre : prix, droits, notaire et travaux</li>
+      <li>Vos maisons comparées sur leur vrai coût, PEB compris</li>
+      <li>La visite guidée pièce par pièce, avec les photos</li>
+      <li>Un dossier complet pour la banque</li>
+      <li>Votre projet envoyé aux artisans, qui le comprennent sans se déplacer</li>
+    </ul></section>
     ${maisons.length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>Aucune maison pour l'instant.</p></div>`}
     ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="presentation">🎬 Préparer une présentation (tout remettre à zéro)</button></p>` : ""}
   </main>`;
@@ -158,6 +165,80 @@ function chargerDemo() {
 }
 
 const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite${n ? ` (${n})` : ""}</a>`; };
+
+/* ---------- les travaux : menu à gauche (rénovations générales, pièces), panneau à droite ---------- */
+let atelierSel = { maisonId: null, sel: null };
+const ICONES_GROUPE = { "Chauffage": "🔥", "Menuiseries": "🪟", "Électricité": "💡", "Sanitaire et chauffage": "🚿", "Gros œuvre": "🧱", "Isolation": "🧤", "Toiture": "🏠", "Extérieurs": "🌳", "Escalier": "🪜", "Estimation rapide": "⚡", "Cuisine et salle de bain": "🛁", "Finitions intérieures": "🎨" };
+function atelier(m, b, o) {
+  const groupes = ["Chauffage", ...[...new Set(o.fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y))];
+  if (o.rapidesHTML) groupes.unshift("Estimation rapide");
+  const totalGroupe = g => g === "Chauffage" ? b.lignes.filter(l => l.src === "chauffage").reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0)
+    : g === "Estimation rapide" ? o.horsPieces.filter(l => POSTES_PIECES.test(l.k)).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0)
+    : o.fixes.filter(p => groupe(p) === g).reduce((s, p) => { const l = o.ligneDe(p.k); return s + (l && l.fiab ? l.total[1] : 0); }, 0);
+  const totalPiece = pc => b.lignes.filter(l => l.pieceId === pc.id).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
+  if (atelierSel.maisonId !== m.id || !atelierSel.sel || (atelierSel.sel.startsWith("p:") && !(m.pieces || []).some(pc => "p:" + pc.id === atelierSel.sel))) {
+    atelierSel = { maisonId: m.id, sel: (m.pieces || []).length ? "p:" + m.pieces[0].id : "g:Chauffage" };
+  }
+  const sel = atelierSel.sel;
+  const item = (cle, ico, nom, t, style = "") => `<button class="at-item ${sel === cle ? "on" : ""}" data-action="atelier" data-sel="${esc(cle)}" ${style ? `style="${style}"` : ""}>
+      <span class="at-ico">${ico}</span><span class="at-nom">${esc(nom)}</span>${t ? `<small class="at-tot">${euros(t, 10)}</small>` : ""}<span class="at-chev">›</span></button>`;
+  const menu = `<aside class="at-menu">
+    <div class="at-titre">Rénovations générales</div>
+    ${groupes.map(g => item("g:" + g, ICONES_GROUPE[g] || "•", g, totalGroupe(g))).join("")}
+    <div class="at-titre">Pièces <a href="#/maison/${m.id}/photos" class="at-lien">📷 Photos de la visite${photosDe(m).length ? ` (${photosDe(m).length})` : ""}</a></div>
+    ${(m.pieces || []).map(pc => item("p:" + pc.id, iconePiece(pc), pc.nom, totalPiece(pc), stylePiece(m, pc))).join("") || `<p class="mu petit-t at-vide">Aucune pièce pour l'instant.</p>`}
+    <div class="at-ajout">
+      <input id="np-nom" placeholder="Nouvelle pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
+      <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
+      <button class="btn sec petit-btn" data-action="ajout-piece">＋ Ajouter une pièce</button>
+    </div>
+  </aside>`;
+  let panneau = "";
+  if (sel.startsWith("p:")) {
+    const pc = m.pieces.find(x => "p:" + x.id === sel);
+    panneau = `<div class="at-tete" style="${stylePiece(m, pc)}"><span class="at-ico grand">${iconePiece(pc)}</span><div><h2>${esc(pc.nom)}</h2><small class="mu">Budget de la pièce : <b>${euros(totalPiece(pc), 10)}</b></small></div>
+      <button class="btn lien petit-btn" data-action="suppr-piece" data-id="${pc.id}">Supprimer la pièce</button></div>
+      <div class="at-piece" style="${stylePiece(m, pc)}">${corpsPiece(m, pc)}</div>`;
+  } else {
+    const g = sel.slice(2);
+    const tete = `<div class="at-tete"><span class="at-ico grand">${ICONES_GROUPE[g] || "•"}</span><div><h2>${esc(g)}</h2>${totalGroupe(g) ? `<small class="mu">Total : <b>${euros(totalGroupe(g), 10)}</b></small>` : `<small class="mu">Remplissez la quantité des postes à prévoir.</small>`}</div></div>`;
+    if (g === "Chauffage") {
+      panneau = tete + `<div class="at-corps">${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
+        ${o.chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
+        ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="at-ligne"><span class="at-n">${esc(R.postes[l.k].n)}${l.q > 1 ? ` × ${nombre(l.q)}` : ""}</span><span></span><span></span><b class="at-p">${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
+        ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${o.chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}</div>`;
+    } else if (g === "Estimation rapide") {
+      panneau = tete + `<div class="at-corps">${o.rapidesHTML}</div>`;
+    } else {
+      panneau = tete + `<div class="at-liste">${o.fixes.filter(p => groupe(p) === g).map(p => { const l = o.ligneDe(p.k); return `<div class="at-ligne ${l ? "rempli" : ""}">
+        <span class="at-n">${esc(p.n)}</span>
+        <span class="at-q">${/escalier/.test(p.u)
+          ? `<input type="number" min="0" step="1" inputmode="numeric" data-mmarches="${p.k}" value="${esc(l ? (l.marches ?? l.q * MARCHES_PAR_ESCALIER) : "")}" placeholder="0" aria-label="Nombre de marches : ${esc(p.n)}"><small>marches</small>`
+          : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>`}</span>
+        <label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label>
+        <b class="at-p">${l && l.fiab ? euros(l.total[1], 10) : ""}</b></div>`; }).join("")}
+        ${g === "Escalier" ? `<p class="mu petit-t">${MARCHES_PAR_ESCALIER} marches = 1 escalier.</p>` : ""}</div>`;
+    }
+  }
+  return `<section class="carte atelier-bloc"><h2>Les travaux</h2>
+    <p class="mu">Choisissez une rénovation générale ou une pièce dans le menu, puis remplissez les postes. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
+    <div class="atelier">${menu}<div class="at-panneau" id="at-panneau">${panneau}</div></div></section>`;
+}
+
+/* ---------- envoyer le projet aux artisans (démonstration) ---------- */
+function panneauEnvoi(m, b) {
+  const metiers = METIERS.filter(x => x.id !== "general" && b.postes.some(p => x.f(p.k) && p.QL > 0));
+  const nbPhotos = photosDe(m).length;
+  if (m.envoi && envoiOuvert !== m.id) return `<section class="carte envoi ok-envoi"><b>📨 Projet envoyé aux artisans le ${esc(new Date(m.envoi.date).toLocaleDateString("fr-BE"))}</b>
+    <p class="mu">${esc(m.envoi.metiers.map(id => (METIERS.find(x => x.id === id) || {}).t).filter(Boolean).join(", "))} · avec le budget${nbPhotos ? ` et ${nbPhotos} photo${nbPhotos > 1 ? "s" : ""}` : ""}. Démonstration : aucun envoi réel.</p>
+    <span class="actions-g"><a class="btn sec" href="#/pro/artisan">Voir ce que reçoit l'artisan →</a><button class="btn lien" data-action="envoi-ouvrir">Renvoyer</button></span></section>`;
+  if (envoiOuvert !== m.id) return `<section class="carte envoi"><div class="env-tete"><div><b>Trouver les artisans</b><p class="mu">Envoyez le projet chiffré${nbPhotos ? `, avec ses ${nbPhotos} photo${nbPhotos > 1 ? "s" : ""},` : ""} aux artisans de votre zone : ils comprennent le chantier sans se déplacer.</p></div>
+    <button class="btn" data-action="envoi-ouvrir" ${metiers.length ? "" : "disabled"}>📨 Envoyer le projet aux artisans</button></div></section>`;
+  return `<section class="carte envoi"><b>À quels artisans envoyer le projet ?</b>
+    <div class="choix-liste">${metiers.map(x => `<label class="cb"><input type="checkbox" data-envoi-metier="${x.id}" checked> ${esc(x.t)} <small class="mu">(${b.postes.filter(p => x.f(p.k) && p.QL > 0).length} poste${b.postes.filter(p => x.f(p.k) && p.QL > 0).length > 1 ? "s" : ""})</small></label>`).join("")}</div>
+    <p class="mu petit-t">Chaque artisan reçoit les travaux de son métier, le budget estimé et les photos des pièces concernées. Vos coordonnées ne sont transmises que si vous acceptez son devis.</p>
+    <span class="actions-g"><button class="btn" data-action="envoi-ok">Envoyer</button><button class="btn lien" data-action="envoi-annuler">Annuler</button></span></section>`;
+}
 
 /* ---------- carte « Performance énergétique (PEB) » ---------- */
 function carteEnergie(m, b) {
@@ -304,32 +385,7 @@ function ecranMaison(m) {
       </div>
     </div>
 
-    <section class="carte">
-      <h2>Les pièces</h2>
-      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
-      <p>${boutonPhotosMaison(m)}</p>
-      <div class="grille-pieces">${cartesPieces}</div>
-      <div class="ajout-piece">
-        <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
-        <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
-        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
-      </div>
-    </section>
-
-    <section class="carte">
-      <h2>Le chauffage</h2>
-      ${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
-      ${chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
-      ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
-      ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
-    </section>
-
-    <section class="carte">
-      <h2>Structure, toiture et équipements</h2>
-      <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
-      ${rapidesHTML}
-      ${grpFixes}
-    </section>
+    ${atelier(m, b, { horsPieces, ligneDe, fixes, rapidesHTML, chf })}
 
     <div class="fin-page">
         ${aides()}
@@ -378,17 +434,23 @@ function ecranMaison(m) {
         })()}
     </div>
 
+    <section class="carte negs"><h2>Négociants de votre région</h2>
+      <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
+      ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
+
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
     </div>
+
+    ${panneauEnvoi(m, b)}
   </main>`;
 }
 
 /* ---------- pièces : icône, résumé, écran d'une pièce ---------- */
 /* une couleur par pièce : fond doux + bord marqué (gardée quand on supprime une autre pièce) */
-const COULEURS = [["#F6E9D2", "#C9A35A"], ["#E1F0E7", "#3E8E66"], ["#E4EBF7", "#4C72B0"], ["#F7E1E7", "#C0587A"], ["#ECE4F5", "#7B5EA7"],
-  ["#DFF1F0", "#2F8F8A"], ["#FBE6D6", "#D9793A"], ["#EAEFD9", "#7D8F36"], ["#F3DEDA", "#A8503F"], ["#E2E8EC", "#5C7080"]];
+const COULEURS = [["#FDEBDC", "#EC8224"], ["#E1F0E7", "#3E8E66"], ["#E4EBF7", "#4C72B0"], ["#F7E1E7", "#C0587A"], ["#ECE4F5", "#7B5EA7"],
+  ["#DFF1F0", "#2F8F8A"], ["#FFF4D1", "#C29A0C"], ["#EAEFD9", "#7D8F36"], ["#F3DEDA", "#A8503F"], ["#E2E8EC", "#5C7080"]];
 const couleurPiece = (m, pc) => COULEURS[(pc.c ?? Math.max(0, (m.pieces || []).indexOf(pc))) % COULEURS.length];
 const stylePiece = (m, pc) => { const [f, a] = couleurPiece(m, pc); return `--pc-fond:${f};--pc-acc:${a}`; };
 const iconePiece = pc => (TYPES_PIECE.find(t => t[0] === pc.type) || TYPES_PIECE[0])[2];
@@ -406,7 +468,7 @@ function resumePiece(pc) {
   return x.join(" · ");
 }
 
-function ecranPiece(m, pc) {
+function corpsPiece(m, pc) {
   const b = calculerBudget(R, m), L = b.lignes.filter(l => l.pieceId === pc.id);
   const bud = sec => { const t = L.filter(l => l.sec === sec).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0); return t ? `<span class="rb-bud">${euros(t, 10)}</span>` : ""; };
   const fiab = sec => { const l = L.find(x => x.sec === sec); return l ? badge(l.fiab) : ""; };
@@ -415,12 +477,7 @@ function ecranPiece(m, pc) {
   const num = (f, t, ph = "") => `<label>${t}<input type="number" min="0" step="any" inputmode="decimal" data-pc="${f}" value="${esc(pc[f] ?? "")}" placeholder="${esc(ph)}"></label>`;
   const sol = +pc.sol || 0, murs = mursPiece(pc);
   const rub = (ico, t, sec, corps) => `<section class="carte rubrique"><div class="rb-tete"><span class="rb-ico">${ico}</span><h2>${t}</h2>${fiab(sec)}${bud(sec)}</div>${corps}</section>`;
-  const total = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
-  return `${entete("maisons")}
-  <main class="etroit piece-ecran" style="${stylePiece(m, pc)}">
-    <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
-    <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}</h1><p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
-
+  return `
     <section class="carte"><div class="champs">
       <label>Nom de la pièce<input data-pc="nom" value="${esc(pc.nom)}"></label>
       <label>Type de pièce${sel("type", TYPES_PIECE.map(([v, t]) => [v, t]))}</label>
@@ -463,6 +520,17 @@ function ecranPiece(m, pc) {
         <p>${boutonPhoto(`📷 Ajouter une photo de « ${esc(pc.nom)} »`, pc.nom)}</p></section>`;
     })()}
 
+`;
+}
+
+function ecranPiece(m, pc) {
+  const b = calculerBudget(R, m), L = b.lignes.filter(l => l.pieceId === pc.id);
+  const total = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
+  return `${entete("maisons")}
+  <main class="etroit piece-ecran" style="${stylePiece(m, pc)}">
+    <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
+    <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}</h1><p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
+    ${corpsPiece(m, pc)}
     <p><a class="btn" href="#/maison/${m.id}">✓ Pièce terminée</a></p>
   </main>`;
 }
@@ -493,6 +561,30 @@ let selection = null; // identifiants des maisons comparées (3 au plus)
 let metier = "general"; // métier choisi sur l'écran artisan
 let sim = { k: "sol_carrelage", n: 25 }; // simulation des prix locaux (Notre moteur)
 let tarifs = (() => { try { return JSON.parse(localStorage.getItem("valou_demo_tarifs") || "null") || { p: {} }; } catch (e) { return { p: {} }; } })();
+let prixNeg = (() => { try { return JSON.parse(localStorage.getItem("valou_demo_prixneg") || "null") || {}; } catch (e) { return {}; } })();
+let negOrigine = null;
+/* prix du négociant (démonstration) : utilisés comme prix négociant dans le moteur */
+function appliquerPrixNeg() {
+  if (!R) return;
+  if (!negOrigine) negOrigine = { ...R.px.neg };
+  R.px.neg = { ...negOrigine };
+  Object.entries(prixNeg).forEach(([id, p]) => { R.px.neg[id] = { ...(negOrigine[id] || {}), p, s: "Votre négoce (démo)" }; });
+  try { localStorage.setItem("valou_demo_prixneg", JSON.stringify(prixNeg)); } catch (e) {}
+}
+let envoiOuvert = null;
+/* fiche du négociant et annonce de l'agence (démonstration, gardées sur cet appareil) */
+const FICHE_EXEMPLE = { nom: "Matériaux Exemple", fictif: true, adresse: "Rue de l'Exemple 1, 5100 Jambes", tel: "081 00 00 00", email: "contact@exemple.be", site: "",
+  rayons: ["gros", "toiture", "isolation", "bois", "carrelage", "peinture", "outillage", "echafaudage", "conteneur"],
+  services: "Livraison sur chantier\nLocation de matériel\nDécoupe sur mesure\nConseil en isolation",
+  horaires: { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" } };
+const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; } };
+const ecrire = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+let negFiche = lire("valou_demo_negfiche", JSON.parse(JSON.stringify(FICHE_EXEMPLE)));
+if (negFiche.fictif && !negFiche.rayons) negFiche.rayons = [...FICHE_EXEMPLE.rayons]; // fiche d'exemple d'une version précédente
+/* la fiche n'apparaît sur les projets que si le négociant a précisé ses types de matériaux */
+const negVisible = () => negFiche && negFiche.nom && (negFiche.rayons || []).length;
+const metiersDe = b => METIERS.filter(x => x.id !== "general" && b.postes.some(p => x.f(p.k) && p.QL > 0)).map(x => x.id).concat("general");
+let annonce = lire("valou_demo_annonce", { titre: "", prix: "", texte: "", valou: false }); // maison dont le panneau « envoyer aux artisans » est ouvert
 const sauverTarifs = () => { try { localStorage.setItem("valou_demo_tarifs", JSON.stringify(tarifs)); } catch (e) {} };
 
 function resume(m) {
@@ -576,7 +668,7 @@ function ecranDossier(m) {
       ${m.notaireReel || !c.notaireCalcul ? `<label>Honoraires et frais du notaire, TVA comprise (€)<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="montant du notaire"></label>` : ""}
     </section>`}
     <article class="feuille">
-      <header class="f-tete"><img src="../logo.png" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
+      <header class="f-tete"><img src="img/logo-valou.png" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
       ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
       <h1>${esc(m.nom || "Maison")}</h1>
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
@@ -611,7 +703,7 @@ function ecranDossier(m) {
         <tr class="sous"><td colspan="2">TVA</td><td class="r">${euros(b.TVA[1])}</td></tr>
         ${b.ANN[1] ? `<tr class="sous"><td colspan="2">Container à gravats</td><td class="r">${euros(b.ANN[1])}</td></tr>` : ""}
         <tr class="sous"><td colspan="2">Imprévus (${b.pi} %)</td><td class="r">${euros(b.IM[1])}</td></tr>
-        <tr class="tot"><td colspan="2">Total des travaux (moyen)</td><td class="r">${euros(b.T[1], 100)}</td></tr>
+        <tr class="tot"><td colspan="3">Total des travaux (moyen)</td><td class="r">${euros(b.T[1], 100)}</td></tr>
       </table>
 
       <h2>4. Hypothèses et fiabilité</h2>
@@ -761,23 +853,173 @@ function preparerPresentation(direct) {
   maisons.filter(m => m.demo).forEach(m => { supprimerPhotosMaison(m.id).catch(() => {}); delete photosCache[m.id]; });
   chargerDemo();
   tarifs = { p: {} }; sauverTarifs();
+  prixNeg = {}; appliquerPrixNeg(); envoiOuvert = null;
+  negFiche = JSON.parse(JSON.stringify(FICHE_EXEMPLE)); ecrire("valou_demo_negfiche", negFiche);
+  annonce = { titre: "", prix: "", texte: "", valou: false }; ecrire("valou_demo_annonce", annonce);
+  maisons.forEach(m => { if (m.demo) { delete m.envoi; delete m.reponses; } });
   sim = { k: "sol_carrelage", n: 25 }; metier = "general"; selection = null;
   fermerCamera(); visite = { maisonId: null, nom: "", saisie: true };
-  location.hash = "#/";
+  location.hash = "#/bienvenue";
   afficher();
+}
+
+/* ---------- écran : contacter un professionnel ---------- */
+/* artisans de démonstration par métier (fictifs) : le premier est celui qui répond dans la démo */
+const LIEUX_DEMO = [["Namur", 4], ["Gembloux", 9], ["Andenne", 14], ["Fosses-la-Ville", 17], ["Éghezée", 19]];
+function artisansDuMetier(id) {
+  const A = ARTISANS_EXEMPLE[id] || ARTISANS_EXEMPLE.general, base = A.nom.replace(/ Exemple$/, "");
+  return LIEUX_DEMO.map(([lieu, km], i) => ({ id: `${id}-${i + 1}`, nom: i ? `${base} Exemple ${String.fromCharCode(65 + i)}` : A.nom, lieu, km, tarifs: i < 3 }));
+}
+const ctOuvert = {};
+/* propositions de matériaux (texte libre : le client peut écrire ce qu'il veut ; aucun prix) */
+const MATERIAUX = [
+  [/carrelage/, ["Grès cérame 60×60", "Grès cérame 30×60", "Grès cérame imitation bois 20×120", "Grès cérame 120×60 grand format", "Carreaux de ciment", "Faïence murale 30×60", "Mosaïque", "Pierre naturelle"]],
+  [/parquet/, ["Parquet chêne massif", "Parquet contrecollé chêne", "Sol stratifié", "Sol vinyle (PVC) clipsable"]],
+  [/peinture/, ["Peinture mate blanche", "Peinture velours", "Peinture satinée (pièces humides)", "Peinture de couleur (référence à fournir)"]],
+  [/plafonnage/, ["Plâtre projeté", "Plaques de plâtre (Gyproc)", "Enduit lissé"]],
+  [/^i_ch|chassis|ch_/, ["PVC blanc", "PVC anthracite", "Aluminium", "Bois", "Double vitrage", "Triple vitrage"]],
+  [/^i_(pe)$/, ["Porte PVC", "Porte aluminium", "Porte bois", "Porte avec vitrage"]],
+  [/^i_(pi)$/, ["Porte tubulaire blanche", "Porte pleine", "Porte vitrée", "Porte coulissante"]],
+  [/meu_cuisine/, ["Cuisine en kit (montage seulement)", "Cuisine sur mesure", "Plan de travail stratifié", "Plan de travail en pierre"]],
+  [/meu_sdb/, ["Douche à l'italienne", "Baignoire", "Meuble double vasque", "Paroi de douche vitrée"]],
+  [/^wc_/, ["WC suspendu", "WC au sol", "Lave-mains"]],
+  [/i_rad|^rad/, ["Radiateur acier à panneaux", "Radiateur design", "Sèche-serviettes"]],
+  [/i_(cv|to)_/, ["Tuiles terre cuite", "Tuiles béton", "Ardoises naturelles", "Ardoises artificielles", "EPDM"]],
+  [/i_st|isol/, ["Laine de roche", "Laine de verre", "Fibre de bois", "PIR / PUR"]],
+];
+const suggestionsMateriau = k => (MATERIAUX.find(([re]) => re.test(k)) || [, []])[1];
+/* les parties du projet d'un métier : chaque poste, pièce par pièce (sans ce que l'on fait soi-même) */
+function partiesMetier(m, b, x) {
+  const P = {};
+  b.lignes.filter(l => x.f(l.k) && !l.soiMeme && R.postes[l.k] && Number(String(l.q).replace(",", ".")) > 0).forEach(l => {
+    const cle = cleLigne(l), pc = l.pieceId && (m.pieces || []).find(y => y.id === l.pieceId);
+    const o = (P[cle] = P[cle] || { cle, k: l.k, n: R.postes[l.k].n, u: unitePoste(R.postes[l.k].u, l.k), piece: pc ? pc.nom : "Toute la maison", q: 0, total: 0, fiab: l.fiab });
+    o.q += Number(String(l.q).replace(",", ".")); o.total += l.fiab ? l.total[1] : 0;
+  });
+  return Object.values(P).sort((u, v) => (u.piece === "Toute la maison") - (v.piece === "Toute la maison") || u.piece.localeCompare(v.piece, "fr"));
+}
+
+function ecranContacts(id) {
+  const m = id && trouver(id);
+  if (!m) {
+    return `${entete("contacts")}<main>
+      <h1>Contacter un professionnel</h1>
+      <p class="intro mu">Choisissez une maison : vous verrez le résumé du projet et les contacts des artisans et des négociants.</p>
+      ${maisons.length ? `<div class="grille">${maisons.map(x => {
+        const b = calculerBudget(R, x), c = coutTotal(x, b), rep = (x.reponses || []).filter(r => r.type !== "non").length;
+        return `<a class="carte maison" href="#/contacts/${x.id}">
+          <div class="m-tete"><b>${esc(x.nom || "Maison")}</b>${pebBadge(x.peb)}</div>
+          <div class="mu">${esc(x.commune || "")}</div>
+          <div class="m-chiffres"><div><small>Vrai coût</small><b>${euros(c.total[1], 100)}</b></div><div><small>Artisans</small><b class="or">${x.envoi ? (rep ? `${rep} réponse${rep > 1 ? "s" : ""}` : "envoyé") : "à contacter"}</b></div></div>
+        </a>`;
+      }).join("")}</div>` : `<div class="carte vide"><p>Aucune maison pour l'instant.</p><a class="btn" href="#/ajouter">＋ Ajouter une maison</a></div>`}
+    </main>`;
+  }
+  const b = calculerBudget(R, m), c = coutTotal(m, b), P = photosDe(m);
+  const metiers = METIERS.filter(x => x.id !== "general").map(x => ({ x, lots: b.postes.filter(p => x.f(p.k) && p.QL > 0) })).filter(o => o.lots.length);
+  const ligneMetier = ({ x, lots }) => {
+    const t = lots.reduce((s, p) => s + p.total[1], 0);
+    const envoye = m.envoi && m.envoi.metiers.includes(x.id), r = (m.reponses || []).find(y => y.metier === x.id), A = ARTISANS_EXEMPLE[x.id] || ARTISANS_EXEMPLE.general;
+    const choisis = (m.artisansChoisis || {})[x.id] || [], liste = artisansDuMetier(x.id);
+    const nomsChoisis = choisis.map(id => (liste.find(a => a.id === id) || {}).nom).filter(Boolean);
+    /* les parties du projet de ce métier : un poste dans une pièce (ou pour toute la maison) */
+    const parts = partiesMetier(m, b, x);
+    const exclues = new Set((m.partiesExclues || {})[x.id] || []);
+    const envoi = (m.envoiMetier || {})[x.id];
+    const incluse = q => (envoye && envoi && envoi.parts ? envoi.parts.includes(q.cle) : !exclues.has(q.cle));
+    const tSel = parts.filter(incluse).reduce((s, q) => s + q.total, 0), nSel = parts.filter(incluse).length;
+    const etat = !envoye ? `<span class="badge b-fourchette">Pas encore envoyé</span>`
+      : !r ? `<span class="badge b-estimation">Envoyé${nomsChoisis.length ? ` à ${nomsChoisis.length} artisan${nomsChoisis.length > 1 ? "s" : ""}` : ""} · en attente</span>`
+      : r.type === "non" ? `<span class="badge b-fourchette">Artisan pas disponible</span>`
+      : `<span class="badge b-reference">${r.type === "visite" ? "Visite proposée" : "Devis envoyé"}</span>`;
+    const ouvert = ctOuvert[m.id + ":" + x.id];
+    const projet = `<div class="ct-panneau"><p class="mu petit-t">Cochez les parties à envoyer. Exemple : vous carrelez vous-même la salle de bain, mais pas le séjour → ne cochez que le séjour.</p>
+      <table class="ct-projet"><thead><tr><th></th><th>Pièce</th><th>Poste</th><th class="ct-mat">Matériau souhaité <small>(facultatif)</small></th><th class="r">Quantité</th><th class="r">Budget</th></tr></thead><tbody>
+      ${parts.map(q => { const mat = (m.materiaux || {})[q.cle] || "", sug = suggestionsMateriau(q.k);
+        const champ = `<input class="ct-mat-in" data-mat="${esc(q.cle)}" value="${esc(mat)}" ${sug.length ? `list="sug-${esc(q.k)}"` : ""} placeholder="${esc(sug[0] ? `ex. ${sug[0]}` : "ex. marque, couleur, format")}" ${envoye ? "readonly" : ""} aria-label="Matériau souhaité : ${esc(q.piece)}, ${esc(q.n)}">`;
+        return `<tr class="${incluse(q) ? "" : "exclu"}"><td><input type="checkbox" data-part="${esc(q.cle)}" ${incluse(q) ? "checked" : ""} ${envoye ? "disabled" : ""} aria-label="Envoyer : ${esc(q.piece)}, ${esc(q.n)}"></td>
+        <td><b>${esc(q.piece)}</b></td><td>${esc(q.n)} ${badge(q.fiab)}<div class="ct-mat-tel">${champ}</div></td><td class="ct-mat">${champ}</td><td class="r">${esc(qte(q.q, q.u))}</td><td class="r">${q.total ? euros(q.total, 10) : "–"}</td></tr>`; }).join("")}
+      <tr class="tot"><td colspan="5">À envoyer : ${nSel} partie${nSel > 1 ? "s" : ""} sur ${parts.length} (TVA ${b.rate} % comprise)</td><td class="r"><b>${euros(tSel, 10)}</b></td></tr></tbody></table>
+      ${[...new Set(parts.map(q => q.k))].map(k => suggestionsMateriau(k).length ? `<datalist id="sug-${esc(k)}">${suggestionsMateriau(k).map(v => `<option value="${esc(v)}">`).join("")}</datalist>` : "").join("")}
+      <label class="ct-note">Remarque pour l'artisan <small class="mu">(facultatif)</small>
+        <textarea data-note-metier="${x.id}" rows="2" ${envoye ? "readonly" : ""} placeholder="ex. Carrelage déjà acheté, à poser seulement. Joints gris anthracite.">${esc((m.notesMetier || {})[x.id] || "")}</textarea></label>
+      <p class="mu petit-t">C'est exactement ce que reçoivent les artisans choisis : les parties cochées, le matériau souhaité, votre remarque et les photos des pièces concernées. Le budget reste une estimation : le matériau choisi peut le faire varier.</p></div>`;
+    const choix = `<div class="ct-panneau ct-choix" data-metier-choix="${x.id}">
+      <p class="mu petit-t">Cochez jusqu'à <b>3 artisans</b>, puis envoyez.</p>
+      ${liste.map(a => { const on = choisis.includes(a.id); return `<label class="cb ct-art"><input type="checkbox" data-art="${a.id}" ${on ? "checked" : ""} ${envoye || (!on && choisis.length >= 3) ? "disabled" : ""}>
+        <span><b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><small class="mu">${esc(a.lieu)} · à ${a.km} km${a.tarifs ? " · tarifs partagés avec Valou" : ""}</small></span></label>`; }).join("")}
+      ${envoye ? `<p class="envoye">📨 Projet envoyé${nomsChoisis.length ? ` à ${esc(nomsChoisis.join(", "))}` : ""} le ${esc(new Date((envoi || m.envoi).date).toLocaleDateString("fr-BE"))}. Démonstration : aucun envoi réel.</p>`
+        : `<button class="btn petit-btn" data-action="envoi-metier" data-metier="${x.id}" ${choisis.length && nSel ? "" : "disabled"}>📨 Envoyer ${nSel} partie${nSel > 1 ? "s" : ""}${choisis.length ? ` à ${choisis.length} artisan${choisis.length > 1 ? "s" : ""}` : ""}</button>
+          ${!nSel ? `<small class="mu"> Aucune partie cochée dans le projet.</small>` : ""}`}
+    </div>`;
+    return `<div class="contact-ligne">
+      <div><b>${esc(x.t)}</b><small class="mu">${lots.map(p => esc(p.n)).join(", ")}</small></div>
+      <div class="r"><small class="mu">${nSel < parts.length ? "À envoyer" : "Budget moyen"}</small><b>${euros(tSel, 10)}</b></div>
+      <div class="ct-etat">${etat}${r && r.type !== "non" ? `<div class="ct-coord"><b>${esc(A.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><span>📞 ${esc(A.tel)}</span></div>` : ""}</div>
+      <div class="ct-boutons">
+        <button class="ct-btn ${ouvert === "p" ? "on" : ""}" data-action="ct-ouvrir" data-metier="${x.id}" data-v="p">📋 Projet${nSel < parts.length ? ` (${nSel}/${parts.length})` : ""} <span>▾</span></button>
+        <button class="ct-btn ${ouvert === "a" ? "on" : ""}" data-action="ct-ouvrir" data-metier="${x.id}" data-v="a">👷 Artisans${choisis.length ? ` (${choisis.length}/3)` : ""} <span>▾</span></button>
+      </div>
+      ${ouvert === "p" ? projet : ouvert === "a" ? choix : ""}
+    </div>`;
+  };
+  return `${entete("contacts")}<main>
+    <a href="#/contacts" class="retour">← Mes maisons</a>
+    <div class="titre-maison"><h1>${esc(m.nom || "Maison")}</h1>${pebBadge(m.peb, true)}${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m²`].filter(Boolean).map(esc).join(" · ")}</p></div>
+    <section class="carte resume">
+      <h2>Résumé du projet</h2>
+      <div class="res-chiffres">
+        <div><small>Vrai coût</small><b>${euros(c.total[1], 100)}</b></div>
+        <div><small>Travaux (moyen)</small><b>${euros(b.T[1], 100)}</b></div>
+        <div><small>Pièces</small><b>${(m.pieces || []).length}</b></div>
+        <div><small>Photos de la visite</small><b>${P.length}</b></div>
+      </div>
+      <p><a class="btn sec petit-btn" href="#/maison/${m.id}">Voir la fiche complète →</a></p>
+    </section>
+    <section class="carte">
+      <div class="gp-tete"><h2>Artisans</h2><small class="mu">Pour chaque métier : consultez le projet, cochez jusqu'à 3 artisans, envoyez.</small></div>
+      ${metiers.length ? metiers.map(ligneMetier).join("") : `<p class="mu">Aucun travail encodé pour l'instant.</p>`}
+      <p class="mu petit-t">Les coordonnées d'un artisan apparaissent quand il répond à votre projet (visite ou devis).</p>
+    </section>
+    <section class="carte"><h2>Négociants de votre région</h2>${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
+  </main>`;
+}
+
+/* ---------- page d'intro ---------- */
+function ecranIntro() {
+  return `<main class="intro-page">
+    <div class="intro-boite">
+      <img class="intro-logo" src="img/logo-valou.png" alt="Valou">
+      <h1>Le vrai coût d'une maison à rénover, <span>avant de faire une offre.</span></h1>
+      <p class="intro-sous">Prix, notaire, travaux pièce par pièce : Valou chiffre tout, puis envoie votre projet aux bons artisans.</p>
+      <a class="btn intro-btn" href="#/">Commencer la démo →</a>
+      <ul class="intro-pour">
+        <li><b>🏠 Acheteurs</b><span>le vrai budget, gratuit</span></li>
+        <li><b>🔨 Artisans</b><span>des projets déjà chiffrés</span></li>
+        <li><b>🧱 Négociants</b><span>visibles sur les chantiers</span></li>
+        <li><b>🏦 Courtiers et agences</b><span>des dossiers complets</span></li>
+      </ul>
+      <p class="intro-note">Version de démonstration · maisons et professionnels fictifs</p>
+    </div>
+  </main>`;
 }
 
 /* ---------- routeur ---------- */
 function afficher() {
-  const h = location.hash.replace(/^#/, "") || "/";
+  const brut = location.hash.replace(/^#/, "");
+  const h = brut === "" ? "/bienvenue" : brut; // première ouverture de la démo : la page d'intro
   if (h === "/presentation" && R) { preparerPresentation(true); return; }
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/);
-  if (h === "/ajouter") html = ecranAjouter();
+  if (h === "/bienvenue") html = ecranIntro();
+  else if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
+  else if (h === "/contacts" || h.startsWith("/contacts/")) html = ecranContacts(h.split("/")[2]);
   else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
-  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs }, h.split("/")[2] || "artisan", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
+  else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs, prixNeg, negFiche, annonce, photos: m => photosDe(m) }, h.split("/")[2] || "", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
+  else if (h === "/demo-artisan" || h === "/demo-negociant") html = ecranDemoPro({ entete, maisonDemo: maisons.find(m => m.demo) }, h === "/demo-negociant" ? "negociant" : "artisan");
   else if (h === "/moteur") html = ecranMoteur({ R, entete, sim, tarifs });
   else if (h === "/feuille-de-route") html = ecranFeuille({ entete });
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
@@ -795,7 +1037,7 @@ function afficher() {
 /* ---------- interactions ---------- */
 
 const maisonCourante = () => {
-  const mm = location.hash.match(/^#\/(?:maison|dossier)\/(\w+)/);
+  const mm = location.hash.match(/^#\/(?:maison|dossier|contacts)\/(\w+)/);
   return mm && trouver(mm[1]);
 };
 
@@ -804,15 +1046,44 @@ document.addEventListener("click", e => {
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
   if (a === "imprimer") window.print();
+  if (a === "atelier" && m) {
+    atelierSel = { maisonId: m.id, sel: el.dataset.sel }; afficher();
+    if (window.innerWidth < 800) document.getElementById("at-panneau")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (a === "envoi-ouvrir" && m) { envoiOuvert = m.id; afficher(); }
+  if (a === "ct-ouvrir" && m) { const c = m.id + ":" + el.dataset.metier; ctOuvert[c] = ctOuvert[c] === el.dataset.v ? null : el.dataset.v; afficher(); }
+  if (a === "envoi-metier" && m) {
+    const id = el.dataset.metier, choisis = (m.artisansChoisis || {})[id] || [], x = METIERS.find(y => y.id === id);
+    const exclues = new Set((m.partiesExclues || {})[id] || []), parts = partiesMetier(m, calculerBudget(R, m), x).map(q => q.cle).filter(c => !exclues.has(c));
+    if (!choisis.length || !parts.length) return;
+    m.envoi = m.envoi || { date: Date.now(), metiers: [] };
+    if (!m.envoi.metiers.includes(id)) m.envoi.metiers.push(id);
+    m.envoiMetier = { ...(m.envoiMetier || {}), [id]: { date: Date.now(), artisans: choisis, parts } };
+    sauver(); afficher();
+  }
+  if (a === "envoi-annuler") { envoiOuvert = null; afficher(); }
+  if (a === "envoi-ok" && m) {
+    const ids = [...document.querySelectorAll("[data-envoi-metier]")].filter(x => x.checked).map(x => x.dataset.envoiMetier);
+    if (!ids.length) return;
+    m.envoi = { date: Date.now(), metiers: ids }; envoiOuvert = null; sauver(); afficher();
+  }
   if (a === "envoyer-banque") {
     document.getElementById("envoi").innerHTML = `<p class="alerte ok">✓ Dossier envoyé à votre banque. <small>(Démonstration : aucun envoi réel.)</small></p>`;
   }
   if (el.dataset.simN != null) { sim.n = +el.dataset.simN; afficher(); }
-  if (a === "pro-ok" || a === "pro-non") {
+  if (a === "pro-ok" || a === "pro-non" || a === "pro-visite") {
     const carte = el.closest(".demande");
+    const mm = trouver(carte.dataset.maison || "");
+    if (mm && carte.dataset.metier) {
+      mm.reponses = (mm.reponses || []).filter(r => r.metier !== carte.dataset.metier);
+      mm.reponses.push({ metier: carte.dataset.metier, type: a === "pro-ok" ? "devis" : a === "pro-visite" ? "visite" : "non", date: Date.now() });
+      sauver();
+    }
     carte.querySelector(".d-act").outerHTML = a === "pro-ok"
       ? `<span class="d-act ok">✓ Le client est prévenu : il recevra votre devis dans son espace Valou.</span>`
-      : `<span class="d-act mu">Demande transmise à un autre artisan.</span>`;
+      : a === "pro-visite"
+        ? `<span class="d-act ok">✓ Le client est prévenu : il recevra votre proposition de visite et choisira un moment.</span>`
+        : `<span class="d-act mu">Demande transmise à un autre artisan.</span>`;
   }
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "presentation") preparerPresentation();
@@ -828,7 +1099,8 @@ document.addEventListener("click", e => {
     m.pieces.push(pc);
     appliquerChauffage(m);
     sauver();
-    location.hash = `#/maison/${m.id}/piece/${pc.id}`;
+    if (/\/piece\//.test(location.hash) || !/^#\/maison\/\w+$/.test(location.hash)) location.hash = `#/maison/${m.id}/piece/${pc.id}`;
+    else { atelierSel = { maisonId: m.id, sel: "p:" + pc.id }; afficher(); }
   }
   if (a === "suppr-piece" && m && confirm("Supprimer cette pièce et ses travaux ?")) {
     m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; }); // chaque pièce garde sa couleur
@@ -855,6 +1127,23 @@ document.addEventListener("click", e => {
 
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  /* contacter : matériau souhaité et remarque pour l'artisan */
+  if (t.dataset.mat != null && m) { m.materiaux = { ...(m.materiaux || {}), [t.dataset.mat]: t.value.trim() }; sauver(); afficher(); return; }
+  if (t.dataset.noteMetier && m) { m.notesMetier = { ...(m.notesMetier || {}), [t.dataset.noteMetier]: t.value.trim() }; sauver(); return; }
+  /* contacter : parties du projet à envoyer */
+  if (t.dataset.part && m) {
+    const id = t.closest(".contact-ligne").querySelector("[data-action=ct-ouvrir]").dataset.metier, X = new Set((m.partiesExclues || {})[id] || []);
+    if (t.checked) X.delete(t.dataset.part); else X.add(t.dataset.part);
+    m.partiesExclues = { ...(m.partiesExclues || {}), [id]: [...X] };
+    sauver(); afficher(); return;
+  }
+  /* contacter : choix de 3 artisans au maximum par métier */
+  if (t.dataset.art && m) {
+    const id = t.closest("[data-metier-choix]").dataset.metierChoix, L = new Set((m.artisansChoisis || {})[id] || []);
+    if (t.checked) { if (L.size >= 3) { t.checked = false; return; } L.add(t.dataset.art); } else L.delete(t.dataset.art);
+    m.artisansChoisis = { ...(m.artisansChoisis || {}), [id]: [...L] };
+    sauver(); afficher(); return;
+  }
   /* photos de la visite */
   if (t.dataset.photoInput != null && m) {
     const nom = t.dataset.nom;
@@ -870,6 +1159,8 @@ document.addEventListener("change", e => {
     return;
   }
   if (t.dataset.peb && m) { m[t.dataset.peb] = t.dataset.peb === "peb" ? t.value || null : t.value === "" ? null : +t.value; sauver(); afficher(); return; }
+  if (t.dataset.negfiche || t.dataset.negrayon || t.dataset.neghor || t.dataset.annonce) { majProFormulaire(t); afficher(); return; }
+  if (t.dataset.negprix) { const v = t.value === "" ? null : +t.value; if (v > 0) prixNeg[t.dataset.negprix] = v; else delete prixNeg[t.dataset.negprix]; appliquerPrixNeg(); afficher(); return; }
   if (t.dataset.metier != null) { metier = t.value; afficher(); return; }
   if (t.dataset.simK != null) { sim.k = t.value; afficher(); return; }
   if (t.dataset.tarif) { tarifs.p[t.dataset.tarif] = t.value === "" ? null : +t.value; sauverTarifs(); afficher(); return; }
@@ -934,7 +1225,8 @@ document.addEventListener("change", e => {
     const l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === t.dataset.mme);
     if (l) l.soiMeme = t.checked;
   } else if (t.dataset.pc || t.dataset.pcwi) {
-    const mp = location.hash.match(/\/piece\/(\w+)/), pc = mp && (m.pieces || []).find(x => x.id === mp[1]);
+    const mp = location.hash.match(/\/piece\/(\w+)/), pid = mp ? mp[1] : atelierSel.maisonId === m.id && atelierSel.sel && atelierSel.sel.startsWith("p:") ? atelierSel.sel.slice(2) : null;
+    const pc = pid && (m.pieces || []).find(x => x.id === pid);
     if (!pc) return;
     if (t.dataset.pcwi) { const w = new Set(pc.wi || []); t.checked ? w.add(t.dataset.pcwi) : w.delete(t.dataset.pcwi); pc.wi = [...w]; }
     else { const f = t.dataset.pc; pc[f] = t.type === "checkbox" ? t.checked : t.type === "number" ? (t.value === "" ? null : +t.value) : t.value; }
@@ -946,8 +1238,18 @@ document.addEventListener("change", e => {
   afficher();
 });
 
+function majProFormulaire(t) {
+  if (t.dataset.negfiche) { negFiche[t.dataset.negfiche] = t.value; delete negFiche.fictif; ecrire("valou_demo_negfiche", negFiche); }
+  if (t.dataset.negrayon) {
+    const S = new Set(negFiche.rayons || []); t.checked ? S.add(t.dataset.negrayon) : S.delete(t.dataset.negrayon);
+    negFiche.rayons = [...S]; delete negFiche.fictif; ecrire("valou_demo_negfiche", negFiche);
+  }
+  if (t.dataset.neghor) { negFiche.horaires = { ...(negFiche.horaires || {}), [t.dataset.neghor]: t.value }; delete negFiche.fictif; ecrire("valou_demo_negfiche", negFiche); }
+  if (t.dataset.annonce) { annonce[t.dataset.annonce] = t.type === "checkbox" ? t.checked : t.value; ecrire("valou_demo_annonce", annonce); }
+}
 document.addEventListener("input", e => {
   const t = e.target;
+  if (t.dataset.negfiche || t.dataset.neghor || t.dataset.annonce) { majProFormulaire(t); return; }
   if (t.dataset.choixn && brouillon) brouillon.choix[t.dataset.choixn].n = t.value;
   else if (t.form && t.form.id === "f-ajout" && t.name && t.type !== "checkbox") brouillon[t.name] = t.value;
 });
@@ -972,6 +1274,7 @@ Promise.all([chargerReferences(), fetch("maison-demo.json", { cache: "no-cache" 
   .then(([r, d]) => {
     R = r;
     DEMO = d;
+    appliquerPrixNeg();
     /* première visite : la maison de démonstration est déjà là */
     let vu = false;
     try { vu = !!localStorage.getItem("valou_demo_vu"); localStorage.setItem("valou_demo_vu", "1"); } catch (e) {}
