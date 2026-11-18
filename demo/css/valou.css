@@ -15,7 +15,9 @@
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--creme); color: var(--bordeaux); font: 15px/1.5 Manrope, system-ui, sans-serif; }
+/* fond de toutes les pages : dégradé du bleu très clair (bas à gauche) vers le beige (haut à droite) */
+html { background: var(--creme); }
+body { margin: 0; min-height: 100vh; background: linear-gradient(to top right, #DDEBFA 0%, #EEF1F2 50%, #F6EAD8 100%) fixed; color: var(--bordeaux); font: 15px/1.5 Manrope, system-ui, sans-serif; }
 h1, h2, .gros { font-family: Outfit, Manrope, sans-serif; font-weight: 900; letter-spacing: -.01em; line-height: 1.15; }
 h1 { font-size: clamp(26px, 5vw, 40px); margin: 6px 0 8px; }
 h2 { font-size: 20px; margin: 0 0 12px; }
@@ -27,7 +29,7 @@ small { font-size: 12.5px; }
 .or { color: var(--or-fonce); }
 
 /* en-tête */
-.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: rgba(242, 245, 249, .94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--bord); }
+.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: rgba(255, 255, 255, .55); backdrop-filter: blur(8px); border-bottom: 1px solid var(--bord); }
 .marque img { height: 34px; display: block; }
 .top nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
 .nav-i { white-space: nowrap; padding: 7px 12px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; }
@@ -732,7 +734,7 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .demande .d-tete > div > small { display: block; }
 
 /* page d'intro */
-.intro-page { max-width: none; width: 100%; margin: 0; box-sizing: border-box; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: linear-gradient(to top right, #DDEBFA 0%, #EEF1F2 50%, #F6EAD8 100%); }
+.intro-page { max-width: none; width: 100%; margin: 0; box-sizing: border-box; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: transparent; }
 .intro-boite { max-width: 760px; text-align: center; }
 .intro-logo { width: min(420px, 80vw); height: auto; margin: 0 auto 28px; display: block; }
 .intro-boite h1 { font: 900 clamp(28px, 5vw, 48px)/1.12 Outfit, sans-serif; color: var(--bordeaux); margin: 0 0 16px; }
@@ -746,3 +748,5 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .intro-pour span { font-size: 12.5px; color: var(--mu); }
 .intro-note { margin-top: 26px; font-size: 12.5px; color: var(--mu); }
 @media (max-width: 700px) { .intro-pour { grid-template-columns: 1fr 1fr; } }
+
+@media print { html, body { background: #fff !important; } }
