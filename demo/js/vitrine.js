@@ -214,10 +214,10 @@ export function ecranPro(ctx, onglet, metier) {
 
 /* ---------- artisans de démonstration (fictifs) : coordonnées montrées au client quand l'artisan répond ---------- */
 export const ARTISANS_EXEMPLE = {
-  general: { nom: "Rénovation Exemple", tel: "081 00 00 01" }, carreleur: { nom: "Carrelage Exemple", tel: "081 00 00 02" },
-  peintre: { nom: "Peinture Exemple", tel: "081 00 00 03" }, electricien: { nom: "Électricité Exemple", tel: "081 00 00 04" },
-  chauffagiste: { nom: "Chauffage Exemple", tel: "081 00 00 05" }, menuisier: { nom: "Menuiserie Exemple", tel: "081 00 00 06" },
-  couvreur: { nom: "Toitures Exemple", tel: "081 00 00 07" },
+  general: { nom: "Rénovation Exemple", tel: "04 000 00 01" }, carreleur: { nom: "Carrelage Exemple", tel: "04 000 00 02" },
+  peintre: { nom: "Peinture Exemple", tel: "04 000 00 03" }, electricien: { nom: "Électricité Exemple", tel: "04 000 00 04" },
+  chauffagiste: { nom: "Chauffage Exemple", tel: "04 000 00 05" }, menuisier: { nom: "Menuiserie Exemple", tel: "04 000 00 06" },
+  couvreur: { nom: "Toitures Exemple", tel: "04 000 00 07" },
 };
 
 /* demandes reçues par l'artisan : fermées par défaut (on ne voit que l'adresse), ouvertes d'un clic */

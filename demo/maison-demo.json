@@ -1,10 +1,10 @@
 {
-  "version": 4,
+  "version": 5,
   "note": "Maisons FICTIVES pour la démonstration. À remplacer par de vraies maisons (mêmes champs). Seules les caractéristiques et les quantités sont ici : tous les prix viennent des références Valou.",
   "maisons": [
     {
       "nom": "Maison de démonstration A",
-      "commune": "Jambes (Namur) · bien fictif",
+      "commune": "Seraing (Liège) · bien fictif",
       "description": "Maison 3 façades de 1965, 3 chambres, jardin. Dans son jus : cuisine et salle de bain d'origine, chauffage au mazout à remplacer, simple vitrage, toiture non isolée.",
       "prix": 245000,
       "annee": 1965,
@@ -192,7 +192,7 @@
     },
     {
       "nom": "Maison de démonstration B",
-      "commune": "Erpent (Namur) · bien fictif",
+      "commune": "Grâce-Hollogne (Liège) · bien fictif",
       "description": "Maison 4 façades de 1998, 3 chambres, bien entretenue : châssis double vitrage, chaudière récente, cuisine en bon état. Plus chère à l'achat, peu de travaux.",
       "prix": 299000,
       "annee": 1998,
