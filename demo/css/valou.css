@@ -940,3 +940,11 @@ label.dd-ligne { justify-content: flex-start; }
 .pa-spe { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .pa-spe li { padding: 5px 11px; border-radius: 999px; background: var(--carte); border: 1px solid var(--bord); font-weight: 600; font-size: 14px; }
 .profil-art h2 { margin: 18px 0 8px; }
+
+/* plusieurs négociants de la région */
+.negs-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; }
+.negs-grille .fiche-neg { margin: 0; }
+.fn-h { margin-top: 8px; }
+.fn-h > summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--bordeaux); padding: 4px 0; }
+@media (max-width: 640px) { .negs-grille { grid-template-columns: 1fr; } }
+.negs-grille .fn-services { columns: 1; }

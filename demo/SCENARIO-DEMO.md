@@ -150,7 +150,7 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 
 1. **Votre fiche** (Professionnels › « Je suis négociant » › « Ma fiche ») : remplir le nom du négoce, l'adresse, le téléphone, **les types de matériaux vendus (obligatoire : gros œuvre, sanitaire, électricité, carrelage, location d'engins, échafaudages, conteneurs à déchets…)**, les services et les horaires. L'aperçu à droite se met à jour.
    > « Votre fiche apparaît sur les projets des maisons de votre zone. »
-2. **Ce que voit le particulier** (maison A, onglet **Artisans**) : « Négociants de votre région », avec votre fiche ; les types de matériaux utiles pour les travaux de la maison sont marqués ✓ en vert.
+2. **Ce que voit le particulier** (maison A, onglet **Artisans**) : « Négociants de votre région » : votre fiche parmi 6 négociants de la région (Brik'O, Le Comptoir du Sanitaire, Volta Matériel Électrique, Céram'Expo, La Planche d'Or, Loca'Chantier), les plus utiles pour la maison en premier ; les types de matériaux utiles pour les travaux de la maison sont marqués ✓ en vert.
    > « Le particulier, ou son artisan, sait où acheter ses matériaux et quand vous êtes ouvert. Il vient chez vous ou vous appelle. »
 3. **Vos prix (facultatif)** (onglet « Mes prix ») : taper un ou deux prix.
    > « Si vous le souhaitez, vos prix servent aux budgets des chantiers de votre zone. »

@@ -287,18 +287,18 @@ export const RAYONS_NEG = [
 
 /* ---------- fiche publique d'un négociant ---------- */
 export const JOURS = [["lun", "Lundi"], ["mar", "Mardi"], ["mer", "Mercredi"], ["jeu", "Jeudi"], ["ven", "Vendredi"], ["sam", "Samedi"], ["dim", "Dimanche"]];
-export function ficheNegociant(F, metiersMaison) {
+export function ficheNegociant(F, metiersMaison, compact) {
   if (!F || !F.nom) return `<div class="carte vide"><p class="mu">Aucun négociant inscrit pour l'instant.</p></div>`;
   const rayons = RAYONS_NEG.filter(r => (F.rayons || []).includes(r[0]));
   const utile = r => metiersMaison && r[3].some(id => metiersMaison.includes(id));
   const services = String(F.services || "").split("\n").map(x => x.trim()).filter(Boolean);
   const H = F.horaires || {};
   return `<article class="carte fiche-neg">
-    <div class="fn-tete"><span class="pf-ico">🧱</span><div><b>${esc(F.nom)}</b>${F.fictif ? ` <span class="badge b-exemple">Exemple fictif</span>` : ""}${F.adresse ? `<small class="mu">${esc(F.adresse)}</small>` : ""}</div></div>
+    <div class="fn-tete"><span class="pf-ico">🧱</span><div><b>${esc(F.nom)}</b>${F.fictif ? ` <span class="badge b-exemple">Exemple fictif</span>` : ""}${F.adresse ? `<small class="mu">${esc(F.adresse)}${F.km ? ` · à ${F.km} km` : ""}</small>` : ""}</div></div>
     ${rayons.length ? `<div class="fn-rayons"><small class="mu">Matériaux vendus${metiersMaison && rayons.some(utile) ? " · ✓ = utile pour vos travaux" : ""}</small><div>${rayons.map(r => `<span class="fn-rayon ${utile(r) ? "utile" : ""}">${utile(r) ? "✓ " : ""}${r[1]} ${esc(r[2])}</span>`).join("")}</div></div>` : ""}
     ${services.length ? `<ul class="fn-services">${services.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
     <div class="fn-contact">${F.tel ? `<span>📞 ${esc(F.tel)}</span>` : ""}${F.email ? `<span>✉️ ${esc(F.email)}</span>` : ""}${F.site ? `<span>🌐 ${esc(F.site)}</span>` : ""}</div>
-    ${JOURS.some(([k]) => H[k]) ? `<table class="fn-horaires">${JOURS.map(([k, j]) => `<tr><td>${j}</td><td>${esc(H[k] || "—")}</td></tr>`).join("")}</table>` : ""}
+    ${JOURS.some(([k]) => H[k]) ? (t => (compact ? `<details class="fn-h"><summary>🕘 Horaires d'ouverture</summary>${t}</details>` : t))(`<table class="fn-horaires">${JOURS.map(([k, j]) => `<tr><td>${j}</td><td>${esc(H[k] || "—")}</td></tr>`).join("")}</table>`) : ""}
   </article>`;
 }
 

@@ -4,7 +4,7 @@ import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611191433";
 import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611191433";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611191433";
 import { euros, euros2, nombre, esc } from "./format.js?v=202611191433";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, cleLigne } from "./vitrine.js?v=202611191433";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611191433";
 import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire } from "./questionnaire.js?v=202611191433";
 import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611191433";
 
@@ -467,7 +467,7 @@ function ecranMaison(m) {
       <span class="actions-g"><a class="btn" href="#/contacts/${m.id}">👷 Choisir les artisans →</a><a class="btn sec" href="#/contacts/${m.id}#devis">📩 Devis reçus${devisRecus(m).length ? ` <span class="pastille">${devisRecus(m).length}</span>` : " (0)"}</a></span></section>
     <section class="carte negs"><h2>Négociants de votre région</h2>
       <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
-      ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
+      ${blocNegociants(b)}</section>
 
     ${panneauEnvoi(m, b)}`;
       return `
@@ -625,6 +625,26 @@ const FICHE_EXEMPLE = { nom: "Brik'O", fictif: true, adresse: "Rue de l'Exemple 
   rayons: ["gros", "toiture", "isolation", "bois", "carrelage", "peinture", "outillage", "echafaudage", "conteneur"],
   services: "Livraison sur chantier\nLocation de matériel\nDécoupe sur mesure\nConseil en isolation",
   horaires: { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" } };
+/* autres négociants de la région (fictifs, noms et coordonnées inventés) ; Brik'O reste la fiche modifiable de l'espace négociant */
+const SEM = { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" };
+const NEGOCIANTS_EXEMPLE = [
+  { nom: "Le Comptoir du Sanitaire", fictif: true, adresse: "Rue de l'Exemple 12, 4100 Seraing", km: 3, tel: "04 000 08 01", email: "comptoirsanitaire@exemple.be",
+    rayons: ["sanitaire", "chauffage"], services: "Salle d'exposition salles de bain\nPièces de chauffage en stock\nConseil pompe à chaleur", horaires: SEM },
+  { nom: "Volta Matériel Électrique", fictif: true, adresse: "Rue de l'Exemple 5, 4430 Ans", km: 6, tel: "04 000 08 02", email: "volta@exemple.be",
+    rayons: ["electricite", "outillage"], services: "Comptoir pour les électriciens\nÉclairage LED\nCâbles à la coupe", horaires: { ...SEM, sam: "Fermé" } },
+  { nom: "Céram'Expo", fictif: true, adresse: "Rue de l'Exemple 30, 4460 Grâce-Hollogne", km: 9, tel: "04 000 08 03", email: "ceramexpo@exemple.be",
+    rayons: ["carrelage", "sanitaire"], services: "800 m² d'exposition\nCarrelage grand format\nÉchantillons à emporter", horaires: { ...SEM, sam: "9h–17h" } },
+  { nom: "La Planche d'Or", fictif: true, adresse: "Rue de l'Exemple 8, 4400 Flémalle", km: 11, tel: "04 000 08 04", email: "laplanchedor@exemple.be",
+    rayons: ["bois", "menuiseries", "cuisine", "peinture"], services: "Découpe de panneaux sur mesure\nChâssis et portes sur commande\nCuisines en kit", horaires: SEM },
+  { nom: "Loca'Chantier", fictif: true, adresse: "Rue de l'Exemple 21, 4040 Herstal", km: 13, tel: "04 000 08 05", email: "locachantier@exemple.be",
+    rayons: ["engins", "echafaudage", "conteneur", "outillage"], services: "Location à la journée ou à la semaine\nLivraison des conteneurs\nMontage d'échafaudages", horaires: { ...SEM, sam: "7h30–12h" } },
+];
+/* tous les négociants à montrer, ceux qui vendent ce dont la maison a besoin en premier */
+function negociantsRegion(b) {
+  const M = metiersDe(b), utiles = F => RAYONS_NEG.filter(r => (F.rayons || []).includes(r[0]) && r[3].some(id => M.includes(id))).length;
+  return [...(negVisible() ? [{ ...negFiche, km: negFiche.km ?? 4 }] : []), ...NEGOCIANTS_EXEMPLE].sort((x, y) => utiles(y) - utiles(x) || (x.km || 0) - (y.km || 0));
+}
+const blocNegociants = b => { const L = negociantsRegion(b); return L.length ? `<div class="negs-grille">${L.map(F => ficheNegociant(F, metiersDe(b), true)).join("")}</div>` : ficheNegociant(null); };
 const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(cle(k)) || "null") || d; } catch (e) { return d; } };
 const ecrire = (k, v) => { try { localStorage.setItem(cle(k), JSON.stringify(v)); } catch (e) {} };
 let negFiche = lire("valou_demo_negfiche", JSON.parse(JSON.stringify(FICHE_EXEMPLE)));
@@ -1107,7 +1127,7 @@ function ecranContacts(id) {
       ${metiers.length ? metiers.map(ligneMetier).join("") : `<p class="mu">Aucun travail encodé pour l'instant.</p>`}
       <p class="mu petit-t">Les coordonnées d'un artisan apparaissent quand il répond à votre projet (visite ou devis).</p>
     </section>
-    <section class="carte"><h2>Négociants de votre région</h2>${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
+    <section class="carte"><h2>Négociants de votre région</h2>${blocNegociants(b)}</section>
   </main>`;
 }
 
