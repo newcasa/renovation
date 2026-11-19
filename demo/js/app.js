@@ -36,16 +36,37 @@ const pebBadge = (l, grand) => (l ? `<span class="peb ${grand ? "grand" : ""}" s
 const fourchette = t => `${euros(t[0], 100)} – ${euros(t[2], 100)}`;
 
 function entete(actif) {
-  const lien = (h, t, id, bientot) =>
-    bientot
-      ? `<span class="nav-i off" title="Prochaine étape">${t}<small>bientôt</small></span>`
-      : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
+  const lien = (h, t, id) => `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
+  const plusActif = ["pro", "moteur", "feuille", "plus"].includes(actif);
+  /* barre du bas (téléphone) : 4 boutons au pouce */
+  const bas = (h, ico, t, on) => `<a class="bb-i ${on ? "on" : ""}" href="${h}"${on ? ' aria-current="page"' : ""}><span class="bb-ico" aria-hidden="true">${ico}</span><span>${t}</span></a>`;
   return `<header class="top">
     <a href="#/" class="marque" aria-label="Valou, accueil"><img src="${img("logo-valou.png")}" alt="Valou"></a>
-    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${essai
-      ? `${lien("#/avis", "💬 Mon avis", "avis")}<span class="badge-essai">Version d'essai</span>`
+    <nav class="nav-haut" aria-label="Menu">${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${essai
+      ? lien("#/avis", "💬 Mon avis", "avis")
       : `${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}`}</nav>
-  </header>`;
+    ${essai ? `<span class="badge-essai">Version d'essai</span>` : ""}
+  </header>
+  <nav class="barre-bas" aria-label="Menu principal">
+    ${bas("#/", "🏠", "Maisons", actif === "maisons")}${bas("#/comparer", "⚖️", "Comparer", actif === "comparer")}${bas("#/contacts", "📨", "Contacter", actif === "contacts")}${essai
+      ? bas("#/avis", "💬", "Mon avis", actif === "avis")
+      : bas("#/plus", "☰", "Plus", plusActif)}
+  </nav>`;
+}
+
+/* ---------- écran « Plus » (téléphone) : les autres pages ---------- */
+function ecranPlus() {
+  const L = [
+    ["#/pro", "💼", "Professionnels", "Artisans, négociants, courtiers et agences"],
+    ["#/moteur", "⚙️", "Notre moteur", "D'où viennent les prix, les prix locaux"],
+    ["#/feuille-de-route", "🗺️", "Feuille de route", "Le modèle et les prochaines étapes"],
+    ["#/questionnaire", "📝", "Questionnaire de visite", "2 pages à imprimer pour la visite"],
+  ];
+  return `${entete("plus")}<main class="etroit">
+    <h1>Plus</h1>
+    <div class="plus-liste">${L.map(([h, i, t, d]) => `<a class="plus-i" href="${h}"><span class="plus-ico">${i}</span><span><b>${t}</b><small>${d}</small></span><span class="fl">›</span></a>`).join("")}</div>
+    ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="presentation">🎬 Préparer une présentation (tout remettre à zéro)</button></p>` : ""}
+  </main>`;
 }
 
 /* ---------- écran : accueil ---------- */
@@ -210,7 +231,13 @@ function carteEnergie(m, b) {
   </section>`;
 }
 
-/* ---------- écran : le vrai coût d'une maison ---------- */
+/* ---------- écran : le vrai coût d'une maison (en 5 onglets) ---------- */
+const ONGLETS_M = [["resume", "Résumé"], ["pieces", "Pièces"], ["travaux", "Travaux"], ["achat", "Achat"], ["artisans", "Artisans"]];
+const ongletsM = {}; // onglet ouvert, par maison
+const ongletMaison = m => ongletsM[m.id] || "resume";
+/* groupes de postes et réglages ouverts par l'utilisateur (fermés par défaut) */
+const ouverts = new Set();
+document.addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.ouvert) d.open ? ouverts.add(d.dataset.ouvert) : ouverts.delete(d.dataset.ouvert); }, true);
 function ecranMaison(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
   const surcout = c.total[1] - c.prix, pct = c.prix ? Math.round((surcout / c.prix) * 100) : 0;
@@ -256,7 +283,7 @@ function ecranMaison(m) {
   const fixes = R.liste.filter(p => !POSTES_PIECES.test(p.k));
   const grpFixes = [...new Set(fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y)).map(g => {
     const P = fixes.filter(p => groupe(p) === g), rempli = P.filter(p => ligneDe(p.k)), t = rempli.reduce((s, p) => s + (ligneDe(p.k).fiab ? ligneDe(p.k).total[1] : 0), 0);
-    return `<details class="grp fixe" ${rempli.length ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
+    return `<details class="grp fixe" data-ouvert="${m.id}:${esc(g)}" ${ouverts.has(`${m.id}:${g}`) ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
       <table class="fixes">${P.map(p => { const l = ligneDe(p.k); return `<tr>
         <td>${esc(p.n)}</td>
         <td class="q">${/escalier/.test(p.u)
@@ -291,38 +318,11 @@ function ecranMaison(m) {
       <div class="vc-d">${barre}</div>
     </section>
 
-    ${carteEnergie(m, b)}
-
-    ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
-      <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
-
-    <div class="deux">
-      <section class="carte">
-        <h2>Budget travaux</h2>
-        <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
-        <div class="recap">
-          <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
-          <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
-          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
-          ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
-          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
-        </div>
-        ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
-        <p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p>
-      </section>
-
-      <div class="pile">
-        <section class="carte">
-          <h2>Hypothèses du calcul</h2>
-          <div class="champs">
-            <div class="ligne"><span>TVA sur les travaux par un artisan</span><b>${b.rate} %</b></div>
-            <small class="mu">${b.rate === 6 ? "6 % : logement de plus de 10 ans, rénovation facturée par l'entrepreneur (conditions à vérifier avec lui)." : "21 % : logement de moins de 10 ans."}</small>
-            ${hyp}
-          </div>
-        </section>
-      </div>
-    </div>
-
+    <nav class="onglets-m" aria-label="Parties de la fiche">${ONGLETS_M.map(([id, t]) => `<button class="om-i ${ongletMaison(m) === id ? "on" : ""}" data-action="onglet-m" data-o="${id}"${ongletMaison(m) === id ? ' aria-current="true"' : ""}>${t}${id === "pieces" && (m.pieces || []).length ? ` <small>${m.pieces.length}</small>` : ""}</button>`).join("")}</nav>
+    ${(() => {
+      const o = ongletMaison(m);
+      const suivant = (id, t) => `<p class="suite-m"><button class="btn sec" data-action="onglet-m" data-o="${id}">${t} →</button></p>`;
+      if (o === "pieces") return `
     <section class="carte">
       <h2>Les pièces</h2>
       <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
@@ -334,6 +334,11 @@ function ecranMaison(m) {
         <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
       </div>
     </section>
+
+      ${suivant("travaux", "Suivant : les travaux de la maison")}`;
+      if (o === "travaux") return `
+    ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
+      <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
 
     <section class="carte">
       <h2>Le chauffage</h2>
@@ -349,6 +354,16 @@ function ecranMaison(m) {
       ${grpFixes}
     </section>
 
+        <details class="carte reglages" data-ouvert="${m.id}:reglages" ${ouverts.has(`${m.id}:reglages`) ? "open" : ""}>
+          <summary><h2>⚙️ Réglages du calcul</h2><small class="mu">TVA, pose, container, état du support</small></summary>
+          <div class="champs">
+            <div class="ligne"><span>TVA sur les travaux par un artisan</span><b>${b.rate} %</b></div>
+            <small class="mu">${b.rate === 6 ? "6 % : logement de plus de 10 ans, rénovation facturée par l'entrepreneur (conditions à vérifier avec lui)." : "21 % : logement de moins de 10 ans."}</small>
+            ${hyp}
+          </div>
+        </details>
+      ${suivant("achat", "Suivant : l'achat et le financement")}`;
+      if (o === "achat") return `
     <div class="fin-page">
         ${aides()}
         <section class="carte">
@@ -396,16 +411,39 @@ function ecranMaison(m) {
         })()}
     </div>
 
-    <section class="carte negs"><h2>Négociants de votre région</h2>
-      <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
-      ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
-
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
     </div>
 
-    ${panneauEnvoi(m, b)}
+      ${suivant("artisans", "Suivant : les artisans et les négociants")}`;
+      if (o === "artisans") return `
+    <section class="carte negs"><h2>Négociants de votre région</h2>
+      <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
+      ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
+
+    ${panneauEnvoi(m, b)}`;
+      return `
+    ${carteEnergie(m, b)}
+    ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
+      <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
+
+      <section class="carte">
+        <h2>Budget travaux</h2>
+        <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
+        <div class="recap">
+          <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
+          <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
+          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
+          ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
+          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
+        </div>
+        ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
+        <p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p>
+      </section>
+
+      ${suivant("pieces", "Suivant : les pièces")}`;
+    })()}
   </main>`;
 }
 
@@ -486,6 +524,7 @@ function corpsPiece(m, pc) {
 }
 
 function ecranPiece(m, pc) {
+  ongletsM[m.id] = "pieces"; // au retour, la fiche s'ouvre sur l'onglet Pièces
   const b = calculerBudget(R, m), L = b.lignes.filter(l => l.pieceId === pc.id);
   const total = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
   return `${entete("maisons")}
@@ -1033,13 +1072,16 @@ function afficher() {
   if (brut === "demo" || brut === "/demo") brut = "/bienvenue";
   let h = brut === "" ? (essai ? (VERSION === "particulier" && !visibles().length ? "/essai" : "/") : "/bienvenue") : brut; // première ouverture : la page d'intro (ou l'accueil de l'essai)
   /* version d'essai : les pages pour les professionnels et l'intro de la présentation ramènent à l'accueil de l'essai */
-  if (essai && /^\/(pro|moteur|feuille-de-route|demo-|bienvenue)/.test(h)) h = "/essai";
+  if (essai && /^\/(pro|moteur|feuille-de-route|demo-|bienvenue|plus)/.test(h)) h = "/essai";
   if (h === "/presentation" && R) { preparerPresentation(true); return; }
+  /* garder ouverts les groupes et réglages ouverts à l'écran (même si l'événement « toggle » n'est pas encore arrivé) */
+  document.querySelectorAll("details[data-ouvert]").forEach(d => (d.open ? ouverts.add(d.dataset.ouvert) : ouverts.delete(d.dataset.ouvert)));
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/);
   if (h === "/bienvenue") html = ecranIntro();
   else if (h === "/essai") html = ecranEssai();
+  else if (h === "/plus") html = ecranPlus();
   else if (h === "/avis") html = ecranAvis();
   else if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
@@ -1110,6 +1152,11 @@ document.addEventListener("click", e => {
   }
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "presentation") preparerPresentation();
+  if (a === "onglet-m" && m) {
+    ongletsM[m.id] = el.dataset.o; afficher();
+    const t = document.querySelector(".onglets-m");
+    if (t) { const y = t.getBoundingClientRect().top + window.scrollY - (document.querySelector(".top")?.offsetHeight || 0) - 4; if (window.scrollY > y) window.scrollTo(0, y); }
+  }
   if (a === "avis-envoyer") {
     const txt = texteAvis();
     const fin = msg => { avisMessage = msg; afficher(); };
@@ -1129,6 +1176,7 @@ document.addEventListener("click", e => {
     m.pieces.push(pc);
     appliquerChauffage(m);
     sauver();
+    ongletsM[m.id] = "pieces";
     location.hash = `#/maison/${m.id}/piece/${pc.id}`;
   }
   if (a === "suppr-piece" && m && confirm("Supprimer cette pièce et ses travaux ?")) {

@@ -732,3 +732,59 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .avis-choix input { accent-color: var(--or); }
 .avis-choix label { flex-direction: row; white-space: nowrap; width: auto; }
 .avis-choix input { width: auto; margin: 0; }
+
+/* ===== téléphone d'abord : barre du bas, onglets de la fiche maison, cibles plus grandes ===== */
+.barre-bas { display: none; }
+.onglets-m { position: sticky; top: var(--haut-entete, 56px); z-index: 4; display: flex; gap: 4px; margin: 18px 0 14px; padding: 5px; border-radius: 14px; background: rgba(255, 255, 255, .8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--bord); overflow-x: auto; scrollbar-width: none; }
+.onglets-m::-webkit-scrollbar { display: none; }
+.om-i { flex: 1; min-width: max-content; border: 0; background: none; padding: 10px 12px; border-radius: 10px; font: 800 14.5px Manrope, sans-serif; color: var(--bordeaux); cursor: pointer; white-space: nowrap; }
+.om-i small { font-size: 11px; background: var(--or); color: #fff; border-radius: 999px; padding: 1px 6px; margin-left: 2px; }
+.om-i.on { background: var(--bordeaux); color: #fff; }
+.om-i:focus-visible { outline: 3px solid var(--or); outline-offset: 1px; }
+.suite-m { margin: 8px 0 24px; text-align: right; }
+.reglages > summary { list-style: none; cursor: pointer; display: grid; gap: 2px; }
+.reglages > summary::-webkit-details-marker { display: none; }
+.reglages > summary h2 { margin: 0; }
+.reglages > summary h2::after { content: " ▾"; color: var(--or-fonce); font-size: .8em; }
+.reglages[open] > summary h2::after { content: " ▴"; }
+.reglages[open] > summary { margin-bottom: 12px; }
+.plus-liste { display: grid; gap: 10px; }
+.plus-i { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 14px; background: #fff; border: 1px solid var(--bord); text-decoration: none; color: var(--bordeaux); }
+.plus-ico { font-size: 26px; text-align: center; }
+.plus-i b { display: block; font: 800 17px Outfit, Manrope, sans-serif; }
+.plus-i small { color: var(--mu); }
+.plus-i .fl { color: var(--or-fonce); font: 900 20px Outfit, sans-serif; }
+
+@media (max-width: 760px) {
+  /* le menu passe en bas, au pouce */
+  .top .nav-haut { display: none; }
+  .top { justify-content: space-between; padding-block: 8px; }
+  :root { --haut-entete: 50px; }
+  body { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .barre-bas { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+    background: rgba(255, 255, 255, .94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--bord); box-shadow: 0 -4px 16px rgba(2, 34, 80, .08); }
+  .bb-i { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border-radius: 12px; text-decoration: none; color: var(--mu); font: 700 11.5px Manrope, sans-serif; }
+  .bb-ico { font-size: 21px; line-height: 1; }
+  .bb-i.on { color: var(--bordeaux); background: var(--or-pale, #FDEBDC); }
+  /* onglets de la fiche : plus compacts */
+  .onglets-m { gap: 2px; padding: 4px; margin: 14px 0 12px; }
+  .om-i { flex: 1 1 auto; min-width: 0; padding: 9px 4px; font-size: 13px; }
+  .om-i small { font-size: 10px; padding: 1px 5px; }
+  .suite-m { text-align: center; }
+  .suite-m .btn { width: 100%; }
+  /* E. cibles plus grandes au doigt */
+  .mm { font-size: 13.5px; padding: 6px 0; gap: 8px; }
+  .mm input { width: 22px; height: 22px; }
+  .cb input[type="checkbox"], .cb input[type="radio"] { width: 22px; height: 22px; }
+  .carte-piece .x { top: 2px; right: 2px; min-width: 44px; min-height: 44px; font-size: 18px; }
+  .x { min-width: 40px; min-height: 40px; }
+}
+/* E. dossier pour la banque : pas de débordement sur téléphone, montants sur une ligne */
+.f-table td:last-child { white-space: nowrap; text-align: right; }
+@media (max-width: 640px) {
+  .feuille { padding: 18px 14px; overflow-wrap: anywhere; }
+  .feuille .f-tete { flex-wrap: wrap; gap: 8px; }
+  .f-table { font-size: 13px; }
+}
+@media print { .barre-bas, .onglets-m, .suite-m { display: none !important; } }

@@ -18,6 +18,15 @@ const erreurs = [];
 try {
   for (const [nom, vue] of [["ordi", { width: 1280, height: 900 }], ["tel", { width: 390, height: 844 }]]) {
     const page = await navigateur.newPage({ viewport: vue, deviceScaleFactor: 2 });
+    const onglet = o => page.locator(`.om-i[data-o="${o}"]`).click(); // onglets de la fiche maison
+    /* menu : en haut sur ordinateur, barre du bas sur téléphone (« Plus » pour les autres pages) */
+    const menu = async h => {
+      if (nom === "ordi") return page.locator(`.nav-i[href="${h}"]`).click();
+      const bas = page.locator(`.bb-i[href="${h}"]`);
+      if (await bas.count()) return bas.click();
+      await page.locator('.bb-i[href="#/plus"]').click();
+      await page.locator(`.plus-i[href="${h}"]`).click();
+    };
     page.on("pageerror", e => erreurs.push(`${nom} : ${e.message}`));
     page.on("console", m => m.type() === "error" && !/supabase|valou_tarifs|Failed to load resource/i.test(m.text()) && erreurs.push(`${nom} : ${m.text()}`));
     await page.goto(URL);
@@ -39,6 +48,7 @@ try {
 
     /* photos de la visite : rangées par pièce, associées par le nom */
     const png = { name: "photo.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAIAAABxZ0isAAAAFklEQVR4nGP8//8/AwMDAxMDFgDHAwBkVQMJtYt0YgAAAABJRU5ErkJggg==", "base64") };
+    await onglet("pieces");
     await page.getByText("📷 Photos de la visite").first().click();
     /* mode visite : on tape le nom, on enchaîne les photos, « Pièce suivante », etc. */
     await page.fill("#visite-nom", "Cuisine");
@@ -69,6 +79,7 @@ try {
     await page.getByText("Maison de démonstration A").first().click();
 
     /* envoi du projet aux artisans, puis ce que reçoit le carreleur (avec les photos de la cuisine) */
+    await onglet("artisans");
     await page.locator("main > .envoi").waitFor();
     assert.ok(await page.evaluate(() => { const m = document.querySelector("main"); return m.lastElementChild.classList.contains("envoi"); }), "l'envoi aux artisans est le dernier bloc");
     assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Matériaux Exemple[\s\S]*Matériaux vendus[\s\S]*✓/);
@@ -88,7 +99,7 @@ try {
     await page.locator('.demande [data-action="pro-visite"]').first().click();
     assert.match(await page.locator(".demande").first().innerText(), /proposition de visite/);
     /* section « Contacter » : résumé du projet et coordonnées de l'artisan qui a répondu */
-    await page.locator('.nav-i[href="#/contacts"]').click();
+    await menu("#/contacts");
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').click();
     await page.locator(".resume").waitFor();
     assert.match(await page.locator("main").innerText(), /Carreleur[\s\S]*Visite proposée[\s\S]*Carrelage Exemple[\s\S]*Négociants de votre région/);
@@ -163,7 +174,7 @@ try {
     await page.getByText("← Mes maisons").click();
 
     /* comparer les deux maisons de démonstration */
-    await page.locator('.nav-i[href="#/comparer"]').click();
+    await menu("#/comparer");
     await page.locator(".verdict").waitFor();
     assert.match(await page.locator(".verdict p").innerText(), /moins cher au final/);
     assert.match(await page.locator(".cmp").innerText(), /Label PEB[\s\S]*PEB G[\s\S]*PEB C/);
@@ -171,6 +182,7 @@ try {
 
     /* dossier pour la banque de la maison A */
     await page.locator('.cmp thead a').first().click();
+    await onglet("achat");
     await page.getByText("Dossier pour la banque").click();
     await page.locator(".feuille").waitFor();
     /* envoi verrouillé tant que le montant du notaire n'est pas encodé */
@@ -189,7 +201,7 @@ try {
     if (nom === "ordi") await page.pdf({ path: `${OUT}/dossier-banque-exemple.pdf`, format: "A4", printBackground: true });
 
     /* professionnels, moteur, feuille de route */
-    await page.locator('.nav-i[href="#/pro"]').click();
+    await menu("#/pro");
     await page.getByText("Je suis artisan").click();
     await page.locator(".demande").first().waitFor();
     await page.selectOption("[data-metier]", "carreleur");
@@ -213,7 +225,7 @@ try {
     await page.locator(".tarifs ~ .d-act.ok").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-tarifs.png`, fullPage: nom === "ordi" });
 
-    await page.locator('.nav-i[href="#/moteur"]').click();
+    await menu("#/moteur");
     await page.locator(".stats").waitFor();
     /* simulation des prix locaux : 0 artisan → grille ; 12 artisans → prix locaux, avec « vous » */
     await page.locator('[data-sim-n="0"]').click();
@@ -236,7 +248,7 @@ try {
     await page.getByText("Commencer la démo →").click();
     await page.locator(".maison").first().waitFor();
     assert.match(await page.locator(".grille").innerText(), /Maison de démonstration A[\s\S]*Maison de démonstration B/);
-    await page.locator('.nav-i[href="#/feuille-de-route"]').click();
+    await menu("#/feuille-de-route");
     await page.locator(".phases").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-10-feuille.png`, fullPage: nom === "ordi" });
     await page.goto(URL + "#/");
@@ -263,7 +275,7 @@ try {
     await page.locator(".vrai-cout .gros").waitFor({ timeout: 8000 });
     const total = await page.locator(".vrai-cout .gros").innerText();
     assert.match(total, /€/);
-    assert.equal(await page.inputValue('[data-f="prix"]'), "245000"); // le nom et le prix ont bien été gardés
+    assert.match(await page.locator(".vrai-cout .legende").innerText(), /Prix d'achat\s*245\s?000 €/); // le nom et le prix ont bien été gardés
     assert.match(await page.locator("h1").innerText(), /Maison test/);
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
@@ -273,6 +285,7 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-4-detail.png`, fullPage: true });
 
     /* apport sur la fiche : montant à emprunter = vrai coût − apport */
+    await onglet("achat");
     await page.fill('.carte [data-fin="apport"]', "40000");
     await page.locator('.carte [data-fin="apport"]').dispatchEvent("change");
     assert.equal(await page.inputValue('[data-fin="apport"]'), "40000");
@@ -291,14 +304,17 @@ try {
     assert.equal(await page.locator(".vrai-cout .gros").innerText(), avant); // décocher : retour au calcul
 
     /* hypothèse : support abîmé → imprévus 15 % */
+    await onglet("resume");
     assert.match(await page.locator(".recap:not(.recap-en)").innerText(), /Imprévus \(15 %\)/);
 
     /* pièce par pièce : passer la peinture en « moi-même » */
     /* chauffage repris : pompe à chaleur + 7 radiateurs */
+    await onglet("travaux");
     const tout = await page.locator("main").innerText();
     assert.match(tout, /Pompe à chaleur/);
     assert.match(tout, /cuve à mazout/);
     /* une pièce : on l'ajoute, on l'ouvre, on remplit les postes imposés */
+    await onglet("pieces");
     await page.fill("#np-nom", "Chambre test");
     await page.getByText("＋ Ajouter une pièce").click();
     await page.locator(".titre-piece").waitFor();
@@ -316,6 +332,7 @@ try {
     await page.locator(".carte-piece").first().waitFor();
     assert.match(await page.locator(".carte-piece").first().innerText(), /Murs · Plafond · 2 châssis/);
     /* structure, toiture et équipements : liste fixe, on remplit une quantité */
+    await onglet("travaux");
     await page.locator('details:has([data-mq="i_pi"]) > summary').click();
     await page.fill('[data-mq="i_pi"]', "4");
     await page.locator('[data-mq="i_pi"]').dispatchEvent("change");
@@ -342,8 +359,10 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-11-essai.png` });
     await page.goto(URL + "#/");
     await page.locator(".essai-info").waitFor();
-    assert.equal(await page.locator('.nav-i[href="#/pro"]').count(), 0, "pas d'espace pro en essai");
+    assert.equal(await page.locator('.nav-i[href="#/pro"], .bb-i[href="#/plus"]').count(), 0, "pas d'espace pro en essai");
     assert.equal(await page.locator('.nav-i[href="#/avis"]').count(), 1);
+    assert.equal(await page.locator('.bb-i[href="#/avis"]').count(), 1);
+    if (nom === "tel") assert.ok(await page.locator(".barre-bas").isVisible(), "barre du bas sur téléphone");
     assert.doesNotMatch(await page.locator("main").innerText(), /Maison de démonstration/);
     assert.match(await page.locator(".grille").innerText(), /Maison test/); // la maison du testeur est là
     await page.screenshot({ path: `${OUT}/${nom}-12-essai-maisons.png` });
