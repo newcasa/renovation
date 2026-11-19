@@ -903,3 +903,11 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .conf-ok { background: var(--rouge); border-color: var(--rouge); }
 @media (max-width: 760px) { .conf { top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); } .conf-boutons .btn { flex: 1; } }
 @media (min-width: 761px) { .m-suppr { width: 32px; height: 32px; font-size: 14px; top: 10px; right: 10px; } .m-case .m-tete { padding-right: 34px; } }
+
+/* dossier pour la banque : devis des artisans */
+.dd-ecran { margin-bottom: 12px; }
+.dd-metier { border: 1px solid var(--bord); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; background: var(--carte); }
+.dd-tete { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.dd-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; padding: 6px 0; border-top: 1px dashed var(--bord); }
+.dd-ligne .saisie { max-width: 190px; }
+label.dd-ligne { justify-content: flex-start; }

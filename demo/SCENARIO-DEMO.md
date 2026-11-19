@@ -83,6 +83,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 - Le dossier complet sur une page : achat, droits, notaire, travaux, PEB et financement.
 - « Envoyer à la banque » fonctionne tout de suite (démonstration, aucun envoi réel). Les frais de notaire sont calculés par l'appli, d'après le simulateur de notaire.be.
 - En option, remplir l'apport (40 000 €), le taux et la durée pour voir la mensualité.
+- Point 4, « Les devis des artisans » : pour chaque métier, les artisans choisis dans « Contacter ». Taper le montant d'un devis : il remplace l'estimation Valou de ce métier dans le coût total et le montant à emprunter.
 
 **À dire :**
 > « Le particulier arrive chez le courtier avec un dossier complet : achat, notaire, travaux détaillés. Le courtier gagne du temps, la banque est rassurée. »

@@ -691,15 +691,56 @@ function ecranComparer() {
 }
 
 /* ---------- écran : dossier pour la banque (imprimable en PDF) ---------- */
+/* ---------- dossier pour la banque : devis des artisans choisis (ils remplacent l'estimation Valou du métier) ---------- */
+function devisRetenus(m, b) {
+  const ch = m.devisChoisi || {}, mt = m.devisMontants || {};
+  const L = METIERS.filter(x => x.id !== "general").map(x => {
+    const lots = b.postes.filter(p => x.f(p.k) && p.QL > 0), id = ch[x.id], montant = id ? +((mt[x.id] || {})[id] || 0) : 0;
+    if (!lots.length || !(montant > 0)) return null;
+    return { x, lots, montant, art: artisansDuMetier(x.id).find(a => a.id === id), est: lots.reduce((s, p) => s + p.total[1], 0) };
+  }).filter(Boolean);
+  const cles = new Set(L.flatMap(l => l.lots.map(p => p.k)));
+  const est = [0, 1, 2].map(i => b.postes.filter(p => cles.has(p.k)).reduce((s, p) => s + p.total[i], 0));
+  const f = 1 + b.pi / 100, dev = L.reduce((s, l) => s + l.montant, 0);
+  /* les imprévus restent sur la partie estimée ; le devis est repris tel quel */
+  const T = b.ST.map((st, i) => Math.max(0, st - est[i]) * f + dev);
+  return { L, cles, est, dev, T };
+}
+function blocDevisDossier(m, b, dv) {
+  const metiers = METIERS.filter(x => x.id !== "general").map(x => ({ x, lots: b.postes.filter(p => x.f(p.k) && p.QL > 0) })).filter(o => o.lots.length);
+  const ch = m.devisChoisi || {}, mt = m.devisMontants || {};
+  const ecran = metiers.map(({ x, lots }) => {
+    const est = lots.reduce((s, p) => s + p.total[1], 0), A = (m.artisansChoisis || {})[x.id] || [], liste = artisansDuMetier(x.id);
+    return `<div class="dd-metier">
+      <div class="dd-tete"><b>${esc(x.t)}</b><span class="mu">Estimation Valou : <b>${euros(est, 10)}</b></span></div>
+      ${A.length ? `<label class="cb dd-ligne"><input type="radio" name="dd-${x.id}" data-devis-choix="${x.id}" value="" ${ch[x.id] ? "" : "checked"}> <span>Garder l'estimation Valou</span></label>
+        ${A.map(id => { const a = liste.find(y => y.id === id) || { nom: id }; const v = (mt[x.id] || {})[id] ?? ""; return `<div class="dd-ligne">
+          <label class="cb"><input type="radio" name="dd-${x.id}" data-devis-choix="${x.id}" value="${esc(id)}" ${ch[x.id] === id ? "checked" : ""}> <span><b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span></span></label>
+          <span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-devis-montant="${esc(x.id + "|" + id)}" value="${esc(v)}" placeholder="montant du devis" aria-label="Montant du devis de ${esc(a.nom)}"><i>€</i></span></div>`; }).join("")}`
+        : `<p class="mu petit-t">Aucun artisan choisi pour ce métier : <a href="#/contacts/${m.id}">choisissez-les dans « Contacter »</a>.</p>`}
+    </div>`;
+  }).join("");
+  const papier = dv.L.length ? `<table class="f-table">
+      <tr class="g"><td>Métier</td><td>Artisan</td><td class="r">Estimation Valou</td><td class="r">Devis retenu</td></tr>
+      ${dv.L.map(l => `<tr><td>${esc(l.x.t)}</td><td>${esc(l.art ? l.art.nom : "")}</td><td class="r">${euros(l.est, 10)}</td><td class="r"><b>${euros(l.montant)}</b></td></tr>`).join("")}
+      <tr class="tot"><td colspan="3">Total des devis retenus (TVA comprise)</td><td class="r">${euros(dv.dev)}</td></tr>
+    </table>` : `<p class="mu">Aucun devis retenu pour l'instant : les montants des travaux sont des estimations Valou.</p>`;
+  return `<h2>4. Les devis des artisans</h2>
+    <div class="no-print dd-ecran"><p class="mu petit-t">Pour chaque métier : tapez le montant du devis reçu (TVA comprise) et choisissez celui que vous retenez. Il remplace l'estimation Valou de ce métier dans le coût total et le montant à emprunter.</p>${ecran || `<p class="mu">Aucun travail encodé pour l'instant.</p>`}</div>
+    ${papier}`;
+}
+
 function ecranDossier(m) {
-  const b = calculerBudget(R, m), c = coutTotal(m, b), f = m.fin || {};
+  const b = calculerBudget(R, m), c0 = coutTotal(m, b), f = m.fin || {};
+  /* les devis retenus remplacent les estimations correspondantes */
+  const dv = devisRetenus(m, b);
+  const c = dv.L.length ? { ...c0, travaux: dv.T, total: c0.total.map((t, i) => t - c0.travaux[i] + dv.T[i]) } : c0;
   const apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport);
   const mens = mensualite(emprunt, f.taux, f.duree);
   const champ = (k, t, suffixe, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suffixe}</i></span><b class="imprime">${f[k] != null && f[k] !== "" ? (suffixe === "€" ? euros(+f[k]) : esc(String(f[k]).replace(".", ",")) + " " + suffixe) : "à compléter"}</b></label>`;
   const parG = {};
   b.postes.forEach(p => (parG[groupe(p)] = parG[groupe(p)] || []).push(p));
   const postes = GROUPES.filter(g => parG[g]).map(g => `<tr class="g"><td colspan="3">${esc(g)}</td></tr>${parG[g].map(p => `<tr><td>${esc(p.n)}<small class="mu"> · ${esc(qte(p.Q, p.u))}</small></td><td>${badge(p.fiab)}</td><td class="r">${euros(p.total[1], 10)}</td></tr>`).join("")}`).join("");
-  const hyp = [`TVA sur les travaux par un artisan : ${b.rate} %`, `Imprévus : ${b.pi} %`, ...b.hypo.filter(h => h !== "etat").map(h => `${HYPOTHESES[h].t} : ${(HYPOTHESES[h].o.find(o => o[0] === b.rep[h]) || [, ""])[1]}`)];
   const auj = new Date().toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" });
   return `${entete("maisons")}
   <main class="dossier">
@@ -718,6 +759,7 @@ function ecranDossier(m) {
       <h2>1. Le budget de la rénovation</h2>
       <table class="f-table">
         <tr><td>Travaux, TVA et imprévus compris <small class="mu">(fourchette ${fourchette(c.travaux)})</small></td><td class="r">${euros(c.travaux[1], 100)}</td></tr>
+        ${dv.L.length ? `<tr class="sous"><td>dont devis d'artisans retenus (${dv.L.length})</td><td class="r">${euros(dv.dev)}</td></tr><tr class="sous"><td>dont estimations Valou (le reste des travaux)</td><td class="r">${euros(c.travaux[1] - dv.dev, 100)}</td></tr>` : ""}
         <tr class="tot"><td>Budget total</td><td class="r">${euros(c.total[1], 100)}</td></tr>
       </table>
       ` : `
@@ -727,6 +769,7 @@ function ecranDossier(m) {
         <tr><td>Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")} %, taux légal wallon à confirmer par le notaire)</td><td class="r">${euros(c.droits)}</td></tr>
         <tr><td>Honoraires et frais du notaire, TVA comprise${c.notaireCalcul ? ` <small class="mu">(calcul d'après le ${esc(c.notaireCalcul.source)})</small>` : c.notaireEncode ? ` <small class="mu">(montant du notaire)</small>` : ""}</td><td class="r">${c.notaire == null ? `<span class="manque">à compléter</span>` : euros(c.notaire)}</td></tr>
         <tr><td>Travaux, TVA et imprévus compris <small class="mu">(fourchette ${fourchette(c.travaux)})</small></td><td class="r">${euros(c.travaux[1], 100)}</td></tr>
+        ${dv.L.length ? `<tr class="sous"><td>dont devis d'artisans retenus (${dv.L.length})</td><td class="r">${euros(dv.dev)}</td></tr><tr class="sous"><td>dont estimations Valou (le reste des travaux)</td><td class="r">${euros(c.travaux[1] - dv.dev, 100)}</td></tr>` : ""}
         <tr class="tot"><td>Coût total du projet</td><td class="r">${euros(c.total[1], 100)}</td></tr>
       </table>
       `}
@@ -750,12 +793,11 @@ function ecranDossier(m) {
         <tr class="sous"><td colspan="2">TVA</td><td class="r">${euros(b.TVA[1])}</td></tr>
         ${b.ANN[1] ? `<tr class="sous"><td colspan="2">Container à gravats</td><td class="r">${euros(b.ANN[1])}</td></tr>` : ""}
         <tr class="sous"><td colspan="2">Imprévus (${b.pi} %)</td><td class="r">${euros(b.IM[1])}</td></tr>
-        <tr class="tot"><td colspan="3">Total des travaux (moyen)</td><td class="r">${euros(b.T[1], 100)}</td></tr>
+        <tr class="tot"><td colspan="3">Total des travaux (moyen, estimation Valou)</td><td class="r">${euros(b.T[1], 100)}</td></tr>
+        ${dv.L.length ? `<tr class="sous"><td colspan="3">Avec les devis retenus (point 4) à la place des estimations correspondantes</td><td class="r"><b>${euros(dv.T[1], 100)}</b></td></tr>` : ""}
       </table>
 
-      <h2>4. Hypothèses et fiabilité</h2>
-      <ul class="f-liste">${hyp.map(h => `<li>${esc(h)}</li>`).join("")}</ul>
-      <p class="f-fiab">${Object.keys(FIABILITE).map(k => `${badge(k)} ${esc(FIABILITE[k].d)}`).join("<br>")}</p>
+      ${blocDevisDossier(m, b, dv)}
 
       <footer class="f-pied">Estimation indicative établie avec Valou à partir de prix de référence hors TVA (main-d'œuvre : ${esc(R.sources.mo || "")} ; matériaux : ${esc(R.sources.hubo || "")}). Elle ne remplace pas les devis des entrepreneurs ni la simulation du notaire.</footer>
     </article>
@@ -1374,6 +1416,15 @@ document.addEventListener("click", e => {
 
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  /* dossier pour la banque : montant et choix des devis */
+  if (t.dataset.devisMontant != null && m) {
+    const [met, id] = t.dataset.devisMontant.split("|"), v = t.value === "" ? null : +t.value;
+    const M = { ...(m.devisMontants || {}) }; M[met] = { ...(M[met] || {}) }; if (v > 0) M[met][id] = v; else delete M[met][id];
+    m.devisMontants = M;
+    if (v > 0 && !(m.devisChoisi || {})[met]) m.devisChoisi = { ...(m.devisChoisi || {}), [met]: id };
+    sauver(); afficher(); return;
+  }
+  if (t.dataset.devisChoix != null && m) { const C = { ...(m.devisChoisi || {}) }; if (t.value) C[t.dataset.devisChoix] = t.value; else delete C[t.dataset.devisChoix]; m.devisChoisi = C; sauver(); afficher(); return; }
   /* version d'essai : réponses de l'avis */
   if (t.dataset.avis) { avis[t.dataset.avis] = t.value; try { localStorage.setItem(cle("valou_avis"), JSON.stringify(avis)); } catch (e) {} if (t.type === "radio") afficher(); return; }
   /* contacter : matériau souhaité et remarque pour l'artisan */

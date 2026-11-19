@@ -383,6 +383,20 @@ try {
     for (let i = 0; i < 2; i++) await page.locator(".contact-ligne").first().locator("[data-art]").nth(i).check();
     await page.locator(".contact-ligne").first().locator('[data-action="envoi-metier"]').click();
     assert.match(await page.locator(".contact-ligne").first().innerText(), /Envoyé à 2 artisans/);
+    /* dossier pour la banque, point 4 : le devis de l'artisan choisi remplace l'estimation de son métier */
+    const idReno = page.url().split("/contacts/")[1];
+    await page.goto(URL + "#/dossier/" + idReno);
+    await page.locator(".dd-metier").first().waitFor();
+    const avantDevis = await page.locator(".feuille .f-table tr.tot").first().innerText();
+    const champDevis = page.locator("[data-devis-montant]").first();
+    await champDevis.fill("1000");
+    await champDevis.dispatchEvent("change");
+    await page.locator(".feuille").getByText("Total des devis retenus").waitFor();
+    assert.match(await page.locator(".feuille").innerText(), /dont devis d'artisans retenus \(1\)[\s\S]*1\s?000 €[\s\S]*4\. Les devis des artisans/);
+    assert.notEqual(await page.locator(".feuille .f-table tr.tot").first().innerText(), avantDevis, "le total tient compte du devis");
+    await page.screenshot({ path: `${OUT}/${nom}-22-dossier-devis.png`, fullPage: nom === "ordi" });
+    await page.locator('[data-devis-choix][value=""]').first().check(); // revenir à l'estimation
+    assert.equal(await page.locator(".feuille .f-table tr.tot").first().innerText(), avantDevis);
     /* comparer : seulement les maisons à acheter */
     await menu("#/comparer");
     await page.locator("main .puces").waitFor();
