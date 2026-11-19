@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "note": "Maisons FICTIVES pour la démonstration. À remplacer par de vraies maisons (mêmes champs). Seules les caractéristiques et les quantités sont ici : tous les prix viennent des références Valou.",
   "maisons": [
     {
@@ -258,6 +258,136 @@
         "souhaite": "garder"
       },
       "peb": "C"
+    },
+    {
+      "nom": "Ma maison à rénover (démo)",
+      "projet": "renovation",
+      "commune": "Liège · bien fictif",
+      "description": "Maison mitoyenne de 1958 où vivent les propriétaires. Ils veulent refaire la cuisine et la salle de bain, isoler la toiture et remplacer la vieille chaudière au gaz par une pompe à chaleur.",
+      "prix": 0,
+      "annee": 1958,
+      "surface": 110,
+      "etat": "rafraichir",
+      "uniqueHabitation": true,
+      "fraisNotaire": null,
+      "peb": "F",
+      "rep": {
+        "etat": "non",
+        "pose": "droite",
+        "anc": "non",
+        "fen": "depose",
+        "cont": "oui"
+      },
+      "travaux": [
+        {
+          "piece": "Toute la maison",
+          "k": "i_to_1",
+          "q": 55
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_zi",
+          "q": 14
+        },
+        {
+          "piece": "Toute la maison",
+          "k": "i_co",
+          "q": 1
+        }
+      ],
+      "pieces": [
+        {
+          "id": "cuisine",
+          "nom": "Cuisine",
+          "type": "cuisine",
+          "sol": 14,
+          "meu": true,
+          "sOn": true,
+          "sT": "carrelage",
+          "mpe": true,
+          "pOn": true,
+          "pT": "peinture"
+        },
+        {
+          "id": "sdb",
+          "nom": "Salle de bain",
+          "type": "sdb",
+          "sol": 7,
+          "meu": true,
+          "sOn": true,
+          "sT": "carrelage",
+          "mca": true,
+          "mcaM2": 22,
+          "pOn": true,
+          "pT": "peinture"
+        },
+        {
+          "id": "sejour",
+          "nom": "Séjour",
+          "type": "standard",
+          "sol": 30,
+          "mpe": true,
+          "mMe": true
+        },
+        {
+          "id": "ch1",
+          "nom": "Chambre 1",
+          "type": "standard",
+          "sol": 13,
+          "mpe": true,
+          "mMe": true,
+          "chOn": true,
+          "chN": 1
+        }
+      ],
+      "chauffage": {
+        "actuel": "gaz",
+        "souhaite": "pac",
+        "emetteurs": "garder"
+      },
+      "etapes": {
+        "i_pac|maison": "urgent",
+        "i_to_1|maison": "urgent",
+        "i_zi|maison": "urgent",
+        "meu_sdb|sdb": "annee",
+        "sol_carrelage|sdb": "annee",
+        "mur_carrelage|sdb": "annee",
+        "pl_peinture|sdb": "annee",
+        "meu_cuisine|cuisine": "tard",
+        "sol_carrelage|cuisine": "tard",
+        "mur_peinture|cuisine": "tard",
+        "pl_peinture|cuisine": "tard",
+        "mur_peinture|sejour": "tard",
+        "mur_peinture|ch1": "tard",
+        "i_ch|ch1": "annee",
+        "i_co|maison": "annee"
+      },
+      "devis": [
+        {
+          "id": "dv1",
+          "metier": "carreleur",
+          "artisan": "Carrelage Exemple",
+          "montant": 3050,
+          "fictif": true
+        },
+        {
+          "id": "dv2",
+          "metier": "carreleur",
+          "artisan": "Carrelage Exemple B",
+          "montant": 3450,
+          "fictif": true
+        },
+        {
+          "id": "dv3",
+          "metier": "menuisier",
+          "artisan": "Menuiserie Exemple",
+          "montant": 13900,
+          "fictif": true
+        }
+      ],
+      "devisRetenu": {
+        "carreleur": "dv1"
+      }
     }
   ]
 }

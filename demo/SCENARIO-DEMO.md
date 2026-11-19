@@ -207,3 +207,18 @@ Chaque version a sa propre adresse, sa tuile, son accueil et **ses propres donn�
 **Avant un rendez-vous :** dans la tuile concernée, ouvrir `#/presentation` à la fin de l'adresse (par exemple `hoono.be/demo/artisan/#/presentation`) remet à zéro **cette version seulement**.
 
 Le lien à envoyer aux testeurs particuliers est `hoono.be/demo/particulier/`.
+
+---
+
+# « Je rénove ma maison » (2 minutes, en option)
+
+**Clic :** accueil › carte **« 🔨 Je rénove ma maison »** › « Ma maison à rénover (démo) » (Liège, PEB F).
+
+**À montrer :**
+1. Le bandeau : **le budget de la rénovation**, sans prix d'achat, droits ni notaire, avec la part des travaux qui améliorent le PEB.
+2. Onglet **Étapes** : chaque partie classée en 🔴 urgent, 🟠 cette année ou 🟢 plus tard, avec le budget de chaque étape. Changer une étape : les budgets se mettent à jour.
+3. Onglet **Financer** : les aides (Rénopack) et le prêt travaux (épargne, montant à emprunter, mensualité). « Dossier pour la banque » : version rénovation, avec le budget par étape.
+4. Onglet **Artisans** : « Vos devis » : les devis reçus comparés au budget Valou (dans le budget, plus cher, moins cher), et celui qu'on retient.
+
+**À dire :**
+> « Valou ne sert pas qu'à acheter. Le propriétaire qui rénove voit son budget, le découpe en étapes selon ses moyens, trouve les aides et compare les devis de ses artisans au prix juste. »

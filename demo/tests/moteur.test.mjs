@@ -263,3 +263,14 @@ test("PEB : travaux énergétiques isolés, obligation annoncée pour E, F, G", 
   assert.equal(concerneParObligation("F"), true);
   assert.equal(concerneParObligation("D"), false);
 });
+
+test("je rénove ma maison : ni prix, ni droits, ni notaire, seulement les travaux", () => {
+  const m = { projet: "renovation", prix: 245000, annee: 1960, surface: 100, uniqueHabitation: true, travaux: [{ k: "i_zi", q: 10 }] };
+  const b = calculerBudget(R, m), c = coutTotal(m, b);
+  assert.equal(c.prix, 0);
+  assert.equal(c.droits, 0);
+  assert.equal(c.notaire, 0);
+  assert.ok(c.renovation);
+  assert.deepEqual(c.total, b.T);
+  assert.ok(b.T[1] > 0);
+});
