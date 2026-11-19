@@ -83,6 +83,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 - Le dossier complet sur une page : achat, droits, notaire, travaux, PEB et financement.
 - « Envoyer à la banque » fonctionne tout de suite (démonstration, aucun envoi réel). Les frais de notaire sont calculés par l'appli, d'après le simulateur de notaire.be.
 - En option, remplir l'apport (40 000 €), le taux et la durée pour voir la mensualité.
+- Point 4, « Les devis des artisans » : pour chaque métier, les artisans choisis dans « Contacter ». Taper le montant d'un devis : il remplace l'estimation Valou de ce métier dans le coût total et le montant à emprunter.
 
 **À dire :**
 > « Le particulier arrive chez le courtier avec un dossier complet : achat, notaire, travaux détaillés. Le courtier gagne du temps, la banque est rassurée. »
@@ -133,6 +134,10 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
    > « Vos prix ne sont jamais montrés. Ils servent à des moyennes d'au moins 5 artisans, et vous recevez les demandes en priorité. »
 4. **Les prix de votre zone** (« Notre moteur », en bas) : la carte 5 à 20 km, avec votre prix en vert.
 
+5. **Le devis** : « Envoyer un devis » demande le montant (et un délai ou une remarque). Le client le reçoit dans « Contacter » › « 📩 Devis reçus », le compare à l'estimation Valou et l'utilise d'un toucher dans son dossier pour la banque.
+
+6. **Les profils des artisans** : 3 artisans fictifs par métier (ex. « Atelier du Carreau », « Pinceau Clair »), chacun avec sa fiche (présentation, spécialités, contact, horaires) : « Voir le profil » dans Contacter.
+
 **Questions à poser :** voir le dossier « points faibles », partie 3 (artisan), puis proposer la lettre d'intention.
 
 ---
@@ -145,7 +150,7 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 
 1. **Votre fiche** (Professionnels › « Je suis négociant » › « Ma fiche ») : remplir le nom du négoce, l'adresse, le téléphone, **les types de matériaux vendus (obligatoire : gros œuvre, sanitaire, électricité, carrelage, location d'engins, échafaudages, conteneurs à déchets…)**, les services et les horaires. L'aperçu à droite se met à jour.
    > « Votre fiche apparaît sur les projets des maisons de votre zone. »
-2. **Ce que voit le particulier** (maison A, onglet **Artisans**) : « Négociants de votre région », avec votre fiche ; les types de matériaux utiles pour les travaux de la maison sont marqués ✓ en vert.
+2. **Ce que voit le particulier** (maison A, onglet **Artisans**) : « Négociants de votre région » : votre fiche parmi 6 négociants de la région (Brik'O, Le Comptoir du Sanitaire, Volta Matériel Électrique, Céram'Expo, La Planche d'Or, Loca'Chantier), les plus utiles pour la maison en premier ; les types de matériaux utiles pour les travaux de la maison sont marqués ✓ en vert.
    > « Le particulier, ou son artisan, sait où acheter ses matériaux et quand vous êtes ouvert. Il vient chez vous ou vous appelle. »
 3. **Vos prix (facultatif)** (onglet « Mes prix ») : taper un ou deux prix.
    > « Si vous le souhaitez, vos prix servent aux budgets des chantiers de votre zone. »
@@ -218,7 +223,7 @@ Le lien à envoyer aux testeurs particuliers est `hoono.be/demo/particulier/`.
 1. Le bandeau : **le budget de la rénovation**, sans prix d'achat, droits ni notaire, avec la part des travaux qui améliorent le PEB.
 2. Onglets **Pièces** et **Travaux** : exactement comme pour l'achat.
 3. Onglet **Financer** : les aides (Rénopack) et le prêt travaux (épargne, montant à emprunter, mensualité). « Dossier pour la banque » : version rénovation.
-4. Onglet **Artisans** : « 👷 Choisir les artisans par métier » ouvre « Contacter » : pour chaque métier, le projet propre à ce métier et jusqu'à 3 artisans à qui l'envoyer.
+4. Onglet **Artisans** : « 👷 Choisir les artisans » ouvre « Contacter » ; juste à côté, « 📩 Devis reçus » montre les devis envoyés par les artisans : pour chaque métier, le projet propre à ce métier et jusqu'à 3 artisans à qui l'envoyer.
 
 **À dire :**
 > « Valou ne sert pas qu'à acheter. Le propriétaire qui rénove voit son budget, trouve les aides et envoie à chaque artisan le projet de son métier. »

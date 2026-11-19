@@ -1,9 +1,9 @@
 /* Valou — écrans de présentation : Professionnels, Notre moteur, Feuille de route.
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
-import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611191433";
-import { RACINE, img } from "./chemins.js?v=202611191433";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611191433";
+import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611192133";
+import { RACINE, img } from "./chemins.js?v=202611192133";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611192133";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
 /* une partie du projet : un poste dans une pièce (ou pour toute la maison) */
@@ -93,7 +93,7 @@ export function ecranPro(ctx, onglet, metier) {
             (x.m.notesMetier || {})[M.id])}
           ${(P => (P.length ? `<div class="d-photos"><small class="mu">📷 ${P.length} photo${P.length > 1 ? "s" : ""} de la visite</small><div class="galerie mini">${P.slice(0, 8).map(p => `<figure class="vignette"><a href="${p.url}" target="_blank" rel="noopener"><img src="${p.url}" alt="${esc(p.nomPiece)}"></a><figcaption><small>${esc(p.nomPiece)}</small></figcaption></figure>`).join("")}</div></div>` : `<p class="mu petit-t">Pas encore de photos pour ces pièces.</p>`))(photosDemande(x))}
           <div class="d-pied"><small class="mu">${x.m.fin && x.m.fin.apport ? "✓ Dossier de financement préparé" : "Financement en préparation"} · Coordonnées du client transmises quand vous acceptez</small>
-            ${deja ? `<span class="d-act ok">✓ Vous avez répondu : ${deja.type === "visite" ? "visite proposée" : deja.type === "devis" ? "devis envoyé" : "pas disponible"}.</span>`
+            ${deja ? `<span class="d-act ok">✓ Vous avez répondu : ${deja.type === "visite" ? "visite proposée" : deja.type === "devis" ? `devis de ${euros(deja.montant || 0)} envoyé` : "pas disponible"}.</span>`
               : `<span class="d-act"><button class="btn sec" data-action="pro-visite">Proposer une visite</button><button class="btn" data-action="pro-ok">Envoyer un devis</button><button class="btn lien" data-action="pro-non">Pas disponible</button></span>`}</div>
           </details>
         </article>`;
@@ -213,13 +213,48 @@ export function ecranPro(ctx, onglet, metier) {
   return `${entete("pro")}<main>${nav}${simule}${corps}</main>`;
 }
 
-/* ---------- artisans de démonstration (fictifs) : coordonnées montrées au client quand l'artisan répond ---------- */
-export const ARTISANS_EXEMPLE = {
-  general: { nom: "Rénovation Exemple", tel: "04 000 00 01" }, carreleur: { nom: "Carrelage Exemple", tel: "04 000 00 02" },
-  peintre: { nom: "Peinture Exemple", tel: "04 000 00 03" }, electricien: { nom: "Électricité Exemple", tel: "04 000 00 04" },
-  chauffagiste: { nom: "Chauffage Exemple", tel: "04 000 00 05" }, menuisier: { nom: "Menuiserie Exemple", tel: "04 000 00 06" },
-  couvreur: { nom: "Toitures Exemple", tel: "04 000 00 07" },
+/* ---------- artisans de démonstration (fictifs) : 3 profils par métier ----------
+   Noms, coordonnées et textes inventés pour la démonstration (aucun artisan réel). Le premier de chaque métier est celui qui répond dans la démo. */
+const AR = (nom, lieu, km, desc, spe, tel, extra = {}) => ({ nom, lieu, km, desc, spe, tel, email: nom.toLowerCase().normalize("NFD").replace(/[^a-z]/g, "").slice(0, 14) + "@exemple.be", horaires: "Lun–ven 7h30–17h", tarifs: true, ...extra });
+export const ARTISANS = {
+  general: [
+    AR("Rénov' Complète", "Seraing", 3, "Entreprise générale : nous coordonnons tous les corps de métier, du gros œuvre aux finitions.", ["Rénovation complète", "Coordination de chantier", "Gros œuvre", "Finitions"], "04 000 01 01"),
+    AR("Bâtir Ensemble", "Liège", 7, "Rénovations lourdes de maisons anciennes, avec un seul interlocuteur du début à la fin.", ["Maisons anciennes", "Extensions", "Démolition", "Planning de chantier"], "04 000 01 02"),
+    AR("Maison Neuve Rénovation", "Ans", 14, "Petite équipe polyvalente pour rafraîchir une maison avant d'emménager.", ["Rafraîchissement", "Petits travaux", "Cuisine et salle de bain"], "04 000 01 03", { tarifs: false }),
+  ],
+  carreleur: [
+    AR("Atelier du Carreau", "Seraing", 3, "Carrelage de sols et de murs, grands formats et salles de bain.", ["Grand format 120×60", "Salles de bain", "Douches à l'italienne", "Faïence murale"], "04 000 02 01"),
+    AR("Pose Nette", "Grâce-Hollogne", 9, "Pose soignée, joints réguliers, chantier propre et rangé chaque soir.", ["Carrelage de sol", "Plinthes", "Terrasses", "Ragréage"], "04 000 02 02"),
+    AR("Mosaïque Liégeoise", "Liège", 7, "Carreaux de ciment, mosaïques et pierre naturelle pour les maisons de caractère.", ["Carreaux de ciment", "Mosaïque", "Pierre naturelle", "Restauration"], "04 000 02 03", { tarifs: false }),
+  ],
+  peintre: [
+    AR("Pinceau Clair", "Liège", 7, "Peinture intérieure et plafonnage, finitions lisses et teintes sur mesure.", ["Peinture intérieure", "Plafonnage", "Enduits lissés", "Conseil couleurs"], "04 000 03 01"),
+    AR("Teinte Juste", "Flémalle", 11, "Peinture et papier peint, protection complète des sols et des meubles.", ["Peinture", "Papier peint", "Boiseries", "Plafonds"], "04 000 03 02"),
+    AR("Atelier Blanc Mat", "Seraing", 3, "Plaques de plâtre, cloisons et peinture pour les rénovations rapides.", ["Plaques de plâtre", "Cloisons", "Faux plafonds", "Peinture"], "04 000 03 03", { tarifs: false }),
+  ],
+  electricien: [
+    AR("Fil Rouge Électricité", "Grâce-Hollogne", 9, "Électricité complète, mise en conformité et contrôle par un organisme agréé.", ["Installation complète", "Mise en conformité", "Tableau électrique", "Domotique"], "04 000 04 01"),
+    AR("Lumen Installations", "Liège", 7, "Éclairage, prises et rénovation électrique pièce par pièce.", ["Éclairage LED", "Prises et interrupteurs", "Rénovation partielle"], "04 000 04 02"),
+    AR("Circuit Net", "Ans", 14, "Dépannage et petites installations, intervention rapide.", ["Dépannage", "Bornes de recharge", "Petites installations"], "04 000 04 03", { tarifs: false }),
+  ],
+  chauffagiste: [
+    AR("Chaleur Douce", "Seraing", 3, "Pompes à chaleur, chaudières à condensation et radiateurs, avec entretien.", ["Pompe à chaleur", "Chaudière gaz", "Radiateurs", "Entretien"], "04 000 05 01"),
+    AR("Flamme Bleue Chauffage", "Liège", 7, "Remplacement de chaudières au mazout et démontage des cuves.", ["Remplacement de chaudière", "Démontage de cuve à mazout", "Chauffage au sol"], "04 000 05 02"),
+    AR("Robinet Malin", "Flémalle", 11, "Sanitaire : salles de bain complètes, WC suspendus et plomberie.", ["Salles de bain", "WC suspendus", "Plomberie", "Chauffe-eau"], "04 000 05 03", { tarifs: false }),
+  ],
+  menuisier: [
+    AR("Copeau d'Or", "Liège", 7, "Menuiserie intérieure et extérieure : châssis, portes et cuisines.", ["Châssis PVC et alu", "Portes intérieures", "Cuisines sur mesure", "Parquet"], "04 000 06 01"),
+    AR("L'Établi", "Ans", 14, "Parquets, escaliers et placards sur mesure, en bois massif.", ["Parquet massif", "Escaliers", "Placards", "Rénovation de boiseries"], "04 000 06 02"),
+    AR("Huisserie Nette", "Seraing", 3, "Remplacement de châssis et de portes d'entrée, pose en rénovation.", ["Châssis", "Portes d'entrée", "Volets", "Isolation des menuiseries"], "04 000 06 03", { tarifs: false }),
+  ],
+  couvreur: [
+    AR("Tuile & Zinc", "Grâce-Hollogne", 9, "Toitures en tuiles et ardoises, zinguerie et isolation sous toiture.", ["Couverture", "Zinguerie", "Isolation de toiture", "Fenêtres de toit"], "04 000 07 01"),
+    AR("Toit Sûr", "Liège", 7, "Rénovation complète de toitures et réparations après tempête.", ["Rénovation de toiture", "Réparations", "Gouttières", "Démoussage"], "04 000 07 02"),
+    AR("Ardoise Bleue", "Flémalle", 11, "Ardoises naturelles, toitures plates EPDM et charpentes.", ["Ardoises naturelles", "Toiture plate EPDM", "Charpente"], "04 000 07 03", { tarifs: false }),
+  ],
 };
+/* coordonnées montrées au client quand l'artisan répond (le premier profil de chaque métier) */
+export const ARTISANS_EXEMPLE = Object.fromEntries(Object.entries(ARTISANS).map(([k, L]) => [k, { nom: L[0].nom, tel: L[0].tel }]));
 
 /* demandes reçues par l'artisan : fermées par défaut (on ne voit que l'adresse), ouvertes d'un clic */
 const demandesOuvertes = new Set();
@@ -252,18 +287,18 @@ export const RAYONS_NEG = [
 
 /* ---------- fiche publique d'un négociant ---------- */
 export const JOURS = [["lun", "Lundi"], ["mar", "Mardi"], ["mer", "Mercredi"], ["jeu", "Jeudi"], ["ven", "Vendredi"], ["sam", "Samedi"], ["dim", "Dimanche"]];
-export function ficheNegociant(F, metiersMaison) {
+export function ficheNegociant(F, metiersMaison, compact) {
   if (!F || !F.nom) return `<div class="carte vide"><p class="mu">Aucun négociant inscrit pour l'instant.</p></div>`;
   const rayons = RAYONS_NEG.filter(r => (F.rayons || []).includes(r[0]));
   const utile = r => metiersMaison && r[3].some(id => metiersMaison.includes(id));
   const services = String(F.services || "").split("\n").map(x => x.trim()).filter(Boolean);
   const H = F.horaires || {};
   return `<article class="carte fiche-neg">
-    <div class="fn-tete"><span class="pf-ico">🧱</span><div><b>${esc(F.nom)}</b>${F.fictif ? ` <span class="badge b-exemple">Exemple fictif</span>` : ""}${F.adresse ? `<small class="mu">${esc(F.adresse)}</small>` : ""}</div></div>
+    <div class="fn-tete"><span class="pf-ico">🧱</span><div><b>${esc(F.nom)}</b>${F.fictif ? ` <span class="badge b-exemple">Exemple fictif</span>` : ""}${F.adresse ? `<small class="mu">${esc(F.adresse)}${F.km ? ` · à ${F.km} km` : ""}</small>` : ""}</div></div>
     ${rayons.length ? `<div class="fn-rayons"><small class="mu">Matériaux vendus${metiersMaison && rayons.some(utile) ? " · ✓ = utile pour vos travaux" : ""}</small><div>${rayons.map(r => `<span class="fn-rayon ${utile(r) ? "utile" : ""}">${utile(r) ? "✓ " : ""}${r[1]} ${esc(r[2])}</span>`).join("")}</div></div>` : ""}
     ${services.length ? `<ul class="fn-services">${services.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
     <div class="fn-contact">${F.tel ? `<span>📞 ${esc(F.tel)}</span>` : ""}${F.email ? `<span>✉️ ${esc(F.email)}</span>` : ""}${F.site ? `<span>🌐 ${esc(F.site)}</span>` : ""}</div>
-    ${JOURS.some(([k]) => H[k]) ? `<table class="fn-horaires">${JOURS.map(([k, j]) => `<tr><td>${j}</td><td>${esc(H[k] || "—")}</td></tr>`).join("")}</table>` : ""}
+    ${JOURS.some(([k]) => H[k]) ? (t => (compact ? `<details class="fn-h"><summary>🕘 Horaires d'ouverture</summary>${t}</details>` : t))(`<table class="fn-horaires">${JOURS.map(([k, j]) => `<tr><td>${j}</td><td>${esc(H[k] || "—")}</td></tr>`).join("")}</table>`) : ""}
   </article>`;
 }
 

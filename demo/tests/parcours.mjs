@@ -82,7 +82,9 @@ try {
     await onglet("artisans");
     await page.locator("main > .envoi").waitFor();
     assert.ok(await page.evaluate(() => { const m = document.querySelector("main"); return m.lastElementChild.classList.contains("envoi"); }), "l'envoi aux artisans est le dernier bloc");
-    assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Matériaux Exemple[\s\S]*Matériaux vendus[\s\S]*✓/);
+    assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Brik'O[\s\S]*Matériaux vendus[\s\S]*✓/);
+    assert.equal(await page.locator(".negs .fiche-neg").count(), 6, "plusieurs négociants");
+    assert.match(await page.locator(".negs").innerText(), /Comptoir du Sanitaire[\s\S]*|Loca'Chantier/);
     await page.getByText("📨 Envoyer le projet aux artisans").click();
     await page.locator('[data-action="envoi-ok"]').click();
     await page.getByText("Voir ce que reçoit l'artisan →").click();
@@ -102,7 +104,7 @@ try {
     await menu("#/contacts");
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').click();
     await page.locator(".resume").waitFor();
-    assert.match(await page.locator("main").innerText(), /Carreleur[\s\S]*Visite proposée[\s\S]*Carrelage Exemple[\s\S]*Négociants de votre région/);
+    assert.match(await page.locator("main").innerText(), /Carreleur[\s\S]*Visite proposée[\s\S]*Atelier du Carreau[\s\S]*Négociants de votre région/);
     await page.screenshot({ path: `${OUT}/${nom}-0e-contacts.png`, fullPage: nom === "ordi" });
     /* maison B : pour un métier, on consulte le projet personnalisé, on coche 3 artisans (pas plus) et on envoie */
     await page.locator(".retour").click();
@@ -133,7 +135,14 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-0f-parties.png`, fullPage: nom === "ordi" });
     await L().locator('[data-v="a"]').click();
     for (let i = 0; i < 3; i++) await L().locator("[data-art]").nth(i).check();
-    assert.ok(await L().locator("[data-art]").nth(3).isDisabled(), "4e artisan bloqué");
+    assert.equal(await L().locator("[data-art]").count(), 3, "3 profils d'artisans par métier");
+    /* le profil d'un artisan */
+    await L().locator('a:has-text("Voir le profil")').first().click();
+    await page.locator(".profil-art").waitFor();
+    assert.match(await page.locator(".profil-art").innerText(), /Exemple fictif[\s\S]*Spécialités[\s\S]*Téléphone[\s\S]*04 000/);
+    await page.screenshot({ path: `${OUT}/${nom}-0g-profil-artisan.png`, fullPage: nom === "ordi" });
+    await page.goBack();
+    await page.locator(".contact-ligne").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-0g-choix-artisans.png`, fullPage: nom === "ordi" });
     await L().locator('[data-action="envoi-metier"]').click();
     assert.match(await L().innerText(), /Envoyé à 3 artisans/);
@@ -208,6 +217,29 @@ try {
     { const b = page.locator('.demande details[open] [data-action="pro-ok"]'); if (await b.count()) await b.first().click(); } // sinon : l'artisan a déjà répondu
     await page.locator(".d-act.ok").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-artisan.png`, fullPage: nom === "ordi" });
+    /* l'artisan envoie un devis chiffré ; le particulier le reçoit dans « Contacter » et l'utilise dans le dossier */
+    await page.selectOption("[data-metier]", "peintre");
+    const dPeintre = page.locator('.demande:has-text("Seraing")').first();
+    if (!(await dPeintre.locator(".d-lots").isVisible())) await dPeintre.locator(".d-resume").click();
+    await dPeintre.locator('[data-action="pro-ok"]').click();
+    await dPeintre.locator(".d-devis-m").fill("3000");
+    await dPeintre.locator(".d-devis-n").fill("Disponible en mars");
+    await dPeintre.locator('[data-action="pro-devis-envoyer"]').click();
+    assert.match(await dPeintre.locator(".d-act.ok").innerText(), /3\s?000 € envoyé/);
+    await page.goto(URL + "#/");
+    await page.locator('.grille .maison:has-text("Maison de démonstration A")').click();
+    await onglet("artisans");
+    await page.locator('.choisir-art a:has-text("Devis reçus")').click(); // juste à côté de « Choisir les artisans par métier »
+    await page.locator(".devis-recus").waitFor();
+    assert.match(await page.locator(".devis-recus").innerText(), /Devis reçus[\s\S]*Peintre et plafonneur[\s\S]*Pinceau Clair[\s\S]*Disponible en mars[\s\S]*3\s?000 €/);
+    assert.ok(await page.locator(".pastille").count() > 0, "pastille sur Contacter");
+    await page.screenshot({ path: `${OUT}/${nom}-8b-devis-recus.png`, fullPage: nom === "ordi" });
+    await page.locator('.devis-recus [data-action="devis-utiliser"]').click();
+    await page.locator(".devis-recus .dr-ok a").click();
+    await page.locator(".feuille").waitFor();
+    assert.match(await page.locator(".feuille").innerText(), /dont devis d'artisans retenus \(1\)[\s\S]*Pinceau Clair[\s\S]*3\s?000 €/);
+    await page.goto(URL + "#/pro/artisan");
+    await page.selectOption("[data-metier]", "carreleur"); // la suite du parcours repart du carreleur
     for (const [o, sel] of [["courtier", ".dossier-c"], ["agence", ".annonce"]]) {
       await page.goto(URL + "#/pro/" + o);
       await page.locator(sel).first().waitFor();
@@ -375,7 +407,7 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-19-renovation-artisans.png`, fullPage: nom === "ordi" });
     assert.ok(await page.evaluate(() => document.querySelector("main").lastElementChild.classList.contains("envoi")), "l'envoi aux artisans reste le dernier bloc");
     /* choisir plusieurs artisans par métier, avec le projet propre à chacun (écran « Contacter ») */
-    await page.getByText("👷 Choisir les artisans par métier →").click();
+    await page.getByText("👷 Choisir les artisans →").click();
     await page.waitForFunction(() => location.hash.startsWith("#/contacts/"));
     await page.locator(".contact-ligne").first().waitFor();
     await page.locator(".contact-ligne").first().locator('[data-v="a"]').click();
@@ -383,6 +415,20 @@ try {
     for (let i = 0; i < 2; i++) await page.locator(".contact-ligne").first().locator("[data-art]").nth(i).check();
     await page.locator(".contact-ligne").first().locator('[data-action="envoi-metier"]').click();
     assert.match(await page.locator(".contact-ligne").first().innerText(), /Envoyé à 2 artisans/);
+    /* dossier pour la banque, point 4 : le devis de l'artisan choisi remplace l'estimation de son métier */
+    const idReno = page.url().split("/contacts/")[1];
+    await page.goto(URL + "#/dossier/" + idReno);
+    await page.locator(".dd-metier").first().waitFor();
+    const avantDevis = await page.locator(".feuille .f-table tr.tot").first().innerText();
+    const champDevis = page.locator("[data-devis-montant]").first();
+    await champDevis.fill("1000");
+    await champDevis.dispatchEvent("change");
+    await page.locator(".feuille").getByText("Total des devis retenus").waitFor();
+    assert.match(await page.locator(".feuille").innerText(), /dont devis d'artisans retenus \(1\)[\s\S]*1\s?000 €[\s\S]*4\. Les devis des artisans/);
+    assert.notEqual(await page.locator(".feuille .f-table tr.tot").first().innerText(), avantDevis, "le total tient compte du devis");
+    await page.screenshot({ path: `${OUT}/${nom}-22-dossier-devis.png`, fullPage: nom === "ordi" });
+    await page.locator('[data-devis-choix][value=""]').first().check(); // revenir à l'estimation
+    assert.equal(await page.locator(".feuille .f-table tr.tot").first().innerText(), avantDevis);
     /* comparer : seulement les maisons à acheter */
     await menu("#/comparer");
     await page.locator("main .puces").waitFor();
@@ -413,6 +459,20 @@ try {
     await page.goto(URL + "#/");
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();
+
+    /* supprimer une maison depuis l'accueil, avec confirmation dans l'appli */
+    const carteB = page.locator('.m-case:has-text("Maison de démonstration B")');
+    await carteB.locator(".m-suppr").click();
+    await page.locator(".conf").waitFor();
+    assert.match(await page.locator(".conf").innerText(), /Supprimer « Maison de démonstration B » \?[\s\S]*effacé/);
+    await page.screenshot({ path: `${OUT}/${nom}-21-supprimer.png` });
+    await page.locator('.conf [data-action="suppr-annuler"]').click();
+    assert.equal(await page.locator(".conf").count(), 0);
+    assert.equal(await carteB.count(), 1, "annuler : la maison reste");
+    await carteB.locator(".m-suppr").click();
+    await page.locator(".conf-ok").click();
+    await page.locator(".conf").waitFor({ state: "detached" });
+    assert.equal(await page.locator('.m-case:has-text("Maison de démonstration B")').count(), 0, "la maison est supprimée");
 
     /* version d'essai pour les particuliers : sans maisons de démonstration ni pages pour les professionnels */
     await page.goto(URL + "#/essai");

@@ -889,3 +889,62 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .q-escalier-u { white-space: nowrap; }
 .q-une .q-er { text-align: left; vertical-align: top; padding: 1px 3px; }
 .q-une .q-er small { font-size: 8px; color: #777; }
+
+/* supprimer une maison : bouton sur la carte et fenêtre de confirmation */
+.m-case { position: relative; display: grid; }
+.m-case > .maison { height: 100%; }
+.m-suppr { position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--bord); background: rgba(255, 255, 255, .92); cursor: pointer; font-size: 17px; line-height: 1; opacity: .75; }
+.m-suppr:hover, .m-suppr:focus-visible { opacity: 1; border-color: var(--rouge); }
+.m-case .m-tete { padding-right: 44px; }
+.conf-fond { position: fixed; inset: 0; z-index: 40; background: rgba(2, 34, 80, .45); }
+.conf { position: fixed; z-index: 41; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 32px)); background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 20px 50px rgba(2, 34, 80, .3); }
+.conf h2 { margin: 0 0 8px; font-size: 20px; }
+.conf-boutons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+.conf-ok { background: var(--rouge); border-color: var(--rouge); }
+@media (max-width: 760px) { .conf { top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); } .conf-boutons .btn { flex: 1; } }
+@media (min-width: 761px) { .m-suppr { width: 32px; height: 32px; font-size: 14px; top: 10px; right: 10px; } .m-case .m-tete { padding-right: 34px; } }
+
+/* dossier pour la banque : devis des artisans */
+.dd-ecran { margin-bottom: 12px; }
+.dd-metier { border: 1px solid var(--bord); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; background: var(--carte); }
+.dd-tete { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.dd-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; padding: 6px 0; border-top: 1px dashed var(--bord); }
+.dd-ligne .saisie { max-width: 190px; }
+label.dd-ligne { justify-content: flex-start; }
+
+/* devis reçus des artisans */
+.pastille { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--or); color: #fff; font: 800 11.5px Manrope, sans-serif; vertical-align: middle; margin-left: 4px; }
+.bb-i .bb-ico { position: relative; }
+.pastille.bb-p { position: absolute; top: -6px; right: -12px; margin: 0; min-width: 18px; height: 18px; font-size: 10.5px; }
+.devis-recus { border-left: 5px solid var(--or); }
+.devis-recus h2 { display: flex; align-items: center; gap: 6px; }
+.dr-ligne { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; padding: 12px 0; border-top: 1px solid var(--bord); }
+.dr-ligne.utilise { background: #F1F8F3; border-radius: 10px; padding: 12px; }
+.dr-g, .dr-d { display: grid; gap: 3px; align-content: start; }
+.dr-d { justify-items: end; text-align: right; }
+.dr-m { font: 900 22px Outfit, Manrope, sans-serif; color: var(--bordeaux); }
+.dr-tel { font-size: 13.5px; }
+.dr-note { margin: 4px 0 0; font-style: italic; }
+.dr-ok { color: var(--vert); font-weight: 700; font-size: 14px; }
+.d-devis { display: grid; gap: 8px; width: 100%; max-width: 420px; }
+.d-devis label { display: grid; gap: 4px; font-weight: 700; font-size: 14px; }
+@media (max-width: 640px) { .dr-ligne { grid-template-columns: 1fr; } .dr-d { justify-items: start; text-align: left; } }
+.choisir-art .actions-g { display: grid; grid-template-columns: auto auto; justify-content: start; gap: 10px; }
+@media (max-width: 760px) { .choisir-art .actions-g { grid-template-columns: 1fr 1fr; } .choisir-art .actions-g .btn { padding: 12px 8px; font-size: 14.5px; text-align: center; justify-content: center; } }
+
+/* profil d'un artisan */
+.profil-art h1 { margin: 0; font-size: 26px; }
+.pa-tete { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 8px; }
+.pa-tete p { margin: 2px 0 6px; }
+.pa-ico { font-size: 38px; line-height: 1; }
+.pa-spe { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.pa-spe li { padding: 5px 11px; border-radius: 999px; background: var(--carte); border: 1px solid var(--bord); font-weight: 600; font-size: 14px; }
+.profil-art h2 { margin: 18px 0 8px; }
+
+/* plusieurs négociants de la région */
+.negs-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; align-items: start; }
+.negs-grille .fiche-neg { margin: 0; }
+.fn-h { margin-top: 8px; }
+.fn-h > summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--bordeaux); padding: 4px 0; }
+@media (max-width: 640px) { .negs-grille { grid-template-columns: 1fr; } }
+.negs-grille .fn-services { columns: 1; }
