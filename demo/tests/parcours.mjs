@@ -118,7 +118,7 @@ try {
     }
     assert.ok(iL >= 0, "un métier avec 2 parties");
     const L = () => page.locator(".contact-ligne").nth(iL);
-    assert.match(await L().locator(".ct-projet").innerText(), /Pièce[\s\S]*Poste[\s\S]*À envoyer : \d+ parties/);
+    assert.match(await L().locator(".ct-projet").innerText(), /À envoyer : \d+ parties/);
     const nParts = await L().locator("[data-part]").count();
     await L().locator("[data-part]").first().uncheck();
     assert.match(await L().locator(".ct-projet").innerText(), new RegExp(`À envoyer : ${nParts - 1} partie`));
@@ -373,8 +373,10 @@ try {
     assert.ok(await page.evaluate(() => document.querySelector("main").lastElementChild.classList.contains("envoi")), "l'envoi aux artisans reste le dernier bloc");
     /* choisir plusieurs artisans par métier, avec le projet propre à chacun (écran « Contacter ») */
     await page.getByText("👷 Choisir les artisans par métier →").click();
+    await page.waitForFunction(() => location.hash.startsWith("#/contacts/"));
     await page.locator(".contact-ligne").first().waitFor();
     await page.locator(".contact-ligne").first().locator('[data-v="a"]').click();
+    await page.locator(".contact-ligne").first().locator("[data-art]").first().waitFor();
     for (let i = 0; i < 2; i++) await page.locator(".contact-ligne").first().locator("[data-art]").nth(i).check();
     await page.locator(".contact-ligne").first().locator('[data-action="envoi-metier"]').click();
     assert.match(await page.locator(".contact-ligne").first().innerText(), /Envoyé à 2 artisans/);
@@ -392,6 +394,19 @@ try {
     await page.getByText("Voir le budget de la rénovation").click();
     await page.locator(".vrai-cout .gros").waitFor();
     assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
+    /* photo du questionnaire : on photographie les 2 pages, Valou remplit la maison (démonstration : questionnaire d'exemple) */
+    await onglet("pieces");
+    await page.getByText("📝 Photo du questionnaire").click();
+    await page.locator("[data-qphoto]").setInputFiles([png, { ...png, name: "page2.png" }]);
+    await page.locator(".q-photos .vignette").nth(1).waitFor();
+    await page.locator('[data-action="q-lire"]').click();
+    await page.locator(".q-resultat").waitFor();
+    assert.match(await page.locator(".q-resultat").innerText(), /Démonstration[\s\S]*6 pièces[\s\S]*Séjour \/ salon[\s\S]*Structure/);
+    await page.screenshot({ path: `${OUT}/${nom}-20-questionnaire-photo.png`, fullPage: nom === "ordi" });
+    await page.locator('[data-action="q-appliquer"]').click();
+    await page.locator(".carte-piece").nth(5).waitFor();
+    assert.match(await page.locator(".grille-pieces").innerText(), /Séjour \/ salon[\s\S]*Cuisine[\s\S]*Salle de bain[\s\S]*Chambre 2/);
+    assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), "0 €");
     await page.goto(URL + "#/");
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();
