@@ -981,12 +981,12 @@ function ecranContacts(id) {
       : `<span class="badge b-reference">${r.type === "visite" ? "Visite proposée" : "Devis envoyé"}</span>`;
     const ouvert = ctOuvert[m.id + ":" + x.id];
     const projet = `<div class="ct-panneau"><p class="mu petit-t">Cochez les parties à envoyer. Exemple : vous carrelez vous-même la salle de bain, mais pas le séjour → ne cochez que le séjour.</p>
-      <table class="ct-projet"><thead><tr><th></th><th>Pièce</th><th>Poste</th><th class="ct-mat">Matériau souhaité <small>(facultatif)</small></th><th class="r">Quantité</th><th class="r">Budget</th></tr></thead><tbody>
+      <div class="ct-projet-boite"><table class="ct-projet"><thead><tr><th></th><th>Pièce</th><th>Poste</th><th class="ct-mat">Matériau souhaité <small>(facultatif)</small></th><th class="r">Quantité</th><th class="r">Budget</th></tr></thead><tbody>
       ${parts.map(q => { const mat = (m.materiaux || {})[q.cle] || "", sug = suggestionsMateriau(q.k);
         const champ = `<input class="ct-mat-in" data-mat="${esc(q.cle)}" value="${esc(mat)}" ${sug.length ? `list="sug-${esc(q.k)}"` : ""} placeholder="${esc(sug[0] ? `ex. ${sug[0]}` : "ex. marque, couleur, format")}" ${envoye ? "readonly" : ""} aria-label="Matériau souhaité : ${esc(q.piece)}, ${esc(q.n)}">`;
         return `<tr class="${incluse(q) ? "" : "exclu"}"><td><input type="checkbox" data-part="${esc(q.cle)}" ${incluse(q) ? "checked" : ""} ${envoye ? "disabled" : ""} aria-label="Envoyer : ${esc(q.piece)}, ${esc(q.n)}"></td>
         <td><b>${esc(q.piece)}</b></td><td>${esc(q.n)} ${badge(q.fiab)}<div class="ct-mat-tel">${champ}</div></td><td class="ct-mat">${champ}</td><td class="r">${esc(qte(q.q, q.u))}</td><td class="r">${q.total ? euros(q.total, 10) : "–"}</td></tr>`; }).join("")}
-      <tr class="tot"><td colspan="5">À envoyer : ${nSel} partie${nSel > 1 ? "s" : ""} sur ${parts.length} (TVA ${b.rate} % comprise)</td><td class="r"><b>${euros(tSel, 10)}</b></td></tr></tbody></table>
+      <tr class="tot"><td colspan="5">À envoyer : ${nSel} partie${nSel > 1 ? "s" : ""} sur ${parts.length} (TVA ${b.rate} % comprise)</td><td class="r"><b>${euros(tSel, 10)}</b></td></tr></tbody></table></div>
       ${[...new Set(parts.map(q => q.k))].map(k => suggestionsMateriau(k).length ? `<datalist id="sug-${esc(k)}">${suggestionsMateriau(k).map(v => `<option value="${esc(v)}">`).join("")}</datalist>` : "").join("")}
       <label class="ct-note">Remarque pour l'artisan <small class="mu">(facultatif)</small>
         <textarea data-note-metier="${x.id}" rows="2" ${envoye ? "readonly" : ""} placeholder="ex. Carrelage déjà acheté, à poser seulement. Joints gris anthracite.">${esc((m.notesMetier || {})[x.id] || "")}</textarea></label>

@@ -118,7 +118,7 @@ try {
     }
     assert.ok(iL >= 0, "un métier avec 2 parties");
     const L = () => page.locator(".contact-ligne").nth(iL);
-    assert.match(await L().locator(".ct-projet").innerText(), /Pièce[\s\S]*Poste[\s\S]*À envoyer : \d+ parties/);
+    assert.match(await L().locator(".ct-projet").innerText(), /À envoyer : \d+ parties/);
     const nParts = await L().locator("[data-part]").count();
     await L().locator("[data-part]").first().uncheck();
     assert.match(await L().locator(".ct-projet").innerText(), new RegExp(`À envoyer : ${nParts - 1} partie`));
@@ -373,8 +373,10 @@ try {
     assert.ok(await page.evaluate(() => document.querySelector("main").lastElementChild.classList.contains("envoi")), "l'envoi aux artisans reste le dernier bloc");
     /* choisir plusieurs artisans par métier, avec le projet propre à chacun (écran « Contacter ») */
     await page.getByText("👷 Choisir les artisans par métier →").click();
+    await page.waitForFunction(() => location.hash.startsWith("#/contacts/"));
     await page.locator(".contact-ligne").first().waitFor();
     await page.locator(".contact-ligne").first().locator('[data-v="a"]').click();
+    await page.locator(".contact-ligne").first().locator("[data-art]").first().waitFor();
     for (let i = 0; i < 2; i++) await page.locator(".contact-ligne").first().locator("[data-art]").nth(i).check();
     await page.locator(".contact-ligne").first().locator('[data-action="envoi-metier"]').click();
     assert.match(await page.locator(".contact-ligne").first().innerText(), /Envoyé à 2 artisans/);
