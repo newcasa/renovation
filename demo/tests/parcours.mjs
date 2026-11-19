@@ -32,7 +32,7 @@ try {
     await page.goto(URL);
     /* page d'intro : logo, phrase d'accroche, bouton « Commencer la démo » */
     await page.locator(".intro-logo").waitFor();
-    assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo[\s\S]*Pour vous, c'est gratuit[\s\S]*acheteur confiant, un artisan gagnant, un négociant content… et une Wallonie qui va de l'avant/);
+    assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo[\s\S]*Acheteurs[\s\S]*acheteur confiant, un artisan gagnant, un négociant content… et une Wallonie qui va de l'avant/);
     await page.screenshot({ path: `${OUT}/${nom}-00-intro.png` });
     await page.getByText("Commencer la démo →").click();
     await page.getByText("Ajouter une maison").first().waitFor();
@@ -444,6 +444,7 @@ try {
     /* les 4 versions (une tuile chacune) : chacune son accueil et ses propres données */
     await page.goto(URL + "particulier/");
     await page.locator(".essai-etapes").waitFor();
+    assert.match(await page.locator(".intro-boite").innerText(), /Pour vous, c'est gratuit/);
     assert.doesNotMatch(await page.locator("main").innerText(), /Voir mes maisons/); // la « Maison test » de la version complète n'y est pas
     assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "manifest.webmanifest");
     await page.screenshot({ path: `${OUT}/${nom}-14-v-particulier.png` });

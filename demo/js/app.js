@@ -1036,9 +1036,9 @@ function ecranContacts(id) {
 /* ---------- page d'intro ---------- */
 /* texte de la page d'intro selon la version (tuile) ouverte */
 const INTRO = {
-  complete: { h: `Le vrai coût d'une maison à rénover, <span>avant de faire une offre.</span>`, p: "Prix, notaire, travaux pièce par pièce : Valou chiffre tout, puis envoie votre projet aux bons artisans.", lien: "#/", avT: "Pour vous, c'est gratuit", av: ["Le vrai coût avant de faire une offre : prix, droits, notaire et travaux", "Le budget de votre rénovation, pièce par pièce", "Vos maisons comparées sur leur vrai coût, PEB compris", "Un dossier complet pour la banque", "Votre projet envoyé aux artisans, qui le comprennent sans se déplacer"] },
-  artisan: { h: `Des chantiers déjà chiffrés, <span>avec les photos.</span>`, p: "Le client a visité, chiffré et photographié sa maison. Vous recevez son projet et vous choisissez : visite, devis ou pas disponible.", lien: "#/demo-artisan", avT: "Vos avantages", av: ["Des projets déjà chiffrés, avec les photos des pièces", "Un client qui connaît son budget : moins de devis refusés", "Vous choisissez : visite, devis ou pas disponible", "Vos tarifs restent confidentiels"] },
-  negociant: { h: `Soyez vu sur les chantiers <span>de votre région.</span>`, p: "Chaque maison chiffrée dans Valou, ce sont des matériaux à acheter. Votre fiche montre ce que vous vendez, vos services et vos horaires.", lien: "#/demo-negociant", avT: "Vos avantages", av: ["Visible sur les projets des maisons de votre zone", "Vos types de matériaux, services, coordonnées et horaires mis en avant", "Des clients avec un chantier déjà chiffré", "Aucune offre à envoyer : les clients viennent à vous"] },
+  complete: { h: `Le vrai coût d'une maison à rénover, <span>avant de faire une offre.</span>`, p: "Prix, notaire, travaux pièce par pièce : Valou chiffre tout, puis envoie votre projet aux bons artisans.", lien: "#/" },
+  artisan: { h: `Des chantiers déjà chiffrés, <span>avec les photos.</span>`, p: "Le client a visité, chiffré et photographié sa maison. Vous recevez son projet et vous choisissez : visite, devis ou pas disponible.", lien: "#/demo-artisan" },
+  negociant: { h: `Soyez vu sur les chantiers <span>de votre région.</span>`, p: "Chaque maison chiffrée dans Valou, ce sont des matériaux à acheter. Votre fiche montre ce que vous vendez, vos services et vos horaires.", lien: "#/demo-negociant" },
 };
 function ecranIntro() {
   const I = INTRO[VERSION] || INTRO.complete;
@@ -1048,7 +1048,12 @@ function ecranIntro() {
       <h1>${I.h}</h1>
       <p class="intro-sous">${esc(I.p)}</p>
       <a class="btn intro-btn" href="${I.lien}">Commencer la démo →</a>
-      <section class="avantages av-particulier intro-av"><b>${esc(I.avT)}</b><ul>${I.av.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>
+      <ul class="intro-pour">
+        <li><b>🏠 Acheteurs</b><span>le vrai budget, gratuit</span></li>
+        <li><b>🔨 Artisans</b><span>des projets déjà chiffrés</span></li>
+        <li><b>🧱 Négociants</b><span>visibles sur les chantiers</span></li>
+        <li><b>🏦 Courtiers et agences</b><span>des dossiers complets</span></li>
+      </ul>
       <p class="intro-fin">Avec Valou, c'est un acheteur <b>confiant</b>, un artisan <b>gagnant</b>, un négociant <b>content</b>… et une Wallonie qui va <b>de l'avant</b>.</p>
       <p class="intro-note">Version de démonstration · maisons et professionnels fictifs</p>
     </div>
@@ -1068,6 +1073,7 @@ function ecranEssai() {
         <li><b>Encodez les pièces et les travaux</b><span>pièce par pièce, avec des photos si vous le voulez</span></li>
         <li><b>Découvrez son vrai coût</b><span>et comparez-la à d'autres maisons</span></li>
       </ol>
+      <section class="avantages av-particulier intro-av"><b>Pour vous, c'est gratuit</b><ul>${["Le vrai coût avant de faire une offre : prix, droits, notaire et travaux", "Le budget de votre rénovation, pièce par pièce", "Vos maisons comparées sur leur vrai coût, PEB compris", "Un dossier complet pour la banque", "Votre projet envoyé aux artisans, qui le comprennent sans se déplacer"].map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>
       <span class="actions-g centre"><a class="btn intro-btn" href="#/ajouter">＋ Ajouter ma maison</a>${n ? `<a class="btn sec" href="#/">Voir mes maisons (${n})</a>` : ""}</span>
       <p class="intro-note">Version d'essai gratuite · vos maisons restent sur ce téléphone, rien n'est envoyé · l'envoi aux artisans et à la banque est simulé.<br>Après l'essai, un clic sur « 💬 Mon avis » nous aide beaucoup.</p>
     </div>

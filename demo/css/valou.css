@@ -816,3 +816,4 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 
 .intro-av { margin: 36px auto 0; max-width: 640px; text-align: left; }
 .intro-av ul { grid-template-columns: 1fr; }
+.essai-page .intro-av { margin: 6px auto 26px; }
