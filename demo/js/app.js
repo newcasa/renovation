@@ -1,7 +1,7 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
 import { chargerReferences } from "./donnees.js";
 import { VERSION, DEMO_DIR, cle, img } from "./chemins.js";
-import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, cleLigne } from "./vitrine.js";
@@ -10,6 +10,9 @@ import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPho
 
 let R = null;
 let maisons = lireMaisons();
+/* l'estimation rapide (cases cochées à l'ajout) n'existe plus : ses lignes « toute la maison » pour des postes de pièce sont retirées.
+   Les postes de la maison (toiture, électricité…) restent : on les retrouve dans « Rénovations générales ». */
+maisons.forEach(m => { if (m.travaux) m.travaux = m.travaux.filter(l => l.pieceId || l.src === "chauffage" || !POSTES_PIECES.test(l.k)); });
 const $app = document.getElementById("app");
 const sauver = () => ecrireMaisons(maisons);
 const trouver = id => maisons.find(m => m.id === id);
@@ -33,16 +36,37 @@ const pebBadge = (l, grand) => (l ? `<span class="peb ${grand ? "grand" : ""}" s
 const fourchette = t => `${euros(t[0], 100)} – ${euros(t[2], 100)}`;
 
 function entete(actif) {
-  const lien = (h, t, id, bientot) =>
-    bientot
-      ? `<span class="nav-i off" title="Prochaine étape">${t}<small>bientôt</small></span>`
-      : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
+  const lien = (h, t, id) => `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
+  const plusActif = ["pro", "moteur", "feuille", "plus"].includes(actif);
+  /* barre du bas (téléphone) : 4 boutons au pouce */
+  const bas = (h, ico, t, on) => `<a class="bb-i ${on ? "on" : ""}" href="${h}"${on ? ' aria-current="page"' : ""}><span class="bb-ico" aria-hidden="true">${ico}</span><span>${t}</span></a>`;
   return `<header class="top">
     <a href="#/" class="marque" aria-label="Valou, accueil"><img src="${img("logo-valou.png")}" alt="Valou"></a>
-    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${essai
-      ? `${lien("#/avis", "💬 Mon avis", "avis")}<span class="badge-essai">Version d'essai</span>`
+    <nav class="nav-haut" aria-label="Menu">${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${essai
+      ? lien("#/avis", "💬 Mon avis", "avis")
       : `${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}`}</nav>
-  </header>`;
+    ${essai ? `<span class="badge-essai">Version d'essai</span>` : ""}
+  </header>
+  <nav class="barre-bas" aria-label="Menu principal">
+    ${bas("#/", "🏠", "Maisons", actif === "maisons")}${bas("#/comparer", "⚖️", "Comparer", actif === "comparer")}${bas("#/contacts", "📨", "Contacter", actif === "contacts")}${essai
+      ? bas("#/avis", "💬", "Mon avis", actif === "avis")
+      : bas("#/plus", "☰", "Plus", plusActif)}
+  </nav>`;
+}
+
+/* ---------- écran « Plus » (téléphone) : les autres pages ---------- */
+function ecranPlus() {
+  const L = [
+    ["#/pro", "💼", "Professionnels", "Artisans, négociants, courtiers et agences"],
+    ["#/moteur", "⚙️", "Notre moteur", "D'où viennent les prix, les prix locaux"],
+    ["#/feuille-de-route", "🗺️", "Feuille de route", "Le modèle et les prochaines étapes"],
+    ["#/questionnaire", "📝", "Questionnaire de visite", "2 pages à imprimer pour la visite"],
+  ];
+  return `${entete("plus")}<main class="etroit">
+    <h1>Plus</h1>
+    <div class="plus-liste">${L.map(([h, i, t, d]) => `<a class="plus-i" href="${h}"><span class="plus-ico">${i}</span><span><b>${t}</b><small>${d}</small></span><span class="fl">›</span></a>`).join("")}</div>
+    ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="presentation">🎬 Préparer une présentation (tout remettre à zéro)</button></p>` : ""}
+  </main>`;
 }
 
 /* ---------- écran : accueil ---------- */
@@ -100,7 +124,6 @@ function ecranAjouter() {
   const b = (brouillon = brouillon || brouillonVide());
   const champ = (id, t, type = "text", extra = "") =>
     `<label>${t}<input name="${id}" type="${type}" value="${esc(b[id])}" ${extra}></label>`;
-  const cases = RAPIDE.map(r => choixHTML(r, b.choix[r.id] || {})).join("");
   return `${entete("")}
   <main class="etroit">
     <a href="#/" class="retour">← Mes maisons</a>
@@ -120,23 +143,13 @@ function ecranAjouter() {
         </select></label>
         <label class="cb large"><input type="checkbox" name="uniqueHabitation" ${b.uniqueHabitation ? "checked" : ""}> Ce sera ma seule habitation, et j'y habiterai (droits d'enregistrement réduits à 3 % en Wallonie)</label>
       </div>
-      <h2>Que faut-il refaire ?</h2>
-      <p class="mu">Cochez ce que vous voyez pendant la visite. Vous pourrez tout affiner pièce par pièce ensuite.</p>
-      <div class="choix-liste">${cases}</div>
       <h2>Le chauffage</h2>
       <p class="mu">Ce qui est en place aujourd'hui, et ce que vous voulez installer.</p>
       <div id="bloc-chauffage">${blocChauffage(b.chauffage, "data-chf")}</div>
+      <p class="mu">Ensuite, ajoutez les pièces et les travaux sur la fiche de la maison, dans « Les travaux » : c'est là que le budget devient précis.</p>
       <button class="btn" type="submit">Voir le vrai coût →</button>
     </form>
   </main>`;
-}
-
-function choixHTML(r, c) {
-  return `<div class="choix ${c.on ? "on" : ""}" data-bloc="${r.id}">
-      <label class="cb"><input type="checkbox" data-choix="${r.id}" ${c.on ? "checked" : ""}> ${esc(r.t)}</label>
-      ${r.nombre && c.on ? `<label class="petit">${esc(r.nombre)}<input type="number" min="0" inputmode="decimal" data-choixn="${r.id}" value="${esc(c.n || "")}"></label>` : ""}
-      ${r.hyp && c.on ? `<small class="mu">Quantité estimée : ${esc(r.hyp)}</small>` : ""}
-    </div>`;
 }
 
 function creerMaison(b, exemple = false) {
@@ -146,7 +159,7 @@ function creerMaison(b, exemple = false) {
     etat: b.etat, uniqueHabitation: !!b.uniqueHabitation, fraisNotaire: null, exemple, peb: b.peb || null, pebConso: +b.pebConso || null,
     rep: { etat: b.etat === "renover" ? "oui" : "non" },
   };
-  m.travaux = travauxRapides(m, b.choix).map(t => ({ ...t, id: nouvelId() }));
+  m.travaux = [];
   m.chauffage = { ...b.chauffage };
   appliquerChauffage(m);
   maisons.unshift(m);
@@ -179,65 +192,6 @@ function chargerDemo() {
 }
 
 const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite${n ? ` (${n})` : ""}</a>`; };
-
-/* ---------- les travaux : menu à gauche (rénovations générales, pièces), panneau à droite ---------- */
-let atelierSel = { maisonId: null, sel: null };
-const ICONES_GROUPE = { "Chauffage": "🔥", "Menuiseries": "🪟", "Électricité": "💡", "Sanitaire et chauffage": "🚿", "Gros œuvre": "🧱", "Isolation": "🧤", "Toiture": "🏠", "Extérieurs": "🌳", "Escalier": "🪜", "Estimation rapide": "⚡", "Cuisine et salle de bain": "🛁", "Finitions intérieures": "🎨" };
-function atelier(m, b, o) {
-  const groupes = ["Chauffage", ...[...new Set(o.fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y))];
-  if (o.rapidesHTML) groupes.unshift("Estimation rapide");
-  const totalGroupe = g => g === "Chauffage" ? b.lignes.filter(l => l.src === "chauffage").reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0)
-    : g === "Estimation rapide" ? o.horsPieces.filter(l => POSTES_PIECES.test(l.k)).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0)
-    : o.fixes.filter(p => groupe(p) === g).reduce((s, p) => { const l = o.ligneDe(p.k); return s + (l && l.fiab ? l.total[1] : 0); }, 0);
-  const totalPiece = pc => b.lignes.filter(l => l.pieceId === pc.id).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
-  if (atelierSel.maisonId !== m.id || !atelierSel.sel || (atelierSel.sel.startsWith("p:") && !(m.pieces || []).some(pc => "p:" + pc.id === atelierSel.sel))) {
-    atelierSel = { maisonId: m.id, sel: (m.pieces || []).length ? "p:" + m.pieces[0].id : "g:Chauffage" };
-  }
-  const sel = atelierSel.sel;
-  const item = (cle, ico, nom, t, style = "") => `<button class="at-item ${sel === cle ? "on" : ""}" data-action="atelier" data-sel="${esc(cle)}" ${style ? `style="${style}"` : ""}>
-      <span class="at-ico">${ico}</span><span class="at-nom">${esc(nom)}</span>${t ? `<small class="at-tot">${euros(t, 10)}</small>` : ""}<span class="at-chev">›</span></button>`;
-  const menu = `<aside class="at-menu">
-    <div class="at-titre">Rénovations générales</div>
-    ${groupes.map(g => item("g:" + g, ICONES_GROUPE[g] || "•", g, totalGroupe(g))).join("")}
-    <div class="at-titre">Pièces <a href="#/maison/${m.id}/photos" class="at-lien">📷 Photos de la visite${photosDe(m).length ? ` (${photosDe(m).length})` : ""}</a></div>
-    ${(m.pieces || []).map(pc => item("p:" + pc.id, iconePiece(pc), pc.nom, totalPiece(pc), stylePiece(m, pc))).join("") || `<p class="mu petit-t at-vide">Aucune pièce pour l'instant.</p>`}
-    <div class="at-ajout">
-      <input id="np-nom" placeholder="Nouvelle pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
-      <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
-      <button class="btn sec petit-btn" data-action="ajout-piece">＋ Ajouter une pièce</button>
-    </div>
-  </aside>`;
-  let panneau = "";
-  if (sel.startsWith("p:")) {
-    const pc = m.pieces.find(x => "p:" + x.id === sel);
-    panneau = `<div class="at-tete" style="${stylePiece(m, pc)}"><span class="at-ico grand">${iconePiece(pc)}</span><div><h2>${esc(pc.nom)}</h2><small class="mu">Budget de la pièce : <b>${euros(totalPiece(pc), 10)}</b></small></div>
-      <button class="btn lien petit-btn" data-action="suppr-piece" data-id="${pc.id}">Supprimer la pièce</button></div>
-      <div class="at-piece" style="${stylePiece(m, pc)}">${corpsPiece(m, pc)}</div>`;
-  } else {
-    const g = sel.slice(2);
-    const tete = `<div class="at-tete"><span class="at-ico grand">${ICONES_GROUPE[g] || "•"}</span><div><h2>${esc(g)}</h2>${totalGroupe(g) ? `<small class="mu">Total : <b>${euros(totalGroupe(g), 10)}</b></small>` : `<small class="mu">Remplissez la quantité des postes à prévoir.</small>`}</div></div>`;
-    if (g === "Chauffage") {
-      panneau = tete + `<div class="at-corps">${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
-        ${o.chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
-        ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="at-ligne"><span class="at-n">${esc(R.postes[l.k].n)}${l.q > 1 ? ` × ${nombre(l.q)}` : ""}</span><span></span><span></span><b class="at-p">${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
-        ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${o.chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}</div>`;
-    } else if (g === "Estimation rapide") {
-      panneau = tete + `<div class="at-corps">${o.rapidesHTML}</div>`;
-    } else {
-      panneau = tete + `<div class="at-liste">${o.fixes.filter(p => groupe(p) === g).map(p => { const l = o.ligneDe(p.k); return `<div class="at-ligne ${l ? "rempli" : ""}">
-        <span class="at-n">${esc(p.n)}</span>
-        <span class="at-q">${/escalier/.test(p.u)
-          ? `<input type="number" min="0" step="1" inputmode="numeric" data-mmarches="${p.k}" value="${esc(l ? (l.marches ?? l.q * MARCHES_PAR_ESCALIER) : "")}" placeholder="0" aria-label="Nombre de marches : ${esc(p.n)}"><small>marches</small>`
-          : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>`}</span>
-        <label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label>
-        <b class="at-p">${l && l.fiab ? euros(l.total[1], 10) : ""}</b></div>`; }).join("")}
-        ${g === "Escalier" ? `<p class="mu petit-t">${MARCHES_PAR_ESCALIER} marches = 1 escalier.</p>` : ""}</div>`;
-    }
-  }
-  return `<section class="carte atelier-bloc"><h2>Les travaux</h2>
-    <p class="mu">Choisissez une rénovation générale ou une pièce dans le menu, puis remplissez les postes. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
-    <div class="atelier">${menu}<div class="at-panneau" id="at-panneau">${panneau}</div></div></section>`;
-}
 
 /* ---------- envoyer le projet aux artisans (démonstration) ---------- */
 function panneauEnvoi(m, b) {
@@ -277,7 +231,13 @@ function carteEnergie(m, b) {
   </section>`;
 }
 
-/* ---------- écran : le vrai coût d'une maison ---------- */
+/* ---------- écran : le vrai coût d'une maison (en 5 onglets) ---------- */
+const ONGLETS_M = [["resume", "Résumé"], ["pieces", "Pièces"], ["travaux", "Travaux"], ["achat", "Achat"], ["artisans", "Artisans"]];
+const ongletsM = {}; // onglet ouvert, par maison
+const ongletMaison = m => ongletsM[m.id] || "resume";
+/* groupes de postes et réglages ouverts par l'utilisateur (fermés par défaut) */
+const ouverts = new Set();
+document.addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.ouvert) d.open ? ouverts.add(d.dataset.ouvert) : ouverts.delete(d.dataset.ouvert); }, true);
 function ecranMaison(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
   const surcout = c.total[1] - c.prix, pct = c.prix ? Math.round((surcout / c.prix) * 100) : 0;
@@ -323,7 +283,7 @@ function ecranMaison(m) {
   const fixes = R.liste.filter(p => !POSTES_PIECES.test(p.k));
   const grpFixes = [...new Set(fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y)).map(g => {
     const P = fixes.filter(p => groupe(p) === g), rempli = P.filter(p => ligneDe(p.k)), t = rempli.reduce((s, p) => s + (ligneDe(p.k).fiab ? ligneDe(p.k).total[1] : 0), 0);
-    return `<details class="grp fixe" ${rempli.length ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
+    return `<details class="grp fixe" data-ouvert="${m.id}:${esc(g)}" ${ouverts.has(`${m.id}:${g}`) ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
       <table class="fixes">${P.map(p => { const l = ligneDe(p.k); return `<tr>
         <td>${esc(p.n)}</td>
         <td class="q">${/escalier/.test(p.u)
@@ -332,16 +292,7 @@ function ecranMaison(m) {
         <td class="c"><label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label></td>
         <td class="r">${l && l.fiab ? euros(l.total[1], 10) : ""}</td></tr>`; }).join("")}</table></details>`;
   }).join("");
-  /* estimation rapide sans pièces (cases cochées à l'ajout de la maison) */
-  const rapides = horsPieces.filter(l => POSTES_PIECES.test(l.k));
-  const lieux = [...new Set(rapides.map(l => l.piece || "Toute la maison"))];
-  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide (sans pièces)</h3>
-      <p class="mu petit-t">Travaux encodés sans passer par les pièces. Pour plus de précision, ajoutez les pièces (plus haut) et supprimez ces lignes.</p>
-      ${lieux.map(lieu => `<h4 class="lieu">${esc(lieu)}</h4>
-      <table class="fixes">${rapides.filter(l => (l.piece || "Toute la maison") === lieu).map(l => { const p = R.postes[l.k]; return `<tr><td>${esc(p ? p.n : l.k)}${l.auto ? ` <small class="mu">(${esc(l.auto)})</small>` : ""}</td>
-        <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-l="${l.id}:q" value="${esc(l.q ?? "")}" aria-label="Quantité : ${esc(lieu)}, ${esc(p ? p.n : l.k)}"><small>${esc(p ? unitePoste(p.u, l.k) : "")}</small></td>
-        <td class="c"><label class="mm"><input type="checkbox" data-l="${l.id}:soiMeme" ${l.soiMeme ? "checked" : ""}> moi-même</label></td>
-        <td class="r">${l.fiab ? euros(l.total[1], 10) : ""} <button class="x" data-action="suppr-ligne" data-id="${l.id}" aria-label="Supprimer">✕</button></td></tr>`; }).join("")}</table>`).join("")}</div>` : "";
+
 
   /* chauffage */
   const chf = travauxChauffage(m.chauffage, m.surface);
@@ -367,40 +318,52 @@ function ecranMaison(m) {
       <div class="vc-d">${barre}</div>
     </section>
 
-    ${carteEnergie(m, b)}
+    <nav class="onglets-m" aria-label="Parties de la fiche">${ONGLETS_M.map(([id, t]) => `<button class="om-i ${ongletMaison(m) === id ? "on" : ""}" data-action="onglet-m" data-o="${id}"${ongletMaison(m) === id ? ' aria-current="true"' : ""}>${t}${id === "pieces" && (m.pieces || []).length ? ` <small>${m.pieces.length}</small>` : ""}</button>`).join("")}</nav>
+    ${(() => {
+      const o = ongletMaison(m);
+      const suivant = (id, t) => `<p class="suite-m"><button class="btn sec" data-action="onglet-m" data-o="${id}">${t} →</button></p>`;
+      if (o === "pieces") return `
+    <section class="carte">
+      <h2>Les pièces</h2>
+      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
+      <p>${boutonPhotosMaison(m)}</p>
+      <div class="grille-pieces">${cartesPieces}</div>
+      <div class="ajout-piece">
+        <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
+        <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
+        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
+      </div>
+    </section>
 
+      ${suivant("travaux", "Suivant : les travaux de la maison")}`;
+      if (o === "travaux") return `
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
 
-    <div class="deux">
-      <section class="carte">
-        <h2>Budget travaux</h2>
-        <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
-        <div class="recap">
-          <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
-          <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
-          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
-          ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
-          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
-        </div>
-        ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
-        <p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p>
-      </section>
+    <section class="carte">
+      <h2>Le chauffage</h2>
+      ${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
+      ${chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
+      ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
+      ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
+    </section>
 
-      <div class="pile">
-        <section class="carte">
-          <h2>Hypothèses du calcul</h2>
+    <section class="carte">
+      <h2>Structure, toiture et équipements</h2>
+      <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
+      ${grpFixes}
+    </section>
+
+        <details class="carte reglages" data-ouvert="${m.id}:reglages" ${ouverts.has(`${m.id}:reglages`) ? "open" : ""}>
+          <summary><h2>⚙️ Réglages du calcul</h2><small class="mu">TVA, pose, container, état du support</small></summary>
           <div class="champs">
             <div class="ligne"><span>TVA sur les travaux par un artisan</span><b>${b.rate} %</b></div>
             <small class="mu">${b.rate === 6 ? "6 % : logement de plus de 10 ans, rénovation facturée par l'entrepreneur (conditions à vérifier avec lui)." : "21 % : logement de moins de 10 ans."}</small>
             ${hyp}
           </div>
-        </section>
-      </div>
-    </div>
-
-    ${atelier(m, b, { horsPieces, ligneDe, fixes, rapidesHTML, chf })}
-
+        </details>
+      ${suivant("achat", "Suivant : l'achat et le financement")}`;
+      if (o === "achat") return `
     <div class="fin-page">
         ${aides()}
         <section class="carte">
@@ -448,16 +411,39 @@ function ecranMaison(m) {
         })()}
     </div>
 
-    <section class="carte negs"><h2>Négociants de votre région</h2>
-      <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
-      ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
-
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
     </div>
 
-    ${panneauEnvoi(m, b)}
+      ${suivant("artisans", "Suivant : les artisans et les négociants")}`;
+      if (o === "artisans") return `
+    <section class="carte negs"><h2>Négociants de votre région</h2>
+      <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
+      ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
+
+    ${panneauEnvoi(m, b)}`;
+      return `
+    ${carteEnergie(m, b)}
+    ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
+      <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
+
+      <section class="carte">
+        <h2>Budget travaux</h2>
+        <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
+        <div class="recap">
+          <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
+          <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
+          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
+          ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
+          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
+        </div>
+        ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
+        <p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p>
+      </section>
+
+      ${suivant("pieces", "Suivant : les pièces")}`;
+    })()}
   </main>`;
 }
 
@@ -538,6 +524,7 @@ function corpsPiece(m, pc) {
 }
 
 function ecranPiece(m, pc) {
+  ongletsM[m.id] = "pieces"; // au retour, la fiche s'ouvre sur l'onglet Pièces
   const b = calculerBudget(R, m), L = b.lignes.filter(l => l.pieceId === pc.id);
   const total = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
   return `${entete("maisons")}
@@ -1085,13 +1072,16 @@ function afficher() {
   if (brut === "demo" || brut === "/demo") brut = "/bienvenue";
   let h = brut === "" ? (essai ? (VERSION === "particulier" && !visibles().length ? "/essai" : "/") : "/bienvenue") : brut; // première ouverture : la page d'intro (ou l'accueil de l'essai)
   /* version d'essai : les pages pour les professionnels et l'intro de la présentation ramènent à l'accueil de l'essai */
-  if (essai && /^\/(pro|moteur|feuille-de-route|demo-|bienvenue)/.test(h)) h = "/essai";
+  if (essai && /^\/(pro|moteur|feuille-de-route|demo-|bienvenue|plus)/.test(h)) h = "/essai";
   if (h === "/presentation" && R) { preparerPresentation(true); return; }
+  /* garder ouverts les groupes et réglages ouverts à l'écran (même si l'événement « toggle » n'est pas encore arrivé) */
+  document.querySelectorAll("details[data-ouvert]").forEach(d => (d.open ? ouverts.add(d.dataset.ouvert) : ouverts.delete(d.dataset.ouvert)));
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/);
   if (h === "/bienvenue") html = ecranIntro();
   else if (h === "/essai") html = ecranEssai();
+  else if (h === "/plus") html = ecranPlus();
   else if (h === "/avis") html = ecranAvis();
   else if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
@@ -1125,10 +1115,6 @@ document.addEventListener("click", e => {
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
   if (a === "imprimer") window.print();
-  if (a === "atelier" && m) {
-    atelierSel = { maisonId: m.id, sel: el.dataset.sel }; afficher();
-    if (window.innerWidth < 800) document.getElementById("at-panneau")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
   if (a === "envoi-ouvrir" && m) { envoiOuvert = m.id; afficher(); }
   if (a === "ct-ouvrir" && m) { const c = m.id + ":" + el.dataset.metier; ctOuvert[c] = ctOuvert[c] === el.dataset.v ? null : el.dataset.v; afficher(); }
   if (a === "envoi-metier" && m) {
@@ -1166,6 +1152,11 @@ document.addEventListener("click", e => {
   }
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "presentation") preparerPresentation();
+  if (a === "onglet-m" && m) {
+    ongletsM[m.id] = el.dataset.o; afficher();
+    const t = document.querySelector(".onglets-m");
+    if (t) { const y = t.getBoundingClientRect().top + window.scrollY - (document.querySelector(".top")?.offsetHeight || 0) - 4; if (window.scrollY > y) window.scrollTo(0, y); }
+  }
   if (a === "avis-envoyer") {
     const txt = texteAvis();
     const fin = msg => { avisMessage = msg; afficher(); };
@@ -1185,8 +1176,8 @@ document.addEventListener("click", e => {
     m.pieces.push(pc);
     appliquerChauffage(m);
     sauver();
-    if (/\/piece\//.test(location.hash) || !/^#\/maison\/\w+$/.test(location.hash)) location.hash = `#/maison/${m.id}/piece/${pc.id}`;
-    else { atelierSel = { maisonId: m.id, sel: "p:" + pc.id }; afficher(); }
+    ongletsM[m.id] = "pieces";
+    location.hash = `#/maison/${m.id}/piece/${pc.id}`;
   }
   if (a === "suppr-piece" && m && confirm("Supprimer cette pièce et ses travaux ?")) {
     m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; }); // chaque pièce garde sa couleur
@@ -1268,16 +1259,6 @@ document.addEventListener("change", e => {
     return;
   }
   /* formulaire d'ajout */
-  if (t.dataset.choix) {
-    const id = t.dataset.choix, c = (brouillon.choix[id] = brouillon.choix[id] || {});
-    c.on = t.checked;
-    const bloc = t.closest("[data-bloc]");
-    bloc.outerHTML = choixHTML(RAPIDE.find(r => r.id === id), c);
-    const n = document.querySelector(`[data-choixn="${id}"]`);
-    if (n) n.focus();
-    return;
-  }
-  if (t.dataset.choixn) { brouillon.choix[t.dataset.choixn].n = t.value; return; }
   if (t.dataset.chf) {
     brouillon.chauffage[t.dataset.chf] = t.value;
     if (t.tagName === "SELECT") document.getElementById("bloc-chauffage").innerHTML = blocChauffage(brouillon.chauffage, "data-chf");
@@ -1313,8 +1294,7 @@ document.addEventListener("change", e => {
     const l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === t.dataset.mme);
     if (l) l.soiMeme = t.checked;
   } else if (t.dataset.pc || t.dataset.pcwi) {
-    const mp = location.hash.match(/\/piece\/(\w+)/), pid = mp ? mp[1] : atelierSel.maisonId === m.id && atelierSel.sel && atelierSel.sel.startsWith("p:") ? atelierSel.sel.slice(2) : null;
-    const pc = pid && (m.pieces || []).find(x => x.id === pid);
+    const mp = location.hash.match(/\/piece\/(\w+)/), pc = mp && (m.pieces || []).find(x => x.id === mp[1]);
     if (!pc) return;
     if (t.dataset.pcwi) { const w = new Set(pc.wi || []); t.checked ? w.add(t.dataset.pcwi) : w.delete(t.dataset.pcwi); pc.wi = [...w]; }
     else { const f = t.dataset.pc; pc[f] = t.type === "checkbox" ? t.checked : t.type === "number" ? (t.value === "" ? null : +t.value) : t.value; }
@@ -1338,8 +1318,7 @@ function majProFormulaire(t) {
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.dataset.negfiche || t.dataset.neghor || t.dataset.annonce) { majProFormulaire(t); return; }
-  if (t.dataset.choixn && brouillon) brouillon.choix[t.dataset.choixn].n = t.value;
-  else if (t.form && t.form.id === "f-ajout" && t.name && t.type !== "checkbox") brouillon[t.name] = t.value;
+  if (t.form && t.form.id === "f-ajout" && t.name && t.type !== "checkbox") brouillon[t.name] = t.value;
 });
 
 document.addEventListener("submit", e => {

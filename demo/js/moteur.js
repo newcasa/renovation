@@ -308,31 +308,6 @@ export function mensualite(montant, tauxAnnuel, ans) {
   return r ? (montant * r) / (1 - Math.pow(1 + r, -N)) : montant / N;
 }
 
-/* Premier budget en 30 secondes : quelques cases à cocher.
-   Les QUANTITÉS sont estimées à partir de la surface (hypothèses affichées), les PRIX viennent toujours des références. */
-export const RAPIDE = [
-  { id: "peinture", t: "Peinture des murs", k: "mur_peinture", q: m => Math.round(m.surface * RATIO_MURS), hyp: "surface des murs ≈ 2,7 × surface habitable" },
-  { id: "sols", t: "Sols (carrelage)", k: "sol_carrelage", q: m => Math.round(m.surface), hyp: "toute la surface habitable" },
-  { id: "elec", t: "Électricité complète", k: "i_re", q: m => Math.round(m.surface), hyp: "toute la surface habitable" },
-  { id: "cuisine", t: "Cuisine équipée", k: "meu_cuisine", q: () => 1 },
-  { id: "sdb", t: "Salle de bain équipée", k: "meu_sdb", q: () => 1 },
-  { id: "chassis", t: "Châssis (PVC)", k: "i_ch", nombre: "Nombre de châssis" },
-  { id: "toiture", t: "Toiture (tuiles terre cuite + sous-toiture)", k: ["i_cv_1", "i_st", "i_dp"], nombre: "Surface de toiture (m²)" },
-  { id: "isol", t: "Isolation de la toiture (sous rampants)", k: "i_to_1", nombre: "Surface à isoler (m²)" },
-];
-
-export function travauxRapides(maison, choix) {
-  const out = [];
-  RAPIDE.forEach(r => {
-    const c = choix[r.id];
-    if (!c || !c.on) return;
-    const q = r.nombre ? num(c.n) : r.q(maison);
-    if (!(q > 0)) return;
-    (Array.isArray(r.k) ? r.k : [r.k]).forEach(k => out.push({ piece: "Toute la maison", k, q, auto: r.hyp || null }));
-  });
-  return out;
-}
-
 /* ---------- Prix locaux : moyenne des tarifs déclarés par les artisans autour du chantier ----------
    tarifs = [{ d: distance au chantier en km, p: prix HTVA }]
    On prend le plus petit rayon qui contient au moins MIN artisans (confidentialité : jamais de moyenne avec moins de 5 prix).
