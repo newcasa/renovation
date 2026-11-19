@@ -79,13 +79,13 @@ function ecranPlus() {
 /* ---------- écran : accueil ---------- */
 function carteMaison(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b), reno = projetDe(m) === "renovation";
-  return `<a class="carte maison ${reno ? "m-reno" : ""}" href="#/maison/${m.id}">
+  return `<div class="m-case"><a class="carte maison ${reno ? "m-reno" : ""}" href="#/maison/${m.id}">
     <div class="m-tete"><b>${esc(m.nom || "Maison sans nom")}</b>${pebBadge(m.peb)}${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}</div>
     <div class="mu">${esc(m.commune || "")}${m.annee ? ` · ${esc(m.annee)}` : ""}${m.surface ? ` · ${nombre(m.surface)} m²` : ""}</div>
     <div class="m-chiffres">${reno
       ? `<div><small>Budget de la rénovation</small><b class="or">${euros(c.total[1], 100)}</b></div><div><small>Pièces</small><b>${(m.pieces || []).length}</b></div>`
       : `<div><small>Prix demandé</small><b>${euros(c.prix)}</b></div><div><small>Vrai coût estimé</small><b class="or">${euros(c.total[1], 100)}</b></div>`}</div>
-  </a>`;
+  </a><button class="m-suppr" data-action="suppr-demande" data-id="${m.id}" aria-label="Supprimer ${esc(m.nom || "cette maison")}" title="Supprimer">🗑</button></div>`;
 }
 const PARCOURS = {
   achat: { ico: "🏠", t: "J'achète une maison", d: "Le vrai coût avant de faire une offre : prix, droits, notaire et travaux.",
@@ -229,7 +229,7 @@ function blocFinancerRenovation(m, b, c) {
   </div>
   <div class="actions">
     <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a></span>
-    <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
+    <button class="btn lien" data-action="suppr-demande" data-id="${m.id}">🗑 Supprimer cette maison</button>
   </div>`;
 }
 /* ---------- envoyer le projet aux artisans (démonstration) ---------- */
@@ -456,7 +456,7 @@ function ecranMaison(m) {
 
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
-      <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
+      <button class="btn lien" data-action="suppr-demande" data-id="${m.id}">🗑 Supprimer cette maison</button>
     </div>
 
       ${suivant("artisans", "Suivant : les artisans et les négociants")}`;
@@ -1189,6 +1189,21 @@ function appliquerQuestionnaire(m, L) {
   appliquerChauffage(m);
 }
 
+/* ---------- confirmation avant de supprimer une maison ---------- */
+let aSupprimer = null;
+function fenetreSuppression() {
+  const x = aSupprimer && trouver(aSupprimer);
+  if (!x) return "";
+  const nP = (x.pieces || []).length, nF = photosDe(x).length;
+  return `<div class="conf-fond" data-action="suppr-annuler"></div>
+  <div class="conf" role="alertdialog" aria-modal="true" aria-labelledby="conf-t">
+    <h2 id="conf-t">Supprimer « ${esc(x.nom || "cette maison")} » ?</h2>
+    <p class="mu">${nP || nF ? `Ses ${[nP && `${nP} pièce${nP > 1 ? "s" : ""}`, nF && `${nF} photo${nF > 1 ? "s" : ""}`].filter(Boolean).join(" et ")} et tout son budget seront effacés de ce téléphone.` : "Toutes ses informations seront effacées de ce téléphone."} On ne peut pas revenir en arrière.</p>
+    ${x.demo ? `<p class="mu petit-t">C'est une maison de démonstration : « Préparer une présentation » la fera revenir.</p>` : ""}
+    <div class="conf-boutons"><button class="btn sec" data-action="suppr-annuler">Annuler</button><button class="btn conf-ok" data-action="suppr-ok">🗑 Supprimer</button></div>
+  </div>`;
+}
+
 /* ---------- routeur ---------- */
 function afficher() {
   let brut = location.hash.replace(/^#/, "");
@@ -1225,7 +1240,7 @@ function afficher() {
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
   if (!mph && camera.flux) fermerCamera(); // on quitte l'écran photos : la caméra s'éteint
-  $app.innerHTML = html;
+  $app.innerHTML = html + fenetreSuppression();
   if (document.getElementById("viseur")) ouvrirCamera();
   afficher.dernier = h;
   window.scrollTo(0, meme ? y : 0);
@@ -1329,7 +1344,18 @@ document.addEventListener("click", e => {
     appliquerChauffage(m);
     sauver(); afficher();
   }
-  if (a === "suppr-maison" && m && confirm("Supprimer cette maison ?")) { supprimerPhotosMaison(m.id).catch(() => {}); maisons = maisons.filter(x => x !== m); sauver(); location.hash = "#/"; }
+  /* supprimer une maison : confirmation dans l'appli (les fenêtres du navigateur sont bloquées sur certains téléphones) */
+  if (a === "suppr-demande") { aSupprimer = el.dataset.id; afficher(); document.querySelector(".conf-ok")?.focus(); }
+  if (a === "suppr-annuler") { aSupprimer = null; afficher(); }
+  if (a === "suppr-ok") {
+    const x = trouver(aSupprimer); aSupprimer = null;
+    if (x) {
+      supprimerPhotosMaison(x.id).catch(() => {}); delete photosCache[x.id];
+      maisons = maisons.filter(y => y !== x); if (selection) selection = selection.filter(id => id !== x.id); sauver();
+      if (location.hash.includes(x.id)) { location.hash = "#/"; return; }
+    }
+    afficher();
+  }
   if (a === "suppr-photo" && m && confirm("Supprimer cette photo ?")) { supprimerPhoto(el.dataset.id).then(() => rechargerPhotos(m)); }
   if (a === "visite-suivante") { visite.saisie = true; afficher(); setTimeout(() => { const i = document.getElementById("visite-nom"); if (i) i.focus(); }, 0); }
   if (a === "visite-annuler") { visite.saisie = false; afficher(); }
@@ -1473,7 +1499,8 @@ document.addEventListener("submit", e => {
   location.hash = `#/maison/${m.id}`;
 });
 
-window.addEventListener("hashchange", afficher);
+window.addEventListener("hashchange", () => { aSupprimer = null; afficher(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && aSupprimer) { aSupprimer = null; afficher(); } });
 
 Promise.all([chargerReferences(), fetch(DEMO_DIR + "maison-demo.json", { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null)])
   .then(([r, d]) => {

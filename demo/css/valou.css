@@ -889,3 +889,17 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .q-escalier-u { white-space: nowrap; }
 .q-une .q-er { text-align: left; vertical-align: top; padding: 1px 3px; }
 .q-une .q-er small { font-size: 8px; color: #777; }
+
+/* supprimer une maison : bouton sur la carte et fenêtre de confirmation */
+.m-case { position: relative; display: grid; }
+.m-case > .maison { height: 100%; }
+.m-suppr { position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--bord); background: rgba(255, 255, 255, .92); cursor: pointer; font-size: 17px; line-height: 1; opacity: .75; }
+.m-suppr:hover, .m-suppr:focus-visible { opacity: 1; border-color: var(--rouge); }
+.m-case .m-tete { padding-right: 44px; }
+.conf-fond { position: fixed; inset: 0; z-index: 40; background: rgba(2, 34, 80, .45); }
+.conf { position: fixed; z-index: 41; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 32px)); background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: 0 20px 50px rgba(2, 34, 80, .3); }
+.conf h2 { margin: 0 0 8px; font-size: 20px; }
+.conf-boutons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+.conf-ok { background: var(--rouge); border-color: var(--rouge); }
+@media (max-width: 760px) { .conf { top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); } .conf-boutons .btn { flex: 1; } }
+@media (min-width: 761px) { .m-suppr { width: 32px; height: 32px; font-size: 14px; top: 10px; right: 10px; } .m-case .m-tete { padding-right: 34px; } }

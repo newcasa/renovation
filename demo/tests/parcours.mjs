@@ -414,6 +414,20 @@ try {
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();
 
+    /* supprimer une maison depuis l'accueil, avec confirmation dans l'appli */
+    const carteB = page.locator('.m-case:has-text("Maison de démonstration B")');
+    await carteB.locator(".m-suppr").click();
+    await page.locator(".conf").waitFor();
+    assert.match(await page.locator(".conf").innerText(), /Supprimer « Maison de démonstration B » \?[\s\S]*effacé/);
+    await page.screenshot({ path: `${OUT}/${nom}-21-supprimer.png` });
+    await page.locator('.conf [data-action="suppr-annuler"]').click();
+    assert.equal(await page.locator(".conf").count(), 0);
+    assert.equal(await carteB.count(), 1, "annuler : la maison reste");
+    await carteB.locator(".m-suppr").click();
+    await page.locator(".conf-ok").click();
+    await page.locator(".conf").waitFor({ state: "detached" });
+    assert.equal(await page.locator('.m-case:has-text("Maison de démonstration B")').count(), 0, "la maison est supprimée");
+
     /* version d'essai pour les particuliers : sans maisons de démonstration ni pages pour les professionnels */
     await page.goto(URL + "#/essai");
     await page.locator(".essai-etapes").waitFor();
