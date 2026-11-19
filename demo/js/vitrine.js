@@ -33,7 +33,7 @@ export function ecranPro(ctx, onglet, metier) {
     { id: "negociant", t: "Je suis négociant", ico: "🧱", d: "Être vu des particuliers et des artisans de votre zone : vos matériaux, services, coordonnées et horaires.", tabs: [["negociant", "Ma fiche"], ["negprix", "Mes prix"]], demo: "#/demo-negociant",
       av: ["Visible sur les projets des maisons de votre zone", "Vos types de matériaux, services, coordonnées et horaires mis en avant", "Des clients avec un chantier déjà chiffré", "Aucune offre à envoyer : les clients viennent à vous"] },
     { id: "courtier", t: "Je suis courtier ou banque", ico: "🏦", d: "Recevoir des dossiers de crédit complets : achat, notaire et travaux.", tabs: [["courtier", "Dossiers reçus"]],
-      av: ["Un dossier complet : achat, notaire validé, travaux poste par poste", "Moins de temps à reconstituer le budget du client", "Le PEB et les travaux énergétiques déjà identifiés"] },
+      av: ["Un dossier complet : achat, notaire, travaux poste par poste", "Moins de temps à reconstituer le budget du client", "Le PEB et les travaux énergétiques déjà identifiés"] },
     { id: "agence", t: "Je suis une agence", ico: "🏠", d: "Publier vos annonces librement, avec l'estimation des travaux en option.", tabs: [["agence", "Mon annonce"]],
       av: ["Vos annonces, rédigées librement", "L'estimation des travaux en option, pour rassurer les acheteurs", "Des acheteurs qui osent visiter les maisons à rénover"] },
   ];
@@ -174,7 +174,7 @@ export function ecranPro(ctx, onglet, metier) {
         const f = x.m.fin || {}, emprunt = Math.max(0, x.c.total[1] - (+f.apport || 0)), mens = mensualite(emprunt, f.taux, f.duree);
         const tot = x.b.postes.reduce((s, p) => s + p.total[1], 0) || 1;
         const det = Math.round((x.b.postes.filter(p => p.fiab === "reference" || p.fiab === "estimation").reduce((s, p) => s + p.total[1], 0) / tot) * 100);
-        return `<article class="carte dossier-c">${x.c.notaireEncode ? `<span class="badge b-reference">Dossier prêt</span>` : `<span class="badge b-estimation">🔒 En attente du montant du notaire</span>`}<h3>${esc(x.m.nom)}</h3><small class="mu">${esc(x.m.commune || "")}</small>
+        return `<article class="carte dossier-c"><span class="badge b-reference">Dossier prêt</span><h3>${esc(x.m.nom)}</h3><small class="mu">${esc(x.m.commune || "")}</small>
           <div class="recap">
             <div><span>Coût total du projet</span><b>${euros(x.c.total[1], 100)}</b></div>
             <div><span>dont travaux</span><b>${euros(x.c.travaux[1], 100)}</b></div>

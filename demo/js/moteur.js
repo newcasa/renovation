@@ -290,6 +290,11 @@ export function fraisNotaireAchat(prix) {
    Droits d'enregistrement en Wallonie : 3 % pour l'habitation propre et unique, sinon 12,5 % (taux légaux, à confirmer par le notaire).
    Frais de notaire : montant encodé (devis du notaire) s'il existe, sinon calcul d'après le simulateur notaire.be. */
 export function coutTotal(maison, budget) {
+  /* « Je rénove ma maison » : pas d'achat, donc ni prix, ni droits d'enregistrement, ni notaire : le coût est celui des travaux */
+  if (maison.projet === "renovation") {
+    const travaux = budget.T;
+    return { renovation: true, prix: 0, tauxDroits: 0, droits: 0, notaire: 0, notaireCalcul: null, notaireEncode: false, travaux, total: [...travaux] };
+  }
   const prix = num(maison.prix) || 0;
   const tauxDroits = maison.uniqueHabitation === false ? 12.5 : 3;
   const droits = (prix * tauxDroits) / 100;

@@ -770,9 +770,10 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
   .bb-ico { font-size: 21px; line-height: 1; }
   .bb-i.on { color: var(--bordeaux); background: var(--or-pale, #FDEBDC); }
   /* onglets de la fiche : plus compacts */
-  .onglets-m { gap: 2px; padding: 4px; margin: 14px 0 12px; }
-  .om-i { flex: 1 1 auto; min-width: 0; padding: 9px 4px; font-size: 13px; }
-  .om-i small { font-size: 10px; padding: 1px 5px; }
+  /* sur téléphone : les onglets sur deux lignes de trois, chaque mot a sa place */
+  .onglets-m { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin: 14px 0 12px; overflow: visible; }
+  .om-i { min-width: 0; padding: 9px 4px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .om-i small { font-size: 10.5px; padding: 1px 6px; margin: 0; flex: none; }
   .suite-m { text-align: center; }
   .suite-m .btn { width: 100%; }
   /* E. cibles plus grandes au doigt */
@@ -790,3 +791,29 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
   .f-table { font-size: 13px; }
 }
 @media print { .barre-bas, .onglets-m, .suite-m { display: none !important; } }
+
+/* ===== deux parcours : j'achète / je rénove ===== */
+.parcours { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 6px 0 18px; }
+.pc-choix { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; text-align: left; padding: 16px 18px; border-radius: 16px; border: 2px solid var(--bord); background: #fff; cursor: pointer; color: var(--bordeaux); font: inherit; }
+.pc-choix:hover { border-color: var(--or); }
+.pc-choix.on { border-color: var(--bordeaux); background: var(--bordeaux); color: #fff; box-shadow: 0 8px 20px rgba(2, 34, 80, .18); }
+.pc-choix.on small { color: rgba(255, 255, 255, .8); }
+.pc-c-ico { font-size: 30px; }
+.pc-choix b { display: block; font: 800 18px/1.2 Outfit, Manrope, sans-serif; }
+.pc-choix small { display: block; color: var(--mu); font-size: 13.5px; margin-top: 2px; }
+.pc-nb { font: 800 12px Manrope, sans-serif; background: var(--or); color: #fff; border-radius: 999px; padding: 3px 9px; }
+.pc-choix:focus-visible { outline: 3px solid var(--or); outline-offset: 2px; }
+.maison.m-reno { border-left: 4px solid var(--or); }
+/* sur téléphone : deux onglets côte à côte */
+@media (max-width: 640px) {
+  .parcours { gap: 6px; padding: 4px; border-radius: 16px; background: rgba(255, 255, 255, .7); border: 1px solid var(--bord); }
+  .pc-choix { grid-template-columns: auto 1fr; gap: 8px; padding: 10px 10px; border-radius: 12px; border-width: 0; background: none; box-shadow: none; }
+  .pc-choix.on { box-shadow: none; }
+  .pc-choix small, .pc-nb { display: none; }
+  .pc-c-ico { font-size: 22px; }
+  .pc-choix b { font-size: 15px; }
+}
+
+.intro-av { margin: 36px auto 0; max-width: 640px; text-align: left; }
+.intro-av ul { grid-template-columns: 1fr; }
+.essai-page .intro-av { margin: 6px auto 26px; }

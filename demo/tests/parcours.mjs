@@ -32,7 +32,7 @@ try {
     await page.goto(URL);
     /* page d'intro : logo, phrase d'accroche, bouton « Commencer la démo » */
     await page.locator(".intro-logo").waitFor();
-    assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo[\s\S]*acheteur confiant, un artisan gagnant, un négociant content… et une Wallonie qui va de l'avant/);
+    assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo[\s\S]*Acheteurs[\s\S]*acheteur confiant, un artisan gagnant, un négociant content… et une Wallonie qui va de l'avant/);
     await page.screenshot({ path: `${OUT}/${nom}-00-intro.png` });
     await page.getByText("Commencer la démo →").click();
     await page.getByText("Ajouter une maison").first().waitFor();
@@ -185,11 +185,8 @@ try {
     await onglet("achat");
     await page.getByText("Dossier pour la banque").click();
     await page.locator(".feuille").waitFor();
-    /* envoi verrouillé tant que le montant du notaire n'est pas encodé */
-    assert.equal(await page.locator('[data-action="envoyer-banque"]').count(), 0);
-    await page.check(".verrou-banque [data-notaire-reel]");
-    await page.fill('.verrou-banque [data-f="fraisNotaire"]', "4600");
-    await page.locator('.verrou-banque [data-f="fraisNotaire"]').dispatchEvent("change");
+    /* envoi à la banque : possible tout de suite, sans valider le montant du notaire */
+    assert.equal(await page.locator(".verrou-banque").count(), 0);
     await page.locator('[data-action="envoyer-banque"]').click();
     assert.match(await page.locator("#envoi").innerText(), /envoyé/);
     for (const [k, v] of [["apport", "40000"], ["taux", "3.2"], ["duree", "25"]]) {
@@ -208,7 +205,7 @@ try {
     await page.locator(".demande").first().waitFor();
     if (!(await page.locator(".demande .d-lots").first().isVisible())) await page.locator(".demande .d-resume").first().click();
     assert.match(await page.locator(".d-lots").first().innerText(), /carrelage/i);
-    if (await page.getByText("Envoyer un devis").count()) await page.getByText("Envoyer un devis").first().click(); // sinon : l'artisan a déjà répondu
+    { const b = page.locator('.demande details[open] [data-action="pro-ok"]'); if (await b.count()) await b.first().click(); } // sinon : l'artisan a déjà répondu
     await page.locator(".d-act.ok").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-artisan.png`, fullPage: nom === "ordi" });
     for (const [o, sel] of [["courtier", ".dossier-c"], ["agence", ".annonce"]]) {
@@ -262,11 +259,7 @@ try {
     await page.fill('input[name="annee"]', "1965");
     await page.fill('input[name="surface"]', "120");
     await page.selectOption('select[name="etat"]', "renover");
-    await page.selectOption('[data-chf="actuel"]', "mazout");
-    await page.selectOption('[data-chf="souhaite"]', "pac");
-    await page.selectOption('[data-chf="emetteurs"]', "rad");
-    await page.fill('[data-chf="nbRad"]', "7");
-    await page.locator('[data-chf="nbRad"]').dispatchEvent("change");
+    assert.equal(await page.locator("[data-chf]").count(), 0, "plus de chauffage dans le formulaire d'ajout");
     await page.screenshot({ path: `${OUT}/${nom}-2-ajouter.png`, fullPage: nom === "ordi" }); // sur téléphone, la capture pleine page perturbe le clic suivant
     assert.equal(await page.locator("[data-choix]").count(), 0, "plus d'estimation rapide");
     await page.getByText("Voir le vrai coût").click();
@@ -279,6 +272,14 @@ try {
     assert.match(await page.locator("h1").innerText(), /Maison test/);
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
+    /* le chauffage se règle sur la fiche, onglet Travaux : mazout → pompe à chaleur + 7 radiateurs */
+    await onglet("travaux");
+    await page.selectOption('[data-mchf="actuel"]', "mazout");
+    await page.selectOption('[data-mchf="souhaite"]', "pac");
+    await page.selectOption('[data-mchf="emetteurs"]', "rad");
+    await page.fill('[data-mchf="nbRad"]', "7");
+    await page.locator('[data-mchf="nbRad"]').dispatchEvent("change");
+    await onglet("resume");
     /* ouvrir un groupe et un poste */
     await page.locator(".grp > summary").first().click();
     await page.locator(".poste > summary").first().click();
@@ -290,18 +291,10 @@ try {
     await page.locator('.carte [data-fin="apport"]').dispatchEvent("change");
     assert.equal(await page.inputValue('[data-fin="apport"]'), "40000");
     assert.match(await page.locator("main").innerText(), /Montant à emprunter/);
-    /* frais de notaire : calculés d'après notaire.be (245 000 € → 4 513 €), remplacés par un montant encodé */
+    /* frais de notaire : toujours calculés d'après notaire.be (245 000 € → 4 513 €), plus de saisie */
     assert.match(await page.locator("details.notaire summary").innerText(), /4\s?513 €/);
-    const avant = await page.locator(".vrai-cout .gros").innerText();
-    assert.ok(await page.locator('[data-f="fraisNotaire"]').isDisabled(), "case verrouillée par défaut");
-    await page.check("[data-notaire-reel]");
-    await page.fill('[data-f="fraisNotaire"]', "5000");
-    await page.locator('[data-f="fraisNotaire"]').dispatchEvent("change");
+    assert.equal(await page.locator('[data-notaire-reel], [data-f="fraisNotaire"]').count(), 0, "plus de saisie du notaire");
     const apres = await page.locator(".vrai-cout .gros").innerText();
-    const n = s => +s.replace(/[^\d]/g, "");
-    assert.ok(Math.abs(n(apres) - n(avant) - (5000 - 4512.69)) <= 100, "montant encodé"); // arrondi à la centaine
-    await page.uncheck("[data-notaire-reel]");
-    assert.equal(await page.locator(".vrai-cout .gros").innerText(), avant); // décocher : retour au calcul
 
     /* hypothèse : support abîmé → imprévus 15 % */
     await onglet("resume");
@@ -353,6 +346,56 @@ try {
     const large = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     assert.ok(!large, `${nom} : défilement horizontal`);
 
+    /* « Je rénove ma maison » : pas de prix d'achat ni de notaire, étapes, prêt travaux, devis */
+    await page.goto(URL + "#/");
+    await page.locator('.pc-choix[data-p="renovation"]').click();
+    assert.match(await page.locator(".hero h1").innerText(), /rénovation/);
+    assert.match(await page.locator(".grille").innerText(), /Ma maison à rénover \(démo\)[\s\S]*Budget de la rénovation/);
+    assert.doesNotMatch(await page.locator(".grille").innerText(), /Maison de démonstration A/);
+    await page.screenshot({ path: `${OUT}/${nom}-17-renovation-accueil.png` });
+    await page.locator('.grille .maison:has-text("Ma maison à rénover")').click();
+    assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
+    assert.doesNotMatch(await page.locator(".vrai-cout").innerText(), /Prix d'achat|Droits|Notaire/);
+    assert.equal(await page.locator('.om-i[data-o="achat"]').count(), 0);
+    assert.equal(await page.locator('.om-i[data-o="etapes"]').count(), 0, "plus d'étapes");
+    await onglet("financer");
+    await page.fill('[data-fin="apport"]', "10000");
+    await page.locator('[data-fin="apport"]').dispatchEvent("change");
+    assert.match(await page.locator("main").innerText(), /Le prêt travaux[\s\S]*Montant à emprunter/);
+    await page.getByText("Dossier pour la banque").click();
+    await page.locator(".feuille").waitFor();
+    assert.match(await page.locator(".feuille").innerText(), /Rénovation[\s\S]*Le budget de la rénovation[\s\S]*Budget total/);
+    assert.doesNotMatch(await page.locator(".feuille").innerText(), /Prix d'achat|Droits d'enregistrement/);
+    await page.getByText("← Retour à la maison").click();
+    await onglet("artisans");
+    assert.equal(await page.locator(".devis").count(), 0, "plus de devis à retenir");
+    await page.screenshot({ path: `${OUT}/${nom}-19-renovation-artisans.png`, fullPage: nom === "ordi" });
+    assert.ok(await page.evaluate(() => document.querySelector("main").lastElementChild.classList.contains("envoi")), "l'envoi aux artisans reste le dernier bloc");
+    /* choisir plusieurs artisans par métier, avec le projet propre à chacun (écran « Contacter ») */
+    await page.getByText("👷 Choisir les artisans par métier →").click();
+    await page.locator(".contact-ligne").first().waitFor();
+    await page.locator(".contact-ligne").first().locator('[data-v="a"]').click();
+    for (let i = 0; i < 2; i++) await page.locator(".contact-ligne").first().locator("[data-art]").nth(i).check();
+    await page.locator(".contact-ligne").first().locator('[data-action="envoi-metier"]').click();
+    assert.match(await page.locator(".contact-ligne").first().innerText(), /Envoyé à 2 artisans/);
+    /* comparer : seulement les maisons à acheter */
+    await menu("#/comparer");
+    await page.locator("main .puces").waitFor();
+    assert.doesNotMatch(await page.locator("main").innerText(), /Ma maison à rénover/);
+    /* ajouter une maison à rénover : pas de prix demandé */
+    await page.goto(URL + "#/");
+    await page.getByText("＋ Ajouter ma maison à rénover").first().click();
+    assert.equal(await page.locator('input[name="prix"]').count(), 0);
+    await page.fill('input[name="nom"]', "Rénovation test");
+    await page.fill('input[name="annee"]', "1970");
+    await page.fill('input[name="surface"]', "100");
+    await page.getByText("Voir le budget de la rénovation").click();
+    await page.locator(".vrai-cout .gros").waitFor();
+    assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
+    await page.goto(URL + "#/");
+    await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
+    await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();
+
     /* version d'essai pour les particuliers : sans maisons de démonstration ni pages pour les professionnels */
     await page.goto(URL + "#/essai");
     await page.locator(".essai-etapes").waitFor();
@@ -401,11 +444,13 @@ try {
     /* les 4 versions (une tuile chacune) : chacune son accueil et ses propres données */
     await page.goto(URL + "particulier/");
     await page.locator(".essai-etapes").waitFor();
+    assert.match(await page.locator(".intro-boite").innerText(), /Pour vous, c'est gratuit/);
     assert.doesNotMatch(await page.locator("main").innerText(), /Voir mes maisons/); // la « Maison test » de la version complète n'y est pas
     assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "manifest.webmanifest");
     await page.screenshot({ path: `${OUT}/${nom}-14-v-particulier.png` });
     await page.goto(URL + "artisan/");
     assert.match(await page.locator(".intro-boite h1").innerText(), /Des chantiers déjà chiffrés/);
+    assert.equal(await page.locator(".intro-fin").count(), 0, "phrase de fin : seulement la version complète");
     await page.screenshot({ path: `${OUT}/${nom}-15-v-artisan.png` });
     await page.getByText("Commencer la démo →").click();
     await page.locator(".etapes-demo li").first().waitFor();
