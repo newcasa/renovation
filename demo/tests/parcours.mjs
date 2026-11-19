@@ -450,6 +450,7 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-14-v-particulier.png` });
     await page.goto(URL + "artisan/");
     assert.match(await page.locator(".intro-boite h1").innerText(), /Des chantiers déjà chiffrés/);
+    assert.equal(await page.locator(".intro-fin").count(), 0, "phrase de fin : seulement la version complète");
     await page.screenshot({ path: `${OUT}/${nom}-15-v-artisan.png` });
     await page.getByText("Commencer la démo →").click();
     await page.locator(".etapes-demo li").first().waitFor();

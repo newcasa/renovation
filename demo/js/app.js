@@ -1054,7 +1054,7 @@ function ecranIntro() {
         <li><b>🧱 Négociants</b><span>visibles sur les chantiers</span></li>
         <li><b>🏦 Courtiers et agences</b><span>des dossiers complets</span></li>
       </ul>
-      <p class="intro-fin">Avec Valou, c'est un acheteur <b>confiant</b>, un artisan <b>gagnant</b>, un négociant <b>content</b>… et une Wallonie qui va <b>de l'avant</b>.</p>
+      ${VERSION === "complete" ? `<p class="intro-fin">Avec Valou, c'est un acheteur <b>confiant</b>, un artisan <b>gagnant</b>, un négociant <b>content</b>… et une Wallonie qui va <b>de l'avant</b>.</p>` : ""} <!-- phrase de fin : seulement la version pour les investisseurs (Wallonie Entreprendre) -->
       <p class="intro-note">Version de démonstration · maisons et professionnels fictifs</p>
     </div>
   </main>`;
