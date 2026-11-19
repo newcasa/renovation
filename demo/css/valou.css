@@ -911,3 +911,23 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .dd-ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; padding: 6px 0; border-top: 1px dashed var(--bord); }
 .dd-ligne .saisie { max-width: 190px; }
 label.dd-ligne { justify-content: flex-start; }
+
+/* devis reçus des artisans */
+.pastille { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--or); color: #fff; font: 800 11.5px Manrope, sans-serif; vertical-align: middle; margin-left: 4px; }
+.bb-i .bb-ico { position: relative; }
+.pastille.bb-p { position: absolute; top: -6px; right: -12px; margin: 0; min-width: 18px; height: 18px; font-size: 10.5px; }
+.devis-recus { border-left: 5px solid var(--or); }
+.devis-recus h2 { display: flex; align-items: center; gap: 6px; }
+.dr-ligne { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; padding: 12px 0; border-top: 1px solid var(--bord); }
+.dr-ligne.utilise { background: #F1F8F3; border-radius: 10px; padding: 12px; }
+.dr-g, .dr-d { display: grid; gap: 3px; align-content: start; }
+.dr-d { justify-items: end; text-align: right; }
+.dr-m { font: 900 22px Outfit, Manrope, sans-serif; color: var(--bordeaux); }
+.dr-tel { font-size: 13.5px; }
+.dr-note { margin: 4px 0 0; font-style: italic; }
+.dr-ok { color: var(--vert); font-weight: 700; font-size: 14px; }
+.d-devis { display: grid; gap: 8px; width: 100%; max-width: 420px; }
+.d-devis label { display: grid; gap: 4px; font-weight: 700; font-size: 14px; }
+@media (max-width: 640px) { .dr-ligne { grid-template-columns: 1fr; } .dr-d { justify-items: start; text-align: left; } }
+.choisir-art .actions-g { display: grid; grid-template-columns: auto auto; justify-content: start; gap: 10px; }
+@media (max-width: 760px) { .choisir-art .actions-g { grid-template-columns: 1fr 1fr; } .choisir-art .actions-g .btn { padding: 12px 8px; font-size: 14.5px; text-align: center; justify-content: center; } }

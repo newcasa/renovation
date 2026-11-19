@@ -208,6 +208,29 @@ try {
     { const b = page.locator('.demande details[open] [data-action="pro-ok"]'); if (await b.count()) await b.first().click(); } // sinon : l'artisan a déjà répondu
     await page.locator(".d-act.ok").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-artisan.png`, fullPage: nom === "ordi" });
+    /* l'artisan envoie un devis chiffré ; le particulier le reçoit dans « Contacter » et l'utilise dans le dossier */
+    await page.selectOption("[data-metier]", "peintre");
+    const dPeintre = page.locator('.demande:has-text("Seraing")').first();
+    if (!(await dPeintre.locator(".d-lots").isVisible())) await dPeintre.locator(".d-resume").click();
+    await dPeintre.locator('[data-action="pro-ok"]').click();
+    await dPeintre.locator(".d-devis-m").fill("3000");
+    await dPeintre.locator(".d-devis-n").fill("Disponible en mars");
+    await dPeintre.locator('[data-action="pro-devis-envoyer"]').click();
+    assert.match(await dPeintre.locator(".d-act.ok").innerText(), /3\s?000 € envoyé/);
+    await page.goto(URL + "#/");
+    await page.locator('.grille .maison:has-text("Maison de démonstration A")').click();
+    await onglet("artisans");
+    await page.locator('.choisir-art a:has-text("Devis reçus")').click(); // juste à côté de « Choisir les artisans par métier »
+    await page.locator(".devis-recus").waitFor();
+    assert.match(await page.locator(".devis-recus").innerText(), /Devis reçus[\s\S]*Peintre et plafonneur[\s\S]*Peinture Exemple[\s\S]*Disponible en mars[\s\S]*3\s?000 €/);
+    assert.ok(await page.locator(".pastille").count() > 0, "pastille sur Contacter");
+    await page.screenshot({ path: `${OUT}/${nom}-8b-devis-recus.png`, fullPage: nom === "ordi" });
+    await page.locator('.devis-recus [data-action="devis-utiliser"]').click();
+    await page.locator(".devis-recus .dr-ok a").click();
+    await page.locator(".feuille").waitFor();
+    assert.match(await page.locator(".feuille").innerText(), /dont devis d'artisans retenus \(1\)[\s\S]*Peinture Exemple[\s\S]*3\s?000 €/);
+    await page.goto(URL + "#/pro/artisan");
+    await page.selectOption("[data-metier]", "carreleur"); // la suite du parcours repart du carreleur
     for (const [o, sel] of [["courtier", ".dossier-c"], ["agence", ".annonce"]]) {
       await page.goto(URL + "#/pro/" + o);
       await page.locator(sel).first().waitFor();
@@ -375,7 +398,7 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-19-renovation-artisans.png`, fullPage: nom === "ordi" });
     assert.ok(await page.evaluate(() => document.querySelector("main").lastElementChild.classList.contains("envoi")), "l'envoi aux artisans reste le dernier bloc");
     /* choisir plusieurs artisans par métier, avec le projet propre à chacun (écran « Contacter ») */
-    await page.getByText("👷 Choisir les artisans par métier →").click();
+    await page.getByText("👷 Choisir les artisans →").click();
     await page.waitForFunction(() => location.hash.startsWith("#/contacts/"));
     await page.locator(".contact-ligne").first().waitFor();
     await page.locator(".contact-ligne").first().locator('[data-v="a"]').click();

@@ -45,17 +45,18 @@ const fourchette = t => `${euros(t[0], 100)} – ${euros(t[2], 100)}`;
 function entete(actif) {
   const lien = (h, t, id) => `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   const plusActif = ["pro", "moteur", "feuille", "plus"].includes(actif);
+  const nbDevis = R ? devisAUtiliser() : 0; // devis reçus pas encore utilisés dans un dossier
   /* barre du bas (téléphone) : 4 boutons au pouce */
   const bas = (h, ico, t, on) => `<a class="bb-i ${on ? "on" : ""}" href="${h}"${on ? ' aria-current="page"' : ""}><span class="bb-ico" aria-hidden="true">${ico}</span><span>${t}</span></a>`;
   return `<header class="top">
     <a href="#/" class="marque" aria-label="Valou, accueil"><img src="${img("logo-valou.png")}" alt="Valou"></a>
-    <nav class="nav-haut" aria-label="Menu">${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${essai
+    <nav class="nav-haut" aria-label="Menu">${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", `Contacter${nbDevis ? ` <span class="pastille">${nbDevis}</span>` : ""}`, "contacts")}${essai
       ? lien("#/avis", "💬 Mon avis", "avis")
       : `${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}`}</nav>
     ${essai ? `<span class="badge-essai">Version d'essai</span>` : ""}
   </header>
   <nav class="barre-bas" aria-label="Menu principal">
-    ${bas("#/", "🏠", "Maisons", actif === "maisons")}${bas("#/comparer", "⚖️", "Comparer", actif === "comparer")}${bas("#/contacts", "📨", "Contacter", actif === "contacts")}${essai
+    ${bas("#/", "🏠", "Maisons", actif === "maisons")}${bas("#/comparer", "⚖️", "Comparer", actif === "comparer")}${bas("#/contacts", `📨${nbDevis ? `<span class="pastille bb-p">${nbDevis}</span>` : ""}`, "Contacter", actif === "contacts")}${essai
       ? bas("#/avis", "💬", "Mon avis", actif === "avis")
       : bas("#/plus", "☰", "Plus", plusActif)}
   </nav>`;
@@ -463,7 +464,7 @@ function ecranMaison(m) {
       if (o === "artisans") return `
     <section class="carte choisir-art"><h2>Choisir vos artisans</h2>
       <p class="mu">Pour chaque métier : le projet propre à ce métier (les pièces et les postes à envoyer, le matériau souhaité), puis jusqu'à 3 artisans à qui l'envoyer.</p>
-      <a class="btn" href="#/contacts/${m.id}">👷 Choisir les artisans par métier →</a></section>
+      <span class="actions-g"><a class="btn" href="#/contacts/${m.id}">👷 Choisir les artisans →</a><a class="btn sec" href="#/contacts/${m.id}#devis">📩 Devis reçus${devisRecus(m).length ? ` <span class="pastille">${devisRecus(m).length}</span>` : " (0)"}</a></span></section>
     <section class="carte negs"><h2>Négociants de votre région</h2>
       <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
       ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
@@ -691,11 +692,43 @@ function ecranComparer() {
 }
 
 /* ---------- écran : dossier pour la banque (imprimable en PDF) ---------- */
+/* ---------- devis reçus des artisans (côté particulier) ---------- */
+const devisRecus = m => (m.reponses || []).filter(r => r.type === "devis" && +r.montant > 0);
+const devisAUtiliser = () => visibles().reduce((n, m) => n + devisRecus(m).filter(r => ((m.devisChoisi || {})[r.metier] !== r.artisanId)).length, 0);
+function ecartBudget(montant, budget) {
+  if (!budget) return "";
+  const d = (montant - budget) / budget, pc = Math.round(Math.abs(d) * 100);
+  return Math.abs(d) <= 0.1 ? `<span class="badge b-reference">Proche de l'estimation (${d >= 0 ? "+" : "−"}${pc} %)</span>`
+    : d > 0 ? `<span class="badge b-estimation">Plus cher que l'estimation : +${pc} %</span>`
+    : `<span class="badge b-fourchette">Moins cher que l'estimation : −${pc} % · vérifiez ce qui est compris</span>`;
+}
+function blocDevisRecus(m, b) {
+  const D = devisRecus(m);
+  if (!D.length) return /#devis$/.test(location.hash) ? `<section class="carte devis-recus"><h2>📩 Devis reçus</h2><p class="mu">Aucun devis reçu pour l'instant. Envoyez votre projet aux artisans ci-dessous : leurs devis arriveront ici.</p></section>` : "";
+  return `<section class="carte devis-recus">
+    <h2>📩 Devis reçus <span class="pastille">${D.length}</span></h2>
+    <p class="mu">Les artisans à qui vous avez envoyé le projet vous répondent ici. Utilisez un devis dans le dossier pour la banque : il remplace l'estimation Valou de son métier.</p>
+    ${D.map(r => {
+      const x = METIERS.find(y => y.id === r.metier) || { t: r.metier, f: () => false }, lots = b.postes.filter(p => x.f(p.k) && p.QL > 0), est = lots.reduce((s, p) => s + p.total[1], 0);
+      const a = artisansDuMetier(r.metier).find(y => y.id === r.artisanId) || ARTISANS_EXEMPLE[r.metier] || { nom: "Artisan" }, A = ARTISANS_EXEMPLE[r.metier] || ARTISANS_EXEMPLE.general;
+      const utilise = (m.devisChoisi || {})[r.metier] === r.artisanId;
+      return `<div class="dr-ligne ${utilise ? "utilise" : ""}">
+        <div class="dr-g"><small class="mu">${esc(x.t)} · reçu le ${esc(new Date(r.date).toLocaleDateString("fr-BE"))}</small>
+          <b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><span class="mu dr-tel">📞 ${esc(A.tel)}</span>
+          ${r.note ? `<p class="dr-note">« ${esc(r.note)} »</p>` : ""}</div>
+        <div class="dr-d"><b class="dr-m">${euros(r.montant)}</b><small class="mu">TVA comprise · estimation Valou ${euros(est, 10)}</small>${ecartBudget(r.montant, est)}
+          ${utilise ? `<span class="dr-ok">✓ Utilisé dans le <a href="#/dossier/${m.id}">dossier pour la banque</a></span>`
+            : `<button class="btn petit-btn" data-action="devis-utiliser" data-metier="${esc(r.metier)}" data-maison="${m.id}">✓ Utiliser dans le dossier pour la banque</button>`}</div>
+      </div>`; }).join("")}
+  </section>`;
+}
+
 /* ---------- dossier pour la banque : devis des artisans choisis (ils remplacent l'estimation Valou du métier) ---------- */
 function devisRetenus(m, b) {
   const ch = m.devisChoisi || {}, mt = m.devisMontants || {};
   const L = METIERS.filter(x => x.id !== "general").map(x => {
-    const lots = b.postes.filter(p => x.f(p.k) && p.QL > 0), id = ch[x.id], montant = id ? +((mt[x.id] || {})[id] || 0) : 0;
+    const recu = id => (devisRecus(m).find(r => r.metier === x.id && r.artisanId === id) || {}).montant;
+    const lots = b.postes.filter(p => x.f(p.k) && p.QL > 0), id = ch[x.id], montant = id ? +((mt[x.id] || {})[id] ?? recu(id) ?? 0) : 0;
     if (!lots.length || !(montant > 0)) return null;
     return { x, lots, montant, art: artisansDuMetier(x.id).find(a => a.id === id), est: lots.reduce((s, p) => s + p.total[1], 0) };
   }).filter(Boolean);
@@ -710,12 +743,13 @@ function blocDevisDossier(m, b, dv) {
   const metiers = METIERS.filter(x => x.id !== "general").map(x => ({ x, lots: b.postes.filter(p => x.f(p.k) && p.QL > 0) })).filter(o => o.lots.length);
   const ch = m.devisChoisi || {}, mt = m.devisMontants || {};
   const ecran = metiers.map(({ x, lots }) => {
-    const est = lots.reduce((s, p) => s + p.total[1], 0), A = (m.artisansChoisis || {})[x.id] || [], liste = artisansDuMetier(x.id);
+    const R2 = devisRecus(m).filter(r => r.metier === x.id);
+    const est = lots.reduce((s, p) => s + p.total[1], 0), A = [...new Set([...((m.artisansChoisis || {})[x.id] || []), ...R2.map(r => r.artisanId)])], liste = artisansDuMetier(x.id);
     return `<div class="dd-metier">
       <div class="dd-tete"><b>${esc(x.t)}</b><span class="mu">Estimation Valou : <b>${euros(est, 10)}</b></span></div>
       ${A.length ? `<label class="cb dd-ligne"><input type="radio" name="dd-${x.id}" data-devis-choix="${x.id}" value="" ${ch[x.id] ? "" : "checked"}> <span>Garder l'estimation Valou</span></label>
-        ${A.map(id => { const a = liste.find(y => y.id === id) || { nom: id }; const v = (mt[x.id] || {})[id] ?? ""; return `<div class="dd-ligne">
-          <label class="cb"><input type="radio" name="dd-${x.id}" data-devis-choix="${x.id}" value="${esc(id)}" ${ch[x.id] === id ? "checked" : ""}> <span><b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span></span></label>
+        ${A.map(id => { const a = liste.find(y => y.id === id) || { nom: id }; const v = (mt[x.id] || {})[id] ?? (R2.find(r => r.artisanId === id) || {}).montant ?? ""; return `<div class="dd-ligne">
+          <label class="cb"><input type="radio" name="dd-${x.id}" data-devis-choix="${x.id}" value="${esc(id)}" ${ch[x.id] === id ? "checked" : ""}> <span><b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span>${R2.some(r => r.artisanId === id) ? ` <span class="badge b-reference">📩 devis reçu</span>` : ""}</span></label>
           <span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-devis-montant="${esc(x.id + "|" + id)}" value="${esc(v)}" placeholder="montant du devis" aria-label="Montant du devis de ${esc(a.nom)}"><i>€</i></span></div>`; }).join("")}`
         : `<p class="mu petit-t">Aucun artisan choisi pour ce métier : <a href="#/contacts/${m.id}">choisissez-les dans « Contacter »</a>.</p>`}
     </div>`;
@@ -1067,6 +1101,7 @@ function ecranContacts(id) {
       </div>
       <p><a class="btn sec petit-btn" href="#/maison/${m.id}">Voir la fiche complète →</a></p>
     </section>
+    ${blocDevisRecus(m, b)}
     <section class="carte">
       <div class="gp-tete"><h2>Artisans</h2><small class="mu">Pour chaque métier : consultez le projet, cochez jusqu'à 3 artisans, envoyez.</small></div>
       ${metiers.length ? metiers.map(ligneMetier).join("") : `<p class="mu">Aucun travail encodé pour l'instant.</p>`}
@@ -1269,7 +1304,7 @@ function afficher() {
   else if (h === "/avis") html = ecranAvis();
   else if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
-  else if (h === "/contacts" || h.startsWith("/contacts/")) html = ecranContacts(h.split("/")[2]);
+  else if (h === "/contacts" || h.startsWith("/contacts/")) html = ecranContacts((h.split("/")[2] || "").split("#")[0]);
   else if (h === "/questionnaire") html = ecranQuestionnaire({ R, entete });
   else if (h.startsWith("/pro")) html = ecranPro({ R, maisons, entete, tarifs, prixNeg, negFiche, annonce, photos: m => photosDe(m) }, h.split("/")[2] || "", h.includes("/tarifs") && metier === "general" ? "carreleur" : metier);
   else if (h === "/demo-artisan" || h === "/demo-negociant") html = ecranDemoPro({ entete, maisonDemo: maisons.find(m => m.demo) }, h === "/demo-negociant" ? "negociant" : "artisan");
@@ -1286,6 +1321,7 @@ function afficher() {
   if (document.getElementById("viseur")) ouvrirCamera();
   afficher.dernier = h;
   window.scrollTo(0, meme ? y : 0);
+  if (/\/contacts\/\w+#devis$/.test(location.hash)) document.querySelector(".devis-recus, .contact-ligne")?.scrollIntoView({ block: "start" });
 }
 
 /* ---------- interactions ---------- */
@@ -1327,17 +1363,35 @@ document.addEventListener("click", e => {
     document.getElementById("envoi").innerHTML = `<p class="alerte ok">✓ Dossier envoyé à votre banque. <small>(Démonstration : aucun envoi réel.)</small></p>`;
   }
   if (el.dataset.simN != null) { sim.n = +el.dataset.simN; afficher(); }
-  if (a === "pro-ok" || a === "pro-non" || a === "pro-visite") {
+  if (a === "pro-ok") {
+    el.closest(".d-act").outerHTML = `<span class="d-act d-devis"><label>Montant de votre devis, TVA comprise<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" class="d-devis-m" placeholder="ex. 4800"><i>€</i></span></label>
+      <label>Délai ou remarque <small class="mu">(facultatif)</small><input class="d-devis-n" placeholder="ex. disponible en mars, carrelage fourni"></label>
+      <span class="actions-g"><button class="btn" data-action="pro-devis-envoyer">📩 Envoyer le devis</button><button class="btn lien" data-action="pro-devis-annuler">Annuler</button></span></span>`;
+    document.querySelector(".d-devis-m")?.focus();
+    return;
+  }
+  if (a === "pro-devis-annuler") { afficher(); return; }
+  if (a === "pro-devis-envoyer") {
+    const carte = el.closest(".demande"), mm = trouver(carte.dataset.maison || ""), met = carte.dataset.metier;
+    const champ = carte.querySelector(".d-devis-m"), montant = +(champ.value || 0), note = (carte.querySelector(".d-devis-n").value || "").trim();
+    if (!(montant > 0)) { champ.focus(); return; }
+    if (mm && met) {
+      mm.reponses = (mm.reponses || []).filter(r => r.metier !== met);
+      mm.reponses.push({ metier: met, type: "devis", montant: Math.round(montant * 100) / 100, note, artisanId: `${met}-1`, date: Date.now() });
+      sauver();
+    }
+    carte.querySelector(".d-act").outerHTML = `<span class="d-act ok">✓ Devis de ${euros(montant)} envoyé : le client le reçoit dans « Contacter » (📩 Devis reçus).</span>`;
+    return;
+  }
+  if (a === "pro-non" || a === "pro-visite") {
     const carte = el.closest(".demande");
     const mm = trouver(carte.dataset.maison || "");
     if (mm && carte.dataset.metier) {
       mm.reponses = (mm.reponses || []).filter(r => r.metier !== carte.dataset.metier);
-      mm.reponses.push({ metier: carte.dataset.metier, type: a === "pro-ok" ? "devis" : a === "pro-visite" ? "visite" : "non", date: Date.now() });
+      mm.reponses.push({ metier: carte.dataset.metier, type: a === "pro-visite" ? "visite" : "non", artisanId: `${carte.dataset.metier}-1`, date: Date.now() });
       sauver();
     }
-    carte.querySelector(".d-act").outerHTML = a === "pro-ok"
-      ? `<span class="d-act ok">✓ Le client est prévenu : il recevra votre devis dans son espace Valou.</span>`
-      : a === "pro-visite"
+    carte.querySelector(".d-act").outerHTML = a === "pro-visite"
         ? `<span class="d-act ok">✓ Le client est prévenu : il recevra votre proposition de visite et choisira un moment.</span>`
         : `<span class="d-act mu">Demande transmise à un autre artisan.</span>`;
   }
@@ -1353,6 +1407,13 @@ document.addEventListener("click", e => {
     if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], etape: "photos", lu: null }; location.hash = `#/maison/${mq.id}`; }
   }
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
+  if (a === "devis-utiliser") {
+    const mq = trouver(el.dataset.maison), r = mq && devisRecus(mq).find(y => y.metier === el.dataset.metier);
+    if (r) {
+      const M = { ...(mq.devisMontants || {}) }; M[r.metier] = { ...(M[r.metier] || {}), [r.artisanId]: r.montant }; mq.devisMontants = M;
+      mq.devisChoisi = { ...(mq.devisChoisi || {}), [r.metier]: r.artisanId }; sauver(); afficher();
+    }
+  }
   if (a === "onglet-m" && m) {
     ongletsM[m.id] = el.dataset.o; afficher();
     const t = document.querySelector(".onglets-m");

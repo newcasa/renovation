@@ -134,6 +134,8 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
    > « Vos prix ne sont jamais montrés. Ils servent à des moyennes d'au moins 5 artisans, et vous recevez les demandes en priorité. »
 4. **Les prix de votre zone** (« Notre moteur », en bas) : la carte 5 à 20 km, avec votre prix en vert.
 
+5. **Le devis** : « Envoyer un devis » demande le montant (et un délai ou une remarque). Le client le reçoit dans « Contacter » › « 📩 Devis reçus », le compare à l'estimation Valou et l'utilise d'un toucher dans son dossier pour la banque.
+
 **Questions à poser :** voir le dossier « points faibles », partie 3 (artisan), puis proposer la lettre d'intention.
 
 ---
@@ -219,7 +221,7 @@ Le lien à envoyer aux testeurs particuliers est `hoono.be/demo/particulier/`.
 1. Le bandeau : **le budget de la rénovation**, sans prix d'achat, droits ni notaire, avec la part des travaux qui améliorent le PEB.
 2. Onglets **Pièces** et **Travaux** : exactement comme pour l'achat.
 3. Onglet **Financer** : les aides (Rénopack) et le prêt travaux (épargne, montant à emprunter, mensualité). « Dossier pour la banque » : version rénovation.
-4. Onglet **Artisans** : « 👷 Choisir les artisans par métier » ouvre « Contacter » : pour chaque métier, le projet propre à ce métier et jusqu'à 3 artisans à qui l'envoyer.
+4. Onglet **Artisans** : « 👷 Choisir les artisans » ouvre « Contacter » ; juste à côté, « 📩 Devis reçus » montre les devis envoyés par les artisans : pour chaque métier, le projet propre à ce métier et jusqu'à 3 artisans à qui l'envoyer.
 
 **À dire :**
 > « Valou ne sert pas qu'à acheter. Le propriétaire qui rénove voit son budget, trouve les aides et envoie à chaque artisan le projet de son métier. »
