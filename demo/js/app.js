@@ -12,6 +12,7 @@ let R = null;
 let maisons = lireMaisons();
 /* l'estimation rapide (cases cochées à l'ajout) n'existe plus : ses lignes « toute la maison » pour des postes de pièce sont retirées.
    Les postes de la maison (toiture, électricité…) restent : on les retrouve dans « Rénovations générales ». */
+maisons.forEach(m => { m.fraisNotaire = null; delete m.notaireReel; }); // les frais de notaire sont toujours calculés (plus de montant encodé)
 maisons.forEach(m => { if (m.travaux) m.travaux = m.travaux.filter(l => l.pieceId || l.src === "chauffage" || !POSTES_PIECES.test(l.k)); });
 const $app = document.getElementById("app");
 const sauver = () => ecrireMaisons(maisons);
@@ -379,13 +380,8 @@ function ecranMaison(m) {
               <div class="ligne"><span>TVA 21 %</span><span>${euros2(c.notaireCalcul.tva)}</span></div>
             </details>
             <small class="mu">Calcul d'après le ${esc(c.notaireCalcul.source)}. À confirmer par le notaire.</small>` : ""}
-            ${(() => {
-              /* case verrouillée : on utilise le calcul ; on coche pour encoder le vrai montant du notaire */
-              const reel = c.notaireCalcul == null && !c.notaireEncode ? true : m.notaireReel ?? m.fraisNotaire != null;
-              return `${c.notaireCalcul || c.notaireEncode ? `<label class="cb"><input type="checkbox" data-notaire-reel ${reel ? "checked" : ""}> J'ai le décompte de mon notaire : j'encode le vrai montant</label>` : ""}
-            <label class="${reel ? "" : "verrou"}">Honoraires et frais du notaire, TVA comprise (€)<span class="saisie"><input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(reel ? m.fraisNotaire ?? "" : "")}" placeholder="${!reel && c.notaireCalcul ? "calculé : " + euros(c.notaireCalcul.total) : "montant du notaire"}" ${reel ? "" : "disabled"}>${reel ? "" : `<i aria-hidden="true">🔒</i>`}</span></label>
-            ${reel ? (c.notaireCalcul || c.notaireEncode ? `<small class="mu">Ce montant remplace le calcul. Décochez la case pour revenir au calcul.</small>` : `<small class="mu">Pas de calcul automatique sous 64 095 € : encodez le montant du notaire (simulateur sur notaire.be).</small>`) : `<small class="mu">Case verrouillée : le montant calculé est utilisé.</small>`}`;
-            })()}
+            ${c.notaireCalcul ? "" : `<div class="ligne"><span>Frais de notaire (acte d'achat)</span><b class="manque">à compléter</b></div>
+            <small class="mu">Pas de calcul automatique pour un prix sous 64 095 € : demandez le montant au notaire.</small>`}
             <small class="mu">Si vous empruntez, l'acte de crédit a ses propres frais (pas encore comptés).</small>
           </div>
         </section>
@@ -1251,10 +1247,7 @@ document.addEventListener("change", e => {
   if (t.form && t.form.id === "f-ajout" && t.name) { brouillon[t.name] = t.type === "checkbox" ? t.checked : t.value; return; }
   if (!m) return;
   /* écran maison */
-  if (t.dataset.notaireReel != null) {
-    m.notaireReel = t.checked;
-    if (!t.checked) m.fraisNotaire = null; // retour au calcul
-  } else if (t.dataset.f) {
+  if (t.dataset.f) {
     const f = t.dataset.f;
     m[f] = t.type === "checkbox" ? t.checked : t.value === "" ? null : +t.value;
   } else if (t.dataset.h) {

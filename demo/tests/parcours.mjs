@@ -291,18 +291,10 @@ try {
     await page.locator('.carte [data-fin="apport"]').dispatchEvent("change");
     assert.equal(await page.inputValue('[data-fin="apport"]'), "40000");
     assert.match(await page.locator("main").innerText(), /Montant à emprunter/);
-    /* frais de notaire : calculés d'après notaire.be (245 000 € → 4 513 €), remplacés par un montant encodé */
+    /* frais de notaire : toujours calculés d'après notaire.be (245 000 € → 4 513 €), plus de saisie */
     assert.match(await page.locator("details.notaire summary").innerText(), /4\s?513 €/);
-    const avant = await page.locator(".vrai-cout .gros").innerText();
-    assert.ok(await page.locator('[data-f="fraisNotaire"]').isDisabled(), "case verrouillée par défaut");
-    await page.check("[data-notaire-reel]");
-    await page.fill('[data-f="fraisNotaire"]', "5000");
-    await page.locator('[data-f="fraisNotaire"]').dispatchEvent("change");
+    assert.equal(await page.locator('[data-notaire-reel], [data-f="fraisNotaire"]').count(), 0, "plus de saisie du notaire");
     const apres = await page.locator(".vrai-cout .gros").innerText();
-    const n = s => +s.replace(/[^\d]/g, "");
-    assert.ok(Math.abs(n(apres) - n(avant) - (5000 - 4512.69)) <= 100, "montant encodé"); // arrondi à la centaine
-    await page.uncheck("[data-notaire-reel]");
-    assert.equal(await page.locator(".vrai-cout .gros").innerText(), avant); // décocher : retour au calcul
 
     /* hypothèse : support abîmé → imprévus 15 % */
     await onglet("resume");

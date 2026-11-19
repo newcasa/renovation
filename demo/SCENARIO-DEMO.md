@@ -81,7 +81,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 **À montrer :**
 - Le dossier complet sur une page : achat, droits, notaire, travaux, PEB et financement.
-- « Envoyer à la banque » fonctionne tout de suite (démonstration, aucun envoi réel). Le dossier indique si les frais de notaire sont calculés ou encodés d'après le décompte du notaire.
+- « Envoyer à la banque » fonctionne tout de suite (démonstration, aucun envoi réel). Les frais de notaire sont calculés par l'appli, d'après le simulateur de notaire.be.
 - En option, remplir l'apport (40 000 €), le taux et la durée pour voir la mensualité.
 
 **À dire :**
