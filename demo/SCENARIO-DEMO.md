@@ -80,12 +80,12 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 **Clic :** revenir à la maison A, onglet **Achat**, « Dossier pour la banque → ».
 
 **À montrer :**
-- L'envoi est **verrouillé** 🔒 tant que le montant du notaire n'est pas validé.
-- Cocher « J'ai le décompte de mon notaire », taper **4 600** : l'envoi se déverrouille, puis « Envoyer à la banque » (démonstration, aucun envoi réel).
+- Le dossier complet sur une page : achat, droits, notaire, travaux, PEB et financement.
+- « Envoyer à la banque » fonctionne tout de suite (démonstration, aucun envoi réel). Le dossier indique si les frais de notaire sont calculés ou encodés d'après le décompte du notaire.
 - En option, remplir l'apport (40 000 €), le taux et la durée pour voir la mensualité.
 
 **À dire :**
-> « Le particulier arrive chez le courtier avec un dossier complet : achat, notaire validé, travaux détaillés. Le courtier gagne du temps, la banque est rassurée. »
+> « Le particulier arrive chez le courtier avec un dossier complet : achat, notaire, travaux détaillés. Le courtier gagne du temps, la banque est rassurée. »
 
 ---
 
@@ -162,7 +162,7 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 - **Particulier (gratuit)** : le vrai coût avant l'offre, la comparaison des maisons avec le PEB, la visite guidée avec les photos, le dossier pour la banque, le projet envoyé aux artisans.
 - **Artisan** : des projets déjà chiffrés avec les photos des pièces, un client qui connaît son budget, le choix entre proposer une visite, envoyer un devis ou dire « pas disponible », des tarifs confidentiels.
 - **Négociant** : visible sur les projets de sa zone, avec ses services, coordonnées et horaires ; des clients avec un chantier chiffré ; aucune offre à envoyer.
-- **Courtier ou banque** : un dossier complet (achat, notaire validé, travaux, PEB), moins de temps passé à reconstituer le budget.
+- **Courtier ou banque** : un dossier complet (achat, notaire, travaux, PEB), moins de temps passé à reconstituer le budget.
 - **Agence** : des annonces rédigées librement, l'estimation des travaux en option, des acheteurs qui osent visiter les maisons à rénover.
 
 ---

@@ -409,7 +409,7 @@ function ecranMaison(m) {
     </div>
 
     <div class="actions">
-      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${c.notaireEncode ? "" : `<small class="mu verrou-info">🔒 L'envoi à la banque se déverrouille quand le montant du notaire est encodé.</small>`}${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
+      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
       <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
     </div>
 
@@ -655,16 +655,8 @@ function ecranDossier(m) {
   return `${entete("maisons")}
   <main class="dossier">
     <div class="no-print barre-outils"><a href="#/maison/${m.id}" class="retour">← Retour à la maison</a>
-      <span class="actions-g">${c.notaireEncode
-        ? `<button class="btn" data-action="envoyer-banque">Envoyer à la banque</button><button class="btn sec" data-action="imprimer">Télécharger en PDF</button>`
-        : `<span class="btn off" aria-disabled="true">🔒 Envoyer à la banque</span><span class="btn off" aria-disabled="true">🔒 Télécharger en PDF</span>`}</span></div>
+      <span class="actions-g"><button class="btn" data-action="envoyer-banque">Envoyer à la banque</button><button class="btn sec" data-action="imprimer">Télécharger en PDF</button></span></div>
     <div class="no-print" id="envoi"></div>
-    ${c.notaireEncode ? "" : `<section class="no-print carte verrou-banque">
-      <b>🔒 Envoi verrouillé : le montant du notaire doit être validé</b>
-      <p class="mu">Le dossier utilise pour l'instant les frais de notaire calculés${c.notaireCalcul ? ` (${euros(c.notaireCalcul.total)})` : ""}. Dès que votre notaire vous a donné son décompte, encodez le montant : l'envoi à la banque se déverrouille.</p>
-      <label class="cb"><input type="checkbox" data-notaire-reel ${m.notaireReel ? "checked" : ""}> J'ai le décompte de mon notaire : j'encode le vrai montant</label>
-      ${m.notaireReel || !c.notaireCalcul ? `<label>Honoraires et frais du notaire, TVA comprise (€)<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="montant du notaire"></label>` : ""}
-    </section>`}
     <article class="feuille">
       <header class="f-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
       ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
