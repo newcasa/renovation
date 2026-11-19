@@ -136,6 +136,8 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 5. **Le devis** : « Envoyer un devis » demande le montant (et un délai ou une remarque). Le client le reçoit dans « Contacter » › « 📩 Devis reçus », le compare à l'estimation Valou et l'utilise d'un toucher dans son dossier pour la banque.
 
+6. **Les profils des artisans** : 3 artisans fictifs par métier (ex. « Atelier du Carreau », « Pinceau Clair »), chacun avec sa fiche (présentation, spécialités, contact, horaires) : « Voir le profil » dans Contacter.
+
 **Questions à poser :** voir le dossier « points faibles », partie 3 (artisan), puis proposer la lettre d'intention.
 
 ---

@@ -931,3 +931,12 @@ label.dd-ligne { justify-content: flex-start; }
 @media (max-width: 640px) { .dr-ligne { grid-template-columns: 1fr; } .dr-d { justify-items: start; text-align: left; } }
 .choisir-art .actions-g { display: grid; grid-template-columns: auto auto; justify-content: start; gap: 10px; }
 @media (max-width: 760px) { .choisir-art .actions-g { grid-template-columns: 1fr 1fr; } .choisir-art .actions-g .btn { padding: 12px 8px; font-size: 14.5px; text-align: center; justify-content: center; } }
+
+/* profil d'un artisan */
+.profil-art h1 { margin: 0; font-size: 26px; }
+.pa-tete { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 8px; }
+.pa-tete p { margin: 2px 0 6px; }
+.pa-ico { font-size: 38px; line-height: 1; }
+.pa-spe { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.pa-spe li { padding: 5px 11px; border-radius: 999px; background: var(--carte); border: 1px solid var(--bord); font-weight: 600; font-size: 14px; }
+.profil-art h2 { margin: 18px 0 8px; }

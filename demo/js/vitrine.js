@@ -213,13 +213,48 @@ export function ecranPro(ctx, onglet, metier) {
   return `${entete("pro")}<main>${nav}${simule}${corps}</main>`;
 }
 
-/* ---------- artisans de démonstration (fictifs) : coordonnées montrées au client quand l'artisan répond ---------- */
-export const ARTISANS_EXEMPLE = {
-  general: { nom: "Rénovation Exemple", tel: "04 000 00 01" }, carreleur: { nom: "Carrelage Exemple", tel: "04 000 00 02" },
-  peintre: { nom: "Peinture Exemple", tel: "04 000 00 03" }, electricien: { nom: "Électricité Exemple", tel: "04 000 00 04" },
-  chauffagiste: { nom: "Chauffage Exemple", tel: "04 000 00 05" }, menuisier: { nom: "Menuiserie Exemple", tel: "04 000 00 06" },
-  couvreur: { nom: "Toitures Exemple", tel: "04 000 00 07" },
+/* ---------- artisans de démonstration (fictifs) : 3 profils par métier ----------
+   Noms, coordonnées et textes inventés pour la démonstration (aucun artisan réel). Le premier de chaque métier est celui qui répond dans la démo. */
+const AR = (nom, lieu, km, desc, spe, tel, extra = {}) => ({ nom, lieu, km, desc, spe, tel, email: nom.toLowerCase().normalize("NFD").replace(/[^a-z]/g, "").slice(0, 14) + "@exemple.be", horaires: "Lun–ven 7h30–17h", tarifs: true, ...extra });
+export const ARTISANS = {
+  general: [
+    AR("Rénov' Complète", "Seraing", 3, "Entreprise générale : nous coordonnons tous les corps de métier, du gros œuvre aux finitions.", ["Rénovation complète", "Coordination de chantier", "Gros œuvre", "Finitions"], "04 000 01 01"),
+    AR("Bâtir Ensemble", "Liège", 7, "Rénovations lourdes de maisons anciennes, avec un seul interlocuteur du début à la fin.", ["Maisons anciennes", "Extensions", "Démolition", "Planning de chantier"], "04 000 01 02"),
+    AR("Maison Neuve Rénovation", "Ans", 14, "Petite équipe polyvalente pour rafraîchir une maison avant d'emménager.", ["Rafraîchissement", "Petits travaux", "Cuisine et salle de bain"], "04 000 01 03", { tarifs: false }),
+  ],
+  carreleur: [
+    AR("Atelier du Carreau", "Seraing", 3, "Carrelage de sols et de murs, grands formats et salles de bain.", ["Grand format 120×60", "Salles de bain", "Douches à l'italienne", "Faïence murale"], "04 000 02 01"),
+    AR("Pose Nette", "Grâce-Hollogne", 9, "Pose soignée, joints réguliers, chantier propre et rangé chaque soir.", ["Carrelage de sol", "Plinthes", "Terrasses", "Ragréage"], "04 000 02 02"),
+    AR("Mosaïque Liégeoise", "Liège", 7, "Carreaux de ciment, mosaïques et pierre naturelle pour les maisons de caractère.", ["Carreaux de ciment", "Mosaïque", "Pierre naturelle", "Restauration"], "04 000 02 03", { tarifs: false }),
+  ],
+  peintre: [
+    AR("Pinceau Clair", "Liège", 7, "Peinture intérieure et plafonnage, finitions lisses et teintes sur mesure.", ["Peinture intérieure", "Plafonnage", "Enduits lissés", "Conseil couleurs"], "04 000 03 01"),
+    AR("Teinte Juste", "Flémalle", 11, "Peinture et papier peint, protection complète des sols et des meubles.", ["Peinture", "Papier peint", "Boiseries", "Plafonds"], "04 000 03 02"),
+    AR("Atelier Blanc Mat", "Seraing", 3, "Plaques de plâtre, cloisons et peinture pour les rénovations rapides.", ["Plaques de plâtre", "Cloisons", "Faux plafonds", "Peinture"], "04 000 03 03", { tarifs: false }),
+  ],
+  electricien: [
+    AR("Fil Rouge Électricité", "Grâce-Hollogne", 9, "Électricité complète, mise en conformité et contrôle par un organisme agréé.", ["Installation complète", "Mise en conformité", "Tableau électrique", "Domotique"], "04 000 04 01"),
+    AR("Lumen Installations", "Liège", 7, "Éclairage, prises et rénovation électrique pièce par pièce.", ["Éclairage LED", "Prises et interrupteurs", "Rénovation partielle"], "04 000 04 02"),
+    AR("Circuit Net", "Ans", 14, "Dépannage et petites installations, intervention rapide.", ["Dépannage", "Bornes de recharge", "Petites installations"], "04 000 04 03", { tarifs: false }),
+  ],
+  chauffagiste: [
+    AR("Chaleur Douce", "Seraing", 3, "Pompes à chaleur, chaudières à condensation et radiateurs, avec entretien.", ["Pompe à chaleur", "Chaudière gaz", "Radiateurs", "Entretien"], "04 000 05 01"),
+    AR("Flamme Bleue Chauffage", "Liège", 7, "Remplacement de chaudières au mazout et démontage des cuves.", ["Remplacement de chaudière", "Démontage de cuve à mazout", "Chauffage au sol"], "04 000 05 02"),
+    AR("Robinet Malin", "Flémalle", 11, "Sanitaire : salles de bain complètes, WC suspendus et plomberie.", ["Salles de bain", "WC suspendus", "Plomberie", "Chauffe-eau"], "04 000 05 03", { tarifs: false }),
+  ],
+  menuisier: [
+    AR("Copeau d'Or", "Liège", 7, "Menuiserie intérieure et extérieure : châssis, portes et cuisines.", ["Châssis PVC et alu", "Portes intérieures", "Cuisines sur mesure", "Parquet"], "04 000 06 01"),
+    AR("L'Établi", "Ans", 14, "Parquets, escaliers et placards sur mesure, en bois massif.", ["Parquet massif", "Escaliers", "Placards", "Rénovation de boiseries"], "04 000 06 02"),
+    AR("Huisserie Nette", "Seraing", 3, "Remplacement de châssis et de portes d'entrée, pose en rénovation.", ["Châssis", "Portes d'entrée", "Volets", "Isolation des menuiseries"], "04 000 06 03", { tarifs: false }),
+  ],
+  couvreur: [
+    AR("Tuile & Zinc", "Grâce-Hollogne", 9, "Toitures en tuiles et ardoises, zinguerie et isolation sous toiture.", ["Couverture", "Zinguerie", "Isolation de toiture", "Fenêtres de toit"], "04 000 07 01"),
+    AR("Toit Sûr", "Liège", 7, "Rénovation complète de toitures et réparations après tempête.", ["Rénovation de toiture", "Réparations", "Gouttières", "Démoussage"], "04 000 07 02"),
+    AR("Ardoise Bleue", "Flémalle", 11, "Ardoises naturelles, toitures plates EPDM et charpentes.", ["Ardoises naturelles", "Toiture plate EPDM", "Charpente"], "04 000 07 03", { tarifs: false }),
+  ],
 };
+/* coordonnées montrées au client quand l'artisan répond (le premier profil de chaque métier) */
+export const ARTISANS_EXEMPLE = Object.fromEntries(Object.entries(ARTISANS).map(([k, L]) => [k, { nom: L[0].nom, tel: L[0].tel }]));
 
 /* demandes reçues par l'artisan : fermées par défaut (on ne voit que l'adresse), ouvertes d'un clic */
 const demandesOuvertes = new Set();

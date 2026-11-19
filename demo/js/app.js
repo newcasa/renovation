@@ -4,7 +4,7 @@ import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611191433";
 import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611191433";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611191433";
 import { euros, euros2, nombre, esc } from "./format.js?v=202611191433";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, cleLigne } from "./vitrine.js?v=202611191433";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, cleLigne } from "./vitrine.js?v=202611191433";
 import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire } from "./questionnaire.js?v=202611191433";
 import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611191433";
 
@@ -621,7 +621,7 @@ function appliquerPrixNeg() {
 }
 let envoiOuvert = null;
 /* fiche du négociant et annonce de l'agence (démonstration, gardées sur cet appareil) */
-const FICHE_EXEMPLE = { nom: "Matériaux Exemple", fictif: true, adresse: "Rue de l'Exemple 1, 4000 Liège", tel: "04 000 00 00", email: "contact@exemple.be", site: "",
+const FICHE_EXEMPLE = { nom: "Brik'O", fictif: true, adresse: "Rue de l'Exemple 1, 4000 Liège", tel: "04 000 00 00", email: "contact@exemple.be", site: "",
   rayons: ["gros", "toiture", "isolation", "bois", "carrelage", "peinture", "outillage", "echafaudage", "conteneur"],
   services: "Livraison sur chantier\nLocation de matériel\nDécoupe sur mesure\nConseil en isolation",
   horaires: { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" } };
@@ -714,7 +714,7 @@ function blocDevisRecus(m, b) {
       const utilise = (m.devisChoisi || {})[r.metier] === r.artisanId;
       return `<div class="dr-ligne ${utilise ? "utilise" : ""}">
         <div class="dr-g"><small class="mu">${esc(x.t)} · reçu le ${esc(new Date(r.date).toLocaleDateString("fr-BE"))}</small>
-          <b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><span class="mu dr-tel">📞 ${esc(A.tel)}</span>
+          <b><a href="#/artisan/${esc(r.artisanId)}">${esc(a.nom)}</a></b> <span class="badge b-exemple">Exemple fictif</span><span class="mu dr-tel">📞 ${esc(a.tel || A.tel)}</span>
           ${r.note ? `<p class="dr-note">« ${esc(r.note)} »</p>` : ""}</div>
         <div class="dr-d"><b class="dr-m">${euros(r.montant)}</b><small class="mu">TVA comprise · estimation Valou ${euros(est, 10)}</small>${ecartBudget(r.montant, est)}
           ${utilise ? `<span class="dr-ok">✓ Utilisé dans le <a href="#/dossier/${m.id}">dossier pour la banque</a></span>`
@@ -989,11 +989,11 @@ function preparerPresentation(direct) {
 
 /* ---------- écran : contacter un professionnel ---------- */
 /* artisans de démonstration par métier (fictifs) : le premier est celui qui répond dans la démo */
-const LIEUX_DEMO = [["Seraing", 3], ["Liège", 7], ["Grâce-Hollogne", 9], ["Flémalle", 11], ["Ans", 14]];
+/* les artisans fictifs d'un métier (3 profils) ; identifiant : « métier-numéro » */
 function artisansDuMetier(id) {
-  const A = ARTISANS_EXEMPLE[id] || ARTISANS_EXEMPLE.general, base = A.nom.replace(/ Exemple$/, "");
-  return LIEUX_DEMO.map(([lieu, km], i) => ({ id: `${id}-${i + 1}`, nom: i ? `${base} Exemple ${String.fromCharCode(65 + i)}` : A.nom, lieu, km, tarifs: i < 3 }));
+  return (ARTISANS[id] || ARTISANS.general).map((a, i) => ({ ...a, id: `${id}-${i + 1}`, metier: id }));
 }
+const artisanParId = id => { const [met] = String(id).split("-"); return artisansDuMetier(met).find(a => a.id === id); };
 const ctOuvert = {};
 /* propositions de matériaux (texte libre : le client peut écrire ce qu'il veut ; aucun prix) */
 const MATERIAUX = [
@@ -1071,7 +1071,7 @@ function ecranContacts(id) {
     const choix = `<div class="ct-panneau ct-choix" data-metier-choix="${x.id}">
       <p class="mu petit-t">Cochez jusqu'à <b>3 artisans</b>, puis envoyez.</p>
       ${liste.map(a => { const on = choisis.includes(a.id); return `<label class="cb ct-art"><input type="checkbox" data-art="${a.id}" ${on ? "checked" : ""} ${envoye || (!on && choisis.length >= 3) ? "disabled" : ""}>
-        <span><b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><small class="mu">${esc(a.lieu)} · à ${a.km} km${a.tarifs ? " · tarifs partagés avec Valou" : ""}</small></span></label>`; }).join("")}
+        <span><b>${esc(a.nom)}</b> <span class="badge b-exemple">Exemple fictif</span><small class="mu">${esc(a.lieu)} · à ${a.km} km${a.tarifs ? " · tarifs partagés avec Valou" : ""} · <a href="#/artisan/${a.id}">Voir le profil</a></small></span></label>`; }).join("")}
       ${envoye ? `<p class="envoye">📨 Projet envoyé${nomsChoisis.length ? ` à ${esc(nomsChoisis.join(", "))}` : ""} le ${esc(new Date((envoi || m.envoi).date).toLocaleDateString("fr-BE"))}. Démonstration : aucun envoi réel.</p>`
         : `<button class="btn petit-btn" data-action="envoi-metier" data-metier="${x.id}" ${choisis.length && nSel ? "" : "disabled"}>📨 Envoyer ${nSel} partie${nSel > 1 ? "s" : ""}${choisis.length ? ` à ${choisis.length} artisan${choisis.length > 1 ? "s" : ""}` : ""}</button>
           ${!nSel ? `<small class="mu"> Aucune partie cochée dans le projet.</small>` : ""}`}
@@ -1281,6 +1281,31 @@ function fenetreSuppression() {
   </div>`;
 }
 
+/* ---------- profil d'un artisan (fictif) ---------- */
+function ecranArtisan(id) {
+  const a = artisanParId(id), x = a && METIERS.find(y => y.id === a.metier);
+  if (!a) return `${entete("contacts")}<main class="etroit"><a href="#/contacts" class="retour">← Contacter</a><div class="carte vide"><p>Artisan introuvable.</p></div></main>`;
+  const retour = history.length > 1 ? `<a href="javascript:history.back()" class="retour">← Retour</a>` : `<a href="#/contacts" class="retour">← Contacter</a>`;
+  return `${entete("contacts")}<main class="etroit">
+    ${retour}
+    <article class="carte profil-art">
+      <div class="pa-tete"><span class="pa-ico">${{ carreleur: "◼️", peintre: "🎨", electricien: "💡", chauffagiste: "🔥", menuisier: "🪚", couvreur: "🏠" }[a.metier] || "🔨"}</span>
+        <div><h1>${esc(a.nom)}</h1><p class="mu">${esc(x ? x.t : "Entreprise générale")} · ${esc(a.lieu)}, à ${a.km} km</p><span class="badge b-exemple">Exemple fictif</span>${a.tarifs ? ` <span class="badge b-reference">Tarifs partagés avec Valou</span>` : ""}</div></div>
+      <p>${esc(a.desc)}</p>
+      <h2>Spécialités</h2>
+      <ul class="pa-spe">${a.spe.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+      <h2>Contact</h2>
+      <div class="recap">
+        <div><span>Téléphone</span><b>${esc(a.tel)}</b></div>
+        <div><span>E-mail</span><b>${esc(a.email)}</b></div>
+        <div><span>Horaires</span><b>${esc(a.horaires)}</b></div>
+        <div><span>Zone</span><b>${esc(a.lieu)} et environs (20 km)</b></div>
+      </div>
+      <p class="mu petit-t">Profil de démonstration : nom, coordonnées et textes inventés. Pour lui envoyer votre projet, passez par « Contacter », métier « ${esc(x ? x.t : "Entreprise générale")} ».</p>
+    </article>
+  </main>`;
+}
+
 /* ---------- routeur ---------- */
 function afficher() {
   let brut = location.hash.replace(/^#/, "");
@@ -1301,6 +1326,7 @@ function afficher() {
   if (h === "/bienvenue") html = ecranIntro();
   else if (h === "/essai") html = ecranEssai();
   else if (h === "/plus") html = ecranPlus();
+  else if (h.startsWith("/artisan/")) html = ecranArtisan(h.split("/")[2]);
   else if (h === "/avis") html = ecranAvis();
   else if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
