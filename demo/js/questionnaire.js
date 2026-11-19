@@ -67,7 +67,7 @@ export function ecranQuestionnaire(ctx) {
     <table class="q-table">
       <thead>
         <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th colspan="2">Sol à refaire</th><th colspan="3">Murs (à refaire)</th><th colspan="2">Plafond</th><th colspan="3">Châssis à remplacer</th><th colspan="2">Chauffage</th><th rowspan="2">Équipé à<br>remplacer</th><th rowspan="2">Remarques</th></tr>
-        <tr><th>Carrel.</th><th>Parquet</th><th>Plafon.</th><th>Peint.</th><th>Carrel.</th><th>Peint.</th><th>Placo</th><th>Nombre</th><th>PVC</th><th>Alu</th><th>Radiat.<br>nombre</th><th>Au sol</th></tr>
+        <tr class="q-sous"><th>Carre&shy;lage</th><th>Par&shy;quet</th><th>Plafon&shy;nage</th><th>Pein&shy;ture</th><th>Carre&shy;lage</th><th>Pein&shy;ture</th><th>Pla&shy;ques</th><th>Nom&shy;bre</th><th>PVC</th><th>Alu</th><th>Radia&shy;teurs</th><th>Au sol</th></tr>
       </thead>
       <tbody>${lignes}</tbody>
     </table>

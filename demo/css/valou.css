@@ -478,6 +478,8 @@ label.verrou .saisie i { font-size: 14px; }
 .q-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
 .q-table th, .q-table td { border: 1px solid #555; padding: 0 3px; text-align: center; }
 .q-table thead th { background: #E9EEF5; color: var(--bordeaux); font-weight: 800; line-height: 1.15; padding: 3px 2px; }
+.q-table thead th { white-space: normal; overflow-wrap: normal; word-break: normal; hyphens: manual; vertical-align: middle; }
+.q-table thead .q-sous th { font-size: 9.5px; font-weight: 700; padding: 3px 1px; line-height: 1.1; }
 .q-table tbody tr { height: 7.2mm; }
 .q-table tbody th { text-align: left; font-weight: 700; white-space: nowrap; overflow: hidden; width: 30mm; }
 .q-table thead tr:first-child th:first-child { width: 30mm; }
@@ -488,7 +490,7 @@ label.verrou .saisie i { font-size: 14px; }
 .q-table .q-c small { font-size: 8.5px; color: #555; margin-left: 2px; }
 .q-table .q-na { background: repeating-linear-gradient(45deg, #fff 0 4px, #e6e6e6 4px 5px); }
 .q-trait { display: inline-block; width: 16mm; border-bottom: 1px solid #555; }
-@media (max-width: 900px) { .q-deux { grid-template-columns: 1fr; } .q-page:has(.q-table) { overflow-x: auto; } .q-table { min-width: 900px; } }
+@media (max-width: 900px) { .q-deux { grid-template-columns: 1fr; } .q-page:has(.q-table) { overflow-x: auto; } .q-table { min-width: 1060px; } }
 @media print {
   .q-deux { grid-template-columns: 1.15fr 1fr !important; }
   .q-page:has(.q-table) { overflow: visible; }
