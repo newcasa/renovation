@@ -770,9 +770,10 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
   .bb-ico { font-size: 21px; line-height: 1; }
   .bb-i.on { color: var(--bordeaux); background: var(--or-pale, #FDEBDC); }
   /* onglets de la fiche : plus compacts */
-  .onglets-m { gap: 2px; padding: 4px; margin: 14px 0 12px; }
-  .om-i { flex: 1 1 auto; min-width: 0; padding: 9px 4px; font-size: 13px; }
-  .om-i small { font-size: 10px; padding: 1px 5px; }
+  /* sur téléphone : les onglets sur deux lignes de trois, chaque mot a sa place */
+  .onglets-m { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin: 14px 0 12px; overflow: visible; }
+  .om-i { min-width: 0; padding: 9px 4px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .om-i small { font-size: 10.5px; padding: 1px 6px; margin: 0; flex: none; }
   .suite-m { text-align: center; }
   .suite-m .btn { width: 100%; }
   /* E. cibles plus grandes au doigt */
