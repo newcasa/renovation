@@ -60,7 +60,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 **À dire :**
 > « Pendant la visite, on photographie pièce par pièce, sans quitter l'appli. Après, chaque photo est rangée avec sa pièce. »
 
-*Mentionner aussi en une phrase :* « Il existe aussi un questionnaire papier de 2 pages à imprimer pour la visite. »
+*Mentionner aussi :* le questionnaire papier de 2 pages à imprimer pour la visite. Dans l'onglet **Pièces**, « 📝 Photo du questionnaire » : on photographie les 2 pages remplies et Valou remplit la maison (pièces, sol, murs, plafond, châssis, chauffage, structure). **Pour l'instant, c'est une démonstration** : les réponses viennent d'un questionnaire d'exemple ; la lecture de l'écriture arrivera avec un service de lecture d'image.
 
 ---
 
