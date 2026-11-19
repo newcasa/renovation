@@ -242,7 +242,7 @@ try {
     await page.goto(URL + "#/");
     await page.locator(".maison").first().waitFor();
 
-    /* ajouter une maison en 30 secondes */
+    /* ajouter une maison (sans estimation rapide : les travaux se remplissent ensuite dans « Les travaux ») */
     await page.getByText("Ajouter une maison").first().click();
     await page.fill('input[name="nom"]', "Maison test");
     await page.fill('input[name="commune"]', "Seraing");
@@ -250,13 +250,13 @@ try {
     await page.fill('input[name="annee"]', "1965");
     await page.fill('input[name="surface"]', "120");
     await page.selectOption('select[name="etat"]', "renover");
-    for (const id of ["peinture", "sols", "elec", "cuisine", "sdb"]) await page.check(`[data-choix="${id}"]`);
     await page.selectOption('[data-chf="actuel"]', "mazout");
     await page.selectOption('[data-chf="souhaite"]', "pac");
     await page.selectOption('[data-chf="emetteurs"]', "rad");
     await page.fill('[data-chf="nbRad"]', "7");
     await page.locator('[data-chf="nbRad"]').dispatchEvent("change");
     await page.screenshot({ path: `${OUT}/${nom}-2-ajouter.png`, fullPage: nom === "ordi" }); // sur téléphone, la capture pleine page perturbe le clic suivant
+    assert.equal(await page.locator("[data-choix]").count(), 0, "plus d'estimation rapide");
     await page.getByText("Voir le vrai coût").click();
 
     /* le vrai coût */
@@ -323,7 +323,6 @@ try {
     await page.fill('[data-mmarches="i_es_1"]', "16");
     await page.locator('[data-mmarches="i_es_1"]').dispatchEvent("change");
     assert.match(await page.locator('.at-ligne:has([data-mmarches="i_es_1"])').innerText(), /€/);
-    if (await page.locator('.at-item:has-text("Estimation rapide")').count()) { await page.locator('.at-item:has-text("Estimation rapide")').click(); await page.locator('[data-l$=":soiMeme"]').first().check(); }
     await page.locator(".vrai-cout .gros").waitFor();
     assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), apres);
 

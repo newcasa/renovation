@@ -1,7 +1,7 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
 import { chargerReferences } from "./donnees.js";
 import { VERSION, DEMO_DIR, cle, img } from "./chemins.js";
-import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, cleLigne } from "./vitrine.js";
@@ -10,6 +10,9 @@ import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPho
 
 let R = null;
 let maisons = lireMaisons();
+/* l'estimation rapide (cases cochées à l'ajout) n'existe plus : ses lignes « toute la maison » pour des postes de pièce sont retirées.
+   Les postes de la maison (toiture, électricité…) restent : on les retrouve dans « Rénovations générales ». */
+maisons.forEach(m => { if (m.travaux) m.travaux = m.travaux.filter(l => l.pieceId || l.src === "chauffage" || !POSTES_PIECES.test(l.k)); });
 const $app = document.getElementById("app");
 const sauver = () => ecrireMaisons(maisons);
 const trouver = id => maisons.find(m => m.id === id);
@@ -100,7 +103,6 @@ function ecranAjouter() {
   const b = (brouillon = brouillon || brouillonVide());
   const champ = (id, t, type = "text", extra = "") =>
     `<label>${t}<input name="${id}" type="${type}" value="${esc(b[id])}" ${extra}></label>`;
-  const cases = RAPIDE.map(r => choixHTML(r, b.choix[r.id] || {})).join("");
   return `${entete("")}
   <main class="etroit">
     <a href="#/" class="retour">← Mes maisons</a>
@@ -120,23 +122,13 @@ function ecranAjouter() {
         </select></label>
         <label class="cb large"><input type="checkbox" name="uniqueHabitation" ${b.uniqueHabitation ? "checked" : ""}> Ce sera ma seule habitation, et j'y habiterai (droits d'enregistrement réduits à 3 % en Wallonie)</label>
       </div>
-      <h2>Que faut-il refaire ?</h2>
-      <p class="mu">Cochez ce que vous voyez pendant la visite. Vous pourrez tout affiner pièce par pièce ensuite.</p>
-      <div class="choix-liste">${cases}</div>
       <h2>Le chauffage</h2>
       <p class="mu">Ce qui est en place aujourd'hui, et ce que vous voulez installer.</p>
       <div id="bloc-chauffage">${blocChauffage(b.chauffage, "data-chf")}</div>
+      <p class="mu">Ensuite, ajoutez les pièces et les travaux sur la fiche de la maison, dans « Les travaux » : c'est là que le budget devient précis.</p>
       <button class="btn" type="submit">Voir le vrai coût →</button>
     </form>
   </main>`;
-}
-
-function choixHTML(r, c) {
-  return `<div class="choix ${c.on ? "on" : ""}" data-bloc="${r.id}">
-      <label class="cb"><input type="checkbox" data-choix="${r.id}" ${c.on ? "checked" : ""}> ${esc(r.t)}</label>
-      ${r.nombre && c.on ? `<label class="petit">${esc(r.nombre)}<input type="number" min="0" inputmode="decimal" data-choixn="${r.id}" value="${esc(c.n || "")}"></label>` : ""}
-      ${r.hyp && c.on ? `<small class="mu">Quantité estimée : ${esc(r.hyp)}</small>` : ""}
-    </div>`;
 }
 
 function creerMaison(b, exemple = false) {
@@ -146,7 +138,7 @@ function creerMaison(b, exemple = false) {
     etat: b.etat, uniqueHabitation: !!b.uniqueHabitation, fraisNotaire: null, exemple, peb: b.peb || null, pebConso: +b.pebConso || null,
     rep: { etat: b.etat === "renover" ? "oui" : "non" },
   };
-  m.travaux = travauxRapides(m, b.choix).map(t => ({ ...t, id: nouvelId() }));
+  m.travaux = [];
   m.chauffage = { ...b.chauffage };
   appliquerChauffage(m);
   maisons.unshift(m);
@@ -182,12 +174,10 @@ const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class
 
 /* ---------- les travaux : menu à gauche (rénovations générales, pièces), panneau à droite ---------- */
 let atelierSel = { maisonId: null, sel: null };
-const ICONES_GROUPE = { "Chauffage": "🔥", "Menuiseries": "🪟", "Électricité": "💡", "Sanitaire et chauffage": "🚿", "Gros œuvre": "🧱", "Isolation": "🧤", "Toiture": "🏠", "Extérieurs": "🌳", "Escalier": "🪜", "Estimation rapide": "⚡", "Cuisine et salle de bain": "🛁", "Finitions intérieures": "🎨" };
+const ICONES_GROUPE = { "Chauffage": "🔥", "Menuiseries": "🪟", "Électricité": "💡", "Sanitaire et chauffage": "🚿", "Gros œuvre": "🧱", "Isolation": "🧤", "Toiture": "🏠", "Extérieurs": "🌳", "Escalier": "🪜", "Cuisine et salle de bain": "🛁", "Finitions intérieures": "🎨" };
 function atelier(m, b, o) {
   const groupes = ["Chauffage", ...[...new Set(o.fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y))];
-  if (o.rapidesHTML) groupes.unshift("Estimation rapide");
   const totalGroupe = g => g === "Chauffage" ? b.lignes.filter(l => l.src === "chauffage").reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0)
-    : g === "Estimation rapide" ? o.horsPieces.filter(l => POSTES_PIECES.test(l.k)).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0)
     : o.fixes.filter(p => groupe(p) === g).reduce((s, p) => { const l = o.ligneDe(p.k); return s + (l && l.fiab ? l.total[1] : 0); }, 0);
   const totalPiece = pc => b.lignes.filter(l => l.pieceId === pc.id).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
   if (atelierSel.maisonId !== m.id || !atelierSel.sel || (atelierSel.sel.startsWith("p:") && !(m.pieces || []).some(pc => "p:" + pc.id === atelierSel.sel))) {
@@ -221,8 +211,6 @@ function atelier(m, b, o) {
         ${o.chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
         ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="at-ligne"><span class="at-n">${esc(R.postes[l.k].n)}${l.q > 1 ? ` × ${nombre(l.q)}` : ""}</span><span></span><span></span><b class="at-p">${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
         ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${o.chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}</div>`;
-    } else if (g === "Estimation rapide") {
-      panneau = tete + `<div class="at-corps">${o.rapidesHTML}</div>`;
     } else {
       panneau = tete + `<div class="at-liste">${o.fixes.filter(p => groupe(p) === g).map(p => { const l = o.ligneDe(p.k); return `<div class="at-ligne ${l ? "rempli" : ""}">
         <span class="at-n">${esc(p.n)}</span>
@@ -332,16 +320,7 @@ function ecranMaison(m) {
         <td class="c"><label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label></td>
         <td class="r">${l && l.fiab ? euros(l.total[1], 10) : ""}</td></tr>`; }).join("")}</table></details>`;
   }).join("");
-  /* estimation rapide sans pièces (cases cochées à l'ajout de la maison) */
-  const rapides = horsPieces.filter(l => POSTES_PIECES.test(l.k));
-  const lieux = [...new Set(rapides.map(l => l.piece || "Toute la maison"))];
-  const rapidesHTML = rapides.length ? `<div class="rapides"><h3>Estimation rapide (sans pièces)</h3>
-      <p class="mu petit-t">Travaux encodés sans passer par les pièces. Pour plus de précision, ajoutez les pièces (plus haut) et supprimez ces lignes.</p>
-      ${lieux.map(lieu => `<h4 class="lieu">${esc(lieu)}</h4>
-      <table class="fixes">${rapides.filter(l => (l.piece || "Toute la maison") === lieu).map(l => { const p = R.postes[l.k]; return `<tr><td>${esc(p ? p.n : l.k)}${l.auto ? ` <small class="mu">(${esc(l.auto)})</small>` : ""}</td>
-        <td class="q"><input type="number" min="0" step="any" inputmode="decimal" data-l="${l.id}:q" value="${esc(l.q ?? "")}" aria-label="Quantité : ${esc(lieu)}, ${esc(p ? p.n : l.k)}"><small>${esc(p ? unitePoste(p.u, l.k) : "")}</small></td>
-        <td class="c"><label class="mm"><input type="checkbox" data-l="${l.id}:soiMeme" ${l.soiMeme ? "checked" : ""}> moi-même</label></td>
-        <td class="r">${l.fiab ? euros(l.total[1], 10) : ""} <button class="x" data-action="suppr-ligne" data-id="${l.id}" aria-label="Supprimer">✕</button></td></tr>`; }).join("")}</table>`).join("")}</div>` : "";
+
 
   /* chauffage */
   const chf = travauxChauffage(m.chauffage, m.surface);
@@ -399,7 +378,7 @@ function ecranMaison(m) {
       </div>
     </div>
 
-    ${atelier(m, b, { horsPieces, ligneDe, fixes, rapidesHTML, chf })}
+    ${atelier(m, b, { horsPieces, ligneDe, fixes, chf })}
 
     <div class="fin-page">
         ${aides()}
@@ -1268,16 +1247,6 @@ document.addEventListener("change", e => {
     return;
   }
   /* formulaire d'ajout */
-  if (t.dataset.choix) {
-    const id = t.dataset.choix, c = (brouillon.choix[id] = brouillon.choix[id] || {});
-    c.on = t.checked;
-    const bloc = t.closest("[data-bloc]");
-    bloc.outerHTML = choixHTML(RAPIDE.find(r => r.id === id), c);
-    const n = document.querySelector(`[data-choixn="${id}"]`);
-    if (n) n.focus();
-    return;
-  }
-  if (t.dataset.choixn) { brouillon.choix[t.dataset.choixn].n = t.value; return; }
   if (t.dataset.chf) {
     brouillon.chauffage[t.dataset.chf] = t.value;
     if (t.tagName === "SELECT") document.getElementById("bloc-chauffage").innerHTML = blocChauffage(brouillon.chauffage, "data-chf");
@@ -1338,8 +1307,7 @@ function majProFormulaire(t) {
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.dataset.negfiche || t.dataset.neghor || t.dataset.annonce) { majProFormulaire(t); return; }
-  if (t.dataset.choixn && brouillon) brouillon.choix[t.dataset.choixn].n = t.value;
-  else if (t.form && t.form.id === "f-ajout" && t.name && t.type !== "checkbox") brouillon[t.name] = t.value;
+  if (t.form && t.form.id === "f-ajout" && t.name && t.type !== "checkbox") brouillon[t.name] = t.value;
 });
 
 document.addEventListener("submit", e => {

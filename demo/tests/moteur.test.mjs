@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { indexer, calculerBudget, coutTotal, mensualite, travauxRapides, tauxProjet } from "../js/moteur.js";
+import { indexer, calculerBudget, coutTotal, mensualite, tauxProjet } from "../js/moteur.js";
 
 const lire = f => JSON.parse(readFileSync(new URL("../../" + f, import.meta.url)));
 const R = indexer({ ref: lire("tarifs-reference.json"), mo: lire("main-oeuvre.json"), hubo: lire("prix-hubo.json") });
@@ -113,11 +113,6 @@ test("mensualité d'un crédit", () => {
   proche(mensualite(100000, 0, 10), 100000 / 120, "taux zéro");
   assert.equal(mensualite(100000, null, 20), null);
   assert.ok(mensualite(200000, 3.5, 25) > 900 && mensualite(200000, 3.5, 25) < 1100);
-});
-
-test("premier budget rapide : quantités tirées de la surface", () => {
-  const t = travauxRapides({ surface: 100 }, { peinture: { on: true }, toiture: { on: true, n: 80 }, chassis: { on: true, n: "" } });
-  assert.deepEqual(t.map(x => [x.k, x.q]), [["mur_peinture", 270], ["i_cv_1", 80], ["i_st", 80], ["i_dp", 80]]);
 });
 
 test("tous les postes de la grille se calculent sans erreur", () => {
