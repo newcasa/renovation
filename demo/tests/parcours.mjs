@@ -262,11 +262,7 @@ try {
     await page.fill('input[name="annee"]', "1965");
     await page.fill('input[name="surface"]', "120");
     await page.selectOption('select[name="etat"]', "renover");
-    await page.selectOption('[data-chf="actuel"]', "mazout");
-    await page.selectOption('[data-chf="souhaite"]', "pac");
-    await page.selectOption('[data-chf="emetteurs"]', "rad");
-    await page.fill('[data-chf="nbRad"]', "7");
-    await page.locator('[data-chf="nbRad"]').dispatchEvent("change");
+    assert.equal(await page.locator("[data-chf]").count(), 0, "plus de chauffage dans le formulaire d'ajout");
     await page.screenshot({ path: `${OUT}/${nom}-2-ajouter.png`, fullPage: nom === "ordi" }); // sur téléphone, la capture pleine page perturbe le clic suivant
     assert.equal(await page.locator("[data-choix]").count(), 0, "plus d'estimation rapide");
     await page.getByText("Voir le vrai coût").click();
@@ -279,6 +275,14 @@ try {
     assert.match(await page.locator("h1").innerText(), /Maison test/);
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
+    /* le chauffage se règle sur la fiche, onglet Travaux : mazout → pompe à chaleur + 7 radiateurs */
+    await onglet("travaux");
+    await page.selectOption('[data-mchf="actuel"]', "mazout");
+    await page.selectOption('[data-mchf="souhaite"]', "pac");
+    await page.selectOption('[data-mchf="emetteurs"]', "rad");
+    await page.fill('[data-mchf="nbRad"]', "7");
+    await page.locator('[data-mchf="nbRad"]').dispatchEvent("change");
+    await onglet("resume");
     /* ouvrir un groupe et un poste */
     await page.locator(".grp > summary").first().click();
     await page.locator(".poste > summary").first().click();

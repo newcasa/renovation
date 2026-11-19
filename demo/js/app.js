@@ -143,10 +143,7 @@ function ecranAjouter() {
         </select></label>
         <label class="cb large"><input type="checkbox" name="uniqueHabitation" ${b.uniqueHabitation ? "checked" : ""}> Ce sera ma seule habitation, et j'y habiterai (droits d'enregistrement réduits à 3 % en Wallonie)</label>
       </div>
-      <h2>Le chauffage</h2>
-      <p class="mu">Ce qui est en place aujourd'hui, et ce que vous voulez installer.</p>
-      <div id="bloc-chauffage">${blocChauffage(b.chauffage, "data-chf")}</div>
-      <p class="mu">Ensuite, ajoutez les pièces et les travaux sur la fiche de la maison, dans « Les travaux » : c'est là que le budget devient précis.</p>
+      <p class="mu">Ensuite, sur la fiche de la maison : ajoutez les pièces dans l'onglet « Pièces », puis le chauffage et la structure dans l'onglet « Travaux ». C'est là que le budget devient précis.</p>
       <button class="btn" type="submit">Voir le vrai coût →</button>
     </form>
   </main>`;
@@ -1259,11 +1256,6 @@ document.addEventListener("change", e => {
     return;
   }
   /* formulaire d'ajout */
-  if (t.dataset.chf) {
-    brouillon.chauffage[t.dataset.chf] = t.value;
-    if (t.tagName === "SELECT") document.getElementById("bloc-chauffage").innerHTML = blocChauffage(brouillon.chauffage, "data-chf");
-    return;
-  }
   if (t.form && t.form.id === "f-ajout" && t.name) { brouillon[t.name] = t.type === "checkbox" ? t.checked : t.value; return; }
   if (!m) return;
   /* écran maison */
