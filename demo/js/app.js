@@ -12,6 +12,11 @@ let maisons = lireMaisons();
 const $app = document.getElementById("app");
 const sauver = () => ecrireMaisons(maisons);
 const trouver = id => maisons.find(m => m.id === id);
+/* version d'essai pour les particuliers (hoono.be/demo/#/essai) : sans les maisons de démonstration ni les pages pour les professionnels */
+let essai = false;
+try { essai = localStorage.getItem("valou_mode") === "essai"; } catch (e) {}
+const changerMode = v => { essai = v; try { v ? localStorage.setItem("valou_mode", "essai") : localStorage.removeItem("valou_mode"); } catch (e) {} };
+const visibles = () => (essai ? maisons.filter(m => !m.demo) : maisons);
 
 /* ---------- regroupement des postes pour l'affichage ---------- */
 const GROUPES = ["Cuisine et salle de bain", "Finitions intérieures", "Menuiseries", "Électricité", "Sanitaire et chauffage", "Gros œuvre", "Isolation", "Toiture", "Extérieurs", "Escalier"];
@@ -30,13 +35,15 @@ function entete(actif) {
       : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   return `<header class="top">
     <a href="#/" class="marque" aria-label="Valou, accueil"><img src="img/logo-valou.png" alt="Valou"></a>
-    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}</nav>
+    <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${essai
+      ? `${lien("#/avis", "💬 Mon avis", "avis")}<span class="badge-essai">Version d'essai</span>`
+      : `${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}`}</nav>
   </header>`;
 }
 
 /* ---------- écran : accueil ---------- */
 function ecranAccueil() {
-  const cartes = maisons
+  const cartes = visibles()
     .map(m => {
       const b = calculerBudget(R, m), c = coutTotal(m, b);
       return `<a class="carte maison" href="#/maison/${m.id}">
@@ -53,6 +60,9 @@ function ecranAccueil() {
       <p>Prix d'achat, droits d'enregistrement, notaire et travaux : le vrai budget, poste par poste, avant de faire une offre.</p>
       <span class="actions-g"><a class="btn" href="#/ajouter">＋ Ajouter une maison</a><a class="btn sec" href="#/questionnaire">📝 Questionnaire de visite à imprimer</a></span>
     </section>
+    ${essai ? `<section class="carte essai-info"><b>Version d'essai</b>
+      <p>Vos maisons restent <b>sur ce téléphone</b> : pas de compte, rien n'est envoyé. L'envoi aux artisans et à la banque est simulé, et les artisans et négociants affichés sont fictifs.</p>
+      <a class="btn sec petit-btn" href="#/avis">💬 Donner mon avis</a></section>` : ""}
     <section class="avantages av-particulier"><b>Pour vous, c'est gratuit</b><ul>
       <li>Le vrai coût avant de faire une offre : prix, droits, notaire et travaux</li>
       <li>Vos maisons comparées sur leur vrai coût, PEB compris</li>
@@ -60,8 +70,8 @@ function ecranAccueil() {
       <li>Un dossier complet pour la banque</li>
       <li>Votre projet envoyé aux artisans, qui le comprennent sans se déplacer</li>
     </ul></section>
-    ${maisons.length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>Aucune maison pour l'instant.</p></div>`}
-    ${DEMO ? `<p class="reinit"><button class="btn lien" data-action="presentation">🎬 Préparer une présentation (tout remettre à zéro)</button></p>` : ""}
+    ${visibles().length ? `<h2>Mes maisons</h2><div class="grille">${cartes}</div>` : `<div class="vide carte"><p>${essai ? "Ajoutez la maison que vous visitez : son vrai coût s'affiche tout de suite." : "Aucune maison pour l'instant."}</p>${essai ? `<a class="btn" href="#/ajouter">＋ Ajouter ma maison</a>` : ""}</div>`}
+    ${DEMO && !essai ? `<p class="reinit"><button class="btn lien" data-action="presentation">🎬 Préparer une présentation (tout remettre à zéro)</button></p>` : ""}
   </main>`;
 }
 
@@ -231,7 +241,7 @@ function panneauEnvoi(m, b) {
   const nbPhotos = photosDe(m).length;
   if (m.envoi && envoiOuvert !== m.id) return `<section class="carte envoi ok-envoi"><b>📨 Projet envoyé aux artisans le ${esc(new Date(m.envoi.date).toLocaleDateString("fr-BE"))}</b>
     <p class="mu">${esc(m.envoi.metiers.map(id => (METIERS.find(x => x.id === id) || {}).t).filter(Boolean).join(", "))} · avec le budget${nbPhotos ? ` et ${nbPhotos} photo${nbPhotos > 1 ? "s" : ""}` : ""}. Démonstration : aucun envoi réel.</p>
-    <span class="actions-g"><a class="btn sec" href="#/pro/artisan">Voir ce que reçoit l'artisan →</a><button class="btn lien" data-action="envoi-ouvrir">Renvoyer</button></span></section>`;
+    <span class="actions-g">${essai ? "" : `<a class="btn sec" href="#/pro/artisan">Voir ce que reçoit l'artisan →</a>`}<button class="btn lien" data-action="envoi-ouvrir">Renvoyer</button></span></section>`;
   if (envoiOuvert !== m.id) return `<section class="carte envoi"><div class="env-tete"><div><b>Trouver les artisans</b><p class="mu">Envoyez le projet chiffré${nbPhotos ? `, avec ses ${nbPhotos} photo${nbPhotos > 1 ? "s" : ""},` : ""} aux artisans de votre zone : ils comprennent le chantier sans se déplacer.</p></div>
     <button class="btn" data-action="envoi-ouvrir" ${metiers.length ? "" : "disabled"}>📨 Envoyer le projet aux artisans</button></div></section>`;
   return `<section class="carte envoi"><b>À quels artisans envoyer le projet ?</b>
@@ -595,9 +605,9 @@ function resume(m) {
 }
 
 function ecranComparer() {
-  if (!selection) selection = maisons.slice(0, 3).map(m => m.id);
-  selection = selection.filter(id => trouver(id));
-  const choix = maisons.map(m => `<label class="puce ${selection.includes(m.id) ? "on" : ""}"><input type="checkbox" data-comp="${m.id}" ${selection.includes(m.id) ? "checked" : ""}> ${esc(m.nom || "Maison")}</label>`).join("");
+  if (!selection) selection = visibles().slice(0, 3).map(m => m.id);
+  selection = selection.filter(id => trouver(id) && visibles().includes(trouver(id)));
+  const choix = visibles().map(m => `<label class="puce ${selection.includes(m.id) ? "on" : ""}"><input type="checkbox" data-comp="${m.id}" ${selection.includes(m.id) ? "checked" : ""}> ${esc(m.nom || "Maison")}</label>`).join("");
   const L = selection.map(id => resume(trouver(id)));
   if (L.length < 2) {
     return `${entete("comparer")}<main><h1>Comparer</h1><div class="puces">${choix}</div>
@@ -849,6 +859,7 @@ function ecranPhotos(m) {
    maisons de démonstration neuves (et leurs photos effacées), simulations par défaut, retour à l'accueil.
    Les maisons personnelles ne sont pas touchées. Raccourci : hoono.be/demo/#/presentation */
 function preparerPresentation(direct) {
+  if (direct) changerMode(false);
   if (!direct && !confirm("Remettre la démonstration à zéro ? Vos maisons personnelles ne sont pas touchées.")) return;
   maisons.filter(m => m.demo).forEach(m => { supprimerPhotosMaison(m.id).catch(() => {}); delete photosCache[m.id]; });
   chargerDemo();
@@ -905,7 +916,7 @@ function ecranContacts(id) {
     return `${entete("contacts")}<main>
       <h1>Contacter un professionnel</h1>
       <p class="intro mu">Choisissez une maison : vous verrez le résumé du projet et les contacts des artisans et des négociants.</p>
-      ${maisons.length ? `<div class="grille">${maisons.map(x => {
+      ${visibles().length ? `<div class="grille">${visibles().map(x => {
         const b = calculerBudget(R, x), c = coutTotal(x, b), rep = (x.reponses || []).filter(r => r.type !== "non").length;
         return `<a class="carte maison" href="#/contacts/${x.id}">
           <div class="m-tete"><b>${esc(x.nom || "Maison")}</b>${pebBadge(x.peb)}</div>
@@ -1006,15 +1017,68 @@ function ecranIntro() {
   </main>`;
 }
 
+/* ---------- version d'essai : accueil ---------- */
+function ecranEssai() {
+  const n = visibles().length;
+  return `<main class="intro-page essai-page">
+    <div class="intro-boite">
+      <img class="intro-logo" src="img/logo-valou.png" alt="Valou">
+      <h1>Bienvenue dans la <span>version d'essai</span></h1>
+      <p class="intro-sous">Vous visitez une maison à rénover ? Valou calcule ce qu'elle va vraiment vous coûter : prix, droits d'enregistrement, notaire et travaux.</p>
+      <ol class="essai-etapes">
+        <li><b>Ajoutez la maison</b><span>le prix, la commune, l'année</span></li>
+        <li><b>Encodez les pièces et les travaux</b><span>pièce par pièce, avec des photos si vous le voulez</span></li>
+        <li><b>Découvrez son vrai coût</b><span>et comparez-la à d'autres maisons</span></li>
+      </ol>
+      <span class="actions-g centre"><a class="btn intro-btn" href="#/ajouter">＋ Ajouter ma maison</a>${n ? `<a class="btn sec" href="#/">Voir mes maisons (${n})</a>` : ""}</span>
+      <p class="intro-note">Version d'essai gratuite · vos maisons restent sur ce téléphone, rien n'est envoyé · l'envoi aux artisans et à la banque est simulé.<br>Après l'essai, un clic sur « 💬 Mon avis » nous aide beaucoup.</p>
+    </div>
+  </main>`;
+}
+
+/* ---------- version d'essai : avis du testeur (gardé sur le téléphone, envoyé par le testeur lui-même) ---------- */
+const AVIS_Q = [
+  ["aime", "Qu'avez-vous le plus apprécié ?", "texte"],
+  ["difficile", "Qu'est-ce qui était difficile ou pas clair ?", "texte"],
+  ["realiste", "Le vrai coût calculé vous paraît-il réaliste ?", ["Oui", "Plutôt oui", "Plutôt non", "Non", "Je ne sais pas"]],
+  ["utiliser", "Utiliseriez-vous Valou pour votre prochain achat ?", ["Oui", "Peut-être", "Non"]],
+  ["note", "Votre note globale", ["1", "2", "3", "4", "5"]],
+  ["autre", "Autre chose à nous dire ?", "texte"],
+];
+let avis = {};
+try { avis = JSON.parse(localStorage.getItem("valou_avis") || "{}") || {}; } catch (e) {}
+const texteAvis = () => ["Mon avis sur la version d'essai de Valou", "", ...AVIS_Q.filter(([k]) => avis[k]).map(([k, q]) => `${q}\n${avis[k]}`), "", `Maisons encodées : ${visibles().length}`].join("\n");
+let avisMessage = "";
+function ecranAvis() {
+  return `${entete("avis")}<main class="etroit">
+    <h1>Votre avis</h1>
+    <p class="intro mu">Merci d'avoir essayé Valou. Vos réponses restent sur ce téléphone jusqu'à ce que vous les envoyiez vous-même.</p>
+    <section class="carte avis">
+      ${AVIS_Q.map(([k, q, t]) => t === "texte"
+        ? `<label class="avis-q">${esc(q)}<textarea id="avis-${k}" data-avis="${k}" rows="3">${esc(avis[k] || "")}</textarea></label>`
+        : `<fieldset class="avis-q"><legend>${esc(q)}</legend><div class="avis-choix">${t.map(v => `<label class="${avis[k] === v ? "on" : ""}"><input type="radio" name="avis-${k}" data-avis="${k}" value="${esc(v)}" ${avis[k] === v ? "checked" : ""}> ${esc(v)}</label>`).join("")}</div></fieldset>`).join("")}
+      <span class="actions-g"><button class="btn" data-action="avis-envoyer">📤 Envoyer mon avis</button></span>
+      ${avisMessage ? `<p class="envoye">${esc(avisMessage)}</p>` : ""}
+      <p class="mu petit-t">« Envoyer mon avis » ouvre le partage de votre téléphone (message, WhatsApp, e-mail…) : envoyez-le à la personne qui vous a proposé l'essai.</p>
+    </section>
+  </main>`;
+}
+
 /* ---------- routeur ---------- */
 function afficher() {
-  const brut = location.hash.replace(/^#/, "");
-  const h = brut === "" ? "/bienvenue" : brut; // première ouverture de la démo : la page d'intro
+  let brut = location.hash.replace(/^#/, "");
+  if (brut === "essai") brut = "/essai"; // lien court hoono.be/demo/#essai
+  if (brut === "/essai") changerMode(true);
+  let h = brut === "" ? (essai ? "/" : "/bienvenue") : brut; // première ouverture de la démo : la page d'intro
+  /* version d'essai : les pages pour les professionnels et l'intro de la présentation ramènent à l'accueil de l'essai */
+  if (essai && /^\/(pro|moteur|feuille-de-route|demo-|bienvenue)/.test(h)) h = "/essai";
   if (h === "/presentation" && R) { preparerPresentation(true); return; }
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
   const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/);
   if (h === "/bienvenue") html = ecranIntro();
+  else if (h === "/essai") html = ecranEssai();
+  else if (h === "/avis") html = ecranAvis();
   else if (h === "/ajouter") html = ecranAjouter();
   else if (h === "/comparer") html = ecranComparer();
   else if (h === "/contacts" || h.startsWith("/contacts/")) html = ecranContacts(h.split("/")[2]);
@@ -1088,6 +1152,13 @@ document.addEventListener("click", e => {
   }
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "presentation") preparerPresentation();
+  if (a === "avis-envoyer") {
+    const txt = texteAvis();
+    const fin = msg => { avisMessage = msg; afficher(); };
+    if (navigator.share) navigator.share({ title: "Mon avis sur Valou", text: txt }).then(() => fin("Merci ! Votre avis est parti."), () => {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => fin("Votre avis est copié : collez-le dans un message à la personne qui vous a proposé l'essai."), () => fin("Copiez votre avis à la main : la copie automatique n'est pas possible ici."));
+    else fin("Copiez votre avis à la main : la copie automatique n'est pas possible ici.");
+  }
   if (a === "suppr-ligne" && m) { m.travaux = m.travaux.filter(l => l.id !== el.dataset.id); sauver(); afficher(); }
   if (a === "ajout-piece" && m) {
     const nom = (document.getElementById("np-nom").value || "").trim(), type = document.getElementById("np-type").value;
@@ -1128,6 +1199,8 @@ document.addEventListener("click", e => {
 
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
+  /* version d'essai : réponses de l'avis */
+  if (t.dataset.avis) { avis[t.dataset.avis] = t.value; try { localStorage.setItem("valou_avis", JSON.stringify(avis)); } catch (e) {} if (t.type === "radio") afficher(); return; }
   /* contacter : matériau souhaité et remarque pour l'artisan */
   if (t.dataset.mat != null && m) { m.materiaux = { ...(m.materiaux || {}), [t.dataset.mat]: t.value.trim() }; sauver(); afficher(); return; }
   if (t.dataset.noteMetier && m) { m.notesMetier = { ...(m.notesMetier || {}), [t.dataset.noteMetier]: t.value.trim() }; sauver(); return; }

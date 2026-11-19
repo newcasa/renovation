@@ -335,6 +335,36 @@ try {
     /* pas de défilement horizontal sur téléphone */
     const large = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     assert.ok(!large, `${nom} : défilement horizontal`);
+
+    /* version d'essai pour les particuliers : sans maisons de démonstration ni pages pour les professionnels */
+    await page.goto(URL + "#/essai");
+    await page.locator(".essai-etapes").waitFor();
+    await page.screenshot({ path: `${OUT}/${nom}-11-essai.png` });
+    await page.goto(URL + "#/");
+    await page.locator(".essai-info").waitFor();
+    assert.equal(await page.locator('.nav-i[href="#/pro"]').count(), 0, "pas d'espace pro en essai");
+    assert.equal(await page.locator('.nav-i[href="#/avis"]').count(), 1);
+    assert.doesNotMatch(await page.locator("main").innerText(), /Maison de démonstration/);
+    assert.match(await page.locator(".grille").innerText(), /Maison test/); // la maison du testeur est là
+    await page.screenshot({ path: `${OUT}/${nom}-12-essai-maisons.png` });
+    await page.goto(URL + "#/pro/artisan");
+    await page.locator(".essai-etapes").waitFor(); // les pages pro ramènent à l'accueil de l'essai
+    await page.goto(URL + "#/comparer");
+    assert.doesNotMatch(await page.locator("main").innerText(), /Maison de démonstration/);
+    await page.goto(URL + "#/avis");
+    await page.fill("#avis-aime", "Le vrai coût");
+    await page.locator("#avis-aime").dispatchEvent("change");
+    await page.locator('input[name="avis-note"][value="4"]').check();
+    await page.locator('.avis-choix label.on:has-text("4")').waitFor();
+    assert.equal(await page.inputValue("#avis-aime"), "Le vrai coût");
+    await page.screenshot({ path: `${OUT}/${nom}-13-avis.png`, fullPage: nom === "ordi" });
+    /* l'ouverture sans adresse reste dans l'essai ; la présentation en sort */
+    await page.goto(URL);
+    await page.locator(".essai-info").waitFor();
+    await page.goto(URL + "#/presentation");
+    await page.waitForFunction(() => location.hash === "#/bienvenue");
+    await page.locator(".intro-logo").waitFor();
+    assert.equal(await page.locator(".badge-essai").count(), 0);
     await page.close();
   }
   assert.deepEqual(erreurs, []);

@@ -174,3 +174,16 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 
 **À dire :**
 > « Le particulier voit exactement ce que recevra chaque artisan, et il choisit lui-même 3 artisans par métier. Pas de démarchage : c'est lui qui décide. »
+
+---
+
+# Version d'essai pour les particuliers
+
+**Lien à envoyer :** `hoono.be/demo/#/essai` (ou `hoono.be/demo/#essai`).
+
+- Le testeur arrive sur un accueil « Bienvenue dans la version d'essai », en 3 étapes, avec le bouton « ＋ Ajouter ma maison ».
+- Il ne voit que ses propres maisons : pas de maisons de démonstration.
+- Le menu ne garde que Mes maisons, Comparer, Contacter et « 💬 Mon avis ». Les pages pour les professionnels (Professionnels, Notre moteur, Feuille de route) sont masquées.
+- Ses maisons restent sur son téléphone. L'envoi aux artisans et à la banque est simulé.
+- « 💬 Mon avis » : 6 questions courtes, puis « Envoyer mon avis » ouvre le partage du téléphone (message, WhatsApp, e-mail). Le testeur vous l'envoie lui-même.
+- Pour revenir à la démo complète sur le même téléphone : ouvrir `hoono.be/demo/#/presentation`.
