@@ -57,3 +57,8 @@ Bouton « 📷 Photos de la visite » sur la fiche d'une maison :
 - dans chaque pièce, ses photos s'affichent, avec un bouton pour en ajouter.
 
 Les photos restent sur l'appareil (IndexedDB), réduites à 1600 px. Code : `js/photos.js`.
+
+## Avant chaque mise en ligne
+
+- `node demo/tests/version.mjs` : met un nouveau numéro de version sur les fichiers de l'appli, pour que les téléphones chargent la nouvelle version au lieu de celle gardée en mémoire.
+- `node demo/tests/pdf-questionnaire.mjs` : si le questionnaire a changé, refait le PDF A4 prêt à imprimer.
