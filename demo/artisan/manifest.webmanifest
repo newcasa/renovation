@@ -1,0 +1,32 @@
+{
+  "id": "valou-artisan",
+  "name": "Valou — démo artisans",
+  "short_name": "Artisans",
+  "description": "Des chantiers déjà chiffrés, avec les photos.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EC8224",
+  "theme_color": "#022250",
+  "lang": "fr-BE",
+  "icons": [
+    {
+      "src": "../img/tuile-artisan-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../img/tuile-artisan-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../img/tuile-artisan-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

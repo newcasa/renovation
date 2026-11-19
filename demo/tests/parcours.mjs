@@ -378,6 +378,25 @@ try {
     await page.waitForFunction(() => location.hash === "#/bienvenue");
     await page.locator(".intro-logo").waitFor();
     assert.equal(await page.locator(".badge-essai").count(), 0);
+
+    /* les 4 versions (une tuile chacune) : chacune son accueil et ses propres données */
+    await page.goto(URL + "particulier/");
+    await page.locator(".essai-etapes").waitFor();
+    assert.doesNotMatch(await page.locator("main").innerText(), /Voir mes maisons/); // la « Maison test » de la version complète n'y est pas
+    assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "manifest.webmanifest");
+    await page.screenshot({ path: `${OUT}/${nom}-14-v-particulier.png` });
+    await page.goto(URL + "artisan/");
+    assert.match(await page.locator(".intro-boite h1").innerText(), /Des chantiers déjà chiffrés/);
+    await page.screenshot({ path: `${OUT}/${nom}-15-v-artisan.png` });
+    await page.getByText("Commencer la démo →").click();
+    await page.locator(".etapes-demo li").first().waitFor();
+    await page.goto(URL + "negociant/");
+    assert.match(await page.locator(".intro-boite h1").innerText(), /Soyez vu sur les chantiers/);
+    await page.screenshot({ path: `${OUT}/${nom}-16-v-negociant.png` });
+    await page.getByText("Commencer la démo →").click();
+    await page.locator(".etapes-demo li").first().waitFor();
+    await page.goto(URL + "#/demo");
+    assert.match(await page.locator(".intro-boite h1").innerText(), /Le vrai coût/);
     await page.close();
   }
   assert.deepEqual(erreurs, []);

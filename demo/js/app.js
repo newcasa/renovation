@@ -1,5 +1,6 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
 import { chargerReferences } from "./donnees.js";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js";
 import { calculerBudget, coutTotal, mensualite, travauxRapides, RAPIDE, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js";
 import { euros, euros2, nombre, esc } from "./format.js";
@@ -13,9 +14,12 @@ const $app = document.getElementById("app");
 const sauver = () => ecrireMaisons(maisons);
 const trouver = id => maisons.find(m => m.id === id);
 /* version d'essai pour les particuliers (hoono.be/demo/#/essai) : sans les maisons de démonstration ni les pages pour les professionnels */
-let essai = false;
-try { essai = localStorage.getItem("valou_mode") === "essai"; } catch (e) {}
-const changerMode = v => { essai = v; try { v ? localStorage.setItem("valou_mode", "essai") : localStorage.removeItem("valou_mode"); } catch (e) {} };
+let essai = VERSION === "particulier";
+try { if (VERSION === "complete") essai = localStorage.getItem(cle("valou_mode")) === "essai"; } catch (e) {}
+const changerMode = v => {
+  if (VERSION === "particulier") v = true; // la version Particuliers reste toujours en mode essai
+  else if (VERSION !== "complete") v = false; // les versions Artisans et Négociants n'ont pas de mode essai
+  essai = v; try { v ? localStorage.setItem(cle("valou_mode"), "essai") : localStorage.removeItem(cle("valou_mode")); } catch (e) {} };
 const visibles = () => (essai ? maisons.filter(m => !m.demo) : maisons);
 
 /* ---------- regroupement des postes pour l'affichage ---------- */
@@ -34,7 +38,7 @@ function entete(actif) {
       ? `<span class="nav-i off" title="Prochaine étape">${t}<small>bientôt</small></span>`
       : `<a class="nav-i ${actif === id ? "on" : ""}" href="${h}">${t}</a>`;
   return `<header class="top">
-    <a href="#/" class="marque" aria-label="Valou, accueil"><img src="img/logo-valou.png" alt="Valou"></a>
+    <a href="#/" class="marque" aria-label="Valou, accueil"><img src="${img("logo-valou.png")}" alt="Valou"></a>
     <nav>${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", "Contacter", "contacts")}${essai
       ? `${lien("#/avis", "💬 Mon avis", "avis")}<span class="badge-essai">Version d'essai</span>`
       : `${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}`}</nav>
@@ -570,8 +574,8 @@ function aides() {
 let selection = null; // identifiants des maisons comparées (3 au plus)
 let metier = "general"; // métier choisi sur l'écran artisan
 let sim = { k: "sol_carrelage", n: 25 }; // simulation des prix locaux (Notre moteur)
-let tarifs = (() => { try { return JSON.parse(localStorage.getItem("valou_demo_tarifs") || "null") || { p: {} }; } catch (e) { return { p: {} }; } })();
-let prixNeg = (() => { try { return JSON.parse(localStorage.getItem("valou_demo_prixneg") || "null") || {}; } catch (e) { return {}; } })();
+let tarifs = (() => { try { return JSON.parse(localStorage.getItem(cle("valou_demo_tarifs")) || "null") || { p: {} }; } catch (e) { return { p: {} }; } })();
+let prixNeg = (() => { try { return JSON.parse(localStorage.getItem(cle("valou_demo_prixneg")) || "null") || {}; } catch (e) { return {}; } })();
 let negOrigine = null;
 /* prix du négociant (démonstration) : utilisés comme prix négociant dans le moteur */
 function appliquerPrixNeg() {
@@ -579,7 +583,7 @@ function appliquerPrixNeg() {
   if (!negOrigine) negOrigine = { ...R.px.neg };
   R.px.neg = { ...negOrigine };
   Object.entries(prixNeg).forEach(([id, p]) => { R.px.neg[id] = { ...(negOrigine[id] || {}), p, s: "Votre négoce (démo)" }; });
-  try { localStorage.setItem("valou_demo_prixneg", JSON.stringify(prixNeg)); } catch (e) {}
+  try { localStorage.setItem(cle("valou_demo_prixneg"), JSON.stringify(prixNeg)); } catch (e) {}
 }
 let envoiOuvert = null;
 /* fiche du négociant et annonce de l'agence (démonstration, gardées sur cet appareil) */
@@ -587,15 +591,15 @@ const FICHE_EXEMPLE = { nom: "Matériaux Exemple", fictif: true, adresse: "Rue d
   rayons: ["gros", "toiture", "isolation", "bois", "carrelage", "peinture", "outillage", "echafaudage", "conteneur"],
   services: "Livraison sur chantier\nLocation de matériel\nDécoupe sur mesure\nConseil en isolation",
   horaires: { lun: "7h30–17h", mar: "7h30–17h", mer: "7h30–17h", jeu: "7h30–17h", ven: "7h30–17h", sam: "8h–12h", dim: "Fermé" } };
-const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; } };
-const ecrire = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(cle(k)) || "null") || d; } catch (e) { return d; } };
+const ecrire = (k, v) => { try { localStorage.setItem(cle(k), JSON.stringify(v)); } catch (e) {} };
 let negFiche = lire("valou_demo_negfiche", JSON.parse(JSON.stringify(FICHE_EXEMPLE)));
 if (negFiche.fictif) negFiche = JSON.parse(JSON.stringify(FICHE_EXEMPLE)); // fiche d'exemple pas encore modifiée : toujours la dernière version (adresse, types de matériaux)
 /* la fiche n'apparaît sur les projets que si le négociant a précisé ses types de matériaux */
 const negVisible = () => negFiche && negFiche.nom && (negFiche.rayons || []).length;
 const metiersDe = b => METIERS.filter(x => x.id !== "general" && b.postes.some(p => x.f(p.k) && p.QL > 0)).map(x => x.id).concat("general");
 let annonce = lire("valou_demo_annonce", { titre: "", prix: "", texte: "", valou: false }); // maison dont le panneau « envoyer aux artisans » est ouvert
-const sauverTarifs = () => { try { localStorage.setItem("valou_demo_tarifs", JSON.stringify(tarifs)); } catch (e) {} };
+const sauverTarifs = () => { try { localStorage.setItem(cle("valou_demo_tarifs"), JSON.stringify(tarifs)); } catch (e) {} };
 
 function resume(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
@@ -678,7 +682,7 @@ function ecranDossier(m) {
       ${m.notaireReel || !c.notaireCalcul ? `<label>Honoraires et frais du notaire, TVA comprise (€)<input type="number" min="0" inputmode="numeric" data-f="fraisNotaire" value="${esc(m.fraisNotaire ?? "")}" placeholder="montant du notaire"></label>` : ""}
     </section>`}
     <article class="feuille">
-      <header class="f-tete"><img src="img/logo-valou.png" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
+      <header class="f-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Dossier de financement</b><small>Achat et rénovation · ${esc(auj)}</small></div></header>
       ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
       <h1>${esc(m.nom || "Maison")}</h1>
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
@@ -998,13 +1002,20 @@ function ecranContacts(id) {
 }
 
 /* ---------- page d'intro ---------- */
+/* texte de la page d'intro selon la version (tuile) ouverte */
+const INTRO = {
+  complete: { h: `Le vrai coût d'une maison à rénover, <span>avant de faire une offre.</span>`, p: "Prix, notaire, travaux pièce par pièce : Valou chiffre tout, puis envoie votre projet aux bons artisans.", lien: "#/" },
+  artisan: { h: `Des chantiers déjà chiffrés, <span>avec les photos.</span>`, p: "Le client a visité, chiffré et photographié sa maison. Vous recevez son projet et vous choisissez : visite, devis ou pas disponible.", lien: "#/demo-artisan" },
+  negociant: { h: `Soyez vu sur les chantiers <span>de votre région.</span>`, p: "Chaque maison chiffrée dans Valou, ce sont des matériaux à acheter. Votre fiche montre ce que vous vendez, vos services et vos horaires.", lien: "#/demo-negociant" },
+};
 function ecranIntro() {
+  const I = INTRO[VERSION] || INTRO.complete;
   return `<main class="intro-page">
     <div class="intro-boite">
-      <img class="intro-logo" src="img/logo-valou.png" alt="Valou">
-      <h1>Le vrai coût d'une maison à rénover, <span>avant de faire une offre.</span></h1>
-      <p class="intro-sous">Prix, notaire, travaux pièce par pièce : Valou chiffre tout, puis envoie votre projet aux bons artisans.</p>
-      <a class="btn intro-btn" href="#/">Commencer la démo →</a>
+      <img class="intro-logo" src="${img("logo-valou.png")}" alt="Valou">
+      <h1>${I.h}</h1>
+      <p class="intro-sous">${esc(I.p)}</p>
+      <a class="btn intro-btn" href="${I.lien}">Commencer la démo →</a>
       <ul class="intro-pour">
         <li><b>🏠 Acheteurs</b><span>le vrai budget, gratuit</span></li>
         <li><b>🔨 Artisans</b><span>des projets déjà chiffrés</span></li>
@@ -1022,7 +1033,7 @@ function ecranEssai() {
   const n = visibles().length;
   return `<main class="intro-page essai-page">
     <div class="intro-boite">
-      <img class="intro-logo" src="img/logo-valou.png" alt="Valou">
+      <img class="intro-logo" src="${img("logo-valou.png")}" alt="Valou">
       <h1>Bienvenue dans la <span>version d'essai</span></h1>
       <p class="intro-sous">Vous visitez une maison à rénover ? Valou calcule ce qu'elle va vraiment vous coûter : prix, droits d'enregistrement, notaire et travaux.</p>
       <ol class="essai-etapes">
@@ -1046,7 +1057,7 @@ const AVIS_Q = [
   ["autre", "Autre chose à nous dire ?", "texte"],
 ];
 let avis = {};
-try { avis = JSON.parse(localStorage.getItem("valou_avis") || "{}") || {}; } catch (e) {}
+try { avis = JSON.parse(localStorage.getItem(cle("valou_avis")) || "{}") || {}; } catch (e) {}
 const texteAvis = () => ["Mon avis sur la version d'essai de Valou", "", ...AVIS_Q.filter(([k]) => avis[k]).map(([k, q]) => `${q}\n${avis[k]}`), "", `Maisons encodées : ${visibles().length}`].join("\n");
 let avisMessage = "";
 function ecranAvis() {
@@ -1072,7 +1083,7 @@ function afficher() {
   /* liens du présentateur : ils quittent la version d'essai sur ce téléphone (#/demo = démo complète, sans remise à zéro) */
   if (brut === "demo" || brut === "/demo" || brut === "/demo-artisan" || brut === "/demo-negociant") changerMode(false);
   if (brut === "demo" || brut === "/demo") brut = "/bienvenue";
-  let h = brut === "" ? (essai ? "/" : "/bienvenue") : brut; // première ouverture de la démo : la page d'intro
+  let h = brut === "" ? (essai ? (VERSION === "particulier" && !visibles().length ? "/essai" : "/") : "/bienvenue") : brut; // première ouverture : la page d'intro (ou l'accueil de l'essai)
   /* version d'essai : les pages pour les professionnels et l'intro de la présentation ramènent à l'accueil de l'essai */
   if (essai && /^\/(pro|moteur|feuille-de-route|demo-|bienvenue)/.test(h)) h = "/essai";
   if (h === "/presentation" && R) { preparerPresentation(true); return; }
@@ -1203,7 +1214,7 @@ document.addEventListener("click", e => {
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
   /* version d'essai : réponses de l'avis */
-  if (t.dataset.avis) { avis[t.dataset.avis] = t.value; try { localStorage.setItem("valou_avis", JSON.stringify(avis)); } catch (e) {} if (t.type === "radio") afficher(); return; }
+  if (t.dataset.avis) { avis[t.dataset.avis] = t.value; try { localStorage.setItem(cle("valou_avis"), JSON.stringify(avis)); } catch (e) {} if (t.type === "radio") afficher(); return; }
   /* contacter : matériau souhaité et remarque pour l'artisan */
   if (t.dataset.mat != null && m) { m.materiaux = { ...(m.materiaux || {}), [t.dataset.mat]: t.value.trim() }; sauver(); afficher(); return; }
   if (t.dataset.noteMetier && m) { m.notesMetier = { ...(m.notesMetier || {}), [t.dataset.noteMetier]: t.value.trim() }; sauver(); return; }
@@ -1347,14 +1358,14 @@ document.addEventListener("submit", e => {
 
 window.addEventListener("hashchange", afficher);
 
-Promise.all([chargerReferences(), fetch("maison-demo.json", { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null)])
+Promise.all([chargerReferences(), fetch(DEMO_DIR + "maison-demo.json", { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null)])
   .then(([r, d]) => {
     R = r;
     DEMO = d;
     appliquerPrixNeg();
     /* première visite : la maison de démonstration est déjà là */
     let vu = false;
-    try { vu = !!localStorage.getItem("valou_demo_vu"); localStorage.setItem("valou_demo_vu", "1"); } catch (e) {}
+    try { vu = !!localStorage.getItem(cle("valou_demo_vu")); localStorage.setItem(cle("valou_demo_vu"), "1"); } catch (e) {}
     if (!vu && DEMO && !maisons.some(m => m.demo)) chargerDemo();
     /* maisons de démonstration d'une ancienne version (enregistrées sur l'appareil) : remplacées par la version actuelle */
     else if (DEMO && maisons.some(m => m.demo && m.demoVersion !== DEMO.version)) chargerDemo();

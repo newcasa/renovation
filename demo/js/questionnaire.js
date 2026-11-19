@@ -2,6 +2,7 @@
    Mêmes rubriques que l'appli : la maison, le chauffage, les pièces (postes imposés), structure / toiture / équipements.
    maisonDepuisQuestionnaire() transforme les réponses (lues sur la photo) en maison Valou. */
 import { TYPES_PIECE, PLAFONDS, WC, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE } from "./moteur.js";
+import { img } from "./chemins.js";
 import { esc } from "./format.js";
 
 /* pièces pré-imprimées : celles qui peuvent composer une grande maison (+ 2 lignes libres) */
@@ -27,7 +28,7 @@ const carre = `<span class="q-carre"></span>`;
 
 export function ecranQuestionnaire(ctx) {
   const { entete } = ctx;
-  const tete = (n, t) => `<header class="q-tete"><img src="img/logo-valou.png" alt="Valou"><div><b>Questionnaire de visite</b><small>Page ${n} / 2 · ${t}</small></div></header>`;
+  const tete = (n, t) => `<header class="q-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Questionnaire de visite</b><small>Page ${n} / 2 · ${t}</small></div></header>`;
   const p1 = `<article class="q-page">${tete(1, "à remplir au stylo, en chiffres bien lisibles")}
     <div class="q-deux">
       <div>
