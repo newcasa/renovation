@@ -358,6 +358,19 @@ try {
     await page.locator('.avis-choix label.on:has-text("4")').waitFor();
     assert.equal(await page.inputValue("#avis-aime"), "Le vrai coût");
     await page.screenshot({ path: `${OUT}/${nom}-13-avis.png`, fullPage: nom === "ordi" });
+    /* les liens du présentateur quittent l'essai sans remise à zéro */
+    await page.goto(URL + "#/demo-artisan");
+    await page.locator(".etapes-demo li").first().waitFor();
+    assert.equal(await page.locator(".badge-essai").count(), 0);
+    await page.goto(URL + "#/essai");
+    await page.locator(".essai-etapes").waitFor();
+    await page.goto(URL + "#/demo");
+    await page.locator(".intro-logo").waitFor();
+    await page.getByText("Commencer la démo →").click();
+    await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor(); // tout est conservé
+    assert.match(await page.locator(".grille").innerText(), /Maison test/);
+    await page.goto(URL + "#/essai");
+    await page.locator(".essai-etapes").waitFor();
     /* l'ouverture sans adresse reste dans l'essai ; la présentation en sort */
     await page.goto(URL);
     await page.locator(".essai-info").waitFor();

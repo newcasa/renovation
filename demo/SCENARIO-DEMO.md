@@ -186,4 +186,4 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 - Le menu ne garde que Mes maisons, Comparer, Contacter et « 💬 Mon avis ». Les pages pour les professionnels (Professionnels, Notre moteur, Feuille de route) sont masquées.
 - Ses maisons restent sur son téléphone. L'envoi aux artisans et à la banque est simulé.
 - « 💬 Mon avis » : 6 questions courtes, puis « Envoyer mon avis » ouvre le partage du téléphone (message, WhatsApp, e-mail). Le testeur vous l'envoie lui-même.
-- Pour revenir à la démo complète sur le même téléphone : ouvrir `hoono.be/demo/#/presentation`.
+- Pour revenir à la démo complète sur le même téléphone : `hoono.be/demo/#/demo` (sans remise à zéro) ou `hoono.be/demo/#/presentation` (avec remise à zéro). Les démos guidées `#/demo-artisan` et `#/demo-negociant` quittent aussi la version d'essai.

@@ -1069,6 +1069,9 @@ function afficher() {
   let brut = location.hash.replace(/^#/, "");
   if (brut === "essai") brut = "/essai"; // lien court hoono.be/demo/#essai
   if (brut === "/essai") changerMode(true);
+  /* liens du présentateur : ils quittent la version d'essai sur ce téléphone (#/demo = démo complète, sans remise à zéro) */
+  if (brut === "demo" || brut === "/demo" || brut === "/demo-artisan" || brut === "/demo-negociant") changerMode(false);
+  if (brut === "demo" || brut === "/demo") brut = "/bienvenue";
   let h = brut === "" ? (essai ? "/" : "/bienvenue") : brut; // première ouverture de la démo : la page d'intro
   /* version d'essai : les pages pour les professionnels et l'intro de la présentation ramènent à l'accueil de l'essai */
   if (essai && /^\/(pro|moteur|feuille-de-route|demo-|bienvenue)/.test(h)) h = "/essai";
