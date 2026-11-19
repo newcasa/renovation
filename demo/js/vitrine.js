@@ -33,7 +33,7 @@ export function ecranPro(ctx, onglet, metier) {
     { id: "negociant", t: "Je suis négociant", ico: "🧱", d: "Être vu des particuliers et des artisans de votre zone : vos matériaux, services, coordonnées et horaires.", tabs: [["negociant", "Ma fiche"], ["negprix", "Mes prix"]], demo: "#/demo-negociant",
       av: ["Visible sur les projets des maisons de votre zone", "Vos types de matériaux, services, coordonnées et horaires mis en avant", "Des clients avec un chantier déjà chiffré", "Aucune offre à envoyer : les clients viennent à vous"] },
     { id: "courtier", t: "Je suis courtier ou banque", ico: "🏦", d: "Recevoir des dossiers de crédit complets : achat, notaire et travaux.", tabs: [["courtier", "Dossiers reçus"]],
-      av: ["Un dossier complet : achat, notaire validé, travaux poste par poste", "Moins de temps à reconstituer le budget du client", "Le PEB et les travaux énergétiques déjà identifiés"] },
+      av: ["Un dossier complet : achat, notaire, travaux poste par poste", "Moins de temps à reconstituer le budget du client", "Le PEB et les travaux énergétiques déjà identifiés"] },
     { id: "agence", t: "Je suis une agence", ico: "🏠", d: "Publier vos annonces librement, avec l'estimation des travaux en option.", tabs: [["agence", "Mon annonce"]],
       av: ["Vos annonces, rédigées librement", "L'estimation des travaux en option, pour rassurer les acheteurs", "Des acheteurs qui osent visiter les maisons à rénover"] },
   ];
