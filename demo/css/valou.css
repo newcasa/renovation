@@ -853,3 +853,37 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .q-pieces li { padding: 8px 10px; border-radius: 10px; background: var(--carte); border: 1px solid var(--bord); }
 .q-resultat h3 { margin: 16px 0 4px; }
 .q-resultat .alerte-mini { margin-bottom: 14px; }
+
+/* questionnaire sur une seule page A4 à l'horizontale */
+.q-une { padding: 18px 22px; }
+.q-une .q-tete { margin-bottom: 8px; }
+.q-bandeau { display: grid; gap: 4px; padding-bottom: 6px; margin-bottom: 8px; border-bottom: 1px solid #ccc; }
+.q-b1, .q-b2 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; font-size: 12px; }
+.q-b1 .q-box { height: 22px; width: 70px; } .q-b1 .q-champ.large .q-box { width: 170px; }
+.q-bl { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 0; }
+.q-bl > b { margin-right: 8px; font-size: 12px; }
+.q-une .q-cb { margin: 1px 9px 1px 0; font-size: 11.5px; }
+.q-une .q-carre { width: 13px; height: 13px; }
+.q-corps { display: grid; grid-template-columns: minmax(0, 1fr) 58mm; gap: 10px; align-items: start; }
+.q-une .q-table tbody tr { height: 7mm; }
+.q-une .q-table thead tr:first-child th:first-child { width: 27mm; }
+.q-une .q-table thead tr:first-child th:nth-child(2) { width: 10mm; }
+.q-une .q-table thead tr:first-child th:nth-last-child(2) { width: 22mm; }
+.q-une .q-table thead tr:first-child th:last-child { width: 22mm; }
+.q-une .q-table tbody th { width: 27mm; font-size: 10.5px; }
+.q-gt h2 { font-size: 13px; margin: 0 0 2px; }
+.q-gt .q-petit { font-size: 10px; margin-bottom: 3px; }
+.q-gt .q-poste { font-size: 10.5px; padding: 2px 0; grid-template-columns: minmax(0, 1fr) 40px 42px; gap: 4px; }
+.q-gt .q-u { font-size: 10px; }
+.q-gt .q-box.petit { width: 40px; height: 20px; }
+.q-pied { display: grid; grid-template-columns: auto 1fr; gap: 10px; margin-top: 8px; padding-top: 6px; border-top: 1px solid #ccc; min-height: 24mm; align-items: start; }
+.q-pied b { color: var(--bordeaux); font-size: 13px; }
+.q-pied .q-petit { font-size: 9.5px; margin: 0; text-align: right; align-self: end; }
+@media (max-width: 900px) { .q-une { overflow-x: auto; } .q-corps { min-width: 1060px; } .q-une .q-table { min-width: 0; } }
+@media print {
+  .q-une { padding: 0; overflow: visible; }
+  .q-corps { min-width: 0 !important; grid-template-columns: minmax(0, 1fr) 58mm !important; }
+  .q-une .q-table tbody tr { height: 7mm; }
+}
+.q-une .q-wc small { font-size: 8px; } .q-une .q-wc .q-carre { width: 11px; height: 11px; }
+.q-escalier-u { white-space: nowrap; }

@@ -67,7 +67,7 @@ function ecranPlus() {
     ["#/pro", "💼", "Professionnels", "Artisans, négociants, courtiers et agences"],
     ["#/moteur", "⚙️", "Notre moteur", "D'où viennent les prix, les prix locaux"],
     ["#/feuille-de-route", "🗺️", "Feuille de route", "Le modèle et les prochaines étapes"],
-    ["#/questionnaire", "📝", "Questionnaire de visite", "2 pages à imprimer pour la visite"],
+    ["#/questionnaire", "📝", "Questionnaire de visite", "Une page à imprimer pour la visite"],
   ];
   return `${entete("plus")}<main class="etroit">
     <h1>Plus</h1>
@@ -1150,12 +1150,12 @@ function ecranQuestionnairePhoto(m) {
       <span class="actions-g"><button class="btn" data-action="q-appliquer">✓ Remplir la maison avec ces réponses</button><button class="btn lien" data-action="q-recommencer">Reprendre les photos</button></span>
     </section>`;
   } else corps = `<section class="carte q-photos">
-      <h2>Photographiez les 2 pages</h2>
-      <p class="mu">Posez le questionnaire bien à plat, avec de la lumière, et prenez une photo de chaque page. Valou remplit ensuite la maison : les pièces, le sol, les murs, le plafond, les châssis, le chauffage et la structure.</p>
-      <label class="btn sec q-prendre">📷 ${Q.photos.length ? "Ajouter une page" : "Prendre les photos"}<input type="file" accept="image/*" capture="environment" multiple data-qphoto hidden></label>
-      ${Q.photos.length ? `<div class="galerie mini">${Q.photos.map((u, i) => `<figure class="vignette"><img src="${u}" alt="Page ${i + 1} du questionnaire"><figcaption><small>Page ${i + 1}</small></figcaption></figure>`).join("")}</div>` : ""}
+      <h2>Photographiez la feuille</h2>
+      <p class="mu">Posez le questionnaire bien à plat, avec de la lumière, et prenez-le en photo (une seule feuille). Valou remplit ensuite la maison : les pièces, le sol, les murs, le plafond, les châssis, le chauffage et la structure.</p>
+      <label class="btn sec q-prendre">📷 ${Q.photos.length ? "Reprendre une photo" : "Prendre la photo"}<input type="file" accept="image/*" capture="environment" multiple data-qphoto hidden></label>
+      ${Q.photos.length ? `<div class="galerie mini">${Q.photos.map((u, i) => `<figure class="vignette"><img src="${u}" alt="Photo ${i + 1} du questionnaire"><figcaption><small>Photo ${i + 1}</small></figcaption></figure>`).join("")}</div>` : ""}
       <p><button class="btn" data-action="q-lire" ${Q.photos.length ? "" : "disabled"}>Lire le questionnaire →</button></p>
-      <p class="mu petit-t">Pas encore de questionnaire ? <a href="#/questionnaire">📝 Le télécharger et l'imprimer</a> (2 pages A4).</p>
+      <p class="mu petit-t">Pas encore de questionnaire ? <a href="#/questionnaire">📝 Le télécharger et l'imprimer</a> (une page A4).</p>
     </section>`;
   return `${entete("maisons")}<main class="etroit">
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>

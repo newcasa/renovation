@@ -26,34 +26,17 @@ const cases = L => L.map(t => `<span class="q-cb"><span class="q-carre"></span>$
 const ligne = (t, contenu) => `<div class="q-ligne"><b>${t}</b><div>${contenu}</div></div>`;
 const carre = `<span class="q-carre"></span>`;
 
+/* pièces imprimées sur la feuille (une seule page) : les plus courantes + 2 lignes libres */
+export const PIECES_FEUILLE = [
+  ["Hall d'entrée", "standard"], ["Séjour / salon", "standard"], ["Cuisine", "cuisine"], ["WC", "wc"], ["Salle de bain", "sdb"],
+  ["Chambre 1", "standard"], ["Chambre 2", "standard"], ["Chambre 3", "standard"], ["Chambre 4", "standard"], ["Couloir / palier", "standard"],
+  ["Bureau", "standard"], ["Buanderie", "standard"], ["Grenier / combles", "standard"], ["Garage", "garage"], ["Autre :", "standard"], ["Autre :", "standard"],
+];
+
 export function ecranQuestionnaire(ctx) {
   const { entete } = ctx;
-  const tete = (n, t) => `<header class="q-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Questionnaire de visite</b><small>Page ${n} / 2 · ${t}</small></div></header>`;
-  const p1 = `<article class="q-page">${tete(1, "à remplir au stylo, en chiffres bien lisibles")}
-    <div class="q-deux">
-      <div>
-        <h2>La maison</h2>
-        <div class="q-grille">${box("Nom", "", true)}${box("Commune", "", true)}${box("Prix demandé", "€")}${box("Année")}${box("Surface habitable", "m²")}</div>
-        ${ligne("État général", cases(["Bon état", "À rafraîchir", "À rénover"]))}
-        ${ligne("Seule habitation", cases(["Oui", "Non"]))}
-        ${ligne("PEB (annonce)", cases(["A++", "A+", "A", "B", "C", "D", "E", "F", "G"]) + box("", "kWh/m²/an"))}
-        <h2>Le chauffage de la maison</h2>
-        ${ligne("Existant", cases(CHAUFFAGE_ACTUEL.map(c => c[1])))}
-        ${ligne("Souhaité", cases(["Garder l'actuel", "Chaudière gaz à condensation", "Pompe à chaleur"]))}
-        <h2>Notes</h2><div class="q-notes"></div>
-      </div>
-      <div>
-        <h2>Gros travaux (hors pièces)</h2>
-        <p class="q-petit">Quantité à prévoir. Laissez vide si rien n'est à faire.</p>
-        ${GROS_TRAVAUX.map(([, t, u]) => `<div class="q-poste"><span>${esc(t)}</span><span class="q-box petit"></span><span class="q-u">${u}</span></div>`).join("")}
-        <div class="q-poste"><span>Autre : ……………………………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
-        <div class="q-poste"><span>Autre : ……………………………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
-        <p class="q-petit q-aide2">Après la visite : photographiez les 2 pages bien à plat, avec de la lumière. Les murs (sol × 2,7) et le plafond (= sol) sont calculés par l'appli.</p>
-      </div>
-    </div>
-  </article>`;
   const na = `<td class="q-na"></td>`;
-  const lignes = PIECES_QUESTIONNAIRE.map(([nom, type]) => {
+  const lignes = PIECES_FEUILLE.map(([nom, type]) => {
     const eq = type === "cuisine" ? `<td class="q-c">${carre}<small>cuisine</small></td>` : type === "sdb" ? `<td class="q-c">${carre}<small>SDB</small></td>` : type === "wc" ? `<td class="q-c q-wc">${carre}<small>susp.</small> ${carre}<small>class.</small></td>` : na;
     return `<tr><th>${esc(nom)}${nom === "Autre :" ? " <span class=\"q-trait\"></span>" : ""}</th>
       <td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>
@@ -63,21 +46,42 @@ export function ecranQuestionnaire(ctx) {
       ${type === "garage" ? `${na}${na}` : `<td></td><td class="q-c">${carre}</td>`}
       ${eq}<td></td></tr>`;
   }).join("");
-  const p2 = `<article class="q-page">${tete(2, "les pièces : une ligne par pièce, cochez ce qui est à refaire")}
-    <table class="q-table">
-      <thead>
-        <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th colspan="2">Sol à refaire</th><th colspan="3">Murs (à refaire)</th><th colspan="2">Plafond</th><th colspan="3">Châssis à remplacer</th><th colspan="2">Chauffage</th><th rowspan="2">Équipé /<br>à remplacer</th><th rowspan="2">Remarques</th></tr>
-        <tr class="q-sous"><th>Carre&shy;lage</th><th>Par&shy;quet</th><th>Plafon&shy;nage</th><th>Pein&shy;ture</th><th>Carre&shy;lage</th><th>Pein&shy;ture</th><th>Pla&shy;ques</th><th>Nom&shy;bre</th><th>PVC</th><th>Alu</th><th>Radia&shy;teurs</th><th>Au sol</th></tr>
-      </thead>
-      <tbody>${lignes}</tbody>
-    </table>
-    <p class="q-petit">Garage : nombre de portes de garage dans la colonne « Châssis : nombre ». WC : cochez « susp. » (suspendu) ou « class. » (sur pied) si le WC est à remplacer. Le détail (moi-même, murs mesurés, équipements) se complète ensuite dans l'appli.</p>
+  const page = `<article class="q-page q-une">
+    <header class="q-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Questionnaire de visite</b><small>Une page, à remplir au stylo, en chiffres bien lisibles</small></div></header>
+    <div class="q-bandeau">
+      <div class="q-b1">${box("Nom", "", true)}${box("Commune", "", true)}${box("Prix", "€")}${box("Année")}${box("Surface", "m²")}</div>
+      <div class="q-b2">
+        <span class="q-bl"><b>État</b>${cases(["Bon", "À rafraîchir", "À rénover"])}</span>
+        <span class="q-bl"><b>Seule habitation</b>${cases(["Oui", "Non"])}</span>
+        <span class="q-bl"><b>PEB</b>${cases(["A++", "A+", "A", "B", "C", "D", "E", "F", "G"])}${box("", "kWh/m²/an")}</span>
+      </div>
+      <div class="q-b2">
+        <span class="q-bl"><b>Chauffage existant</b>${cases(CHAUFFAGE_ACTUEL.map(c => c[1]))}</span>
+        <span class="q-bl"><b>Souhaité</b>${cases(["Garder", "Gaz à condensation", "Pompe à chaleur"])}</span>
+      </div>
+    </div>
+    <div class="q-corps">
+      <table class="q-table">
+        <thead>
+          <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th colspan="2">Sol à refaire</th><th colspan="3">Murs (à refaire)</th><th colspan="2">Plafond</th><th colspan="3">Châssis à remplacer</th><th colspan="2">Chauffage</th><th rowspan="2">Équipé /<br>à remplacer</th><th rowspan="2">Remarques</th></tr>
+          <tr class="q-sous"><th>Carre&shy;lage</th><th>Par&shy;quet</th><th>Plafon&shy;nage</th><th>Pein&shy;ture</th><th>Carre&shy;lage</th><th>Pein&shy;ture</th><th>Pla&shy;ques</th><th>Nom&shy;bre</th><th>PVC</th><th>Alu</th><th>Radia&shy;teurs</th><th>Au sol</th></tr>
+        </thead>
+        <tbody>${lignes}</tbody>
+      </table>
+      <aside class="q-gt">
+        <h2>Gros travaux (hors pièces)</h2>
+        <p class="q-petit">Quantité à prévoir, vide si rien à faire.</p>
+        ${GROS_TRAVAUX.map(([, t, u]) => `<div class="q-poste"><span>${esc(t)}</span><span class="q-box petit"></span><span class="q-u">${u}</span></div>`).join("")}
+        <div class="q-poste"><span>Autre : ……………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
+      </aside>
+    </div>
+    <div class="q-pied"><b>Notes</b><span class="q-petit">Garage : nombre de portes dans « Châssis : nombre ». WC : « susp. » (suspendu) ou « class. » (sur pied). Pièce non imprimée (salle à manger, véranda, cave…) : une ligne « Autre ». Après la visite : une photo de la feuille, bien à plat, avec de la lumière.</span></div>
   </article>`;
   return `${entete("")}
   <main class="questionnaire">
     <div class="no-print barre-outils"><a href="#/" class="retour">← Mes maisons</a><button class="btn" data-action="imprimer">Télécharger / imprimer (PDF)</button></div>
-    <p class="no-print mu q-intro">2 pages A4 à l'horizontale (recto-verso), à imprimer avant la visite et à remplir à la main.</p>
-    ${p1}${p2}
+    <p class="no-print mu q-intro">Une seule page A4 à l'horizontale, à imprimer avant la visite et à remplir à la main.</p>
+    ${page}
   </main>`;
 }
 
