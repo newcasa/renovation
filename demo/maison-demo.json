@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "note": "Maisons FICTIVES pour la démonstration. À remplacer par de vraies maisons (mêmes champs). Seules les caractéristiques et les quantités sont ici : tous les prix viennent des références Valou.",
   "maisons": [
     {
@@ -344,49 +344,6 @@
         "actuel": "gaz",
         "souhaite": "pac",
         "emetteurs": "garder"
-      },
-      "etapes": {
-        "i_pac|maison": "urgent",
-        "i_to_1|maison": "urgent",
-        "i_zi|maison": "urgent",
-        "meu_sdb|sdb": "annee",
-        "sol_carrelage|sdb": "annee",
-        "mur_carrelage|sdb": "annee",
-        "pl_peinture|sdb": "annee",
-        "meu_cuisine|cuisine": "tard",
-        "sol_carrelage|cuisine": "tard",
-        "mur_peinture|cuisine": "tard",
-        "pl_peinture|cuisine": "tard",
-        "mur_peinture|sejour": "tard",
-        "mur_peinture|ch1": "tard",
-        "i_ch|ch1": "annee",
-        "i_co|maison": "annee"
-      },
-      "devis": [
-        {
-          "id": "dv1",
-          "metier": "carreleur",
-          "artisan": "Carrelage Exemple",
-          "montant": 3050,
-          "fictif": true
-        },
-        {
-          "id": "dv2",
-          "metier": "carreleur",
-          "artisan": "Carrelage Exemple B",
-          "montant": 3450,
-          "fictif": true
-        },
-        {
-          "id": "dv3",
-          "metier": "menuisier",
-          "artisan": "Menuiserie Exemple",
-          "montant": 13900,
-          "fictif": true
-        }
-      ],
-      "devisRetenu": {
-        "carreleur": "dv1"
       }
     }
   ]

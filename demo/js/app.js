@@ -83,7 +83,7 @@ function carteMaison(m) {
     <div class="m-tete"><b>${esc(m.nom || "Maison sans nom")}</b>${pebBadge(m.peb)}${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}</div>
     <div class="mu">${esc(m.commune || "")}${m.annee ? ` · ${esc(m.annee)}` : ""}${m.surface ? ` · ${nombre(m.surface)} m²` : ""}</div>
     <div class="m-chiffres">${reno
-      ? `<div><small>Budget de la rénovation</small><b class="or">${euros(c.total[1], 100)}</b></div><div><small>Devis reçus</small><b>${(m.devis || []).length}</b></div>`
+      ? `<div><small>Budget de la rénovation</small><b class="or">${euros(c.total[1], 100)}</b></div><div><small>Pièces</small><b>${(m.pieces || []).length}</b></div>`
       : `<div><small>Prix demandé</small><b>${euros(c.prix)}</b></div><div><small>Vrai coût estimé</small><b class="or">${euros(c.total[1], 100)}</b></div>`}</div>
   </a>`;
 }
@@ -92,10 +92,10 @@ const PARCOURS = {
     h: `Combien cette maison va-t-elle <em>vraiment</em> vous coûter ?`, p: "Prix d'achat, droits d'enregistrement, notaire et travaux : le vrai budget, poste par poste, avant de faire une offre.",
     ajout: "＋ Ajouter une maison à acheter",
     av: ["Le vrai coût avant de faire une offre : prix, droits, notaire et travaux", "Vos maisons comparées sur leur vrai coût, PEB compris", "La visite guidée pièce par pièce, avec les photos", "Un dossier complet pour la banque", "Votre projet envoyé aux artisans, qui le comprennent sans se déplacer"] },
-  renovation: { ico: "🔨", t: "Je rénove ma maison", d: "Le budget de vos travaux, étape par étape, les aides et vos devis.",
-    h: `Combien va <em>vraiment</em> coûter votre rénovation ?`, p: "Pièce par pièce, le budget de vos travaux. Puis les étapes (urgent, cette année, plus tard), les aides, le prêt travaux et la comparaison de vos devis.",
+  renovation: { ico: "🔨", t: "Je rénove ma maison", d: "Le budget de vos travaux, les aides et vos artisans.",
+    h: `Combien va <em>vraiment</em> coûter votre rénovation ?`, p: "Pièce par pièce, le budget de vos travaux. Puis les aides, le prêt travaux et votre projet envoyé aux artisans de votre choix.",
     ajout: "＋ Ajouter ma maison à rénover",
-    av: ["Le budget de vos travaux, pièce par pièce", "Vos travaux par étapes : urgent, cette année, plus tard", "Les aides à la rénovation et le prêt travaux", "Vos devis comparés au budget Valou", "Votre projet envoyé aux artisans, qui le comprennent sans se déplacer"] },
+    av: ["Le budget de vos travaux, pièce par pièce", "Les travaux qui améliorent votre PEB", "Les aides à la rénovation et le prêt travaux", "Un dossier pour la banque", "Votre projet envoyé aux artisans de votre choix, métier par métier"] },
 };
 function ecranAccueil() {
   const P = PARCOURS[parcours], L = visibles().filter(m => projetDe(m) === parcours);
@@ -208,37 +208,7 @@ function chargerDemo() {
 
 const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite${n ? ` (${n})` : ""}</a>`; };
 
-/* ---------- « Je rénove ma maison » : étapes, financement, devis ---------- */
-/* chaque partie du projet (un poste dans une pièce, ou pour toute la maison) */
-function partiesProjet(m, b) {
-  const P = {};
-  b.lignes.filter(l => R.postes[l.k] && Number(String(l.q).replace(",", ".")) > 0).forEach(l => {
-    const k = cleLigne(l), pc = l.pieceId && (m.pieces || []).find(y => y.id === l.pieceId);
-    const o = (P[k] = P[k] || { cle: k, k: l.k, n: R.postes[l.k].n, piece: pc ? pc.nom : l.src === "chauffage" ? "Chauffage" : "Toute la maison", total: 0, soiMeme: false });
-    o.total += l.fiab ? l.total[1] : 0;
-    if (l.soiMeme) o.soiMeme = true;
-  });
-  return Object.values(P);
-}
-const ETAPES = [["urgent", "🔴", "Urgent", "Sécurité, étanchéité, chauffage : à faire en premier"], ["annee", "🟠", "Cette année", "Le gros des travaux"], ["tard", "🟢", "Plus tard", "Quand le budget le permet"]];
-function blocEtapes(m, b) {
-  const f = 1 + b.pi / 100, parts = partiesProjet(m, b), etape = q => (m.etapes || {})[q.cle] || "annee";
-  if (!parts.length) return `<section class="carte"><h2>Les étapes</h2><p class="mu">Ajoutez d'abord des travaux dans les onglets « Pièces » et « Travaux » : vous pourrez ensuite les classer par étape.</p></section>`;
-  const de = e => parts.filter(q => etape(q) === e);
-  const tot = e => de(e).reduce((s, q) => s + q.total * f, 0);
-  return `<section class="carte et-bloc">
-    <h2>Les étapes des travaux</h2>
-    <p class="mu">Classez chaque partie : urgent, cette année ou plus tard. Le budget de chaque étape comprend la TVA et les imprévus (${b.pi} %).</p>
-    <div class="et-tuiles">${ETAPES.map(([id, ico, t]) => `<div class="et-tuile et-${id}"><small>${ico} ${t}</small><b>${euros(tot(id), 100)}</b><span class="mu">${de(id).length} partie${de(id).length > 1 ? "s" : ""}</span></div>`).join("")}</div>
-    ${ETAPES.map(([id, ico, t, d]) => `<div class="et-groupe et-${id}">
-      <h3>${ico} ${t} <small class="mu">· ${esc(d)}</small></h3>
-      ${de(id).length ? de(id).map(q => `<div class="et-ligne"><span><b>${esc(q.piece)}</b> <span class="mu">· ${esc(q.n)}${q.soiMeme ? " (moi-même)" : ""}</span></span><b class="r">${euros(q.total * f, 10)}</b>
-        <select data-etape="${esc(q.cle)}" aria-label="Étape : ${esc(q.piece)}, ${esc(q.n)}">${ETAPES.map(([v, i2, t2]) => `<option value="${v}" ${v === id ? "selected" : ""}>${i2} ${t2}</option>`).join("")}</select></div>`).join("")
-        : `<p class="mu petit-t">Rien pour l'instant.</p>`}
-    </div>`).join("")}
-    ${b.ANN[1] ? `<p class="mu petit-t">Le container à gravats (${euros(b.ANN[1])}) est compté une fois, dans le budget total.</p>` : ""}
-  </section>`;
-}
+/* ---------- « Je rénove ma maison » : financement ---------- */
 function blocFinancerRenovation(m, b, c) {
   const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
   const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
@@ -262,38 +232,6 @@ function blocFinancerRenovation(m, b, c) {
     <button class="btn lien" data-action="suppr-maison">Supprimer cette maison</button>
   </div>`;
 }
-function ecartDevis(montant, budget) {
-  if (!budget) return "";
-  const d = (montant - budget) / budget, pc = Math.round(Math.abs(d) * 100);
-  return Math.abs(d) <= 0.1 ? `<span class="badge b-reference">Dans le budget (${d >= 0 ? "+" : "−"}${pc} %)</span>`
-    : d > 0 ? `<span class="badge b-estimation">Plus cher : +${pc} %</span>`
-    : `<span class="badge b-fourchette">Moins cher : −${pc} % · vérifiez ce qui est compris</span>`;
-}
-function blocDevis(m, b) {
-  const metiers = METIERS.filter(x => x.id !== "general").map(x => ({ x, lots: b.postes.filter(p => x.f(p.k) && p.QL > 0) })).filter(o => o.lots.length);
-  const D = m.devis || [], R2 = m.devisRetenu || {};
-  const budgetDe = lots => lots.reduce((s, p) => s + p.total[1], 0);
-  const retenus = metiers.filter(({ x }) => D.some(d => d.id === R2[x.id]));
-  const totR = retenus.reduce((s, { x }) => s + D.find(d => d.id === R2[x.id]).montant, 0), budR = retenus.reduce((s, { lots }) => s + budgetDe(lots), 0);
-  return `<section class="carte devis">
-    <h2>Vos devis</h2>
-    <p class="mu">Encodez les devis reçus pour chaque métier : Valou les compare au budget (TVA comprise, sans imprévus). Choisissez celui que vous retenez.</p>
-    ${retenus.length ? `<div class="dv-resume"><span>${retenus.length} devis retenu${retenus.length > 1 ? "s" : ""}</span><b>${euros(totR)}</b><span class="mu">pour un budget de ${euros(budR, 10)}</span>${ecartDevis(totR, budR)}</div>` : ""}
-    ${metiers.length ? metiers.map(({ x, lots }) => { const bud = budgetDe(lots), L = D.filter(d => d.metier === x.id); return `<div class="dv-metier">
-      <div class="dv-tete"><b>${esc(x.t)}</b><span class="mu">Budget Valou : <b>${euros(bud, 10)}</b></span></div>
-      ${L.map(d => `<div class="dv-ligne ${R2[x.id] === d.id ? "retenu" : ""}">
-        <label class="cb"><input type="radio" name="dv-r-${x.id}" data-action="devis-retenir" data-id="${d.id}" data-metier="${x.id}" ${R2[x.id] === d.id ? "checked" : ""}> <span><b>${esc(d.artisan)}</b>${d.fictif ? ` <span class="badge b-exemple">Exemple fictif</span>` : ""}</span></label>
-        <b class="r">${euros(d.montant)}</b>${ecartDevis(d.montant, bud)}
-        <button class="x" data-action="devis-suppr" data-id="${d.id}" aria-label="Supprimer le devis de ${esc(d.artisan)}">✕</button></div>`).join("")}
-      <div class="dv-ajout">
-        <input id="dv-a-${x.id}" placeholder="Nom de l'artisan" aria-label="Nom de l'artisan (${esc(x.t)})">
-        <span class="saisie"><input id="dv-m-${x.id}" type="number" min="0" step="any" inputmode="decimal" placeholder="Montant TVA comprise" aria-label="Montant du devis (${esc(x.t)})"><i>€</i></span>
-        <button class="btn sec petit-btn" data-action="devis-ajouter" data-metier="${x.id}">＋ Ajouter ce devis</button>
-      </div>
-    </div>`; }).join("") : `<p class="mu">Ajoutez d'abord des travaux : les métiers concernés apparaîtront ici.</p>`}
-  </section>`;
-}
-
 /* ---------- envoyer le projet aux artisans (démonstration) ---------- */
 function panneauEnvoi(m, b) {
   const metiers = METIERS.filter(x => x.id !== "general" && b.postes.some(p => x.f(p.k) && p.QL > 0));
@@ -334,7 +272,7 @@ function carteEnergie(m, b) {
 
 /* ---------- écran : le vrai coût d'une maison (en 5 onglets) ---------- */
 const ONGLETS_M = [["resume", "Résumé"], ["pieces", "Pièces"], ["travaux", "Travaux"], ["achat", "Achat"], ["artisans", "Artisans"]];
-const ONGLETS_R = [["resume", "Résumé"], ["pieces", "Pièces"], ["travaux", "Travaux"], ["etapes", "Étapes"], ["financer", "Financer"], ["artisans", "Artisans"]];
+const ONGLETS_R = [["resume", "Résumé"], ["pieces", "Pièces"], ["travaux", "Travaux"], ["financer", "Financer"], ["artisans", "Artisans"]];
 const ongletsDe = m => (projetDe(m) === "renovation" ? ONGLETS_R : ONGLETS_M);
 const ongletsM = {}; // onglet ouvert, par maison
 const ongletMaison = m => (ongletsDe(m).some(([id]) => id === ongletsM[m.id]) ? ongletsM[m.id] : "resume");
@@ -469,11 +407,9 @@ function ecranMaison(m) {
             ${hyp}
           </div>
         </details>
-      ${reno ? suivant("etapes", "Suivant : les étapes des travaux") : suivant("achat", "Suivant : l'achat et le financement")}`;
-      if (o === "etapes") return `${blocEtapes(m, b)}
-      ${suivant("financer", "Suivant : les aides et le financement")}`;
+      ${reno ? suivant("financer", "Suivant : les aides et le financement") : suivant("achat", "Suivant : l'achat et le financement")}`;
       if (o === "financer") return `${blocFinancerRenovation(m, b, c)}
-      ${suivant("artisans", "Suivant : les artisans et vos devis")}`;
+      ${suivant("artisans", "Suivant : les artisans et les négociants")}`;
       if (o === "achat") return `
     <div class="fin-page">
         ${aides()}
@@ -523,7 +459,10 @@ function ecranMaison(m) {
     </div>
 
       ${suivant("artisans", "Suivant : les artisans et les négociants")}`;
-      if (o === "artisans") return `${reno ? blocDevis(m, b) : ""}
+      if (o === "artisans") return `
+    <section class="carte choisir-art"><h2>Choisir vos artisans</h2>
+      <p class="mu">Pour chaque métier : le projet propre à ce métier (les pièces et les postes à envoyer, le matériau souhaité), puis jusqu'à 3 artisans à qui l'envoyer.</p>
+      <a class="btn" href="#/contacts/${m.id}">👷 Choisir les artisans par métier →</a></section>
     <section class="carte negs"><h2>Négociants de votre région</h2>
       <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
       ${negVisible() ? ficheNegociant(negFiche, metiersDe(b)) : ficheNegociant(null)}</section>
@@ -778,8 +717,6 @@ function ecranDossier(m) {
       <h2>1. Le budget de la rénovation</h2>
       <table class="f-table">
         <tr><td>Travaux, TVA et imprévus compris <small class="mu">(fourchette ${fourchette(c.travaux)})</small></td><td class="r">${euros(c.travaux[1], 100)}</td></tr>
-        ${(() => { const f = 1 + b.pi / 100, P = partiesProjet(m, b), et = q => (m.etapes || {})[q.cle] || "annee";
-          return ETAPES.map(([id, ico, t]) => `<tr class="sous"><td>dont ${ico} ${t}</td><td class="r">${euros(P.filter(q => et(q) === id).reduce((s2, q) => s2 + q.total * f, 0), 100)}</td></tr>`).join(""); })()}
         <tr class="tot"><td>Budget total</td><td class="r">${euros(c.total[1], 100)}</td></tr>
       </table>
       ` : `
@@ -1261,20 +1198,6 @@ document.addEventListener("click", e => {
   if (a === "exemple") { const x = chargerDemo(); if (x) location.hash = `#/maison/${x.id}`; }
   if (a === "presentation") preparerPresentation();
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
-  if (a === "devis-ajouter" && m) {
-    const id = el.dataset.metier, art = (document.getElementById("dv-a-" + id) || {}).value || "", mt = +((document.getElementById("dv-m-" + id) || {}).value || 0);
-    if (!art.trim() || !(mt > 0)) { const v = document.getElementById(art.trim() ? "dv-m-" + id : "dv-a-" + id); if (v) v.focus(); return; }
-    m.devis = [...(m.devis || []), { id: nouvelId(), metier: id, artisan: art.trim(), montant: Math.round(mt * 100) / 100 }];
-    if (!(m.devisRetenu || {})[id]) m.devisRetenu = { ...(m.devisRetenu || {}), [id]: m.devis[m.devis.length - 1].id };
-    sauver(); afficher();
-  }
-  if (a === "devis-suppr" && m) {
-    const d = (m.devis || []).find(x => x.id === el.dataset.id);
-    m.devis = (m.devis || []).filter(x => x.id !== el.dataset.id);
-    if (d && (m.devisRetenu || {})[d.metier] === d.id) { const R2 = { ...m.devisRetenu }; delete R2[d.metier]; m.devisRetenu = R2; }
-    sauver(); afficher();
-  }
-  if (a === "devis-retenir" && m) { m.devisRetenu = { ...(m.devisRetenu || {}), [el.dataset.metier]: el.dataset.id }; sauver(); afficher(); }
   if (a === "onglet-m" && m) {
     ongletsM[m.id] = el.dataset.o; afficher();
     const t = document.querySelector(".onglets-m");
@@ -1327,8 +1250,6 @@ document.addEventListener("click", e => {
 
 document.addEventListener("change", e => {
   const t = e.target, m = maisonCourante();
-  /* je rénove : étape d'une partie des travaux */
-  if (t.dataset.etape && m) { m.etapes = { ...(m.etapes || {}), [t.dataset.etape]: t.value }; sauver(); afficher(); return; }
   /* version d'essai : réponses de l'avis */
   if (t.dataset.avis) { avis[t.dataset.avis] = t.value; try { localStorage.setItem(cle("valou_avis"), JSON.stringify(avis)); } catch (e) {} if (t.type === "radio") afficher(); return; }
   /* contacter : matériau souhaité et remarque pour l'artisan */

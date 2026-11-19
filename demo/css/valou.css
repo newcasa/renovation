@@ -804,36 +804,13 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .pc-nb { font: 800 12px Manrope, sans-serif; background: var(--or); color: #fff; border-radius: 999px; padding: 3px 9px; }
 .pc-choix:focus-visible { outline: 3px solid var(--or); outline-offset: 2px; }
 .maison.m-reno { border-left: 4px solid var(--or); }
-@media (max-width: 640px) { .parcours { grid-template-columns: 1fr; gap: 8px; } .pc-choix { padding: 12px 14px; } .pc-choix b { font-size: 16.5px; } }
-
-/* étapes des travaux */
-.et-tuiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 18px; }
-.et-tuile { border-radius: 12px; padding: 12px 14px; background: var(--carte); border: 1px solid var(--bord); display: grid; gap: 2px; }
-.et-tuile b { font: 800 20px Outfit, Manrope, sans-serif; color: var(--bordeaux); font-variant-numeric: tabular-nums; }
-.et-tuile.et-urgent { border-top: 4px solid #C8102E; } .et-tuile.et-annee { border-top: 4px solid var(--or); } .et-tuile.et-tard { border-top: 4px solid #1E9B3E; }
-.et-groupe { margin-top: 14px; }
-.et-groupe h3 { margin: 0 0 6px; font-size: 16px; }
-.et-ligne { display: grid; grid-template-columns: 1fr auto 170px; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--bord); }
-.et-ligne select { padding: 7px 8px; font-size: 14px; }
-.et-ligne .r { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* sur téléphone : deux onglets côte à côte */
 @media (max-width: 640px) {
-  .et-tuiles { grid-template-columns: 1fr 1fr 1fr; gap: 6px; } .et-tuile { padding: 9px 8px; } .et-tuile b { font-size: 16px; }
-  .et-ligne { grid-template-columns: 1fr auto; } .et-ligne select { grid-column: 1 / -1; }
+  .parcours { gap: 6px; padding: 4px; border-radius: 16px; background: rgba(255, 255, 255, .7); border: 1px solid var(--bord); }
+  .pc-choix { grid-template-columns: auto 1fr; gap: 8px; padding: 10px 10px; border-radius: 12px; border-width: 0; background: none; box-shadow: none; }
+  .pc-choix.on { box-shadow: none; }
+  .pc-choix small, .pc-nb { display: none; }
+  .pc-c-ico { font-size: 22px; }
+  .pc-choix b { font-size: 15px; }
 }
 
-/* devis reçus */
-.dv-resume { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--carte); border: 1px solid var(--bord); margin-bottom: 14px; }
-.dv-resume b { font: 800 20px Outfit, Manrope, sans-serif; color: var(--bordeaux); }
-.dv-metier { border-top: 1px solid var(--bord); padding: 12px 0; }
-.dv-tete { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-.dv-ligne { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; padding: 7px 10px; border-radius: 10px; }
-.dv-ligne.retenu { background: #E5F2E8; }
-.dv-ligne .r { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.dv-ajout { display: grid; grid-template-columns: 1fr 190px auto; gap: 8px; margin-top: 8px; }
-.dv-ajout input { padding: 8px 10px; font-size: 14px; }
-@media (max-width: 640px) {
-  .dv-ligne { grid-template-columns: 1fr auto; } .dv-ligne .badge { grid-column: 1; justify-self: start; } .dv-ligne .x { grid-column: 2; grid-row: 1; }
-  .dv-ligne .r { grid-column: 2; grid-row: 2; }
-  .dv-ajout { grid-template-columns: 1fr; }
-}
-.et-tuile b { white-space: nowrap; }
