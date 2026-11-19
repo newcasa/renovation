@@ -750,3 +750,26 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 @media (max-width: 700px) { .intro-pour { grid-template-columns: 1fr 1fr; } }
 
 @media print { html, body { background: #fff !important; } }
+.intro-fin { margin: 34px auto 0; max-width: 640px; font: 800 clamp(18px, 2.6vw, 22px)/1.4 Outfit, Manrope, sans-serif; color: var(--bordeaux); text-wrap: balance; }
+.intro-fin b { color: var(--or-fonce); font-weight: 900; }
+
+/* version d'essai pour les particuliers */
+.badge-essai { align-self: center; font: 800 11px Manrope, sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--or-fonce); background: var(--or-pale, #FDEBDC); border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+.essai-info { border-left: 4px solid var(--or); }
+.essai-info p { margin: 6px 0 10px; }
+.essai-etapes { list-style: none; counter-reset: e; padding: 0; margin: 0 auto 30px; max-width: 560px; display: grid; gap: 10px; text-align: left; }
+.essai-etapes li { counter-increment: e; display: grid; grid-template-columns: 36px 1fr; column-gap: 12px; align-items: center; background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 12px 14px; }
+.essai-etapes li::before { content: counter(e); grid-row: span 2; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bordeaux); color: #fff; font: 900 15px Outfit, sans-serif; }
+.essai-etapes b { color: var(--bordeaux); }
+.essai-etapes span { color: var(--mu); font-size: 14px; }
+.actions-g.centre { justify-content: center; }
+.avis { display: grid; gap: 18px; }
+.avis-q { display: grid; gap: 6px; font-weight: 700; border: 0; padding: 0; margin: 0; }
+.avis-q legend { margin-bottom: 6px; padding: 0; }
+.avis-q textarea { font: 400 15px Manrope, sans-serif; padding: 10px; }
+.avis-choix { display: flex; flex-wrap: wrap; gap: 8px; }
+.avis-choix label { display: inline-flex; gap: 6px; align-items: center; padding: 8px 12px; border: 1px solid var(--bord); border-radius: 999px; background: #fff; font-weight: 600; cursor: pointer; }
+.avis-choix label.on { border-color: var(--bordeaux); background: var(--bordeaux); color: #fff; }
+.avis-choix input { accent-color: var(--or); }
+.avis-choix label { flex-direction: row; white-space: nowrap; width: auto; }
+.avis-choix input { width: auto; margin: 0; }

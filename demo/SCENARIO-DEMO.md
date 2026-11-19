@@ -174,3 +174,35 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 
 **À dire :**
 > « Le particulier voit exactement ce que recevra chaque artisan, et il choisit lui-même 3 artisans par métier. Pas de démarchage : c'est lui qui décide. »
+
+---
+
+# Version d'essai pour les particuliers
+
+**Lien à envoyer :** `hoono.be/demo/#/essai` (ou `hoono.be/demo/#essai`).
+
+- Le testeur arrive sur un accueil « Bienvenue dans la version d'essai », en 3 étapes, avec le bouton « ＋ Ajouter ma maison ».
+- Il ne voit que ses propres maisons : pas de maisons de démonstration.
+- Le menu ne garde que Mes maisons, Comparer, Contacter et « 💬 Mon avis ». Les pages pour les professionnels (Professionnels, Notre moteur, Feuille de route) sont masquées.
+- Ses maisons restent sur son téléphone. L'envoi aux artisans et à la banque est simulé.
+- « 💬 Mon avis » : 6 questions courtes, puis « Envoyer mon avis » ouvre le partage du téléphone (message, WhatsApp, e-mail). Le testeur vous l'envoie lui-même.
+- Pour revenir à la démo complète sur le même téléphone : `hoono.be/demo/#/demo` (sans remise à zéro) ou `hoono.be/demo/#/presentation` (avec remise à zéro). Les démos guidées `#/demo-artisan` et `#/demo-negociant` quittent aussi la version d'essai.
+
+---
+
+# Les 4 versions (une tuile chacune sur l'écran d'accueil)
+
+Chaque version a sa propre adresse, sa tuile, son accueil et **ses propres données** : ce que vous faites dans l'une ne change rien dans les autres.
+
+| Tuile | Pour qui | Adresse | S'ouvre sur |
+|---|---|---|---|
+| **Valou** (marine) | Investisseurs, présentation complète | `hoono.be/demo/` | L'intro, puis Mes maisons |
+| **Artisans** (orange) | Artisans | `hoono.be/demo/artisan/` | « Des chantiers déjà chiffrés », puis la démo guidée artisan |
+| **Négociants** (sable) | Négociants | `hoono.be/demo/negociant/` | « Soyez vu sur les chantiers », puis la démo guidée négociant |
+| **Particuliers** (blanche) | Particuliers en essai | `hoono.be/demo/particulier/` | L'accueil de la version d'essai |
+
+**Installer les 4 tuiles sur le téléphone :** ouvrir chaque adresse dans Safari (iPhone) ou Chrome (Android), puis « Sur l'écran d'accueil » / « Ajouter à l'écran d'accueil ». Recommencer pour chaque adresse.
+
+**Avant un rendez-vous :** dans la tuile concernée, ouvrir `#/presentation` à la fin de l'adresse (par exemple `hoono.be/demo/artisan/#/presentation`) remet à zéro **cette version seulement**.
+
+Le lien à envoyer aux testeurs particuliers est `hoono.be/demo/particulier/`.

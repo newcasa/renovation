@@ -2,6 +2,7 @@
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
 import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js";
+import { RACINE, img } from "./chemins.js";
 import { euros, euros2, nombre, esc } from "./format.js";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
@@ -199,11 +200,11 @@ export function ecranPro(ctx, onglet, metier) {
         </div></section>
         <section><h2 class="petit-titre">Aperçu de l'annonce</h2>
           <article class="carte annonce seule">
-            <div class="a-photo"><img src="../photo-par-defaut.jpg" alt=""><span class="badge b-exemple">Exemple</span></div>
+            <div class="a-photo"><img src="${RACINE}photo-par-defaut.jpg" alt=""><span class="badge b-exemple">Exemple</span></div>
             <div class="a-corps"><h3>${esc(A.titre || "Titre de l'annonce")}</h3>
               ${A.prix ? `<div class="a-prix">${euros(+A.prix)}</div>` : ""}
               ${A.texte ? `<p class="a-texte">${esc(A.texte)}</p>` : `<p class="mu">Votre texte apparaîtra ici.</p>`}
-              ${A.valou && x ? `<div class="a-valou"><img src="img/favicon-valou-48.png" alt=""><div><small>Estimation Valou des travaux (${esc(x.m.nom)})</small><b>${euros(x.b.T[0], 1000)} – ${euros(x.b.T[2], 1000)}</b></div></div>` : ""}
+              ${A.valou && x ? `<div class="a-valou"><img src="${img("favicon-valou-48.png")}" alt=""><div><small>Estimation Valou des travaux (${esc(x.m.nom)})</small><b>${euros(x.b.T[0], 1000)} – ${euros(x.b.T[2], 1000)}</b></div></div>` : ""}
             </div>
           </article></section>
       </div>`;

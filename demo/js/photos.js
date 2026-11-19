@@ -1,8 +1,9 @@
 /* Valou — photos de la visite, rangées par pièce.
    Les photos restent sur l'appareil (IndexedDB), réduites à 1600 px pour prendre peu de place.
    Une photo garde le NOM de la pièce choisi au moment de la prise : elle s'associe ensuite à la pièce du même nom. */
+import { cle } from "./chemins.js";
 
-const DB = "valou_demo_photos", STORE = "photos";
+const DB = cle("valou_demo_photos"), STORE = "photos";
 let ouverture = null;
 function base() {
   if (!ouverture) ouverture = new Promise((ok, ko) => {
