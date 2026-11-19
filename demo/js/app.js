@@ -172,61 +172,6 @@ function chargerDemo() {
 
 const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite${n ? ` (${n})` : ""}</a>`; };
 
-/* ---------- les travaux : menu à gauche (rénovations générales, pièces), panneau à droite ---------- */
-let atelierSel = { maisonId: null, sel: null };
-const ICONES_GROUPE = { "Chauffage": "🔥", "Menuiseries": "🪟", "Électricité": "💡", "Sanitaire et chauffage": "🚿", "Gros œuvre": "🧱", "Isolation": "🧤", "Toiture": "🏠", "Extérieurs": "🌳", "Escalier": "🪜", "Cuisine et salle de bain": "🛁", "Finitions intérieures": "🎨" };
-function atelier(m, b, o) {
-  const groupes = ["Chauffage", ...[...new Set(o.fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y))];
-  const totalGroupe = g => g === "Chauffage" ? b.lignes.filter(l => l.src === "chauffage").reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0)
-    : o.fixes.filter(p => groupe(p) === g).reduce((s, p) => { const l = o.ligneDe(p.k); return s + (l && l.fiab ? l.total[1] : 0); }, 0);
-  const totalPiece = pc => b.lignes.filter(l => l.pieceId === pc.id).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
-  if (atelierSel.maisonId !== m.id || !atelierSel.sel || (atelierSel.sel.startsWith("p:") && !(m.pieces || []).some(pc => "p:" + pc.id === atelierSel.sel))) {
-    atelierSel = { maisonId: m.id, sel: (m.pieces || []).length ? "p:" + m.pieces[0].id : "g:Chauffage" };
-  }
-  const sel = atelierSel.sel;
-  const item = (cle, ico, nom, t, style = "") => `<button class="at-item ${sel === cle ? "on" : ""}" data-action="atelier" data-sel="${esc(cle)}" ${style ? `style="${style}"` : ""}>
-      <span class="at-ico">${ico}</span><span class="at-nom">${esc(nom)}</span>${t ? `<small class="at-tot">${euros(t, 10)}</small>` : ""}<span class="at-chev">›</span></button>`;
-  const menu = `<aside class="at-menu">
-    <div class="at-titre">Rénovations générales</div>
-    ${groupes.map(g => item("g:" + g, ICONES_GROUPE[g] || "•", g, totalGroupe(g))).join("")}
-    <div class="at-titre">Pièces <a href="#/maison/${m.id}/photos" class="at-lien">📷 Photos de la visite${photosDe(m).length ? ` (${photosDe(m).length})` : ""}</a></div>
-    ${(m.pieces || []).map(pc => item("p:" + pc.id, iconePiece(pc), pc.nom, totalPiece(pc), stylePiece(m, pc))).join("") || `<p class="mu petit-t at-vide">Aucune pièce pour l'instant.</p>`}
-    <div class="at-ajout">
-      <input id="np-nom" placeholder="Nouvelle pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
-      <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
-      <button class="btn sec petit-btn" data-action="ajout-piece">＋ Ajouter une pièce</button>
-    </div>
-  </aside>`;
-  let panneau = "";
-  if (sel.startsWith("p:")) {
-    const pc = m.pieces.find(x => "p:" + x.id === sel);
-    panneau = `<div class="at-tete" style="${stylePiece(m, pc)}"><span class="at-ico grand">${iconePiece(pc)}</span><div><h2>${esc(pc.nom)}</h2><small class="mu">Budget de la pièce : <b>${euros(totalPiece(pc), 10)}</b></small></div>
-      <button class="btn lien petit-btn" data-action="suppr-piece" data-id="${pc.id}">Supprimer la pièce</button></div>
-      <div class="at-piece" style="${stylePiece(m, pc)}">${corpsPiece(m, pc)}</div>`;
-  } else {
-    const g = sel.slice(2);
-    const tete = `<div class="at-tete"><span class="at-ico grand">${ICONES_GROUPE[g] || "•"}</span><div><h2>${esc(g)}</h2>${totalGroupe(g) ? `<small class="mu">Total : <b>${euros(totalGroupe(g), 10)}</b></small>` : `<small class="mu">Remplissez la quantité des postes à prévoir.</small>`}</div></div>`;
-    if (g === "Chauffage") {
-      panneau = tete + `<div class="at-corps">${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
-        ${o.chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
-        ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="at-ligne"><span class="at-n">${esc(R.postes[l.k].n)}${l.q > 1 ? ` × ${nombre(l.q)}` : ""}</span><span></span><span></span><b class="at-p">${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
-        ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${o.chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}</div>`;
-    } else {
-      panneau = tete + `<div class="at-liste">${o.fixes.filter(p => groupe(p) === g).map(p => { const l = o.ligneDe(p.k); return `<div class="at-ligne ${l ? "rempli" : ""}">
-        <span class="at-n">${esc(p.n)}</span>
-        <span class="at-q">${/escalier/.test(p.u)
-          ? `<input type="number" min="0" step="1" inputmode="numeric" data-mmarches="${p.k}" value="${esc(l ? (l.marches ?? l.q * MARCHES_PAR_ESCALIER) : "")}" placeholder="0" aria-label="Nombre de marches : ${esc(p.n)}"><small>marches</small>`
-          : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>`}</span>
-        <label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label>
-        <b class="at-p">${l && l.fiab ? euros(l.total[1], 10) : ""}</b></div>`; }).join("")}
-        ${g === "Escalier" ? `<p class="mu petit-t">${MARCHES_PAR_ESCALIER} marches = 1 escalier.</p>` : ""}</div>`;
-    }
-  }
-  return `<section class="carte atelier-bloc"><h2>Les travaux</h2>
-    <p class="mu">Choisissez une rénovation générale ou une pièce dans le menu, puis remplissez les postes. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
-    <div class="atelier">${menu}<div class="at-panneau" id="at-panneau">${panneau}</div></div></section>`;
-}
-
 /* ---------- envoyer le projet aux artisans (démonstration) ---------- */
 function panneauEnvoi(m, b) {
   const metiers = METIERS.filter(x => x.id !== "general" && b.postes.some(p => x.f(p.k) && p.QL > 0));
@@ -378,7 +323,31 @@ function ecranMaison(m) {
       </div>
     </div>
 
-    ${atelier(m, b, { horsPieces, ligneDe, fixes, chf })}
+    <section class="carte">
+      <h2>Les pièces</h2>
+      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
+      <p>${boutonPhotosMaison(m)}</p>
+      <div class="grille-pieces">${cartesPieces}</div>
+      <div class="ajout-piece">
+        <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
+        <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
+        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
+      </div>
+    </section>
+
+    <section class="carte">
+      <h2>Le chauffage</h2>
+      ${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
+      ${chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
+      ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
+      ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
+    </section>
+
+    <section class="carte">
+      <h2>Structure, toiture et équipements</h2>
+      <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
+      ${grpFixes}
+    </section>
 
     <div class="fin-page">
         ${aides()}
@@ -1104,10 +1073,6 @@ document.addEventListener("click", e => {
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
   if (a === "imprimer") window.print();
-  if (a === "atelier" && m) {
-    atelierSel = { maisonId: m.id, sel: el.dataset.sel }; afficher();
-    if (window.innerWidth < 800) document.getElementById("at-panneau")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
   if (a === "envoi-ouvrir" && m) { envoiOuvert = m.id; afficher(); }
   if (a === "ct-ouvrir" && m) { const c = m.id + ":" + el.dataset.metier; ctOuvert[c] = ctOuvert[c] === el.dataset.v ? null : el.dataset.v; afficher(); }
   if (a === "envoi-metier" && m) {
@@ -1164,8 +1129,7 @@ document.addEventListener("click", e => {
     m.pieces.push(pc);
     appliquerChauffage(m);
     sauver();
-    if (/\/piece\//.test(location.hash) || !/^#\/maison\/\w+$/.test(location.hash)) location.hash = `#/maison/${m.id}/piece/${pc.id}`;
-    else { atelierSel = { maisonId: m.id, sel: "p:" + pc.id }; afficher(); }
+    location.hash = `#/maison/${m.id}/piece/${pc.id}`;
   }
   if (a === "suppr-piece" && m && confirm("Supprimer cette pièce et ses travaux ?")) {
     m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; }); // chaque pièce garde sa couleur
@@ -1282,8 +1246,7 @@ document.addEventListener("change", e => {
     const l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === t.dataset.mme);
     if (l) l.soiMeme = t.checked;
   } else if (t.dataset.pc || t.dataset.pcwi) {
-    const mp = location.hash.match(/\/piece\/(\w+)/), pid = mp ? mp[1] : atelierSel.maisonId === m.id && atelierSel.sel && atelierSel.sel.startsWith("p:") ? atelierSel.sel.slice(2) : null;
-    const pc = pid && (m.pieces || []).find(x => x.id === pid);
+    const mp = location.hash.match(/\/piece\/(\w+)/), pc = mp && (m.pieces || []).find(x => x.id === mp[1]);
     if (!pc) return;
     if (t.dataset.pcwi) { const w = new Set(pc.wi || []); t.checked ? w.add(t.dataset.pcwi) : w.delete(t.dataset.pcwi); pc.wi = [...w]; }
     else { const f = t.dataset.pc; pc[f] = t.type === "checkbox" ? t.checked : t.type === "number" ? (t.value === "" ? null : +t.value) : t.value; }

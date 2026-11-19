@@ -301,7 +301,7 @@ try {
     /* une pièce : on l'ajoute, on l'ouvre, on remplit les postes imposés */
     await page.fill("#np-nom", "Chambre test");
     await page.getByText("＋ Ajouter une pièce").click();
-    await page.locator('.at-tete:has-text("Chambre test")').waitFor();
+    await page.locator(".titre-piece").waitFor();
     await page.fill('[data-pc="sol"]', "12");
     await page.locator('[data-pc="sol"]').dispatchEvent("change");
     assert.equal(await page.getAttribute('[data-pc="murs"]', "placeholder"), "32,4");
@@ -310,19 +310,20 @@ try {
     await page.check('[data-pc="chOn"]');
     await page.fill('[data-pc="chN"]', "2");
     await page.locator('[data-pc="chN"]').dispatchEvent("change");
-    assert.match(await page.locator(".at-tete").innerText(), /Budget de la pièce : [1-9]/);
+    assert.match(await page.locator(".titre-piece").innerText(), /Budget de la pièce : [1-9]/);
     await page.screenshot({ path: `${OUT}/${nom}-3b-piece.png`, fullPage: nom === "ordi" });
-    assert.match(await page.locator('.at-item.on').innerText(), /Chambre test[\s\S]*€/);
-    /* rénovations générales : liste fixe, on remplit une quantité */
-    await page.locator('.at-item:has-text("Menuiseries")').click();
-    await page.locator('[data-mq="i_pi"]').waitFor();
+    await page.getByText("✓ Pièce terminée").click();
+    await page.locator(".carte-piece").first().waitFor();
+    assert.match(await page.locator(".carte-piece").first().innerText(), /Murs · Plafond · 2 châssis/);
+    /* structure, toiture et équipements : liste fixe, on remplit une quantité */
+    await page.locator('details:has([data-mq="i_pi"]) > summary').click();
     await page.fill('[data-mq="i_pi"]', "4");
     await page.locator('[data-mq="i_pi"]').dispatchEvent("change");
     /* escalier : 16 marches = 1 escalier */
-    await page.locator('.at-item:has-text("Escalier")').click();
+    await page.locator('details:has([data-mmarches="i_es_1"]) > summary').click();
     await page.fill('[data-mmarches="i_es_1"]', "16");
     await page.locator('[data-mmarches="i_es_1"]').dispatchEvent("change");
-    assert.match(await page.locator('.at-ligne:has([data-mmarches="i_es_1"])').innerText(), /€/);
+    assert.match(await page.locator('tr:has([data-mmarches="i_es_1"])').innerText(), /€/);
     await page.locator(".vrai-cout .gros").waitFor();
     assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), apres);
 

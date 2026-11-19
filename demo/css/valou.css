@@ -631,47 +631,6 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 .ct-coord { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-top: 6px; font-size: 14px; }
 @media (max-width: 700px) { .contact-ligne { grid-template-columns: 1fr auto; } .ct-etat { grid-column: 1 / -1; } }
 
-/* les travaux : menu à gauche, panneau à droite (inspiré d'une liste claire, ligne par ligne) */
-.atelier { display: grid; grid-template-columns: 290px 1fr; gap: 18px; align-items: start; }
-.at-menu { background: #fff; border: 1px solid var(--bord); border-radius: 14px; overflow: hidden; }
-.at-titre { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; background: #E9EEF5; font: 800 13.5px Manrope, sans-serif; color: var(--bordeaux); }
-.at-lien { font-size: 12px; font-weight: 700; }
-.at-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; border: 0; border-top: 1px solid var(--bord); background: #fff; text-align: left; cursor: pointer; font: 700 14.5px Manrope, sans-serif; color: var(--bordeaux); border-left: 4px solid var(--pc-acc, transparent); }
-.at-item:hover { background: var(--carte); }
-.at-item.on { background: var(--pc-fond, #FDEBDC); }
-.at-ico { font-size: 20px; width: 26px; text-align: center; flex: none; }
-.at-ico.grand { font-size: 30px; width: 40px; }
-.at-nom { flex: 1; }
-.at-tot { color: var(--mu); font-weight: 700; font-variant-numeric: tabular-nums; }
-.at-chev { color: var(--or-fonce); font-weight: 900; font-size: 18px; }
-.at-vide { padding: 8px 14px; margin: 0; }
-.at-ajout { display: grid; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--bord); }
-.at-ajout input, .at-ajout select { padding: 8px 10px; font-size: 14px; }
-.at-panneau { background: #fff; border: 1px solid var(--bord); border-radius: 14px; overflow: hidden; min-width: 0; }
-.at-tete { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--pc-fond, #E9EEF5); border-bottom: 1px solid var(--bord); }
-.at-tete h2 { margin: 0; font-size: 20px; }
-.at-tete > div { flex: 1; }
-.at-corps { padding: 14px 18px; }
-.at-liste { padding: 0 18px 8px; }
-.at-ligne { display: grid; grid-template-columns: 1fr auto auto 90px; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--bord); font-size: 14.5px; }
-.at-ligne:last-child { border-bottom: 0; }
-.at-ligne.rempli .at-n { font-weight: 700; }
-.at-q { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.at-q input { width: 86px; padding: 7px 9px; font-size: 14px; }
-.at-p { text-align: right; font-variant-numeric: tabular-nums; }
-.at-piece { padding: 6px 18px 12px; }
-.at-piece .carte { box-shadow: none; border: 0; border-bottom: 1px solid var(--bord); border-radius: 0; padding: 14px 0; margin: 0; }
-.at-piece .rubrique { border-left: 0; }
-.at-piece .rubrique .rb-ico { background: var(--pc-fond); }
-.at-piece .cb input { accent-color: var(--pc-acc); }
-@media (max-width: 800px) {
-  .atelier { grid-template-columns: 1fr; }
-  .at-ligne { grid-template-columns: 1fr auto; }
-  .at-ligne .mm { grid-column: 1; }
-  .at-ligne .at-p { grid-column: 2; }
-}
-.at-panneau { scroll-margin-top: 70px; }
-
 /* contacter : projet par métier et choix des artisans */
 
 .contact-ligne { grid-template-columns: 1.4fr auto 1fr auto; }
