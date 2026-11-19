@@ -1242,7 +1242,13 @@ document.addEventListener("click", e => {
   const el = e.target.closest("[data-action]");
   if (!el) return;
   const a = el.dataset.action, m = maisonCourante();
-  if (a === "imprimer") window.print();
+  if (a === "imprimer") {
+    /* le questionnaire s'imprime en A4 à l'horizontale, sans réduction (le dossier pour la banque reste en portrait) */
+    let st = null;
+    if (document.querySelector(".questionnaire")) { st = document.createElement("style"); st.textContent = "@page { size: A4 landscape; margin: 8mm; }"; document.head.appendChild(st); }
+    window.print();
+    if (st) setTimeout(() => st.remove(), 1000);
+  }
   if (a === "envoi-ouvrir" && m) { envoiOuvert = m.id; afficher(); }
   if (a === "ct-ouvrir" && m) { const c = m.id + ":" + el.dataset.metier; ctOuvert[c] = ctOuvert[c] === el.dataset.v ? null : el.dataset.v; afficher(); }
   if (a === "envoi-metier" && m) {

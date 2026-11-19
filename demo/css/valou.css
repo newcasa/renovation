@@ -887,3 +887,5 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 }
 .q-une .q-wc small { font-size: 8px; } .q-une .q-wc .q-carre { width: 11px; height: 11px; }
 .q-escalier-u { white-space: nowrap; }
+.q-une .q-er { text-align: left; vertical-align: top; padding: 1px 3px; }
+.q-une .q-er small { font-size: 8px; color: #777; }

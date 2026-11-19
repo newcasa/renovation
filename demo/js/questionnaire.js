@@ -2,7 +2,7 @@
    Mêmes rubriques que l'appli : la maison, le chauffage, les pièces (postes imposés), structure / toiture / équipements.
    maisonDepuisQuestionnaire() transforme les réponses (lues sur la photo) en maison Valou. */
 import { TYPES_PIECE, PLAFONDS, WC, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE } from "./moteur.js";
-import { img } from "./chemins.js";
+import { img, DEMO_DIR } from "./chemins.js";
 import { esc } from "./format.js";
 
 /* pièces pré-imprimées : celles qui peuvent composer une grande maison (+ 2 lignes libres) */
@@ -35,9 +35,11 @@ export const PIECES_FEUILLE = [
 
 export function ecranQuestionnaire(ctx) {
   const { entete } = ctx;
+  const pdf = DEMO_DIR + "questionnaire-visite.pdf"; // feuille A4 prête à imprimer (même mise en page, régénérée par demo/tests/pdf-questionnaire.mjs)
   const na = `<td class="q-na"></td>`;
   const lignes = PIECES_FEUILLE.map(([nom, type]) => {
-    const eq = type === "cuisine" ? `<td class="q-c">${carre}<small>cuisine</small></td>` : type === "sdb" ? `<td class="q-c">${carre}<small>SDB</small></td>` : type === "wc" ? `<td class="q-c q-wc">${carre}<small>susp.</small> ${carre}<small>class.</small></td>` : na;
+    /* équipement : on écrit E (équipé, à garder) ou R (à remplacer) ; seulement cuisine, salle de bain et WC */
+    const eq = ["cuisine", "sdb", "wc"].includes(type) ? `<td class="q-er"><small>${type === "cuisine" ? "cuisine" : type === "sdb" ? "SDB" : "WC"}</small></td>` : na;
     return `<tr><th>${esc(nom)}${nom === "Autre :" ? " <span class=\"q-trait\"></span>" : ""}</th>
       <td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>
       <td class="q-c">${carre}</td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>
@@ -63,7 +65,7 @@ export function ecranQuestionnaire(ctx) {
     <div class="q-corps">
       <table class="q-table">
         <thead>
-          <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th colspan="2">Sol à refaire</th><th colspan="3">Murs (à refaire)</th><th colspan="2">Plafond</th><th colspan="3">Châssis à remplacer</th><th colspan="2">Chauffage</th><th rowspan="2">Équipé /<br>à remplacer</th><th rowspan="2">Remarques</th></tr>
+          <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th colspan="2">Sol à refaire</th><th colspan="3">Murs (à refaire)</th><th colspan="2">Plafond</th><th colspan="3">Châssis à remplacer</th><th colspan="2">Chauffage</th><th rowspan="2">Équipé (E) /<br>à remplacer (R)</th><th rowspan="2">Remarques</th></tr>
           <tr class="q-sous"><th>Carre&shy;lage</th><th>Par&shy;quet</th><th>Plafon&shy;nage</th><th>Pein&shy;ture</th><th>Carre&shy;lage</th><th>Pein&shy;ture</th><th>Pla&shy;ques</th><th>Nom&shy;bre</th><th>PVC</th><th>Alu</th><th>Radia&shy;teurs</th><th>Au sol</th></tr>
         </thead>
         <tbody>${lignes}</tbody>
@@ -75,12 +77,12 @@ export function ecranQuestionnaire(ctx) {
         <div class="q-poste"><span>Autre : ……………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
       </aside>
     </div>
-    <div class="q-pied"><b>Notes</b><span class="q-petit">Garage : nombre de portes dans « Châssis : nombre ». WC : « susp. » (suspendu) ou « class. » (sur pied). Pièce non imprimée (salle à manger, véranda, cave…) : une ligne « Autre ». Après la visite : une photo de la feuille, bien à plat, avec de la lumière.</span></div>
+    <div class="q-pied"><b>Notes</b><span class="q-petit">Équipé / à remplacer : écrivez E (équipé, à garder) ou R (à remplacer). WC à remplacer : suspendu par défaut, écrivez « sur pied » dans Remarques si besoin. Garage : nombre de portes dans « Châssis : nombre ». Pièce non imprimée (salle à manger, véranda, cave…) : une ligne « Autre ». Après la visite : une photo de la feuille, bien à plat, avec de la lumière.</span></div>
   </article>`;
   return `${entete("")}
   <main class="questionnaire">
-    <div class="no-print barre-outils"><a href="#/" class="retour">← Mes maisons</a><button class="btn" data-action="imprimer">Télécharger / imprimer (PDF)</button></div>
-    <p class="no-print mu q-intro">Une seule page A4 à l'horizontale, à imprimer avant la visite et à remplir à la main.</p>
+    <div class="no-print barre-outils"><a href="#/" class="retour">← Mes maisons</a><span class="actions-g"><a class="btn" href="${pdf}" download="Valou-questionnaire-de-visite.pdf">📄 Télécharger le PDF (A4)</a><button class="btn sec" data-action="imprimer">🖨️ Imprimer</button></span></div>
+    <p class="no-print mu q-intro">Une seule page A4 à l'horizontale, à imprimer avant la visite et à remplir à la main. Depuis un téléphone, prenez le PDF : il sort toujours au bon format.</p>
     ${page}
   </main>`;
 }
