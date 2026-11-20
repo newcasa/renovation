@@ -228,14 +228,33 @@ function blocCourtier(m, cO) {
     <p class="mu petit-t">Démonstration : aucun envoi réel. <a href="#/dossier/${m.id}">Voir mon dossier pour la banque</a>.</p>
   </section>`;
 }
+/* ---------- travaux inclus ou non dans la demande de prêt (par groupe ; imprévus et TVA au prorata) ---------- */
+function travauxPret(m, b, travauxMoy) {
+  const H = new Set((m.fin || {}).horsPret || []), G = {};
+  let tous = 0, ex = 0;
+  b.postes.forEach(p => { const g = groupe(p); G[g] = (G[g] || 0) + p.total[1]; tous += p.total[1]; if (H.has(g)) ex += p.total[1]; });
+  const groupes = GROUPES.filter(g => G[g]).map(g => ({ g, v: tous ? Math.round(travauxMoy * G[g] / tous) : 0, inclus: !H.has(g) }));
+  return { groupes, hors: tous ? Math.round(travauxMoy * ex / tous) : 0 };
+}
+function blocTravauxPret(m, tp) {
+  if (!tp.groupes.length) return "";
+  const n = tp.groupes.filter(x => x.inclus).length;
+  return `<details class="pret-trav" data-ouvert="pret-${m.id}" ${ouverts.has("pret-" + m.id) ? "open" : ""}>
+    <summary><span>Travaux inclus dans le prêt <small class="mu">(${n} sur ${tp.groupes.length})</small></span>${tp.hors ? `<b>− ${euros(tp.hors, 100)}</b>` : ""}</summary>
+    <p class="mu petit-t">Décochez les travaux que vous payez vous-même (épargne, plus tard…) : ils sortent du montant à emprunter.</p>
+    ${tp.groupes.map(x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.g)}" ${x.inclus ? "checked" : ""}><span>${esc(x.g)}</span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`).join("")}
+  </details>`;
+}
 function blocFinancerRenovation(m, b, c) {
-  const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
+  const tp = travauxPret(m, b, c.travaux[1]);
+  const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - tp.hors - apport), mens = mensualite(emprunt, f.taux, f.duree);
   const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
   return `<div class="fin-page">
     <section class="carte">
       <h2>Simulation de financement</h2>
       <div class="champs">
         <div class="ligne"><span>Budget de la rénovation (moyen)</span><b>${euros(c.total[1], 100)}</b></div>
+        ${blocTravauxPret(m, tp)}
         ${ch("apport", "Épargne que vous y mettez", "€", "ex. 10000")}
         <div class="ligne"><span>Montant à emprunter (prêt travaux)</span><b>${euros(emprunt, 100)}</b></div>
         ${ch("taux", "Taux annuel du prêt (si vous l'avez)", "%", "taux de la banque")}
@@ -483,14 +502,16 @@ function ecranMaison(m) {
         </section>
         ${(() => {
           /* le financement : mêmes valeurs que le dossier pour la banque */
-          const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, cO.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
+          const tp = travauxPret(m, b, cO.travaux[1]);
+          const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, cO.total[1] - tp.hors - apport), mens = mensualite(emprunt, f.taux, f.duree);
           const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
           return `<section class="carte">
           <h2>Simulation de financement</h2>
           <div class="champs">
+            ${blocTravauxPret(m, tp)}
             ${ch("apport", "Apport personnel", "€", "ex. 40000")}
             <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
-            <small class="mu">Coût total ${m.offre ? "avec votre offre" : "au prix demandé"} ${euros(cO.total[1], 100)} − apport${apport ? "" : " (à compléter)"}.</small>
+            <small class="mu">Coût total ${m.offre ? "avec votre offre" : "au prix demandé"} ${euros(cO.total[1], 100)}${tp.hors ? ` − travaux hors prêt ${euros(tp.hors, 100)}` : ""} − apport${apport ? "" : " (à compléter)"}.</small>
             ${ch("taux", "Taux annuel du crédit (si vous l'avez)", "%", "taux de la banque")}
             ${ch("duree", "Durée du crédit", "ans", "ex. 25")}
             ${mens ? `<div class="ligne"><span>Mensualité estimée (hors assurance)</span><b>${euros(mens)} / mois</b></div>` : ""}
@@ -819,7 +840,8 @@ function ecranDossier(m) {
   /* les devis retenus remplacent les estimations correspondantes */
   const dv = devisRetenus(m, b);
   const c = dv.L.length ? { ...c0, travaux: dv.T, total: c0.total.map((t, i) => t - c0.travaux[i] + dv.T[i]) } : c0;
-  const apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport);
+  const tp = travauxPret(m, b, c.travaux[1]);
+  const apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - tp.hors - apport);
   const mens = mensualite(emprunt, f.taux, f.duree);
   const champ = (k, t, suffixe, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suffixe}</i></span><b class="imprime">${f[k] != null && f[k] !== "" ? (suffixe === "€" ? euros(+f[k]) : esc(String(f[k]).replace(".", ",")) + " " + suffixe) : "à compléter"}</b></label>`;
   const parG = {};
@@ -864,7 +886,10 @@ function ecranDossier(m) {
         ${champ("taux", "Taux annuel du crédit", "%", "taux proposé par la banque")}
         ${champ("duree", "Durée du crédit", "ans", "ex. 25")}
       </div>
+      <div class="no-print">${blocTravauxPret(m, tp)}</div>
       <table class="f-table">
+        ${tp.hors ? `<tr><td>Coût total du projet</td><td class="r">${euros(c.total[1], 100)}</td></tr><tr class="sous"><td>Travaux payés hors prêt : ${esc(tp.groupes.filter(x => !x.inclus).map(x => x.g).join(", "))}</td><td class="r">− ${euros(tp.hors, 100)}</td></tr>` : ""}
+        ${apport ? `<tr class="sous"><td>Apport personnel</td><td class="r">− ${euros(apport)}</td></tr>` : ""}
         <tr><td>Montant à emprunter</td><td class="r">${euros(emprunt, 100)}</td></tr>
         <tr class="tot"><td>Mensualité estimée (hors assurance)</td><td class="r">${mens ? euros(mens) + " / mois" : `<span class="manque">indiquez le taux et la durée</span>`}</td></tr>
       </table>
@@ -1702,6 +1727,16 @@ document.addEventListener("change", e => {
   if (t.dataset.comp) {
     const id = t.dataset.comp;
     selection = t.checked ? [...selection.filter(x => x !== id), id].slice(-3) : selection.filter(x => x !== id);
+    afficher();
+    return;
+  }
+  /* travaux inclus ou non dans le prêt */
+  if (t.dataset.pret != null && m) {
+    const H = new Set((m.fin || {}).horsPret || []);
+    t.checked ? H.delete(t.dataset.pret) : H.add(t.dataset.pret);
+    m.fin = { ...(m.fin || {}), horsPret: [...H] };
+    ouverts.add("pret-" + m.id);
+    sauver();
     afficher();
     return;
   }

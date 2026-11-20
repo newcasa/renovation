@@ -63,6 +63,15 @@ try {
     await page.locator('[data-f="offre"]').dispatchEvent("change");
     await page.locator(".sim-ecart").waitFor({ state: "detached" });
     assert.equal(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
+    /* travaux à inclure ou non dans la demande de prêt */
+    const emp = () => page.locator('.ligne:has-text("Montant à emprunter") b').first().innerText();
+    const empAvant = await emp();
+    await page.locator(".pret-trav > summary").click();
+    await page.locator("[data-pret]").first().uncheck();
+    assert.notEqual(await emp(), empAvant);
+    assert.match(await page.locator(".pret-trav > summary").innerText(), /sur[\s\S]*− /);
+    await page.locator("[data-pret]").first().check();
+    assert.equal(await emp(), empAvant);
     /* Les pros : contacter un courtier */
     await onglet("artisans");
     await page.locator('[data-action="courtier-envoyer"]').first().click();

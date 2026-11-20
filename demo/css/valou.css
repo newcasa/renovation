@@ -989,3 +989,16 @@ label.dd-ligne { justify-content: flex-start; }
 .sim-cmp tr.sim-tot b { font: 900 18px Outfit, Manrope, sans-serif; }
 .sim-cmp tr.sim-tot td:nth-child(3) b { color: var(--or-fonce, #b35a00); }
 @media (max-width: 400px) { .sim-cmp { font-size: 14px; } .sim-cmp th, .sim-cmp td { padding: 6px 3px; } .sim-cmp tr.sim-tot b { font-size: 16px; } }
+
+/* travaux inclus dans le prêt */
+.pret-trav { border: 1px solid var(--bord); border-radius: 12px; padding: 4px 12px; margin: 6px 0 10px; background: #fff; }
+.pret-trav > summary { display: flex; justify-content: space-between; gap: 10px; align-items: center; cursor: pointer; padding: 8px 0; font-weight: 700; list-style: none; }
+.pret-trav > summary::-webkit-details-marker { display: none; }
+.pret-trav > summary::before { content: "›"; color: var(--or); font-weight: 900; margin-right: 6px; transition: transform .15s; }
+.pret-trav[open] > summary::before { transform: rotate(90deg); }
+.pret-trav > summary > span { flex: 1; }
+.pret-trav > summary > b { color: var(--or-fonce); white-space: nowrap; }
+.pret-trav .pt-l { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--bord); margin: 0; }
+.pret-trav .pt-l span { flex: 1; }
+.pret-trav .pt-l b { white-space: nowrap; }
+.pret-trav .pt-hors { text-decoration: line-through; color: var(--mu); font-weight: 600; }
