@@ -40,11 +40,44 @@ try {
 
     /* la maison de démonstration est déjà là à la première visite */
     await page.getByText("Maison de démonstration").first().click();
-    await page.locator(".vrai-cout .gros").waitFor();
+    await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor();
     /* PEB : maison A classée G → obligation annoncée et travaux énergétiques chiffrés */
     assert.match(await page.locator(".energie").innerText(), /PEB G[\s\S]*Obligation de rénovation annoncée[\s\S]*label D[\s\S]*Total des travaux énergétiques/);
     await page.screenshot({ path: `${OUT}/${nom}-0-demo.png` });
     await page.screenshot({ path: `${OUT}/${nom}-0-demo-complet.png`, fullPage: nom === "ordi" });
+
+    /* Projet : simuler une offre → le total (prix + enregistrement + notaire + travaux) suit l'offre */
+    const auPrix = await page.locator(".sim-tot td:last-child b").innerText();
+    await page.fill('[data-f="offre"]', "200000");
+    await page.locator('[data-f="offre"]').dispatchEvent("change");
+    await page.locator(".sim-ecart").waitFor();
+    assert.match(await page.locator(".sim-ecart").innerText(), /de moins/);
+    assert.notEqual(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
+    assert.match(await page.locator(".sim-cmp thead").innerText(), /Prix demandé[\s\S]*Votre offre/i); // prix initial à côté de l'offre
+    assert.match(await page.locator(".sim-cmp tbody tr").first().innerText(), /245\s?000 €[\s\S]*200\s?000 €/);
+    assert.equal(await page.locator("text=Comparer avec mes autres maisons").count(), 0);
+    assert.match(await page.locator(".sim-recap").innerText(), /Offre[\s\S]*200\s?000 €[\s\S]*Droits[\s\S]*Notaire[\s\S]*Travaux/i);
+    await page.locator(".sim-recap").scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${OUT}/${nom}-0e-offre.png` });
+    await page.fill('[data-f="offre"]', "");
+    await page.locator('[data-f="offre"]').dispatchEvent("change");
+    await page.locator(".sim-ecart").waitFor({ state: "detached" });
+    assert.equal(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
+    /* Les pros : contacter un courtier */
+    await onglet("artisans");
+    await page.locator('[data-action="courtier-envoyer"]').first().click();
+    assert.match(await page.locator(".co-liste").innerText(), /Dossier envoyé/);
+    assert.equal(await page.evaluate(() => document.querySelector("main").lastElementChild.classList.contains("envoi")), true, "l'envoi aux artisans reste en dernier");
+    /* didacticiel : le bouton ❔ le relance, bulle par bulle */
+    await page.locator(".aide-btn").click();
+    await page.locator("#tuto .tuto-bulle").waitFor();
+    assert.match(await page.locator(".tuto-pied small").innerText(), /^1 \/ \d/);
+    await page.screenshot({ path: `${OUT}/${nom}-0f-tuto.png` });
+    await page.locator('[data-tuto="suivant"]').click();
+    assert.match(await page.locator(".tuto-pied small").innerText(), /^2 \//);
+    await page.screenshot({ path: `${OUT}/${nom}-0g-tuto.png` });
+    await page.locator('[data-tuto="passer"]').click();
+    assert.equal(await page.locator("#tuto").count(), 0);
 
     /* photos de la visite : rangées par pièce, associées par le nom */
     const png = { name: "photo.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAIAAABxZ0isAAAAFklEQVR4nGP8//8/AwMDAxMDFgDHAwBkVQMJtYt0YgAAAABJRU5ErkJggg==", "base64") };
@@ -191,7 +224,7 @@ try {
 
     /* dossier pour la banque de la maison A */
     await page.locator('.cmp thead a').first().click();
-    await onglet("achat");
+    await onglet("projet");
     await page.getByText("Dossier pour la banque").click();
     await page.locator(".feuille").waitFor();
     /* envoi à la banque : possible tout de suite, sans valider le montant du notaire */
@@ -300,7 +333,7 @@ try {
     await page.getByText("Voir le vrai coût").click();
 
     /* le vrai coût */
-    await page.locator(".vrai-cout .gros").waitFor({ timeout: 8000 });
+    await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor({ timeout: 8000 });
     const total = await page.locator(".vrai-cout .gros").innerText();
     assert.match(total, /€/);
     assert.match(await page.locator(".vrai-cout .legende").innerText(), /Prix d'achat\s*245\s?000 €/); // le nom et le prix ont bien été gardés
@@ -314,14 +347,14 @@ try {
     await page.selectOption('[data-mchf="emetteurs"]', "rad");
     await page.fill('[data-mchf="nbRad"]', "7");
     await page.locator('[data-mchf="nbRad"]').dispatchEvent("change");
-    await onglet("resume");
+    await onglet("projet");
     /* ouvrir un groupe et un poste */
     await page.locator(".grp > summary").first().click();
     await page.locator(".poste > summary").first().click();
     await page.screenshot({ path: `${OUT}/${nom}-4-detail.png`, fullPage: true });
 
     /* apport sur la fiche : montant à emprunter = vrai coût − apport */
-    await onglet("achat");
+    await onglet("projet");
     await page.fill('.carte [data-fin="apport"]', "40000");
     await page.locator('.carte [data-fin="apport"]').dispatchEvent("change");
     assert.equal(await page.inputValue('[data-fin="apport"]'), "40000");
@@ -332,8 +365,8 @@ try {
     const apres = await page.locator(".vrai-cout .gros").innerText();
 
     /* hypothèse : support abîmé → imprévus 15 % */
-    await onglet("resume");
-    assert.match(await page.locator(".recap:not(.recap-en)").innerText(), /Imprévus \(15 %\)/);
+    await onglet("projet");
+    assert.match(await page.locator(".recap:not(.recap-en):not(.sim-recap)").innerText(), /Imprévus \(15 %\)/);
 
     /* pièce par pièce : passer la peinture en « moi-même » */
     /* chauffage repris : pompe à chaleur + 7 radiateurs */
@@ -369,7 +402,7 @@ try {
     await page.fill('[data-mmarches="i_es_1"]', "16");
     await page.locator('[data-mmarches="i_es_1"]').dispatchEvent("change");
     assert.match(await page.locator('tr:has([data-mmarches="i_es_1"])').innerText(), /€/);
-    await page.locator(".vrai-cout .gros").waitFor();
+    await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor();
     assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), apres);
 
     /* retour à l'accueil : la maison est enregistrée */
@@ -389,14 +422,16 @@ try {
     assert.doesNotMatch(await page.locator(".grille").innerText(), /Maison de démonstration A/);
     await page.screenshot({ path: `${OUT}/${nom}-17-renovation-accueil.png` });
     await page.locator('.grille .maison:has-text("Ma maison à rénover")').click();
+    await page.locator(".vc-mini").waitFor();
+    await onglet("projet");
     assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
     assert.doesNotMatch(await page.locator(".vrai-cout").innerText(), /Prix d'achat|Droits|Notaire/);
     assert.equal(await page.locator('.om-i[data-o="achat"]').count(), 0);
     assert.equal(await page.locator('.om-i[data-o="etapes"]').count(), 0, "plus d'étapes");
-    await onglet("financer");
+    await onglet("projet");
     await page.fill('[data-fin="apport"]', "10000");
     await page.locator('[data-fin="apport"]').dispatchEvent("change");
-    assert.match(await page.locator("main").innerText(), /Le prêt travaux[\s\S]*Montant à emprunter/);
+    assert.match(await page.locator("main").innerText(), /Simulation de financement[\s\S]*Montant à emprunter \(prêt travaux\)/);
     await page.getByText("Dossier pour la banque").click();
     await page.locator(".feuille").waitFor();
     assert.match(await page.locator(".feuille").innerText(), /Rénovation[\s\S]*Le budget de la rénovation[\s\S]*Budget total/);
@@ -441,7 +476,7 @@ try {
     await page.fill('input[name="annee"]', "1970");
     await page.fill('input[name="surface"]', "100");
     await page.getByText("Voir le budget de la rénovation").click();
-    await page.locator(".vrai-cout .gros").waitFor();
+    await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor();
     assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
     /* photo du questionnaire : on photographie les 2 pages, Valou remplit la maison (démonstration : questionnaire d'exemple) */
     await onglet("pieces");
@@ -455,7 +490,7 @@ try {
     await page.locator('[data-action="q-appliquer"]').click();
     await page.locator(".carte-piece").nth(5).waitFor();
     assert.match(await page.locator(".grille-pieces").innerText(), /Séjour \/ salon[\s\S]*Cuisine[\s\S]*Salle de bain[\s\S]*Chambre 2/);
-    assert.notEqual(await page.locator(".vrai-cout .gros").innerText(), "0 €");
+    assert.doesNotMatch(await page.locator(".vc-mini").innerText(), /\b0 €/);
     await page.goto(URL + "#/");
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();
