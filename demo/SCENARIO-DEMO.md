@@ -9,7 +9,9 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 1. Sur le téléphone ou l'ordinateur de la démo, ouvrir **https://hoono.be/demo/#/presentation**.
    Tout est remis à zéro (les 2 maisons de démonstration, sans photos ni montants tapés lors d'une démo précédente) et la **page d'intro** s'affiche : logo, phrase d'accroche et bouton « Commencer la démo ». Laissez-la à l'écran pendant que les gens s'installent.
-2. Sur téléphone, le menu est en bas de l'écran (Maisons, Comparer, Contacter, Plus) et la fiche maison est découpée en onglets : Résumé, Pièces, Travaux, Achat, Artisans.
+2. Sur téléphone, le menu est en bas de l'écran (Maisons, Comparer, Contacter, Plus) et la fiche maison est découpée en 4 onglets : ① Espaces, ② Technique, ③ Les pros, ④ Projet. Au-dessus, un rappel du vrai coût. À la première ouverture de chaque page, un didacticiel en bulles explique l'écran ; le bouton « ❔ » en haut le relance.
+
+   L'onglet ④ Projet regroupe dans l'ordre : le vrai coût, la performance PEB, le budget travaux, la simulation d'achat (taper une offre : le total prix + enregistrement + notaire + travaux suit tout de suite), la simulation de financement, les aides à la rénovation et le dossier pour la banque. Dans ③ Les pros : les artisans, les devis reçus, les négociants et un courtier à contacter pour le prêt.
 3. Ouvrir la page dans **Chrome** (ou Safari sur iPhone) et autoriser la caméra une première fois (écran « 📷 Photos de la visite »).
 4. Garder le téléphone chargé et la luminosité au maximum. Si vous projetez, préférez l'ordinateur et gardez le téléphone pour la photo.
 
@@ -42,7 +44,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 ## 3. Pièce par pièce — 1 minute
 
-**Clic :** onglet **Pièces** (cartes en couleur), puis ouvrir **Cuisine**. Ensuite, onglet **Travaux** et « Structure, toiture et équipements » : une liste de postes par groupe (toiture, électricité, isolation…).
+**Clic :** onglet **① Espaces** (cartes en couleur), puis ouvrir **Cuisine**. Ensuite, onglet **② Technique** et « Structure, toiture et équipements » : une liste de postes par groupe (toiture, électricité, isolation…).
 
 **À montrer :** la surface au sol, les murs calculés automatiquement (sol × 2,7), le plafond (= sol), les cases sol / murs / plafond / châssis / chauffage, et le budget qui change quand on coche ou décoche une case.
 
@@ -53,14 +55,14 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 ## 4. La visite en direct — 1 minute (le moment fort sur téléphone)
 
-**Clic :** revenir à la maison, onglet **Pièces**, « 📷 Photos de la visite », taper « Salon », « Commencer la visite → ».
+**Clic :** revenir à la maison, onglet **① Espaces**, « 📷 Photos de la visite », taper « Salon », « Commencer la visite → ».
 
 **À montrer :** viser la salle et appuyer 3 fois sur le bouton rond (3 photos, sans validation), puis « Pièce suivante → », taper « Bureau », 1 photo, puis « Terminer la visite ».
 
 **À dire :**
 > « Pendant la visite, on photographie pièce par pièce, sans quitter l'appli. Après, chaque photo est rangée avec sa pièce. »
 
-*Mentionner aussi :* le questionnaire papier d'une page à imprimer pour la visite. Dans l'onglet **Pièces**, « 📝 Photo du questionnaire » : on photographie la feuille remplie et Valou remplit la maison (pièces, sol, murs, plafond, châssis, chauffage, structure). **Pour l'instant, c'est une démonstration** : les réponses viennent d'un questionnaire d'exemple ; la lecture de l'écriture arrivera avec un service de lecture d'image.
+*Mentionner aussi :* le questionnaire papier d'une page à imprimer pour la visite. Dans l'onglet **① Espaces**, « 📝 Photo du questionnaire » : on photographie la feuille remplie et Valou remplit la maison (pièces, sol, murs, plafond, châssis, chauffage, structure). **Pour l'instant, c'est une démonstration** : les réponses viennent d'un questionnaire d'exemple ; la lecture de l'écriture arrivera avec un service de lecture d'image.
 
 ---
 
@@ -77,7 +79,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 ## 6. Le dossier pour la banque — 45 secondes
 
-**Clic :** revenir à la maison A, onglet **Achat**, « Dossier pour la banque → ».
+**Clic :** revenir à la maison A, onglet **④ Projet**, « Dossier pour la banque → ».
 
 **À montrer :**
 - Le dossier complet sur une page : achat, droits, notaire, travaux, PEB et financement.
@@ -124,9 +126,9 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 # Démo pour un artisan (4 minutes)
 
-**Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-artisan`. Dans la maison A, onglet **Pièces**, prendre 2 ou 3 photos de la cuisine avec « 📷 Photos de la visite » (mode visite, nom « Cuisine »).
+**Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-artisan`. Dans la maison A, onglet **① Espaces**, prendre 2 ou 3 photos de la cuisine avec « 📷 Photos de la visite » (mode visite, nom « Cuisine »).
 
-1. **La maison visitée** : les pièces en couleur et le vrai coût. Dernier onglet, **Artisans** : « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
+1. **La maison visitée** : les pièces en couleur et le vrai coût. Onglet **③ Les pros** : « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
    > « Le client a visité, chiffré, photographié. Il vous envoie son projet en un clic. »
 2. **La demande reçue** (« Voir ce que reçoit l'artisan → », dans l'espace artisan, métier « Carreleur ») : chaque nouvelle demande est fermée et ne montre que l'adresse ; un clic sur l'adresse ouvre le détail : les travaux de votre métier, le budget du client et les photos de la cuisine. Trois boutons : « Proposer une visite », « Envoyer un devis », « Pas disponible ».
    > « Vous savez tout de suite si le chantier est pour vous, sans vous déplacer. Le client connaît déjà son budget. »
@@ -150,7 +152,7 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 
 1. **Votre fiche** (Professionnels › « Je suis négociant » › « Ma fiche ») : remplir le nom du négoce, l'adresse, le téléphone, **les types de matériaux vendus (obligatoire : gros œuvre, sanitaire, électricité, carrelage, location d'engins, échafaudages, conteneurs à déchets…)**, les services et les horaires. L'aperçu à droite se met à jour.
    > « Votre fiche apparaît sur les projets des maisons de votre zone. »
-2. **Ce que voit le particulier** (maison A, onglet **Artisans**) : « Négociants de votre région » : votre fiche parmi 6 négociants de la région (Brik'O, Le Comptoir du Sanitaire, Volta Matériel Électrique, Céram'Expo, La Planche d'Or, Loca'Chantier), les plus utiles pour la maison en premier ; les types de matériaux utiles pour les travaux de la maison sont marqués ✓ en vert.
+2. **Ce que voit le particulier** (maison A, onglet **③ Les pros**) : « Négociants de votre région » : votre fiche parmi 6 négociants de la région (Brik'O, Le Comptoir du Sanitaire, Volta Matériel Électrique, Céram'Expo, La Planche d'Or, Loca'Chantier), les plus utiles pour la maison en premier ; les types de matériaux utiles pour les travaux de la maison sont marqués ✓ en vert.
    > « Le particulier, ou son artisan, sait où acheter ses matériaux et quand vous êtes ouvert. Il vient chez vous ou vous appelle. »
 3. **Vos prix (facultatif)** (onglet « Mes prix ») : taper un ou deux prix.
    > « Si vous le souhaitez, vos prix servent aux budgets des chantiers de votre zone. »
@@ -222,7 +224,7 @@ Le lien à envoyer aux testeurs particuliers est `hoono.be/demo/particulier/`.
 **À montrer :**
 1. Le bandeau : **le budget de la rénovation**, sans prix d'achat, droits ni notaire, avec la part des travaux qui améliorent le PEB.
 2. Onglets **Pièces** et **Travaux** : exactement comme pour l'achat.
-3. Onglet **Financer** : les aides (Rénopack) et le prêt travaux (épargne, montant à emprunter, mensualité). « Dossier pour la banque » : version rénovation.
+3. Onglet **④ Projet** : la simulation de financement (prêt travaux), puis les aides (Rénopack) (épargne, montant à emprunter, mensualité). « Dossier pour la banque » : version rénovation.
 4. Onglet **Artisans** : « 👷 Choisir les artisans » ouvre « Contacter » ; juste à côté, « 📩 Devis reçus » montre les devis envoyés par les artisans : pour chaque métier, le projet propre à ce métier et jusqu'à 3 artisans à qui l'envoyer.
 
 **À dire :**

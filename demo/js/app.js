@@ -53,7 +53,7 @@ function entete(actif) {
     <nav class="nav-haut" aria-label="Menu">${lien("#/", "Mes maisons", "maisons")}${lien("#/comparer", "Comparer", "comparer")}${lien("#/contacts", `Contacter${nbDevis ? ` <span class="pastille">${nbDevis}</span>` : ""}`, "contacts")}${essai
       ? lien("#/avis", "💬 Mon avis", "avis")
       : `${lien("#/pro", "Professionnels", "pro")}${lien("#/moteur", "Notre moteur", "moteur")}${lien("#/feuille-de-route", "Feuille de route", "feuille")}`}</nav>
-    ${essai ? `<span class="badge-essai">Version d'essai</span>` : ""}
+    <span class="top-d">${essai ? `<span class="badge-essai">Version d'essai</span>` : ""}<button class="aide-btn" data-action="tuto" title="Voir le didacticiel pour cette page" aria-label="Voir le didacticiel pour cette page">❔<span> Didacticiel</span></button></span>
   </header>
   <nav class="barre-bas" aria-label="Menu principal">
     ${bas("#/", "🏠", "Maisons", actif === "maisons")}${bas("#/comparer", "⚖️", "Comparer", actif === "comparer")}${bas("#/contacts", `📨${nbDevis ? `<span class="pastille bb-p">${nbDevis}</span>` : ""}`, "Contacter", actif === "contacts")}${essai
@@ -210,23 +210,41 @@ function chargerDemo() {
 const boutonPhotosMaison = m => { const n = photosDe(m).length; return `<a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite${n ? ` (${n})` : ""}</a>`; };
 
 /* ---------- « Je rénove ma maison » : financement ---------- */
+/* courtiers et banque (fictifs) : on leur envoie le dossier pour la banque */
+const COURTIERS = [
+  { id: "c1", nom: "Crédit Clair", lieu: "Liège", desc: "Courtier en crédit hypothécaire : compare les offres de plusieurs banques pour vous.", tel: "04 000 09 01", email: "creditclair@exemple.be" },
+  { id: "c2", nom: "Prêt Malin", lieu: "Seraing", desc: "Prêts achat et travaux, prêts rénovation et Rénopack.", tel: "04 000 09 02", email: "pretmalin@exemple.be" },
+  { id: "banque", nom: "Ma banque", lieu: "", desc: "Envoyer le dossier directement au conseiller de votre banque.", tel: "", email: "" },
+];
+function blocCourtier(m, cO) {
+  const E = m.envoiCourtier || {};
+  return `<section class="carte courtier">
+    <h2>🏦 Courtier et banque</h2>
+    <p class="mu">Envoyez votre dossier complet (coût total${projetDe(m) === "achat" && m.offre ? " avec votre offre" : ""}, financement, travaux et devis retenus) à un courtier ou à votre banque. Coût total : <b>${euros(cO.total[1], 100)}</b>.</p>
+    <div class="co-liste">${COURTIERS.map(k => `<div class="co-i">
+      <div><b>${esc(k.nom)}</b>${k.id !== "banque" ? ` <span class="badge b-exemple">Exemple fictif</span>` : ""}<small class="mu">${esc([k.lieu, k.desc].filter(Boolean).join(" · "))}</small>${k.tel ? `<small class="mu">📞 ${esc(k.tel)} · ✉️ ${esc(k.email)}</small>` : ""}</div>
+      ${E[k.id] ? `<span class="dr-ok">✓ Dossier envoyé le ${esc(new Date(E[k.id]).toLocaleDateString("fr-BE"))}</span>` : `<button class="btn sec petit-btn" data-action="courtier-envoyer" data-id="${k.id}">📨 Envoyer mon dossier</button>`}
+    </div>`).join("")}</div>
+    <p class="mu petit-t">Démonstration : aucun envoi réel. <a href="#/dossier/${m.id}">Voir mon dossier pour la banque</a>.</p>
+  </section>`;
+}
 function blocFinancerRenovation(m, b, c) {
   const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
   const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
   return `<div class="fin-page">
-    ${aides()}
     <section class="carte">
-      <h2>Le prêt travaux</h2>
+      <h2>Simulation de financement</h2>
       <div class="champs">
         <div class="ligne"><span>Budget de la rénovation (moyen)</span><b>${euros(c.total[1], 100)}</b></div>
         ${ch("apport", "Épargne que vous y mettez", "€", "ex. 10000")}
-        <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
+        <div class="ligne"><span>Montant à emprunter (prêt travaux)</span><b>${euros(emprunt, 100)}</b></div>
         ${ch("taux", "Taux annuel du prêt (si vous l'avez)", "%", "taux de la banque")}
         ${ch("duree", "Durée du prêt", "ans", "ex. 10")}
         ${mens ? `<div class="ligne"><span>Mensualité estimée (hors assurance)</span><b>${euros(mens)} / mois</b></div>` : ""}
         <small class="mu">Le Rénopack (prêt à taux zéro de la Wallonie) peut financer une partie des travaux : conditions à vérifier. Les aides ne sont pas déduites du budget.</small>
       </div>
     </section>
+    ${aides()}
   </div>
   <div class="actions">
     <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a></span>
@@ -272,16 +290,17 @@ function carteEnergie(m, b) {
 }
 
 /* ---------- écran : le vrai coût d'une maison (en 5 onglets) ---------- */
-const ONGLETS_M = [["resume", "Résumé"], ["pieces", "Pièces"], ["travaux", "Travaux"], ["achat", "Achat"], ["artisans", "Artisans"]];
-const ONGLETS_R = [["resume", "Résumé"], ["pieces", "Pièces"], ["travaux", "Travaux"], ["financer", "Financer"], ["artisans", "Artisans"]];
+const ONGLETS_M = [["pieces", "① Espaces"], ["travaux", "② Technique"], ["artisans", "③ Les pros"], ["projet", "④ Projet"]];
+const ONGLETS_R = ONGLETS_M;
 const ongletsDe = m => (projetDe(m) === "renovation" ? ONGLETS_R : ONGLETS_M);
 const ongletsM = {}; // onglet ouvert, par maison
-const ongletMaison = m => (ongletsDe(m).some(([id]) => id === ongletsM[m.id]) ? ongletsM[m.id] : "resume");
+const ongletMaison = m => (ongletsDe(m).some(([id]) => id === ongletsM[m.id]) ? ongletsM[m.id] : "pieces");
 /* groupes de postes et réglages ouverts par l'utilisateur (fermés par défaut) */
 const ouverts = new Set();
 document.addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.ouvert) d.open ? ouverts.add(d.dataset.ouvert) : ouverts.delete(d.dataset.ouvert); }, true);
 function ecranMaison(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
+  const cO = projetDe(m) === "achat" && +m.offre > 0 ? coutTotal({ ...m, prix: +m.offre }, b) : c; // simulation d'une offre
   const surcout = c.total[1] - c.prix, pct = c.prix ? Math.round((surcout / c.prix) * 100) : 0;
   const manques = b.postes.filter(p => p.manques.length);
 
@@ -353,36 +372,12 @@ function ecranMaison(m) {
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
-    <section class="carte vrai-cout">
-      <div class="vc-g">
-        <small>${reno ? "Le budget de votre rénovation" : "Le vrai coût de cette maison"}</small>
-        <div class="gros">${euros(c.total[1], 100)}</div>
-        <div class="mu">entre ${fourchette(c.total)}</div>
-        ${reno ? (e => (e ? `<p class="choc">dont <b>${euros(e, 100)}</b> de travaux qui améliorent le PEB</p>` : ""))(travauxEnergie(b).total[1]) : ""}
-        ${!reno && c.prix ? `<p class="choc">soit <b>${euros(surcout, 100)}</b> de plus que le prix affiché <span>(+${pct} %)</span></p>` : ""}
-      </div>
-      <div class="vc-d">${barre}</div>
-    </section>
+    <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>voir ④ Projet ›</small></button>
 
     <nav class="onglets-m" aria-label="Parties de la fiche">${ongletsDe(m).map(([id, t]) => `<button class="om-i ${ongletMaison(m) === id ? "on" : ""}" data-action="onglet-m" data-o="${id}"${ongletMaison(m) === id ? ' aria-current="true"' : ""}>${t}${id === "pieces" && (m.pieces || []).length ? ` <small>${m.pieces.length}</small>` : ""}</button>`).join("")}</nav>
     ${(() => {
       const o = ongletMaison(m);
       const suivant = (id, t) => `<p class="suite-m"><button class="btn sec" data-action="onglet-m" data-o="${id}">${t} →</button></p>`;
-      if (o === "pieces") return `
-    <section class="carte">
-      <h2>Les pièces</h2>
-      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
-      <p>${boutonPhotosMaison(m)}</p>
-      <p><a class="btn sec" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>
-      <div class="grille-pieces">${cartesPieces}</div>
-      <div class="ajout-piece">
-        <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
-        <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
-        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
-      </div>
-    </section>
-
-      ${suivant("travaux", "Suivant : les travaux de la maison")}`;
       if (o === "travaux") return `
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
@@ -409,58 +404,7 @@ function ecranMaison(m) {
             ${hyp}
           </div>
         </details>
-      ${reno ? suivant("financer", "Suivant : les aides et le financement") : suivant("achat", "Suivant : l'achat et le financement")}`;
-      if (o === "financer") return `${blocFinancerRenovation(m, b, c)}
-      ${suivant("artisans", "Suivant : les artisans et les négociants")}`;
-      if (o === "achat") return `
-    <div class="fin-page">
-        ${aides()}
-        <section class="carte">
-          <h2>L'achat</h2>
-          <div class="champs">
-            <label>Prix (€)<input type="number" min="0" inputmode="numeric" data-f="prix" value="${esc(m.prix)}"></label>
-            <label class="cb large"><input type="checkbox" data-f="uniqueHabitation" ${m.uniqueHabitation !== false ? "checked" : ""}> Seule habitation, occupée par moi</label>
-            <div class="ligne"><span>Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")} %)</span><b>${euros(c.droits)}</b></div>
-            <small class="mu">Taux légal wallon, à confirmer par le notaire.</small>
-            ${c.notaireCalcul ? `<details class="notaire"><summary><span>Frais de notaire (acte d'achat)</span><b>${euros(c.notaireCalcul.total)}</b></summary>
-              <div class="ligne"><span>Honoraires</span><span>${euros2(c.notaireCalcul.honoraires)}</span></div>
-              <div class="ligne"><span>Frais administratifs</span><span>${euros2(c.notaireCalcul.detail.administratifs)}</span></div>
-              <div class="ligne"><span>Débours</span><span>${euros2(c.notaireCalcul.detail.debours)}</span></div>
-              <div class="ligne"><span>Transcription hypothécaire</span><span>${euros2(c.notaireCalcul.detail.transcription)}</span></div>
-              <div class="ligne"><span>Droit pour les annexes et droit d'écriture</span><span>${euros2(c.notaireCalcul.detail.annexes + c.notaireCalcul.detail.ecriture)}</span></div>
-              <div class="ligne"><span>TVA 21 %</span><span>${euros2(c.notaireCalcul.tva)}</span></div>
-            </details>
-            <small class="mu">Calcul d'après le ${esc(c.notaireCalcul.source)}. À confirmer par le notaire.</small>` : ""}
-            ${c.notaireCalcul ? "" : `<div class="ligne"><span>Frais de notaire (acte d'achat)</span><b class="manque">à compléter</b></div>
-            <small class="mu">Pas de calcul automatique pour un prix sous 64 095 € : demandez le montant au notaire.</small>`}
-            <small class="mu">Si vous empruntez, l'acte de crédit a ses propres frais (pas encore comptés).</small>
-          </div>
-        </section>
-        ${(() => {
-          /* le financement : mêmes valeurs que le dossier pour la banque */
-          const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
-          const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
-          return `<section class="carte">
-          <h2>Le financement</h2>
-          <div class="champs">
-            ${ch("apport", "Apport personnel", "€", "ex. 40000")}
-            <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
-            <small class="mu">Vrai coût moyen ${euros(c.total[1], 100)} − apport${apport ? "" : " (à compléter)"}.</small>
-            ${ch("taux", "Taux annuel du crédit (si vous l'avez)", "%", "taux de la banque")}
-            ${ch("duree", "Durée du crédit", "ans", "ex. 25")}
-            ${mens ? `<div class="ligne"><span>Mensualité estimée (hors assurance)</span><b>${euros(mens)} / mois</b></div>` : ""}
-            <small class="mu">Ces valeurs sont reprises dans le dossier bancaire.</small>
-          </div>
-        </section>`;
-        })()}
-    </div>
-
-    <div class="actions">
-      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
-      <button class="btn lien" data-action="suppr-demande" data-id="${m.id}">🗑 Supprimer cette maison</button>
-    </div>
-
-      ${suivant("artisans", "Suivant : les artisans et les négociants")}`;
+      ${suivant("artisans", "Suivant : ③ Les pros")}`;
       if (o === "artisans") return `
     <section class="carte choisir-art"><h2>Choisir vos artisans</h2>
       <p class="mu">Pour chaque métier : le projet propre à ce métier (les pièces et les postes à envoyer, le matériau souhaité), puis jusqu'à 3 artisans à qui l'envoyer.</p>
@@ -469,8 +413,21 @@ function ecranMaison(m) {
       <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
       ${blocNegociants(b)}</section>
 
+    ${blocCourtier(m, cO)}
+
     ${panneauEnvoi(m, b)}`;
-      return `
+      if (o === "projet") return `
+    <section class="carte vrai-cout">
+      <div class="vc-g">
+        <small>${reno ? "Le budget de votre rénovation" : "Le vrai coût de cette maison"}</small>
+        <div class="gros">${euros(c.total[1], 100)}</div>
+        <div class="mu">entre ${fourchette(c.total)}</div>
+        ${reno ? (e => (e ? `<p class="choc">dont <b>${euros(e, 100)}</b> de travaux qui améliorent le PEB</p>` : ""))(travauxEnergie(b).total[1]) : ""}
+        ${!reno && c.prix ? `<p class="choc">soit <b>${euros(surcout, 100)}</b> de plus que le prix affiché <span>(+${pct} %)</span></p>` : ""}
+      </div>
+      <div class="vc-d">${barre}</div>
+    </section>
+
     ${carteEnergie(m, b)}
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
@@ -489,7 +446,71 @@ function ecranMaison(m) {
         <p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p>
       </section>
 
-      ${suivant("pieces", "Suivant : les pièces")}`;
+    ${reno ? blocFinancerRenovation(m, b, c) : `<div class="fin-page">
+        <section class="carte sim-achat">
+          <h2>Simulation d'achat</h2>
+          <div class="champs">
+            <div class="ligne"><span>Prix demandé</span><b>${euros(m.prix)}</b></div>
+            <label>Simuler une offre (€)<input type="number" min="0" step="1000" inputmode="numeric" data-f="offre" value="${esc(m.offre ?? "")}" placeholder="${esc(m.prix)}"></label>
+            <label class="cb large"><input type="checkbox" data-f="uniqueHabitation" ${m.uniqueHabitation !== false ? "checked" : ""}> Seule habitation, occupée par moi</label>
+          </div>
+          <div class="recap sim-recap">
+            <div><span>${m.offre ? "Votre offre" : "Prix (prix demandé)"}</span><b>${euros(cO.prix)}</b></div>
+            <div><span>Droits d'enregistrement (${String(cO.tauxDroits).replace(".", ",")} %)</span><b>${euros(cO.droits)}</b></div>
+            ${cO.notaireCalcul ? `<details class="notaire"><summary><span>Frais de notaire (acte d'achat)</span><b>${euros(cO.notaireCalcul.total)}</b></summary>
+              <div class="ligne"><span>Honoraires</span><span>${euros2(cO.notaireCalcul.honoraires)}</span></div>
+              <div class="ligne"><span>Frais administratifs</span><span>${euros2(cO.notaireCalcul.detail.administratifs)}</span></div>
+              <div class="ligne"><span>Débours</span><span>${euros2(cO.notaireCalcul.detail.debours)}</span></div>
+              <div class="ligne"><span>Transcription hypothécaire</span><span>${euros2(cO.notaireCalcul.detail.transcription)}</span></div>
+              <div class="ligne"><span>Droit pour les annexes et droit d'écriture</span><span>${euros2(cO.notaireCalcul.detail.annexes + cO.notaireCalcul.detail.ecriture)}</span></div>
+              <div class="ligne"><span>TVA 21 %</span><span>${euros2(cO.notaireCalcul.tva)}</span></div>
+            </details>` : `<div><span>Frais de notaire (acte d'achat)</span><b class="manque">à compléter</b></div>`}
+            <div><span>Travaux (TVA et imprévus compris)</span><b>${euros(cO.travaux[1], 100)}</b></div>
+            <div class="sim-tot"><span>Total ${m.offre ? "avec cette offre" : "au prix demandé"}</span><b>${euros(cO.total[1], 100)}</b></div>
+          </div>
+          ${m.offre && m.offre !== m.prix ? `<p class="sim-ecart">${m.offre < m.prix ? `Soit <b>${euros(c.total[1] - cO.total[1], 100)} de moins</b>` : `Soit <b>${euros(cO.total[1] - c.total[1], 100)} de plus</b>`} qu'au prix demandé (droits et notaire recalculés sur l'offre).</p>` : ""}
+          <small class="mu">Droits : taux légal wallon. Notaire : calcul d'après le ${esc((cO.notaireCalcul || {}).source || "simulateur notaire.be")}. À confirmer par le notaire. L'acte de crédit a ses propres frais (pas encore comptés).</small>
+          <details class="corriger"><summary>Corriger le prix demandé</summary><label>Prix demandé (€)<input type="number" min="0" inputmode="numeric" data-f="prix" value="${esc(m.prix)}"></label></details>
+        </section>
+        ${(() => {
+          /* le financement : mêmes valeurs que le dossier pour la banque */
+          const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, cO.total[1] - apport), mens = mensualite(emprunt, f.taux, f.duree);
+          const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
+          return `<section class="carte">
+          <h2>Simulation de financement</h2>
+          <div class="champs">
+            ${ch("apport", "Apport personnel", "€", "ex. 40000")}
+            <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
+            <small class="mu">Coût total ${m.offre ? "avec votre offre" : "au prix demandé"} ${euros(cO.total[1], 100)} − apport${apport ? "" : " (à compléter)"}.</small>
+            ${ch("taux", "Taux annuel du crédit (si vous l'avez)", "%", "taux de la banque")}
+            ${ch("duree", "Durée du crédit", "ans", "ex. 25")}
+            ${mens ? `<div class="ligne"><span>Mensualité estimée (hors assurance)</span><b>${euros(mens)} / mois</b></div>` : ""}
+            <small class="mu">Ces valeurs sont reprises dans le dossier bancaire.</small>
+          </div>
+        </section>`;
+        })()}
+        ${aides()}
+    </div>
+    <div class="actions">
+      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
+      <button class="btn lien" data-action="suppr-demande" data-id="${m.id}">🗑 Supprimer cette maison</button>
+    </div>
+`}`;
+      return `
+    <section class="carte">
+      <h2>Les espaces</h2>
+      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
+      <p>${boutonPhotosMaison(m)}</p>
+      <p><a class="btn sec" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>
+      <div class="grille-pieces">${cartesPieces}</div>
+      <div class="ajout-piece">
+        <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
+        <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
+        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
+      </div>
+    </section>
+
+      ${suivant("travaux", "Suivant : ② Technique")}`;
     })()}
   </main>`;
 }
@@ -785,7 +806,7 @@ function blocDevisDossier(m, b, dv) {
 }
 
 function ecranDossier(m) {
-  const b = calculerBudget(R, m), c0 = coutTotal(m, b), f = m.fin || {};
+  const b = calculerBudget(R, m), c0 = coutTotal(projetDe(m) === "achat" && +m.offre > 0 ? { ...m, prix: +m.offre } : m, b), f = m.fin || {};
   /* les devis retenus remplacent les estimations correspondantes */
   const dv = devisRetenus(m, b);
   const c = dv.L.length ? { ...c0, travaux: dv.T, total: c0.total.map((t, i) => t - c0.travaux[i] + dv.T[i]) } : c0;
@@ -819,7 +840,7 @@ function ecranDossier(m) {
       ` : `
       <h2>1. Le coût total du projet</h2>
       <table class="f-table">
-        <tr><td>Prix d'achat</td><td class="r">${euros(c.prix)}</td></tr>
+        <tr><td>${+m.offre > 0 ? `Prix d'achat <small class="mu">(offre simulée ; prix demandé ${euros(m.prix)})</small>` : "Prix d'achat"}</td><td class="r">${euros(c.prix)}</td></tr>
         <tr><td>Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")} %, taux légal wallon à confirmer par le notaire)</td><td class="r">${euros(c.droits)}</td></tr>
         <tr><td>Honoraires et frais du notaire, TVA comprise${c.notaireCalcul ? ` <small class="mu">(calcul d'après le ${esc(c.notaireCalcul.source)})</small>` : c.notaireEncode ? ` <small class="mu">(montant du notaire)</small>` : ""}</td><td class="r">${c.notaire == null ? `<span class="manque">à compléter</span>` : euros(c.notaire)}</td></tr>
         <tr><td>Travaux, TVA et imprévus compris <small class="mu">(fourchette ${fourchette(c.travaux)})</small></td><td class="r">${euros(c.travaux[1], 100)}</td></tr>
@@ -1286,6 +1307,97 @@ function appliquerQuestionnaire(m, L) {
   appliquerChauffage(m);
 }
 
+/* ---------- didacticiel bulle par bulle : à la première ouverture de chaque page, et avec le bouton « ❔ » ---------- */
+const TUTOS = {
+  accueil: [
+    [".parcours", "Choisissez votre projet : acheter une maison, ou rénover la vôtre."],
+    [".hero .btn", "Ajoutez la maison que vous visitez : son vrai coût s'affiche tout de suite."],
+    [".grille", "Vos maisons. Touchez une carte pour l'ouvrir, ou 🗑 pour la supprimer."],
+    [".barre-bas, .nav-haut", "Le menu : vos maisons, la comparaison, les artisans à contacter, et le reste dans « Plus »."],
+  ],
+  maison: [
+    [".vc-mini", "Le chiffre clé : ce que la maison va vraiment vous coûter. Le détail est dans l'onglet ④ Projet."],
+    [".onglets-m", "La fiche suit l'ordre de la visite, en 4 onglets."],
+    ['.om-i[data-o="pieces"]', "① Espaces : ajoutez les pièces, prenez les photos, ou photographiez le questionnaire papier."],
+    ['.om-i[data-o="travaux"]', "② Technique : le chauffage, la toiture, l'isolation, l'électricité et tout ce qui ne dépend pas d'une pièce."],
+    ['.om-i[data-o="artisans"]', "③ Les pros : choisissez vos artisans, recevez leurs devis, trouvez vos négociants et contactez un courtier."],
+    ['.om-i[data-o="projet"]', "④ Projet : le vrai coût, le PEB, le budget, la simulation d'une offre et du financement, les aides et le dossier pour la banque."],
+    [".aide-btn", "Besoin d'un rappel ? Ce bouton relance le didacticiel de la page."],
+  ],
+  piece: [
+    [".titre-piece", "La pièce et son budget, qui se met à jour à chaque case cochée."],
+    ['[data-pc="sol"]', "Tapez la surface au sol : les murs (sol × 2,7) et le plafond sont calculés tout seuls."],
+    [".poste, .carte-piece", "Cochez ce qui est à refaire : sol, murs, plafond, châssis, chauffage. « Moi-même » enlève la main-d'œuvre."],
+    [".piece-ecran .btn[href]", "Quand c'est fini, revenez à la maison."],
+  ],
+  contacts: [
+    [".ct-panneau, .ct-projet", "Le projet de cette maison, métier par métier."],
+    [".contact-ligne", "Une ligne par métier : « Projet » pour choisir ce que vous envoyez, « Artisans » pour en choisir jusqu'à 3."],
+    [".negs", "Les négociants de la région, avec ce qu'ils vendent et leurs horaires."],
+  ],
+  dossier: [
+    [".feuille", "Votre dossier complet pour la banque : coût total, financement, travaux poste par poste et devis."],
+    [".dd-ecran, .feuille h2:last-of-type", "Point 4 : tapez le montant d'un devis reçu, il remplace l'estimation de son métier."],
+    ['[data-action="envoyer-banque"]', "Envoyez le dossier à la banque, ou téléchargez-le en PDF."],
+  ],
+};
+let tuto = null;
+const pageTuto = () => {
+  const h = location.hash;
+  if (/^#\/maison\/\w+\/piece\//.test(h)) return "piece";
+  if (/^#\/maison\/\w+$/.test(h)) return "maison";
+  if (/^#\/contacts\/\w+/.test(h)) return "contacts";
+  if (/^#\/dossier\//.test(h)) return "dossier";
+  if (h === "" || h === "#/" || h === "#") return document.querySelector(".parcours") ? "accueil" : null;
+  return null;
+};
+const tutosVus = () => { try { return JSON.parse(localStorage.getItem(cle("valou_tuto_vus")) || "{}"); } catch (e) { return {}; } };
+function lancerTuto(page) {
+  const etapes = (TUTOS[page] || []).filter(([sel]) => { const e = document.querySelector(sel); return e && e.getClientRects().length; });
+  if (!etapes.length) return;
+  try { localStorage.setItem(cle("valou_tuto_vus"), JSON.stringify({ ...tutosVus(), [page]: 1 })); } catch (e) {}
+  tuto = { page, etapes, i: 0 };
+  dessinerTuto(true);
+}
+function fermerTuto() { tuto = null; document.getElementById("tuto")?.remove(); }
+function dessinerTuto(defiler) {
+  document.getElementById("tuto")?.remove();
+  if (!tuto) return;
+  const [sel, texte] = tuto.etapes[tuto.i], e = document.querySelector(sel);
+  if (!e) { fermerTuto(); return; }
+  if (defiler) e.scrollIntoView({ block: "center" });
+  const r = e.getBoundingClientRect(), m = 6, W = innerWidth, Hh = innerHeight;
+  const d = document.createElement("div");
+  d.id = "tuto";
+  const dernier = tuto.i === tuto.etapes.length - 1;
+  d.innerHTML = `<div class="tuto-trou" style="left:${Math.max(4, r.left - m)}px;top:${r.top - m}px;width:${Math.min(W - 8, r.width + 2 * m)}px;height:${r.height + 2 * m}px"></div>
+    <div class="tuto-bulle" role="dialog" aria-live="polite"><p>${esc(texte)}</p>
+      <div class="tuto-pied"><small>${tuto.i + 1} / ${tuto.etapes.length}</small><span><button class="btn lien" data-tuto="passer">Passer</button><button class="btn petit-btn" data-tuto="suivant">${dernier ? "Terminer" : "Suivant →"}</button></span></div></div>`;
+  document.body.appendChild(d);
+  const bulle = d.querySelector(".tuto-bulle"), bh = bulle.offsetHeight, bw = bulle.offsetWidth;
+  const enBas = r.bottom + m + 12 + bh < Hh - 70 || r.top - m - 12 - bh < 60;
+  bulle.style.top = `${enBas ? Math.min(Hh - bh - 8, r.bottom + m + 12) : Math.max(8, r.top - m - 12 - bh)}px`;
+  bulle.style.left = `${Math.min(Math.max(8, r.left + r.width / 2 - bw / 2), W - bw - 8)}px`;
+  bulle.classList.add(enBas ? "dessous" : "dessus");
+  d.querySelector('[data-tuto="suivant"]').focus();
+}
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-tuto]");
+  if (!t || !tuto) return;
+  if (t.dataset.tuto === "passer" || tuto.i >= tuto.etapes.length - 1) fermerTuto();
+  else { tuto.i++; dessinerTuto(true); }
+});
+addEventListener("resize", () => tuto && dessinerTuto(false));
+addEventListener("scroll", () => tuto && dessinerTuto(false), { passive: true });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && tuto) fermerTuto(); });
+/* après chaque écran : première visite de la page → didacticiel (pas pendant les tests automatiques) */
+function apresAffichage() {
+  const p = pageTuto();
+  if (tuto && tuto.page !== p) fermerTuto();
+  else if (tuto) dessinerTuto(false);
+  if (!tuto && p && !tutosVus()[p] && !navigator.webdriver) setTimeout(() => { if (!tuto && pageTuto() === p) lancerTuto(p); }, 500);
+}
+
 /* ---------- confirmation avant de supprimer une maison ---------- */
 let aSupprimer = null;
 function fenetreSuppression() {
@@ -1367,6 +1479,7 @@ function afficher() {
   if (document.getElementById("viseur")) ouvrirCamera();
   afficher.dernier = h;
   window.scrollTo(0, meme ? y : 0);
+  apresAffichage();
   if (/\/contacts\/\w+#devis$/.test(location.hash)) document.querySelector(".devis-recus, .contact-ligne")?.scrollIntoView({ block: "start" });
 }
 
@@ -1453,6 +1566,8 @@ document.addEventListener("click", e => {
     if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], etape: "photos", lu: null }; location.hash = `#/maison/${mq.id}`; }
   }
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
+  if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
+  if (a === "courtier-envoyer" && m) { m.envoiCourtier = { ...(m.envoiCourtier || {}), [el.dataset.id]: Date.now() }; sauver(); afficher(); }
   if (a === "devis-utiliser") {
     const mq = trouver(el.dataset.maison), r = mq && devisRecus(mq).find(y => y.metier === el.dataset.metier);
     if (r) {
