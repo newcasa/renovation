@@ -977,3 +977,15 @@ label.dd-ligne { justify-content: flex-start; }
 .tuto-pied span { display: flex; gap: 6px; align-items: center; }
 .tuto-rien { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); z-index: 61; background: var(--bordeaux); color: #fff; padding: 10px 16px; border-radius: 12px; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .tuto-trou { transition: none; } }
+/* simulation d'achat : prix demandé ↔ offre */
+.sim-cmp-cadre { overflow-x: auto; margin: 10px 0 4px; }
+.sim-cmp { width: 100%; border-collapse: collapse; font-size: 15px; }
+.sim-cmp th, .sim-cmp td { padding: 7px 6px; border-bottom: 1px solid var(--bord); vertical-align: top; }
+.sim-cmp th { text-align: left; font-weight: 600; }
+.sim-cmp td { text-align: right; white-space: nowrap; font-weight: 700; }
+.sim-cmp thead td { font-size: 12.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--mu); }
+.sim-cmp thead td.sim-o, .sim-cmp td:nth-child(3) { color: var(--or-fonce, #b35a00); background: rgba(244, 140, 30, .07); }
+.sim-cmp tr.sim-tot th, .sim-cmp tr.sim-tot td { border-top: 2px solid var(--bordeaux); border-bottom: 0; }
+.sim-cmp tr.sim-tot b { font: 900 18px Outfit, Manrope, sans-serif; }
+.sim-cmp tr.sim-tot td:nth-child(3) b { color: var(--or-fonce, #b35a00); }
+@media (max-width: 400px) { .sim-cmp { font-size: 14px; } .sim-cmp th, .sim-cmp td { padding: 6px 3px; } .sim-cmp tr.sim-tot b { font-size: 16px; } }

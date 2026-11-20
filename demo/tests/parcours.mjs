@@ -47,19 +47,22 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-0-demo-complet.png`, fullPage: nom === "ordi" });
 
     /* ④ Projet : simuler une offre → le total (prix + enregistrement + notaire + travaux) suit l'offre */
-    const auPrix = await page.locator(".sim-tot b").innerText();
+    const auPrix = await page.locator(".sim-tot td:last-child b").innerText();
     await page.fill('[data-f="offre"]', "200000");
     await page.locator('[data-f="offre"]').dispatchEvent("change");
     await page.locator(".sim-ecart").waitFor();
     assert.match(await page.locator(".sim-ecart").innerText(), /de moins/);
-    assert.notEqual(await page.locator(".sim-tot b").innerText(), auPrix);
+    assert.notEqual(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
+    assert.match(await page.locator(".sim-cmp thead").innerText(), /Prix demandé[\s\S]*Votre offre/i); // prix initial à côté de l'offre
+    assert.match(await page.locator(".sim-cmp tbody tr").first().innerText(), /245\s?000 €[\s\S]*200\s?000 €/);
+    assert.equal(await page.locator("text=Comparer avec mes autres maisons").count(), 0);
     assert.match(await page.locator(".sim-recap").innerText(), /Offre[\s\S]*200\s?000 €[\s\S]*Droits[\s\S]*Notaire[\s\S]*Travaux/i);
     await page.locator(".sim-recap").scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${OUT}/${nom}-0e-offre.png` });
     await page.fill('[data-f="offre"]', "");
     await page.locator('[data-f="offre"]').dispatchEvent("change");
     await page.locator(".sim-ecart").waitFor({ state: "detached" });
-    assert.equal(await page.locator(".sim-tot b").innerText(), auPrix);
+    assert.equal(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
     /* ③ Les pros : contacter un courtier */
     await onglet("artisans");
     await page.locator('[data-action="courtier-envoyer"]').first().click();

@@ -454,21 +454,30 @@ function ecranMaison(m) {
             <label>Simuler une offre (€)<input type="number" min="0" step="1000" inputmode="numeric" data-f="offre" value="${esc(m.offre ?? "")}" placeholder="${esc(m.prix)}"></label>
             <label class="cb large"><input type="checkbox" data-f="uniqueHabitation" ${m.uniqueHabitation !== false ? "checked" : ""}> Seule habitation, occupée par moi</label>
           </div>
-          <div class="recap sim-recap">
-            <div><span>${m.offre ? "Votre offre" : "Prix (prix demandé)"}</span><b>${euros(cO.prix)}</b></div>
-            <div><span>Droits d'enregistrement (${String(cO.tauxDroits).replace(".", ",")} %)</span><b>${euros(cO.droits)}</b></div>
-            ${cO.notaireCalcul ? `<details class="notaire"><summary><span>Frais de notaire (acte d'achat)</span><b>${euros(cO.notaireCalcul.total)}</b></summary>
+          ${(() => {
+            /* comparaison : prix demandé (initial) ↔ offre simulée, ligne par ligne */
+            const o = +m.offre > 0 && +m.offre !== +m.prix, nc = x => x.notaireCalcul ? euros(x.notaireCalcul.total) : `<span class="manque">à compléter</span>`;
+            const L = (t, a, b2, cl = "") => `<tr class="${cl}"><th>${t}</th><td>${a}</td>${o ? `<td>${b2}</td>` : ""}</tr>`;
+            const ec = cO.total[1] - c.total[1];
+            return `<div class="sim-cmp-cadre"><table class="sim-cmp sim-recap">
+              <thead><tr><th></th><td>Prix demandé</td>${o ? `<td class="sim-o">Votre offre</td>` : ""}</tr></thead>
+              <tbody>
+                ${L("Prix", euros(c.prix), euros(cO.prix))}
+                ${L(`Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")}&nbsp;%)`, euros(c.droits), euros(cO.droits))}
+                ${L("Frais de notaire", nc(c), nc(cO))}
+                ${L("Travaux (TVA et imprévus)", euros(c.travaux[1], 100), euros(cO.travaux[1], 100))}
+                ${L("Total", `<b>${euros(c.total[1], 100)}</b>`, `<b>${euros(cO.total[1], 100)}</b>`, "sim-tot")}
+              </tbody></table></div>
+              ${o ? `<p class="sim-ecart">Avec votre offre : <b>${euros(Math.abs(ec), 100)} de ${ec < 0 ? "moins" : "plus"}</b> qu'au prix demandé (droits et notaire recalculés).</p>` : `<p class="mu petit-t">Tapez une offre : elle s'affiche à côté du prix demandé pour comparer.</p>`}
+              ${cO.notaireCalcul ? `<details class="notaire"><summary><span>Détail des frais de notaire${o ? " (avec votre offre)" : ""}</span><b>${euros(cO.notaireCalcul.total)}</b></summary>
               <div class="ligne"><span>Honoraires</span><span>${euros2(cO.notaireCalcul.honoraires)}</span></div>
               <div class="ligne"><span>Frais administratifs</span><span>${euros2(cO.notaireCalcul.detail.administratifs)}</span></div>
               <div class="ligne"><span>Débours</span><span>${euros2(cO.notaireCalcul.detail.debours)}</span></div>
               <div class="ligne"><span>Transcription hypothécaire</span><span>${euros2(cO.notaireCalcul.detail.transcription)}</span></div>
               <div class="ligne"><span>Droit pour les annexes et droit d'écriture</span><span>${euros2(cO.notaireCalcul.detail.annexes + cO.notaireCalcul.detail.ecriture)}</span></div>
               <div class="ligne"><span>TVA 21 %</span><span>${euros2(cO.notaireCalcul.tva)}</span></div>
-            </details>` : `<div><span>Frais de notaire (acte d'achat)</span><b class="manque">à compléter</b></div>`}
-            <div><span>Travaux (TVA et imprévus compris)</span><b>${euros(cO.travaux[1], 100)}</b></div>
-            <div class="sim-tot"><span>Total ${m.offre ? "avec cette offre" : "au prix demandé"}</span><b>${euros(cO.total[1], 100)}</b></div>
-          </div>
-          ${m.offre && m.offre !== m.prix ? `<p class="sim-ecart">${m.offre < m.prix ? `Soit <b>${euros(c.total[1] - cO.total[1], 100)} de moins</b>` : `Soit <b>${euros(cO.total[1] - c.total[1], 100)} de plus</b>`} qu'au prix demandé (droits et notaire recalculés sur l'offre).</p>` : ""}
+            </details>` : ""}`;
+          })()}
           <small class="mu">Droits : taux légal wallon. Notaire : calcul d'après le ${esc((cO.notaireCalcul || {}).source || "simulateur notaire.be")}. À confirmer par le notaire. L'acte de crédit a ses propres frais (pas encore comptés).</small>
           <details class="corriger"><summary>Corriger le prix demandé</summary><label>Prix demandé (€)<input type="number" min="0" inputmode="numeric" data-f="prix" value="${esc(m.prix)}"></label></details>
         </section>
@@ -492,7 +501,7 @@ function ecranMaison(m) {
         ${aides()}
     </div>
     <div class="actions">
-      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a>${maisons.length > 1 ? `<a class="btn sec" href="#/comparer">Comparer avec mes autres maisons</a>` : ""}</span>
+      <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a></span>
       <button class="btn lien" data-action="suppr-demande" data-id="${m.id}">🗑 Supprimer cette maison</button>
     </div>
 `}`;
