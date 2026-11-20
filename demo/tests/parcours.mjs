@@ -46,7 +46,7 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-0-demo.png` });
     await page.screenshot({ path: `${OUT}/${nom}-0-demo-complet.png`, fullPage: nom === "ordi" });
 
-    /* ④ Projet : simuler une offre → le total (prix + enregistrement + notaire + travaux) suit l'offre */
+    /* Projet : simuler une offre → le total (prix + enregistrement + notaire + travaux) suit l'offre */
     const auPrix = await page.locator(".sim-tot td:last-child b").innerText();
     await page.fill('[data-f="offre"]', "200000");
     await page.locator('[data-f="offre"]').dispatchEvent("change");
@@ -63,7 +63,7 @@ try {
     await page.locator('[data-f="offre"]').dispatchEvent("change");
     await page.locator(".sim-ecart").waitFor({ state: "detached" });
     assert.equal(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
-    /* ③ Les pros : contacter un courtier */
+    /* Les pros : contacter un courtier */
     await onglet("artisans");
     await page.locator('[data-action="courtier-envoyer"]').first().click();
     assert.match(await page.locator(".co-liste").innerText(), /Dossier envoyé/);

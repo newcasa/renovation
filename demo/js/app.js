@@ -290,7 +290,7 @@ function carteEnergie(m, b) {
 }
 
 /* ---------- écran : le vrai coût d'une maison (en 5 onglets) ---------- */
-const ONGLETS_M = [["pieces", "① Espaces"], ["travaux", "② Technique"], ["artisans", "③ Les pros"], ["projet", "④ Projet"]];
+const ONGLETS_M = [["pieces", "Espaces"], ["travaux", "Technique"], ["artisans", "Les pros"], ["projet", "Projet"]];
 const ONGLETS_R = ONGLETS_M;
 const ongletsDe = m => (projetDe(m) === "renovation" ? ONGLETS_R : ONGLETS_M);
 const ongletsM = {}; // onglet ouvert, par maison
@@ -372,7 +372,7 @@ function ecranMaison(m) {
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
-    <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>voir ④ Projet ›</small></button>
+    <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>voir Projet ›</small></button>
 
     <nav class="onglets-m" aria-label="Parties de la fiche">${ongletsDe(m).map(([id, t]) => `<button class="om-i ${ongletMaison(m) === id ? "on" : ""}" data-action="onglet-m" data-o="${id}"${ongletMaison(m) === id ? ' aria-current="true"' : ""}>${t}${id === "pieces" && (m.pieces || []).length ? ` <small>${m.pieces.length}</small>` : ""}</button>`).join("")}</nav>
     ${(() => {
@@ -404,7 +404,7 @@ function ecranMaison(m) {
             ${hyp}
           </div>
         </details>
-      ${suivant("artisans", "Suivant : ③ Les pros")}`;
+      ${suivant("artisans", "Suivant : Les pros")}`;
       if (o === "artisans") return `
     <section class="carte choisir-art"><h2>Choisir vos artisans</h2>
       <p class="mu">Pour chaque métier : le projet propre à ce métier (les pièces et les postes à envoyer, le matériau souhaité), puis jusqu'à 3 artisans à qui l'envoyer.</p>
@@ -519,7 +519,7 @@ function ecranMaison(m) {
       </div>
     </section>
 
-      ${suivant("travaux", "Suivant : ② Technique")}`;
+      ${suivant("travaux", "Suivant : Technique")}`;
     })()}
   </main>`;
 }
@@ -1325,12 +1325,12 @@ const TUTOS = {
     [".barre-bas, .nav-haut", "Le menu : vos maisons, la comparaison, les artisans à contacter, et le reste dans « Plus »."],
   ],
   maison: [
-    [".vc-mini", "Le chiffre clé : ce que la maison va vraiment vous coûter. Le détail est dans l'onglet ④ Projet."],
+    [".vc-mini", "Le chiffre clé : ce que la maison va vraiment vous coûter. Le détail est dans l'onglet Projet."],
     [".onglets-m", "La fiche suit l'ordre de la visite, en 4 onglets."],
-    ['.om-i[data-o="pieces"]', "① Espaces : ajoutez les pièces, prenez les photos, ou photographiez le questionnaire papier."],
-    ['.om-i[data-o="travaux"]', "② Technique : le chauffage, la toiture, l'isolation, l'électricité et tout ce qui ne dépend pas d'une pièce."],
-    ['.om-i[data-o="artisans"]', "③ Les pros : choisissez vos artisans, recevez leurs devis, trouvez vos négociants et contactez un courtier."],
-    ['.om-i[data-o="projet"]', "④ Projet : le vrai coût, le PEB, le budget, la simulation d'une offre et du financement, les aides et le dossier pour la banque."],
+    ['.om-i[data-o="pieces"]', "Espaces : ajoutez les pièces, prenez les photos, ou photographiez le questionnaire papier."],
+    ['.om-i[data-o="travaux"]', "Technique : le chauffage, la toiture, l'isolation, l'électricité et tout ce qui ne dépend pas d'une pièce."],
+    ['.om-i[data-o="artisans"]', "Les pros : choisissez vos artisans, recevez leurs devis, trouvez vos négociants et contactez un courtier."],
+    ['.om-i[data-o="projet"]', "Projet : le vrai coût, le PEB, le budget, la simulation d'une offre et du financement, les aides et le dossier pour la banque."],
     [".aide-btn", "Besoin d'un rappel ? Ce bouton relance le didacticiel de la page."],
   ],
   piece: [
