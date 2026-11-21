@@ -339,6 +339,7 @@ try {
     assert.equal(await page.locator("[data-chf]").count(), 0, "plus de chauffage dans le formulaire d'ajout");
     await page.screenshot({ path: `${OUT}/${nom}-2-ajouter.png`, fullPage: nom === "ordi" }); // sur téléphone, la capture pleine page perturbe le clic suivant
     assert.equal(await page.locator("[data-choix]").count(), 0, "plus d'estimation rapide");
+    await page.selectOption('select[name="facades"]', "3"); // nombre de façades
     await page.getByText("Voir le vrai coût").click();
 
     /* le vrai coût */
@@ -347,6 +348,7 @@ try {
     assert.match(total, /€/);
     assert.match(await page.locator(".vrai-cout .legende").innerText(), /Prix d'achat\s*245\s?000 €/); // le nom et le prix ont bien été gardés
     assert.match(await page.locator("h1").innerText(), /Maison test/);
+    assert.match(await page.locator(".titre-maison").innerText(), /3 façades/);
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
     /* le chauffage se règle sur la fiche, onglet Travaux : mazout → pompe à chaleur + 7 radiateurs */

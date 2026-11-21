@@ -82,7 +82,7 @@ function carteMaison(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b), reno = projetDe(m) === "renovation";
   return `<div class="m-case"><a class="carte maison ${reno ? "m-reno" : ""}" href="#/maison/${m.id}">
     <div class="m-tete"><b>${esc(m.nom || "Maison sans nom")}</b>${pebBadge(m.peb)}${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}</div>
-    <div class="mu">${esc(m.commune || "")}${m.annee ? ` · ${esc(m.annee)}` : ""}${m.surface ? ` · ${nombre(m.surface)} m²` : ""}</div>
+    <div class="mu">${esc(m.commune || "")}${m.annee ? ` · ${esc(m.annee)}` : ""}${+m.facades ? ` · ${m.facades} façades` : ""}${m.surface ? ` · ${nombre(m.surface)} m²` : ""}</div>
     <div class="m-chiffres">${reno
       ? `<div><small>Budget de la rénovation</small><b class="or">${euros(c.total[1], 100)}</b></div><div><small>Pièces</small><b>${(m.pieces || []).length}</b></div>`
       : `<div><small>Prix demandé</small><b>${euros(c.prix)}</b></div><div><small>Vrai coût estimé</small><b class="or">${euros(c.total[1], 100)}</b></div>`}</div>
@@ -122,7 +122,9 @@ function ecranAccueil() {
 
 /* ---------- écran : ajouter une maison ---------- */
 let brouillon = null;
-const brouillonVide = () => ({ nom: "", commune: "", prix: "", annee: "", surface: "", etat: "rafraichir", uniqueHabitation: true, choix: {}, chauffage: { actuel: "gaz", souhaite: "garder", emetteurs: "garder" } });
+const FACADES = [[2, "2 façades (mitoyenne)"], [3, "3 façades (semi-mitoyenne)"], [4, "4 façades (isolée)"]];
+const txtFacades = m => (+m.facades ? `${m.facades} façades` : "");
+const brouillonVide = () => ({ nom: "", commune: "", prix: "", annee: "", surface: "", facades: "", etat: "rafraichir", uniqueHabitation: true, choix: {}, chauffage: { actuel: "gaz", souhaite: "garder", emetteurs: "garder" } });
 
 /* bloc chauffage, utilisé dans le formulaire et sur la fiche maison */
 function blocChauffage(ch, attr, sansEmetteurs) {
@@ -154,6 +156,7 @@ function ecranAjouter() {
         ${reno ? "" : champ("prix", "Prix demandé (€)", "number", 'min="0" inputmode="numeric" required')}
         ${champ("annee", "Année de construction", "number", 'min="1800" max="2030" inputmode="numeric" required')}
         ${champ("surface", "Surface habitable (m²)", "number", 'min="10" inputmode="numeric" required')}
+        <label>Nombre de façades<select name="facades"><option value="">Je ne sais pas</option>${FACADES.map(([v, t]) => `<option value="${v}" ${+b.facades === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
         <label>${reno ? "Label PEB (si vous avez un certificat)" : "Label PEB (certificat de l'annonce)"}<select name="peb"><option value="">Je ne sais pas</option>${LABELS_PEB.map(l => `<option ${b.peb === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
         ${champ("pebConso", "Consommation (kWh/m²/an)", "number", 'min="0" inputmode="numeric" placeholder="sur le certificat"')}
         <label>État général<select name="etat">
@@ -161,7 +164,7 @@ function ecranAjouter() {
         </select></label>
 ${reno ? "" : `<label class="cb large"><input type="checkbox" name="uniqueHabitation" ${b.uniqueHabitation ? "checked" : ""}> Ce sera ma seule habitation, et j'y habiterai (droits d'enregistrement réduits à 3 % en Wallonie)</label>`}
       </div>
-      <p class="mu">Ensuite, sur la fiche de la maison : ajoutez les pièces dans l'onglet « Pièces », puis le chauffage et la structure dans l'onglet « Travaux ». C'est là que le budget devient précis.</p>
+      <p class="mu">Ensuite, sur la fiche de la maison : ajoutez les pièces dans l'onglet « Espaces », puis le chauffage et la structure dans l'onglet « Technique ». C'est là que le budget devient précis.</p>
       <button class="btn" type="submit">${reno ? "Voir le budget de la rénovation →" : "Voir le vrai coût →"}</button>
     </form>
   </main>`;
@@ -171,7 +174,7 @@ function creerMaison(b, exemple = false) {
   const m = {
     id: nouvelId(),
     projet: b.projet === "renovation" ? "renovation" : "achat",
-    nom: b.nom, commune: b.commune, prix: b.projet === "renovation" ? 0 : +b.prix || 0, annee: +b.annee || null, surface: +b.surface || 0,
+    nom: b.nom, commune: b.commune, prix: b.projet === "renovation" ? 0 : +b.prix || 0, annee: +b.annee || null, surface: +b.surface || 0, facades: +b.facades || null,
     etat: b.etat, uniqueHabitation: !!b.uniqueHabitation, fraisNotaire: null, exemple, peb: b.peb || null, pebConso: +b.pebConso || null,
     rep: { etat: b.etat === "renover" ? "oui" : "non" },
   };
@@ -388,7 +391,7 @@ function ecranMaison(m) {
       ${pebBadge(m.peb, true)}
       ${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
       ${m.description ? `<p class="desc">${esc(m.description)}</p>` : ""}
-      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
     <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>voir Projet ›</small></button>
@@ -411,6 +414,7 @@ function ecranMaison(m) {
 
     <section class="carte">
       <h2>Structure, toiture et équipements</h2>
+      <label class="facades-m">Nombre de façades<select data-f="facades"><option value="">Je ne sais pas</option>${FACADES.map(([v, t]) => `<option value="${v}" ${+m.facades === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
       ${grpFixes}
     </section>
@@ -748,6 +752,7 @@ function ecranComparer() {
       ${ligne("Écart avec le prix affiché", x => `+${euros(x.c.total[1] - x.c.prix, 100)} <small class="mu">(+${x.c.prix ? Math.round(((x.c.total[1] - x.c.prix) / x.c.prix) * 100) : 0} %)</small>`)}
       ${ligne("Label PEB", x => (x.m.peb ? pebBadge(x.m.peb) + (concerneParObligation(x.m.peb) ? ` <small class="mu">obligation annoncée : label ${OBLIGATION_PEB.cible} en ${OBLIGATION_PEB.delaiAns} ans</small>` : "") : `<span class="mu">inconnu</span>`))}
       ${ligne("Travaux énergétiques (moyen)", x => euros(travauxEnergie(x.b).total[1], 100))}
+      ${ligne("Façades", x => (+x.m.facades ? `${x.m.facades} façades` : "–"))}
       ${ligne("Vrai coût par m²", x => (x.m.surface ? euros(x.c.total[1] / x.m.surface, 10) + " /m²" : "–"))}
       ${ligne("Fiabilité du budget travaux", x => `<span class="badge b-reference">${x.detail} % détaillé</span> <span class="badge b-fourchette">${x.fourch} % fourchette</span>`)}
     </tbody></table></div>`;
@@ -857,7 +862,7 @@ function ecranDossier(m) {
       <header class="f-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Dossier de financement</b><small>${projetDe(m) === "renovation" ? "Rénovation" : "Achat et rénovation"} · ${esc(auj)}</small></div></header>
       ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
       <h1>${esc(m.nom || "Maison")}</h1>
-      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
       ${m.description ? `<p>${esc(m.description)}</p>` : ""}
       ${m.peb ? `<p>Performance énergétique : ${pebBadge(m.peb)}${m.pebConso ? ` · ${esc(m.pebConso)} kWh/m²/an` : ""} · travaux énergétiques prévus : ${euros(travauxEnergie(b).total[1], 100)}</p>` : ""}
 
@@ -1165,7 +1170,7 @@ function ecranContacts(id) {
   return `${entete("contacts")}<main>
     <a href="#/contacts" class="retour">← Mes maisons</a>
     <div class="titre-maison"><h1>${esc(m.nom || "Maison")}</h1>${pebBadge(m.peb, true)}${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
-      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, m.surface && `${nombre(m.surface)} m²`].filter(Boolean).map(esc).join(" · ")}</p></div>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.surface && `${nombre(m.surface)} m²`].filter(Boolean).map(esc).join(" · ")}</p></div>
     <section class="carte resume">
       <h2>Résumé du projet</h2>
       <div class="res-chiffres">
