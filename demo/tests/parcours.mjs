@@ -349,6 +349,11 @@ try {
     assert.match(await page.locator(".vrai-cout .legende").innerText(), /Prix d'achat\s*245\s?000 €/); // le nom et le prix ont bien été gardés
     assert.match(await page.locator("h1").innerText(), /Maison test/);
     assert.match(await page.locator(".titre-maison").innerText(), /3 façades/);
+    /* type de toiture : on clique sur le schéma */
+    await onglet("travaux");
+    await page.locator('.toit-c[data-t="croupe"]').click();
+    assert.match(await page.locator(".toit-c.on").innerText(), /Quatre pans/);
+    assert.match(await page.locator(".titre-maison").innerText(), /toit : quatre pans/);
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
     /* le chauffage se règle sur la fiche, onglet Travaux : mazout → pompe à chaleur + 7 radiateurs */

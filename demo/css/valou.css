@@ -1003,3 +1003,16 @@ label.dd-ligne { justify-content: flex-start; }
 .pret-trav .pt-l b { white-space: nowrap; }
 .pret-trav .pt-hors { text-decoration: line-through; color: var(--mu); font-weight: 600; }
 .facades-m { display: block; max-width: 340px; margin: 4px 0 12px; font-weight: 700; }
+
+/* type de toiture */
+.toits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.toit-c { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; border: 2px solid var(--bord); border-radius: 14px; background: #fff; cursor: pointer; font: 700 13.5px Manrope, sans-serif; color: var(--bordeaux); }
+.toit-c svg { width: 100%; max-width: 92px; height: auto; }
+.toit-c .st-toit { fill: #9aa7b8; }
+.toit-c .st-mur { fill: #e9edf3; stroke: #9aa7b8; stroke-width: 1.5; }
+.toit-c .st-porte, .toit-c .st-fen { fill: #c5cfdc; }
+.toit-c:hover { border-color: var(--or); }
+.toit-c.on { border-color: var(--or); background: #fff6ec; box-shadow: 0 0 0 2px rgba(236, 130, 36, .25); }
+.toit-c.on .st-toit { fill: var(--or); }
+.toit-c.on .st-mur { stroke: var(--or-fonce); }
+@media (min-width: 761px) { .toits { grid-template-columns: repeat(6, 1fr); } }

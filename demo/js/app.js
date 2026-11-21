@@ -231,6 +231,24 @@ function blocCourtier(m, cO) {
     <p class="mu petit-t">Démonstration : aucun envoi réel. <a href="#/dossier/${m.id}">Voir mon dossier pour la banque</a>.</p>
   </section>`;
 }
+/* ---------- type de toiture : on clique sur le schéma ---------- */
+const TOITS = [
+  ["plat", "Toit plat", '<rect x="11" y="25" width="58" height="7" rx="1"/>'],
+  ["appentis", "Une pente", '<polygon points="11,32 69,32 69,12"/>'],
+  ["batiere", "Deux pentes", '<polygon points="9,32 40,9 71,32"/>'],
+  ["croupe", "Quatre pans", '<polygon points="9,32 25,13 55,13 71,32"/>'],
+  ["pointe", "En pointe", '<polygon points="15,32 40,2 65,32"/>'],
+  ["mansarde", "Mansardé", '<polygon points="9,32 15,17 29,10 51,10 65,17 71,32"/>'],
+];
+const nomToit = k => (TOITS.find(t => t[0] === k) || [])[1] || "";
+const schemaToit = forme => `<svg viewBox="0 0 80 58" aria-hidden="true"><g class="st-toit">${forme}</g><rect class="st-mur" x="16" y="32" width="48" height="24"/><rect class="st-porte" x="35" y="42" width="10" height="14"/><rect class="st-fen" x="21" y="38" width="9" height="8"/><rect class="st-fen" x="50" y="38" width="9" height="8"/></svg>`;
+function blocToiture(m) {
+  return `<section class="carte">
+      <h2>La toiture</h2>
+      <p class="mu petit-t">Touchez le schéma qui ressemble au toit de la maison.</p>
+      <div class="toits">${TOITS.map(([k, t, f]) => `<button type="button" class="toit-c ${m.toiture === k ? "on" : ""}" data-action="toit" data-t="${k}" aria-pressed="${m.toiture === k}">${schemaToit(f)}<span>${t}</span></button>`).join("")}</div>
+    </section>`;
+}
 /* ---------- travaux inclus ou non dans la demande de prêt (par groupe ; imprévus et TVA au prorata) ---------- */
 function travauxPret(m, b, travauxMoy) {
   const H = new Set((m.fin || {}).horsPret || []), G = {};
@@ -391,7 +409,7 @@ function ecranMaison(m) {
       ${pebBadge(m.peb, true)}
       ${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
       ${m.description ? `<p class="desc">${esc(m.description)}</p>` : ""}
-      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
     <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>voir Projet ›</small></button>
@@ -411,6 +429,8 @@ function ecranMaison(m) {
       ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
       ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
     </section>
+
+    ${blocToiture(m)}
 
     <section class="carte">
       <h2>Structure, toiture et équipements</h2>
@@ -752,6 +772,7 @@ function ecranComparer() {
       ${ligne("Écart avec le prix affiché", x => `+${euros(x.c.total[1] - x.c.prix, 100)} <small class="mu">(+${x.c.prix ? Math.round(((x.c.total[1] - x.c.prix) / x.c.prix) * 100) : 0} %)</small>`)}
       ${ligne("Label PEB", x => (x.m.peb ? pebBadge(x.m.peb) + (concerneParObligation(x.m.peb) ? ` <small class="mu">obligation annoncée : label ${OBLIGATION_PEB.cible} en ${OBLIGATION_PEB.delaiAns} ans</small>` : "") : `<span class="mu">inconnu</span>`))}
       ${ligne("Travaux énergétiques (moyen)", x => euros(travauxEnergie(x.b).total[1], 100))}
+      ${ligne("Toiture", x => esc(nomToit(x.m.toiture) || "–"))}
       ${ligne("Façades", x => (+x.m.facades ? `${x.m.facades} façades` : "–"))}
       ${ligne("Vrai coût par m²", x => (x.m.surface ? euros(x.c.total[1] / x.m.surface, 10) + " /m²" : "–"))}
       ${ligne("Fiabilité du budget travaux", x => `<span class="badge b-reference">${x.detail} % détaillé</span> <span class="badge b-fourchette">${x.fourch} % fourchette</span>`)}
@@ -862,7 +883,7 @@ function ecranDossier(m) {
       <header class="f-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Dossier de financement</b><small>${projetDe(m) === "renovation" ? "Rénovation" : "Achat et rénovation"} · ${esc(auj)}</small></div></header>
       ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
       <h1>${esc(m.nom || "Maison")}</h1>
-      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
       ${m.description ? `<p>${esc(m.description)}</p>` : ""}
       ${m.peb ? `<p>Performance énergétique : ${pebBadge(m.peb)}${m.pebConso ? ` · ${esc(m.pebConso)} kWh/m²/an` : ""} · travaux énergétiques prévus : ${euros(travauxEnergie(b).total[1], 100)}</p>` : ""}
 
@@ -1606,6 +1627,7 @@ document.addEventListener("click", e => {
   }
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
+  if (a === "toit" && m) { m.toiture = m.toiture === el.dataset.t ? null : el.dataset.t; sauver(); afficher(); }
   if (a === "courtier-envoyer" && m) { m.envoiCourtier = { ...(m.envoiCourtier || {}), [el.dataset.id]: Date.now() }; sauver(); afficher(); }
   if (a === "devis-utiliser") {
     const mq = trouver(el.dataset.maison), r = mq && devisRecus(mq).find(y => y.metier === el.dataset.metier);
