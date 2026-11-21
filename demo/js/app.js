@@ -242,11 +242,50 @@ const TOITS = [ // dessins en 3D (vue de trois quarts : façade, côté et pans 
 ];
 const nomToit = k => (TOITS.find(t => t[0] === k) || [])[1] || "";
 const schemaToit = forme => `<svg viewBox="0 0 68 52" aria-hidden="true">${forme}</svg>`;
+/* surface du toit d'après la largeur de façade, la profondeur et la pente : surface = emprise ÷ cos(pente) */
+const PENTE_DEFAUT = { plat: 0, appentis: 15, batiere: 35, croupe: 35, pointe: 40, mansarde: 25 };
+const POSTES_TOIT_M2 = /^i_(dp|st|cv_\d|cp_\d|to_1|to_2)$/;
+function calcToiture(m) {
+  const D = m.toitDim || {}, t = m.toiture, l = +D.larg, pr = +D.prof;
+  if (!t || !(l > 0) || !(pr > 0)) return null;
+  const deb = +D.debord || 0, L = l + 2 * deb, P = pr + 2 * deb, pente = D.pente != null && D.pente !== "" ? +D.pente : PENTE_DEFAUT[t];
+  const rad = x => (x * Math.PI) / 180, emprise = L * P;
+  let surf, detail;
+  if (t === "plat") { surf = emprise; detail = "toit plat : longueur × largeur"; }
+  else if (t === "mansarde") {
+    const b = 0.15 * P, brisis = (2 * L * b) / Math.cos(rad(70)), terr = (L * (P - 2 * b)) / Math.cos(rad(pente));
+    surf = brisis + terr; detail = `brisis à 70° (${nombre(Math.round(brisis))} m²) + terrasson à ${pente}° (${nombre(Math.round(terr))} m²)`;
+  } else {
+    surf = emprise / Math.cos(rad(pente));
+    const pans = { appentis: "1 pan", batiere: `2 pans de ${nombre(Math.round(surf / 2))} m²`, croupe: "4 pans", pointe: "4 pans" }[t];
+    detail = `${pans}, pente ${pente}°`;
+  }
+  const goutt = { plat: 2 * (L + P), appentis: L, batiere: 2 * L, croupe: 2 * (L + P), pointe: 2 * (L + P), mansarde: 2 * L }[t];
+  return { surf: Math.round(surf), detail, goutt: Math.round(goutt), combles: Math.round(l * pr), pente, deb };
+}
 function blocToiture(m) {
   return `<section class="carte">
       <h2>La toiture</h2>
       <p class="mu petit-t">Touchez le schéma qui ressemble au toit de la maison.</p>
       <div class="toits">${TOITS.map(([k, t, f]) => `<button type="button" class="toit-c ${m.toiture === k ? "on" : ""}" data-action="toit" data-t="${k}" aria-pressed="${m.toiture === k}">${schemaToit(f)}<span>${t}</span></button>`).join("")}</div>
+      ${m.toiture ? (() => {
+        const D = m.toitDim || {}, r = calcToiture(m);
+        const ch = (k, t, ph, suf) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-tdim="${k}" value="${esc(D[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
+        return `<h3 class="td-titre">Calculer la surface du toit</h3>
+        <div class="toit-dim">
+          ${ch("larg", "Largeur de la façade", "ex. 9", "m")}
+          ${ch("prof", "Profondeur de la maison", "ex. 10", "m")}
+          ${m.toiture === "plat" ? "" : ch("pente", m.toiture === "mansarde" ? "Pente du haut (terrasson)" : "Pente du toit", String(PENTE_DEFAUT[m.toiture]), "°")}
+          ${ch("debord", "Débord du toit", "0", "m")}
+        </div>
+        ${r ? `<div class="toit-res">
+          <div class="ligne"><span>Surface de toiture</span><b>≈ ${nombre(r.surf)} m²</b></div>
+          <small class="mu">${esc(r.detail)}${r.deb ? `, débord de ${String(r.deb).replace(".", ",")} m compris` : ""}.</small>
+          <div class="ligne"><span>${m.toiture === "plat" ? "Rives (tour du toit)" : "Gouttières"}</span><b>≈ ${nombre(r.goutt)} m</b></div>
+          <div class="ligne"><span>Sol des combles (isolation)</span><b>≈ ${nombre(r.combles)} m²</b></div>
+          <small class="mu">Dans « Toiture » et « Isolation » ci-dessous, touchez « = … » à côté d'un poste pour reprendre ces mesures. ${m.toiture === "plat" ? "" : `Pente non connue ? ${PENTE_DEFAUT[m.toiture]}° est une pente courante en Wallonie.`} À confirmer par le couvreur.</small>
+        </div>` : `<p class="mu petit-t">Tapez la largeur et la profondeur : la surface du toit se calcule avec la pente.</p>`}`;
+      })() : ""}
     </section>`;
 }
 /* ---------- travaux inclus ou non dans la demande de prêt (par groupe ; imprévus et TVA au prorata) ---------- */
@@ -385,6 +424,7 @@ function ecranMaison(m) {
   const horsPieces = b.lignes.filter(l => !l.pieceId && l.src !== "chauffage");
   const ligneDe = k => horsPieces.find(l => l.k === k);
   const fixes = R.liste.filter(p => !POSTES_PIECES.test(p.k));
+  const rt = calcToiture(m);
   const grpFixes = [...new Set(fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y)).map(g => {
     const P = fixes.filter(p => groupe(p) === g), rempli = P.filter(p => ligneDe(p.k)), t = rempli.reduce((s, p) => s + (ligneDe(p.k).fiab ? ligneDe(p.k).total[1] : 0), 0);
     return `<details class="grp fixe" data-ouvert="${m.id}:${esc(g)}" ${ouverts.has(`${m.id}:${g}`) ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
@@ -392,7 +432,7 @@ function ecranMaison(m) {
         <td>${esc(p.n)}</td>
         <td class="q">${/escalier/.test(p.u)
           ? `<input type="number" min="0" step="1" inputmode="numeric" data-mmarches="${p.k}" value="${esc(l ? (l.marches ?? l.q * MARCHES_PAR_ESCALIER) : "")}" placeholder="0" aria-label="Nombre de marches : ${esc(p.n)}"><small>marches</small><small class="mu bloc">${MARCHES_PAR_ESCALIER} marches = 1 escalier</small>`
-          : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>`}</td>
+          : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>${(() => { const v = rt && (POSTES_TOIT_M2.test(p.k) ? rt.surf : p.k === "i_to_0" ? rt.combles : p.k === "i_zi" ? rt.goutt : 0); return v && (!l || +l.q !== v) ? `<button type="button" class="toit-q" data-action="toit-q" data-k="${p.k}" data-q="${v}" title="Reprendre la mesure calculée du toit">= ${nombre(v)}</button>` : ""; })()}`}</td>
         <td class="c"><label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label></td>
         <td class="r">${l && l.fiab ? euros(l.total[1], 10) : ""}</td></tr>`; }).join("")}</table></details>`;
   }).join("");
@@ -1627,6 +1667,7 @@ document.addEventListener("click", e => {
   }
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
+  if (a === "toit-q") { const i = document.querySelector(`[data-mq="${el.dataset.k}"]`); if (i) { i.value = el.dataset.q; i.dispatchEvent(new Event("change", { bubbles: true })); } }
   if (a === "toit" && m) { m.toiture = m.toiture === el.dataset.t ? null : el.dataset.t; sauver(); afficher(); }
   if (a === "courtier-envoyer" && m) { m.envoiCourtier = { ...(m.envoiCourtier || {}), [el.dataset.id]: Date.now() }; sauver(); afficher(); }
   if (a === "devis-utiliser") {
@@ -1754,6 +1795,13 @@ document.addEventListener("change", e => {
   if (t.dataset.comp) {
     const id = t.dataset.comp;
     selection = t.checked ? [...selection.filter(x => x !== id), id].slice(-3) : selection.filter(x => x !== id);
+    afficher();
+    return;
+  }
+  /* dimensions du toit */
+  if (t.dataset.tdim && m) {
+    m.toitDim = { ...(m.toitDim || {}), [t.dataset.tdim]: t.value === "" ? null : +t.value };
+    sauver();
     afficher();
     return;
   }

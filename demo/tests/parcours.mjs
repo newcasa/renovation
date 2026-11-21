@@ -354,6 +354,12 @@ try {
     await page.locator('.toit-c[data-t="croupe"]').click();
     assert.match(await page.locator(".toit-c.on").innerText(), /Quatre pans/);
     assert.match(await page.locator(".titre-maison").innerText(), /toit : quatre pans/);
+    /* surface du toit : 9 m × 10 m, 4 pans à 35° → 90 ÷ cos 35° ≈ 110 m² ; « = 110 » reprend la mesure dans la couverture */
+    for (const [k, v] of [["larg", "9"], ["prof", "10"]]) { await page.fill(`[data-tdim="${k}"]`, v); await page.locator(`[data-tdim="${k}"]`).dispatchEvent("change"); }
+    assert.match(await page.locator(".toit-res").innerText(), /Surface de toiture\s*≈ 110 m²[\s\S]*Sol des combles[^\n]*\n?\s*≈ 90 m²/);
+    await page.locator('details:has([data-mq="i_cv_1"]) > summary').click();
+    await page.locator('.toit-q[data-k="i_cv_1"]').click();
+    assert.equal(await page.inputValue('[data-mq="i_cv_1"]'), "110");
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
     /* le chauffage se règle sur la fiche, onglet Travaux : mazout → pompe à chaleur + 7 radiateurs */

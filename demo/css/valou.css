@@ -1026,3 +1026,12 @@ label.dd-ligne { justify-content: flex-start; }
 .toit-c.on .f-mur { fill: #fff4e8; }
 .toit-c.on .f-cote { fill: #f3d5b5; }
 @media (min-width: 761px) { .toits { grid-template-columns: repeat(6, 1fr); } }
+
+/* surface du toit */
+.td-titre { margin: 16px 0 6px; font-size: 16px; }
+.toit-dim { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.toit-dim label { font-weight: 700; font-size: 14px; }
+.toit-res { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #fff6ec; border: 1px solid #f3d5b5; }
+.toit-res .ligne b { color: var(--or-fonce); }
+.toit-q { margin-left: 6px; border: 1px solid var(--or); background: #fff6ec; color: var(--or-fonce); border-radius: 999px; padding: 3px 9px; font: 800 13px Manrope, sans-serif; cursor: pointer; white-space: nowrap; }
+@media (max-width: 380px) { .toit-dim { grid-template-columns: 1fr; } }
