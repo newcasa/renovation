@@ -124,7 +124,10 @@ function ecranAccueil() {
 let brouillon = null;
 const FACADES = [[2, "2 façades (mitoyenne)"], [3, "3 façades (semi-mitoyenne)"], [4, "4 façades (isolée)"]];
 const txtFacades = m => (+m.facades ? `${m.facades} façades` : "");
-const brouillonVide = () => ({ nom: "", commune: "", prix: "", annee: "", surface: "", facades: "", etat: "rafraichir", uniqueHabitation: true, choix: {}, chauffage: { actuel: "gaz", souhaite: "garder", emetteurs: "garder" } });
+const ETAGES = [[0, "Rez seul (plain-pied)"], [1, "Rez + 1 étage"], [2, "Rez + 2 étages"], [3, "Rez + 3 étages"]];
+const HAUTEUR_ETAGE = 3; // m par niveau
+const txtEtages = m => (m.etages == null || m.etages === "" ? "" : +m.etages ? `rez + ${m.etages}` : "plain-pied");
+const brouillonVide = () => ({ nom: "", commune: "", prix: "", annee: "", surface: "", facades: "", etages: "", etat: "rafraichir", uniqueHabitation: true, choix: {}, chauffage: { actuel: "gaz", souhaite: "garder", emetteurs: "garder" } });
 
 /* bloc chauffage, utilisé dans le formulaire et sur la fiche maison */
 function blocChauffage(ch, attr, sansEmetteurs) {
@@ -156,6 +159,7 @@ function ecranAjouter() {
         ${reno ? "" : champ("prix", "Prix demandé (€)", "number", 'min="0" inputmode="numeric" required')}
         ${champ("annee", "Année de construction", "number", 'min="1800" max="2030" inputmode="numeric" required')}
         ${champ("surface", "Surface habitable (m²)", "number", 'min="10" inputmode="numeric" required')}
+        <label>Nombre d'étages<select name="etages" required><option value="" disabled ${b.etages === "" ? "selected" : ""}>Choisir…</option>${ETAGES.map(([v, t]) => `<option value="${v}" ${b.etages !== "" && +b.etages === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
         <label>Nombre de façades<select name="facades"><option value="">Je ne sais pas</option>${FACADES.map(([v, t]) => `<option value="${v}" ${+b.facades === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
         <label>${reno ? "Label PEB (si vous avez un certificat)" : "Label PEB (certificat de l'annonce)"}<select name="peb"><option value="">Je ne sais pas</option>${LABELS_PEB.map(l => `<option ${b.peb === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
         ${champ("pebConso", "Consommation (kWh/m²/an)", "number", 'min="0" inputmode="numeric" placeholder="sur le certificat"')}
@@ -174,7 +178,7 @@ function creerMaison(b, exemple = false) {
   const m = {
     id: nouvelId(),
     projet: b.projet === "renovation" ? "renovation" : "achat",
-    nom: b.nom, commune: b.commune, prix: b.projet === "renovation" ? 0 : +b.prix || 0, annee: +b.annee || null, surface: +b.surface || 0, facades: +b.facades || null,
+    nom: b.nom, commune: b.commune, prix: b.projet === "renovation" ? 0 : +b.prix || 0, annee: +b.annee || null, surface: +b.surface || 0, facades: +b.facades || null, etages: b.etages === "" || b.etages == null ? null : +b.etages,
     etat: b.etat, uniqueHabitation: !!b.uniqueHabitation, fraisNotaire: null, exemple, peb: b.peb || null, pebConso: +b.pebConso || null,
     rep: { etat: b.etat === "renover" ? "oui" : "non" },
   };
@@ -263,6 +267,31 @@ function calcToiture(m) {
   const goutt = { plat: 2 * (L + P), appentis: L, batiere: 2 * L, croupe: 2 * (L + P), pointe: 2 * (L + P), mansarde: 2 * L }[t];
   return { surf: Math.round(surf), detail, goutt: Math.round(goutt), combles: Math.round(l * pr), pente, deb };
 }
+/* surface des façades : (2 × largeur + côtés libres × profondeur) × 3 m par niveau */
+function calcFacades(m) {
+  const D = m.toitDim || {}, l = +D.larg, pr = +D.prof, f = +m.facades;
+  if (!(l > 0) || !(pr > 0) || !f || m.etages == null || m.etages === "") return null;
+  const cotes = f - 2, niveaux = +m.etages + 1, haut = niveaux * HAUTEUR_ETAGE, long = 2 * l + cotes * pr;
+  return { surf: Math.round(long * haut), long, haut, cotes, niveaux };
+}
+function blocDimensions(m) {
+  const D = m.toitDim || {}, r = calcFacades(m);
+  const ch = (k, t, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-tdim="${k}" value="${esc(D[k] ?? "")}" placeholder="${ph}"><i>m</i></span></label>`;
+  const manque = [!(+D.larg > 0) && "la largeur", !(+D.prof > 0) && "la profondeur", !+m.facades && "le nombre de façades", (m.etages == null || m.etages === "") && "le nombre d'étages"].filter(Boolean);
+  return `<section class="carte">
+      <h2>Les dimensions de la maison</h2>
+      <div class="toit-dim">
+        ${ch("larg", "Largeur de la façade", "ex. 9")}
+        ${ch("prof", "Profondeur de la maison", "ex. 10")}
+        <label>Nombre de façades<select data-f="facades"><option value="">Je ne sais pas</option>${FACADES.map(([v, t]) => `<option value="${v}" ${+m.facades === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+        <label>Nombre d'étages<select data-f="etages"><option value="" ${m.etages == null || m.etages === "" ? "selected" : ""}>À choisir</option>${ETAGES.map(([v, t]) => `<option value="${v}" ${m.etages != null && m.etages !== "" && +m.etages === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      </div>
+      ${r ? `<div class="toit-res">
+        <div class="ligne"><span>Surface des façades</span><b>≈ ${nombre(r.surf)} m²</b></div>
+        <small class="mu">(${r.cotes ? `2 × ${nombre(D.larg)} m + ${r.cotes} × ${nombre(D.prof)} m` : `2 × ${nombre(D.larg)} m, avant et arrière`}) × ${nombre(r.haut)} m de haut (${r.niveaux} niveau${r.niveaux > 1 ? "x" : ""} de ${HAUTEUR_ETAGE} m). Fenêtres et portes non déduites, pignons non comptés. Dans « Isolation » ci-dessous, touchez « = ${nombre(r.surf)} » à côté d'un poste de façade.</small>
+      </div>` : `<p class="mu petit-t">Il manque ${manque.join(", ")} pour calculer la surface des façades${manque.some(x => /largeur|profondeur/.test(x)) ? " et du toit" : ""}.</p>`}
+    </section>`;
+}
 function blocToiture(m) {
   return `<section class="carte">
       <h2>La toiture</h2>
@@ -273,8 +302,6 @@ function blocToiture(m) {
         const ch = (k, t, ph, suf) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-tdim="${k}" value="${esc(D[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
         return `<h3 class="td-titre">Calculer la surface du toit</h3>
         <div class="toit-dim">
-          ${ch("larg", "Largeur de la façade", "ex. 9", "m")}
-          ${ch("prof", "Profondeur de la maison", "ex. 10", "m")}
           ${m.toiture === "plat" ? "" : ch("pente", m.toiture === "mansarde" ? "Pente du haut (terrasson)" : "Pente du toit", String(PENTE_DEFAUT[m.toiture]), "°")}
           ${ch("debord", "Débord du toit", "0", "m")}
         </div>
@@ -284,7 +311,7 @@ function blocToiture(m) {
           <div class="ligne"><span>${m.toiture === "plat" ? "Rives (tour du toit)" : "Gouttières"}</span><b>≈ ${nombre(r.goutt)} m</b></div>
           <div class="ligne"><span>Sol des combles (isolation)</span><b>≈ ${nombre(r.combles)} m²</b></div>
           <small class="mu">Dans « Toiture » et « Isolation » ci-dessous, touchez « = … » à côté d'un poste pour reprendre ces mesures. ${m.toiture === "plat" ? "" : `Pente non connue ? ${PENTE_DEFAUT[m.toiture]}° est une pente courante en Wallonie.`} À confirmer par le couvreur.</small>
-        </div>` : `<p class="mu petit-t">Tapez la largeur et la profondeur : la surface du toit se calcule avec la pente.</p>`}`;
+        </div>` : `<p class="mu petit-t">Tapez la largeur et la profondeur dans « Les dimensions de la maison » : la surface du toit se calcule avec la pente.</p>`}`;
       })() : ""}
     </section>`;
 }
@@ -424,7 +451,7 @@ function ecranMaison(m) {
   const horsPieces = b.lignes.filter(l => !l.pieceId && l.src !== "chauffage");
   const ligneDe = k => horsPieces.find(l => l.k === k);
   const fixes = R.liste.filter(p => !POSTES_PIECES.test(p.k));
-  const rt = calcToiture(m);
+  const rt = calcToiture(m), rf = calcFacades(m);
   const grpFixes = [...new Set(fixes.map(groupe))].sort((x, y) => GROUPES.indexOf(x) - GROUPES.indexOf(y)).map(g => {
     const P = fixes.filter(p => groupe(p) === g), rempli = P.filter(p => ligneDe(p.k)), t = rempli.reduce((s, p) => s + (ligneDe(p.k).fiab ? ligneDe(p.k).total[1] : 0), 0);
     return `<details class="grp fixe" data-ouvert="${m.id}:${esc(g)}" ${ouverts.has(`${m.id}:${g}`) ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
@@ -432,7 +459,7 @@ function ecranMaison(m) {
         <td>${esc(p.n)}</td>
         <td class="q">${/escalier/.test(p.u)
           ? `<input type="number" min="0" step="1" inputmode="numeric" data-mmarches="${p.k}" value="${esc(l ? (l.marches ?? l.q * MARCHES_PAR_ESCALIER) : "")}" placeholder="0" aria-label="Nombre de marches : ${esc(p.n)}"><small>marches</small><small class="mu bloc">${MARCHES_PAR_ESCALIER} marches = 1 escalier</small>`
-          : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>${(() => { const v = rt && (POSTES_TOIT_M2.test(p.k) ? rt.surf : p.k === "i_to_0" ? rt.combles : p.k === "i_zi" ? rt.goutt : 0); return v && (!l || +l.q !== v) ? `<button type="button" class="toit-q" data-action="toit-q" data-k="${p.k}" data-q="${v}" title="Reprendre la mesure calculée du toit">= ${nombre(v)}</button>` : ""; })()}`}</td>
+          : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>${(() => { const v = /^i_fa_\d$/.test(p.k) ? rf && rf.surf : rt && (POSTES_TOIT_M2.test(p.k) ? rt.surf : p.k === "i_to_0" ? rt.combles : p.k === "i_zi" ? rt.goutt : 0); return v && (!l || +l.q !== v) ? `<button type="button" class="toit-q" data-action="toit-q" data-k="${p.k}" data-q="${v}" title="Reprendre la mesure calculée">= ${nombre(v)}</button>` : ""; })()}`}</td>
         <td class="c"><label class="mm"><input type="checkbox" data-mme="${p.k}" ${l && l.soiMeme ? "checked" : ""} ${l ? "" : "disabled"}> moi-même</label></td>
         <td class="r">${l && l.fiab ? euros(l.total[1], 10) : ""}</td></tr>`; }).join("")}</table></details>`;
   }).join("");
@@ -449,7 +476,7 @@ function ecranMaison(m) {
       ${pebBadge(m.peb, true)}
       ${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
       ${m.description ? `<p class="desc">${esc(m.description)}</p>` : ""}
-      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), txtEtages(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
     <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>voir Projet ›</small></button>
@@ -470,11 +497,12 @@ function ecranMaison(m) {
       ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
     </section>
 
+    ${blocDimensions(m)}
+
     ${blocToiture(m)}
 
     <section class="carte">
       <h2>Structure, toiture et équipements</h2>
-      <label class="facades-m">Nombre de façades<select data-f="facades"><option value="">Je ne sais pas</option>${FACADES.map(([v, t]) => `<option value="${v}" ${+m.facades === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
       ${grpFixes}
     </section>
@@ -923,7 +951,7 @@ function ecranDossier(m) {
       <header class="f-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Dossier de financement</b><small>${projetDe(m) === "renovation" ? "Rénovation" : "Achat et rénovation"} · ${esc(auj)}</small></div></header>
       ${m.exemple ? `<p class="fictif">Bien fictif, utilisé pour la démonstration.</p>` : ""}
       <h1>${esc(m.nom || "Maison")}</h1>
-      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), txtEtages(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
       ${m.description ? `<p>${esc(m.description)}</p>` : ""}
       ${m.peb ? `<p>Performance énergétique : ${pebBadge(m.peb)}${m.pebConso ? ` · ${esc(m.pebConso)} kWh/m²/an` : ""} · travaux énergétiques prévus : ${euros(travauxEnergie(b).total[1], 100)}</p>` : ""}
 
@@ -1231,7 +1259,7 @@ function ecranContacts(id) {
   return `${entete("contacts")}<main>
     <a href="#/contacts" class="retour">← Mes maisons</a>
     <div class="titre-maison"><h1>${esc(m.nom || "Maison")}</h1>${pebBadge(m.peb, true)}${m.exemple ? `<span class="badge b-exemple">Fictive</span>` : ""}
-      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), m.surface && `${nombre(m.surface)} m²`].filter(Boolean).map(esc).join(" · ")}</p></div>
+      <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), txtEtages(m), m.surface && `${nombre(m.surface)} m²`].filter(Boolean).map(esc).join(" · ")}</p></div>
     <section class="carte resume">
       <h2>Résumé du projet</h2>
       <div class="res-chiffres">

@@ -335,6 +335,7 @@ try {
     await page.fill('input[name="prix"]', "245000");
     await page.fill('input[name="annee"]', "1965");
     await page.fill('input[name="surface"]', "120");
+    await page.selectOption('select[name="etages"]', "1"); // nombre d'étages : obligatoire
     await page.selectOption('select[name="etat"]', "renover");
     assert.equal(await page.locator("[data-chf]").count(), 0, "plus de chauffage dans le formulaire d'ajout");
     await page.screenshot({ path: `${OUT}/${nom}-2-ajouter.png`, fullPage: nom === "ordi" }); // sur téléphone, la capture pleine page perturbe le clic suivant
@@ -348,7 +349,7 @@ try {
     assert.match(total, /€/);
     assert.match(await page.locator(".vrai-cout .legende").innerText(), /Prix d'achat\s*245\s?000 €/); // le nom et le prix ont bien été gardés
     assert.match(await page.locator("h1").innerText(), /Maison test/);
-    assert.match(await page.locator(".titre-maison").innerText(), /3 façades/);
+    assert.match(await page.locator(".titre-maison").innerText(), /3 façades · rez \+ 1/);
     /* type de toiture : on clique sur le schéma */
     await onglet("travaux");
     await page.locator('.toit-c[data-t="croupe"]').click();
@@ -356,10 +357,15 @@ try {
     assert.match(await page.locator(".titre-maison").innerText(), /toit : quatre pans/);
     /* surface du toit : 9 m × 10 m, 4 pans à 35° → 90 ÷ cos 35° ≈ 110 m² ; « = 110 » reprend la mesure dans la couverture */
     for (const [k, v] of [["larg", "9"], ["prof", "10"]]) { await page.fill(`[data-tdim="${k}"]`, v); await page.locator(`[data-tdim="${k}"]`).dispatchEvent("change"); }
-    assert.match(await page.locator(".toit-res").innerText(), /Surface de toiture\s*≈ 110 m²[\s\S]*Sol des combles[^\n]*\n?\s*≈ 90 m²/);
+    assert.match(await page.locator(".toit-res:has-text(\"Surface de toiture\")").innerText(), /Surface de toiture\s*≈ 110 m²[\s\S]*Sol des combles[^\n]*\n?\s*≈ 90 m²/);
     await page.locator('details:has([data-mq="i_cv_1"]) > summary').click();
     await page.locator('.toit-q[data-k="i_cv_1"]').click();
     assert.equal(await page.inputValue('[data-mq="i_cv_1"]'), "110");
+    /* surface des façades : 3 façades, rez + 1 → (2 × 9 + 1 × 10) × 6 m = 168 m² */
+    assert.match(await page.locator(".toit-res").first().innerText(), /Surface des façades\s*≈ 168 m²/);
+    await page.locator('details:has([data-mq="i_fa_3"]) > summary').click();
+    await page.locator('.toit-q[data-k="i_fa_3"]').click();
+    assert.equal(await page.inputValue('[data-mq="i_fa_3"]'), "168");
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
     /* le chauffage se règle sur la fiche, onglet Travaux : mazout → pompe à chaleur + 7 radiateurs */
@@ -497,6 +503,7 @@ try {
     await page.fill('input[name="nom"]', "Rénovation test");
     await page.fill('input[name="annee"]', "1970");
     await page.fill('input[name="surface"]', "100");
+    await page.selectOption('select[name="etages"]', "0");
     await page.getByText("Voir le budget de la rénovation").click();
     await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor();
     assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
