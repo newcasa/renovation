@@ -283,8 +283,8 @@ function blocDimensions(m) {
       <div class="toit-dim">
         ${ch("larg", "Largeur de la façade", "ex. 9")}
         ${ch("prof", "Profondeur de la maison", "ex. 10")}
-        <label>Nombre de façades<select data-f="facades"><option value="">Je ne sais pas</option>${FACADES.map(([v, t]) => `<option value="${v}" ${+m.facades === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
-        <label>Nombre d'étages<select data-f="etages"><option value="" ${m.etages == null || m.etages === "" ? "selected" : ""}>À choisir</option>${ETAGES.map(([v, t]) => `<option value="${v}" ${m.etages != null && m.etages !== "" && +m.etages === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+        <label>Nombre de façades<select data-f="facades"><option value="">?</option>${FACADES.map(([v, t]) => `<option value="${v}" ${+m.facades === v ? "selected" : ""}>${v} façades</option>`).join("")}</select></label>
+        <label>Nombre d'étages<select data-f="etages"><option value="" ${m.etages == null || m.etages === "" ? "selected" : ""}>À choisir</option>${ETAGES.map(([v, t]) => `<option value="${v}" ${m.etages != null && m.etages !== "" && +m.etages === v ? "selected" : ""}>${v ? `Rez + ${v}` : "Plain-pied"}</option>`).join("")}</select></label>
       </div>
       ${r ? `<div class="toit-res">
         <div class="ligne"><span>Surface des façades</span><b>≈ ${nombre(r.surf)} m²</b></div>
