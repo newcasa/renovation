@@ -24,7 +24,7 @@ const changerMode = v => {
   if (VERSION === "particulier") v = true; // la version Particuliers reste toujours en mode essai
   else if (VERSION !== "complete") v = false; // les versions Artisans et Négociants n'ont pas de mode essai
   essai = v; try { v ? localStorage.setItem(cle("valou_mode"), "essai") : localStorage.removeItem(cle("valou_mode")); } catch (e) {} };
-const visibles = () => (essai ? maisons.filter(m => !m.demo) : maisons);
+const visibles = () => maisons; // les maisons d'exemple sont aussi montrées dans la version d'essai (étiquetées « Fictive »)
 /* deux parcours : « J'achète une maison » (prix, droits, notaire, travaux) et « Je rénove ma maison » (travaux seuls) */
 const projetDe = m => (m && m.projet === "renovation" ? "renovation" : "achat");
 let parcours = "achat";
@@ -292,6 +292,41 @@ function blocDimensions(m) {
       </div>` : `<p class="mu petit-t">Il manque ${manque.join(", ")} pour calculer la surface des façades${manque.some(x => /largeur|profondeur/.test(x)) ? " et du toit" : ""}.</p>`}
     </section>`;
 }
+/* ---------- Technique : les gros travaux en questions simples (oui / non), quantités reprises des dimensions ---------- */
+function setFixe(m, k, q) {
+  const l = m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === k);
+  if (q > 0) { if (l) { l.q = q; delete l.auto; } else m.travaux.push({ id: nouvelId(), piece: "Toute la maison", k, q }); }
+  else m.travaux = m.travaux.filter(x => x !== l);
+}
+function grosTravaux(m) {
+  const rt = calcToiture(m), rf = calcFacades(m), plat = m.toiture === "plat";
+  return [
+    ["couv", "🏠", "Refaire la couverture du toit", rt && [["i_dp", rt.surf], ["i_st", plat ? 0 : rt.surf], [plat ? "i_cv_4" : "i_cv_1", rt.surf], ["i_zi", rt.goutt]], "choisissez le type de toit et tapez les dimensions"],
+    ["isoT", "🧤", plat ? "Isoler le toit plat" : "Isoler la toiture (sous les pentes)", rt && [[plat ? "i_to_2" : "i_to_1", rt.surf]], "choisissez le type de toit et tapez les dimensions"],
+    ["isoF", "🧱", "Isoler les façades par l'extérieur", rf && [["i_fa_3", rf.surf]], "complétez les dimensions de la maison"],
+    ["crepi", "🎨", "Refaire l'enduit des façades", rf && [["i_fa_1", rf.surf]], "complétez les dimensions de la maison"],
+    ["porte", "🚪", "Remplacer la porte d'entrée", [["i_pe", 1]], ""],
+    ["coffret", "⚡", "Remplacer le tableau électrique", [["i_co", 1]], ""],
+  ];
+}
+const ligneFixe = (m, k) => m.travaux.find(x => !x.pieceId && x.src !== "chauffage" && x.k === k);
+function basculerGros(m, g) {
+  const G = grosTravaux(m).find(x => x[0] === g);
+  if (!G || !G[3]) return;
+  const P = G[3].filter(([, q]) => q > 0), oui = P.every(([k]) => ligneFixe(m, k));
+  P.forEach(([k, q]) => setFixe(m, k, oui ? 0 : q));
+}
+function blocGrosTravaux(m) {
+  return `<section class="carte gros-t">
+      <h2>Qu'est-ce qui est à refaire ?</h2>
+      <p class="mu petit-t">Touchez ce qui est à prévoir : Valou remplit les postes avec les mesures de la maison. Le détail reste modifiable plus bas.</p>
+      <div class="gt-liste">${grosTravaux(m).map(([g, ico, t, P, manque]) => {
+        const actifs = P ? P.filter(([, q]) => q > 0) : [], oui = actifs.length && actifs.every(([k]) => ligneFixe(m, k));
+        return P ? `<button type="button" class="gt ${oui ? "on" : ""}" data-action="gros" data-g="${g}" aria-pressed="${!!oui}"><span class="gt-ico">${ico}</span><span class="gt-t">${t}</span><span class="gt-r">${oui ? "✓ Oui" : "Non"}</span></button>`
+          : `<div class="gt off"><span class="gt-ico">${ico}</span><span class="gt-t">${t}<small class="mu">Pour cela : ${manque}.</small></span></div>`;
+      }).join("")}</div>
+    </section>`;
+}
 function blocToiture(m) {
   return `<section class="carte">
       <h2>La toiture</h2>
@@ -442,7 +477,7 @@ function ecranMaison(m) {
     return `<div class="carte-piece" style="${stylePiece(m, pc)}"><a href="#/maison/${m.id}/piece/${pc.id}">
         <span class="pc-ico">${iconePiece(pc)}</span><b>${esc(pc.nom)}</b>
         <small class="mu">${pc.sol ? `${String(pc.sol).replace(".", ",")} m²` : "surface à remplir"}</small>
-        <small class="pc-res">${esc(resumePiece(pc)) || "Rien de prévu"}</small>
+        <small class="pc-res">${esc(resumePiece(pc)) || "Rien de coché : touchez pour choisir les travaux"}</small>
         <span class="pc-bud">${t ? euros(t, 10) : "–"}</span>${(n => (n ? `<small class="pc-photos">📷 ${n}</small>` : ""))(photosDe(m).filter(p => memeNom(p.nomPiece, pc.nom)).length)}</a>
       <button class="x" data-action="suppr-piece" data-id="${pc.id}" aria-label="Supprimer ${esc(pc.nom)}">✕</button></div>`;
   }).join("");
@@ -479,7 +514,7 @@ function ecranMaison(m) {
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), txtEtages(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
-    <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>voir Projet ›</small></button>
+    <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>${c.travaux[1] ? "" : `<i class="vc-alerte">⚠️ sans les travaux</i> `}voir Projet ›</small></button>
 
     <nav class="onglets-m" aria-label="Parties de la fiche">${ongletsDe(m).map(([id, t]) => `<button class="om-i ${ongletMaison(m) === id ? "on" : ""}" data-action="onglet-m" data-o="${id}"${ongletMaison(m) === id ? ' aria-current="true"' : ""}>${t}${id === "pieces" && (m.pieces || []).length ? ` <small>${m.pieces.length}</small>` : ""}</button>`).join("")}</nav>
     ${(() => {
@@ -501,6 +536,8 @@ function ecranMaison(m) {
 
     ${blocToiture(m)}
 
+    ${blocGrosTravaux(m)}
+
     <section class="carte">
       <h2>Structure, toiture et équipements</h2>
       <p class="mu">Toiture, façade, isolation, électricité, menuiseries, gros œuvre, extérieurs et escalier : les travaux qui ne se rattachent pas à une pièce. Remplissez seulement les quantités des postes à prévoir ; un poste vide n'est pas compté.</p>
@@ -520,11 +557,11 @@ function ecranMaison(m) {
     <section class="carte choisir-art"><h2>Choisir vos artisans</h2>
       <p class="mu">Pour chaque métier : le projet propre à ce métier (les pièces et les postes à envoyer, le matériau souhaité), puis jusqu'à 3 artisans à qui l'envoyer.</p>
       <span class="actions-g"><a class="btn" href="#/contacts/${m.id}">👷 Choisir les artisans →</a><a class="btn sec" href="#/contacts/${m.id}#devis">📩 Devis reçus${devisRecus(m).length ? ` <span class="pastille">${devisRecus(m).length}</span>` : " (0)"}</a></span></section>
-    <section class="carte negs"><h2>Négociants de votre région</h2>
-      <p class="mu">Pour vos matériaux : ce qu'ils vendent, leurs services, coordonnées et horaires.</p>
-      ${blocNegociants(b)}</section>
-
     ${blocCourtier(m, cO)}
+
+    <section class="carte negs"><h2>Négociants de votre région</h2>
+      <p class="mu">Pour vos matériaux : touchez un négociant pour voir ce qu'il vend, ses coordonnées et ses horaires.</p>
+      ${listeNegociants(m, b)}</section>
 
     ${panneauEnvoi(m, b)}`;
       if (o === "projet") return `
@@ -532,9 +569,10 @@ function ecranMaison(m) {
       <div class="vc-g">
         <small>${reno ? "Le budget de votre rénovation" : "Le vrai coût de cette maison"}</small>
         <div class="gros">${euros(c.total[1], 100)}</div>
-        <div class="mu">entre ${fourchette(c.total)}</div>
+        ${c.total[0] !== c.total[2] ? `<div class="mu">entre ${fourchette(c.total)}</div>` : ""}
+        ${c.travaux[1] ? "" : `<p class="sans-trav">⚠️ Travaux pas encore encodés : ce montant ${reno ? "est vide" : "ne compte que le prix, les droits et le notaire"}. Ajoutez les pièces (onglet Espaces) et les gros travaux (onglet Technique).</p>`}
         ${reno ? (e => (e ? `<p class="choc">dont <b>${euros(e, 100)}</b> de travaux qui améliorent le PEB</p>` : ""))(travauxEnergie(b).total[1]) : ""}
-        ${!reno && c.prix ? `<p class="choc">soit <b>${euros(surcout, 100)}</b> de plus que le prix affiché <span>(+${pct} %)</span></p>` : ""}
+        ${!reno && c.prix && c.travaux[1] ? `<p class="choc">soit <b>${euros(surcout, 100)}</b> de plus que le prix affiché <span>(+${pct} %)</span></p>` : ""}
       </div>
       <div class="vc-d">${barre}</div>
     </section>
@@ -554,7 +592,7 @@ function ecranMaison(m) {
           <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
         </div>
         ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
-        <p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p>
+        ${lignesG ? `<details class="legende-d"><summary>Que veulent dire les étiquettes ?</summary><p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p></details>` : ""}
       </section>
 
     ${reno ? blocFinancerRenovation(m, b, c) : `<div class="fin-page">
@@ -721,6 +759,7 @@ function ecranPiece(m, pc) {
   <main class="etroit piece-ecran" style="${stylePiece(m, pc)}">
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
     <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}</h1><p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
+    ${total ? "" : `<p class="consigne">👇 Tapez la surface au sol, puis <b>cochez ce qui est à refaire</b> (sol, murs, plafond, châssis…) : le budget de la pièce se calcule tout de suite.</p>`}
     ${corpsPiece(m, pc)}
     <p><a class="btn" href="#/maison/${m.id}">✓ Pièce terminée</a></p>
   </main>`;
@@ -787,6 +826,16 @@ function negociantsRegion(b) {
   const M = metiersDe(b), utiles = F => RAYONS_NEG.filter(r => (F.rayons || []).includes(r[0]) && r[3].some(id => M.includes(id))).length;
   return [...(negVisible() ? [{ ...negFiche, km: negFiche.km ?? 4 }] : []), ...NEGOCIANTS_EXEMPLE].sort((x, y) => utiles(y) - utiles(x) || (x.km || 0) - (y.km || 0));
 }
+/* négociants repliés : une ligne par négociant, à toucher pour ouvrir la fiche */
+const listeNegociants = (m, b) => {
+  const L = negociantsRegion(b), mt = metiersDe(b);
+  if (!L.length) return ficheNegociant(null);
+  return `<div class="neg-liste">${L.map((F, i) => {
+    const id = `neg-${m.id}-${i}`, utiles = RAYONS_NEG.filter(r => (F.rayons || []).includes(r[0]) && r[3].some(x => mt.includes(x))).length;
+    const ville = ((F.adresse || "").match(/\d{4}\s+(.+)$/) || [])[1] || "";
+    return `<details class="neg-l" data-ouvert="${id}" ${ouverts.has(id) ? "open" : ""}><summary><span><b>${esc(F.nom)}</b><small class="mu">${esc(ville)}${F.km != null ? ` · ${F.km} km` : ""}</small></span>${utiles ? `<span class="neg-utile">✓ ${utiles} utile${utiles > 1 ? "s" : ""}</span>` : ""}</summary>${ficheNegociant(F, mt, true)}</details>`;
+  }).join("")}</div>`;
+};
 const blocNegociants = b => { const L = negociantsRegion(b); return L.length ? `<div class="negs-grille">${L.map(F => ficheNegociant(F, metiersDe(b), true)).join("")}</div>` : ficheNegociant(null); };
 const lire = (k, d) => { try { return JSON.parse(localStorage.getItem(cle(k)) || "null") || d; } catch (e) { return d; } };
 const ecrire = (k, v) => { try { localStorage.setItem(cle(k), JSON.stringify(v)); } catch (e) {} };
@@ -1203,7 +1252,7 @@ function ecranContacts(id) {
         return `<a class="carte maison" href="#/contacts/${x.id}">
           <div class="m-tete"><b>${esc(x.nom || "Maison")}</b>${pebBadge(x.peb)}</div>
           <div class="mu">${esc(x.commune || "")}</div>
-          <div class="m-chiffres"><div><small>${projetDe(x) === "renovation" ? "Budget rénovation" : "Vrai coût"}</small><b>${euros(c.total[1], 100)}</b></div><div><small>Artisans</small><b class="or">${x.envoi ? (rep ? `${rep} réponse${rep > 1 ? "s" : ""}` : "envoyé") : "à contacter"}</b></div></div>
+          <div class="m-chiffres"><div><small>${projetDe(x) === "renovation" ? "Budget rénovation" : "Vrai coût"}</small><b>${euros(c.total[1], 100)}</b></div><div><small>Artisans</small><b class="or">${x.envoi ? (rep ? `${rep} réponse${rep > 1 ? "s" : ""}` : "envoyé") : c.travaux[1] ? "à contacter" : "pas encore de travaux"}</b></div></div>
         </a>`;
       }).join("")}</div>` : `<div class="carte vide"><p>Aucune maison pour l'instant.</p><a class="btn" href="#/ajouter">＋ Ajouter une maison</a></div>`}
     </main>`;
@@ -1314,14 +1363,15 @@ function ecranEssai() {
     <div class="intro-boite">
       <img class="intro-logo" src="${img("logo-valou.png")}" alt="Valou">
       <h1>Bienvenue dans la <span>version d'essai</span></h1>
-      <p class="intro-sous">Vous visitez une maison à rénover ? Valou calcule ce qu'elle va vraiment vous coûter : prix, droits d'enregistrement, notaire et travaux.</p>
+      <p class="intro-sous">Vous visitez une maison à acheter, ou vous voulez rénover la vôtre ? Valou calcule ce que ça va vraiment vous coûter, travaux compris.</p>
       <ol class="essai-etapes">
-        <li><b>Ajoutez la maison</b><span>le prix, la commune, l'année</span></li>
+        <li><b>Ajoutez la maison</b><span>à acheter (avec son prix) ou à rénover</span></li>
         <li><b>Encodez les pièces et les travaux</b><span>pièce par pièce, avec des photos si vous le voulez</span></li>
         <li><b>Découvrez son vrai coût</b><span>et comparez-la à d'autres maisons</span></li>
       </ol>
       <section class="avantages av-particulier intro-av"><b>Pour vous, c'est gratuit</b><ul>${["Le vrai coût avant de faire une offre : prix, droits, notaire et travaux", "Le budget de votre rénovation, pièce par pièce", "Vos maisons comparées sur leur vrai coût, PEB compris", "Un dossier complet pour la banque", "Votre projet envoyé aux artisans, qui le comprennent sans se déplacer"].map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>
-      <span class="actions-g centre"><a class="btn intro-btn" href="#/ajouter">＋ Ajouter ma maison</a>${n ? `<a class="btn sec" href="#/">Voir mes maisons (${n})</a>` : ""}</span>
+      <span class="actions-g centre"><a class="btn intro-btn" href="#/ajouter">＋ Ajouter une maison à acheter</a><button class="btn intro-btn sec" data-action="essai-reno">🔨 Ajouter ma maison à rénover</button></span>
+      ${n ? `<p class="centre"><a class="btn lien" href="#/">👀 Voir ${maisons.some(m => m.demo) ? "les maisons d'exemple et les vôtres" : `mes maisons (${n})`} →</a></p>` : ""}
       <p class="intro-note">Version d'essai gratuite · vos maisons restent sur ce téléphone, rien n'est envoyé · l'envoi aux artisans et à la banque est simulé.<br>Après l'essai, un clic sur « 💬 Mon avis » nous aide beaucoup.</p>
     </div>
   </main>`;
@@ -1458,6 +1508,15 @@ const TUTOS = {
     [".poste, .carte-piece", "Cochez ce qui est à refaire : sol, murs, plafond, châssis, chauffage. « Moi-même » enlève la main-d'œuvre."],
     [".piece-ecran .btn[href]", "Quand c'est fini, revenez à la maison."],
   ],
+  technique: [
+    ['section.carte:has(.toit-dim [data-tdim="larg"])', "Les mesures de la maison : largeur de la façade, profondeur, façades et étages. Valou calcule la surface des façades (3 m par étage)."],
+    [".toits", "Touchez le schéma qui ressemble au toit : avec la pente, Valou calcule la surface du toit."],
+    [".gros-t", "Le plus simple : touchez ce qui est à refaire. Valou remplit les postes avec les bonnes surfaces."],
+    [".grp.fixe", "Le détail poste par poste, si vous voulez ajuster une quantité."],
+  ],
+  "contacts-liste": [
+    [".grille, main .carte", "Choisissez la maison dont vous voulez envoyer le projet aux artisans."],
+  ],
   contacts: [
     [".ct-panneau, .ct-projet", "Le projet de cette maison, métier par métier."],
     [".contact-ligne", "Une ligne par métier : « Projet » pour choisir ce que vous envoyez, « Artisans » pour en choisir jusqu'à 3."],
@@ -1473,8 +1532,9 @@ let tuto = null;
 const pageTuto = () => {
   const h = location.hash;
   if (/^#\/maison\/\w+\/piece\//.test(h)) return "piece";
-  if (/^#\/maison\/\w+$/.test(h)) return "maison";
+  if (/^#\/maison\/\w+$/.test(h)) return document.querySelector(".gros-t") ? "technique" : "maison";
   if (/^#\/contacts\/\w+/.test(h)) return "contacts";
+  if (h === "#/contacts") return "contacts-liste";
   if (/^#\/dossier\//.test(h)) return "dossier";
   if (h === "" || h === "#/" || h === "#") return document.querySelector(".parcours") ? "accueil" : null;
   return null;
@@ -1574,7 +1634,7 @@ function afficher() {
   /* liens du présentateur : ils quittent la version d'essai sur ce téléphone (#/demo = démo complète, sans remise à zéro) */
   if (brut === "demo" || brut === "/demo" || brut === "/demo-artisan" || brut === "/demo-negociant") changerMode(false);
   if (brut === "demo" || brut === "/demo") brut = "/bienvenue";
-  let h = brut === "" ? (essai ? (VERSION === "particulier" && !visibles().length ? "/essai" : "/") : "/bienvenue") : brut; // première ouverture : la page d'intro (ou l'accueil de l'essai)
+  let h = brut === "" ? (essai ? (VERSION === "particulier" && !maisons.some(m => !m.demo) ? "/essai" : "/") : "/bienvenue") : brut; // première ouverture : la page d'intro (ou l'accueil de l'essai)
   /* version d'essai : les pages pour les professionnels et l'intro de la présentation ramènent à l'accueil de l'essai */
   if (essai && /^\/(pro|moteur|feuille-de-route|demo-|bienvenue|plus)/.test(h)) h = "/essai";
   if (h === "/presentation" && R) { preparerPresentation(true); return; }
@@ -1696,6 +1756,8 @@ document.addEventListener("click", e => {
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
   if (a === "toit-q") { const i = document.querySelector(`[data-mq="${el.dataset.k}"]`); if (i) { i.value = el.dataset.q; i.dispatchEvent(new Event("change", { bubbles: true })); } }
+  if (a === "essai-reno") { choisirParcours("renovation"); brouillon = null; location.hash = "#/ajouter"; }
+  if (a === "gros" && m) { basculerGros(m, el.dataset.g); sauver(); afficher(); }
   if (a === "toit" && m) { m.toiture = m.toiture === el.dataset.t ? null : el.dataset.t; sauver(); afficher(); }
   if (a === "courtier-envoyer" && m) { m.envoiCourtier = { ...(m.envoiCourtier || {}), [el.dataset.id]: Date.now() }; sauver(); afficher(); }
   if (a === "devis-utiliser") {

@@ -124,8 +124,11 @@ try {
     await onglet("artisans");
     await page.locator("main > .envoi").waitFor();
     assert.ok(await page.evaluate(() => { const m = document.querySelector("main"); return m.lastElementChild.classList.contains("envoi"); }), "l'envoi aux artisans est le dernier bloc");
+    /* négociants repliés : une ligne chacun, la fiche s'ouvre au toucher */
+    assert.equal(await page.locator(".negs .neg-l").count(), 6, "plusieurs négociants");
+    assert.equal(await page.locator(".negs .neg-l[open]").count(), 0, "repliés au départ");
+    await page.locator('.neg-l > summary:has-text("Brik")').click();
     assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Brik'O[\s\S]*Matériaux vendus[\s\S]*✓/);
-    assert.equal(await page.locator(".negs .fiche-neg").count(), 6, "plusieurs négociants");
     assert.match(await page.locator(".negs").innerText(), /Comptoir du Sanitaire[\s\S]*|Loca'Chantier/);
     await page.getByText("📨 Envoyer le projet aux artisans").click();
     await page.locator('[data-action="envoi-ok"]').click();
@@ -366,6 +369,12 @@ try {
     await page.locator('details:has([data-mq="i_fa_3"]) > summary').click();
     await page.locator('.toit-q[data-k="i_fa_3"]').click();
     assert.equal(await page.inputValue('[data-mq="i_fa_3"]'), "168");
+    /* « Qu'est-ce qui est à refaire ? » : Oui remplit les postes avec les mesures, un 2e toucher les retire */
+    await page.locator('.gt[data-g="crepi"]').click();
+    assert.match(await page.locator('.gt[data-g="crepi"]').innerText(), /Oui/);
+    assert.equal(await page.inputValue('[data-mq="i_fa_1"]'), "168");
+    await page.locator('.gt[data-g="crepi"]').click();
+    assert.equal(await page.inputValue('[data-mq="i_fa_1"]'), "");
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
     /* le chauffage se règle sur la fiche, onglet Travaux : mazout → pompe à chaleur + 7 radiateurs */
@@ -538,7 +547,7 @@ try {
     await page.locator(".conf").waitFor({ state: "detached" });
     assert.equal(await page.locator('.m-case:has-text("Maison de démonstration B")').count(), 0, "la maison est supprimée");
 
-    /* version d'essai pour les particuliers : sans maisons de démonstration ni pages pour les professionnels */
+    /* version d'essai pour les particuliers : maisons d'exemple étiquetées « Fictive », sans pages pour les professionnels */
     await page.goto(URL + "#/essai");
     await page.locator(".essai-etapes").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-11-essai.png` });
@@ -548,13 +557,13 @@ try {
     assert.equal(await page.locator('.nav-i[href="#/avis"]').count(), 1);
     assert.equal(await page.locator('.bb-i[href="#/avis"]').count(), 1);
     if (nom === "tel") assert.ok(await page.locator(".barre-bas").isVisible(), "barre du bas sur téléphone");
-    assert.doesNotMatch(await page.locator("main").innerText(), /Maison de démonstration/);
+    assert.match(await page.locator(".grille").innerText(), /Maison de démonstration A[\s\S]*Fictive/); // les maisons d'exemple restent pour montrer un projet rempli
     assert.match(await page.locator(".grille").innerText(), /Maison test/); // la maison du testeur est là
     await page.screenshot({ path: `${OUT}/${nom}-12-essai-maisons.png` });
     await page.goto(URL + "#/pro/artisan");
     await page.locator(".essai-etapes").waitFor(); // les pages pro ramènent à l'accueil de l'essai
     await page.goto(URL + "#/comparer");
-    assert.doesNotMatch(await page.locator("main").innerText(), /Maison de démonstration/);
+    await page.locator("main").waitFor();
     await page.goto(URL + "#/avis");
     await page.fill("#avis-aime", "Le vrai coût");
     await page.locator("#avis-aime").dispatchEvent("change");

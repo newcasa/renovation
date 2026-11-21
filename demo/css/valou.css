@@ -1035,3 +1035,29 @@ label.dd-ligne { justify-content: flex-start; }
 .toit-res .ligne b { color: var(--or-fonce); }
 .toit-q { margin-left: 6px; border: 1px solid var(--or); background: #fff6ec; color: var(--or-fonce); border-radius: 999px; padding: 3px 9px; font: 800 13px Manrope, sans-serif; cursor: pointer; white-space: nowrap; }
 @media (max-width: 380px) { .toit-dim { grid-template-columns: 1fr; } }
+
+/* corrections après le test « comme un utilisateur » */
+.consigne { margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; background: #fff6ec; border: 1px solid #f3d5b5; color: var(--bordeaux); font-size: 15.5px; }
+.sans-trav { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, .14); font-size: 14px; font-weight: 600; }
+.vc-alerte { font-style: normal; color: #ffd2a6; margin-right: 4px; }
+.legende-d { margin-top: 10px; }
+.legende-d > summary { cursor: pointer; color: var(--mu); font-weight: 700; font-size: 14px; }
+.neg-liste { display: flex; flex-direction: column; gap: 8px; }
+.neg-l { border: 1px solid var(--bord); border-radius: 12px; background: #fff; }
+.neg-l > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; list-style: none; }
+.neg-l > summary::-webkit-details-marker { display: none; }
+.neg-l > summary > span:first-child { display: flex; flex-direction: column; }
+.neg-l > summary::after { content: "›"; color: var(--or); font-weight: 900; font-size: 20px; transition: transform .15s; }
+.neg-l[open] > summary::after { transform: rotate(90deg); }
+.neg-l > .fiche-neg, .neg-l > div { margin: 0 10px 10px; }
+.neg-utile { margin-left: auto; color: #1d7a46; font-weight: 800; font-size: 13px; white-space: nowrap; }
+.gt-liste { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.gt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border: 2px solid var(--bord); border-radius: 14px; background: #fff; font: 700 15px Manrope, sans-serif; color: var(--bordeaux); cursor: pointer; }
+.gt .gt-ico { font-size: 22px; }
+.gt .gt-t { flex: 1; display: flex; flex-direction: column; }
+.gt .gt-t small { font-weight: 500; font-size: 13px; }
+.gt .gt-r { font-weight: 800; color: var(--mu); white-space: nowrap; }
+.gt.on { border-color: var(--or); background: #fff6ec; }
+.gt.on .gt-r { color: var(--or-fonce); }
+.gt.off { opacity: .7; cursor: default; border-style: dashed; }
+.intro-btn.sec { background: #fff; color: var(--bordeaux); border: 2px solid var(--bordeaux); }
