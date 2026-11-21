@@ -1008,11 +1008,21 @@ label.dd-ligne { justify-content: flex-start; }
 .toits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
 .toit-c { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; border: 2px solid var(--bord); border-radius: 14px; background: #fff; cursor: pointer; font: 700 13.5px Manrope, sans-serif; color: var(--bordeaux); }
 .toit-c svg { width: 100%; max-width: 92px; height: auto; }
-.toit-c .st-toit { fill: #9aa7b8; }
-.toit-c .st-mur { fill: #e9edf3; stroke: #9aa7b8; stroke-width: 1.5; }
-.toit-c .st-porte, .toit-c .st-fen { fill: #c5cfdc; }
+.toit-c polygon { stroke: #5d6b80; stroke-width: .7; stroke-linejoin: round; }
+.toit-c .f-mur { fill: #eef1f6; }
+.toit-c .f-cote { fill: #cdd5e0; }
+.toit-c .f-trou { fill: #8a97a8; }
+.toit-c .f-vitre { fill: #b8d4ec; }
+.toit-c .f-vitre2 { fill: #9dbcd8; }
+.toit-c .f-toit { fill: #8f9cae; }
+.toit-c .f-toit2 { fill: #6f7c8f; }
+.toit-c .f-toit3 { fill: #adb8c7; }
 .toit-c:hover { border-color: var(--or); }
 .toit-c.on { border-color: var(--or); background: #fff6ec; box-shadow: 0 0 0 2px rgba(236, 130, 36, .25); }
-.toit-c.on .st-toit { fill: var(--or); }
-.toit-c.on .st-mur { stroke: var(--or-fonce); }
+.toit-c.on polygon { stroke: #8a3f05; }
+.toit-c.on .f-toit { fill: #EC8224; }
+.toit-c.on .f-toit2 { fill: #c4650f; }
+.toit-c.on .f-toit3 { fill: #f4a55a; }
+.toit-c.on .f-mur { fill: #fff4e8; }
+.toit-c.on .f-cote { fill: #f3d5b5; }
 @media (min-width: 761px) { .toits { grid-template-columns: repeat(6, 1fr); } }
