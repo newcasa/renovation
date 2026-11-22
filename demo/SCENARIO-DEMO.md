@@ -9,7 +9,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 1. Sur le téléphone ou l'ordinateur de la démo, ouvrir **https://hoono.be/demo/#/presentation**.
    Tout est remis à zéro (les 2 maisons de démonstration, sans photos ni montants tapés lors d'une démo précédente) et la **page d'intro** s'affiche : logo, phrase d'accroche et bouton « Commencer la démo ». Laissez-la à l'écran pendant que les gens s'installent.
-2. Sur téléphone, le menu est en bas de l'écran (Maisons, Comparer, Contacter, Plus) et la fiche maison est découpée en 4 onglets : Espaces, Technique, Les pros, Projet. Au-dessus, un rappel du vrai coût. À la première ouverture de chaque page, un didacticiel en bulles explique l'écran ; le bouton « ❔ » en haut le relance.
+2. Sur téléphone, le menu est en bas de l'écran (Maisons, Comparer, Contacter, Plus) et la fiche maison est découpée en 4 onglets : Pendant la visite, Après la visite, Les pros, Projet. Au-dessus, un rappel du vrai coût. À la première ouverture de chaque page, un didacticiel en bulles explique l'écran ; le bouton « ❔ » en haut le relance.
 
    L'onglet Projet regroupe dans l'ordre : le vrai coût, la performance PEB, le budget travaux, la simulation d'achat (taper une offre : le total prix + enregistrement + notaire + travaux suit tout de suite), la simulation de financement, les aides à la rénovation et le dossier pour la banque. Dans Les pros : les artisans, les devis reçus, les négociants et un courtier à contacter pour le prêt.
 3. Ouvrir la page dans **Chrome** (ou Safari sur iPhone) et autoriser la caméra une première fois (écran « 📷 Photos de la visite »).
@@ -44,7 +44,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 ## 3. Pièce par pièce — 1 minute
 
-**Clic :** onglet **Espaces** (cartes en couleur), puis ouvrir **Cuisine**. Ensuite, onglet **Technique** et « Structure, toiture et équipements » : une liste de postes par groupe (toiture, électricité, isolation…).
+**Clic :** onglet **Pendant la visite** (cartes en couleur), puis ouvrir **Cuisine**. Ensuite, onglet **Après la visite** et « Structure, toiture et équipements » : une liste de postes par groupe (toiture, électricité, isolation…).
 
 **À montrer :** la surface au sol, les murs calculés automatiquement (sol × 2,7), le plafond (= sol), les cases sol / murs / plafond / châssis / chauffage, et le budget qui change quand on coche ou décoche une case.
 
@@ -55,14 +55,14 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 ## 4. La visite en direct — 1 minute (le moment fort sur téléphone)
 
-**Clic :** revenir à la maison, onglet **Espaces**, « 📷 Photos de la visite », taper « Salon », « Commencer la visite → ».
+**Clic :** revenir à la maison, onglet **Pendant la visite**, « 📷 Photos de la visite », taper « Salon », « Commencer la visite → ».
 
 **À montrer :** viser la salle et appuyer 3 fois sur le bouton rond (3 photos, sans validation), puis « Pièce suivante → », taper « Bureau », 1 photo, puis « Terminer la visite ».
 
 **À dire :**
 > « Pendant la visite, on photographie pièce par pièce, sans quitter l'appli. Après, chaque photo est rangée avec sa pièce. »
 
-*Mentionner aussi :* le questionnaire papier d'une page à imprimer pour la visite. Dans l'onglet **Espaces**, « 📝 Photo du questionnaire » : on photographie la feuille remplie et Valou remplit la maison (pièces, sol, murs, plafond, châssis, chauffage, structure). **Pour l'instant, c'est une démonstration** : les réponses viennent d'un questionnaire d'exemple ; la lecture de l'écriture arrivera avec un service de lecture d'image.
+*Mentionner aussi :* le questionnaire papier d'une page à imprimer pour la visite. Dans l'onglet **Pendant la visite**, « 📝 Photo du questionnaire » : on photographie la feuille remplie et Valou remplit la maison (pièces, sol, murs, plafond, châssis, chauffage, structure). **Pour l'instant, c'est une démonstration** : les réponses viennent d'un questionnaire d'exemple ; la lecture de l'écriture arrivera avec un service de lecture d'image.
 
 ---
 
@@ -126,7 +126,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 # Démo pour un artisan (4 minutes)
 
-**Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-artisan`. Dans la maison A, onglet **Espaces**, prendre 2 ou 3 photos de la cuisine avec « 📷 Photos de la visite » (mode visite, nom « Cuisine »).
+**Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-artisan`. Dans la maison A, onglet **Pendant la visite**, prendre 2 ou 3 photos de la cuisine avec « 📷 Photos de la visite » (mode visite, nom « Cuisine »).
 
 1. **La maison visitée** : les pièces en couleur et le vrai coût. Onglet **Les pros** : « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
    > « Le client a visité, chiffré, photographié. Il vous envoie son projet en un clic. »

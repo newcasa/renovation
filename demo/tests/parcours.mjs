@@ -418,13 +418,15 @@ try {
     assert.match(tout, /Pompe à chaleur/);
     assert.match(tout, /cuve à mazout/);
     /* une pièce : les pièces viennent du questionnaire imprimé ; avant sa lecture, pas d'ajout à la main */
-    await onglet("pieces");
+    await onglet("travaux");
     assert.equal(await page.locator("#np-nom").count(), 0, "pas d'ajout de pièce avant le questionnaire");
     assert.match(await page.locator(".consigne").innerText(), /viennent du questionnaire/);
+    await onglet("pieces");
     await page.getByText("📝 Photo du questionnaire").click();
     await page.locator("[data-qphoto]").setInputFiles([png]);
     await page.locator('[data-action="q-lire"]').click();
     await page.locator('[data-action="q-appliquer"]').click();
+    await onglet("travaux");
     await page.locator(".carte-piece").first().waitFor();
     /* une pièce oubliée : on l'ajoute, on l'ouvre, on remplit les postes imposés */
     await page.fill("#np-nom", "Chambre test");
@@ -548,8 +550,10 @@ try {
     assert.doesNotMatch(await page.locator(".vc-mini").innerText(), /\b0 €/);
     /* le parcours de la visite en 5 étapes : questionnaire imprimé obligatoire, pas de questionnaire dans l'appli */
     await onglet("pieces");
-    assert.equal(await page.locator(".parcours-v .pv-e").count(), 5);
-    assert.match(await page.locator("#pv-4").innerText(), /Lue/);
+    assert.equal(await page.locator(".parcours-v .pv-e").count(), 3, "Pendant la visite : infos, questionnaire, photos");
+    assert.match(await page.locator("#pv-2").innerText(), /lue et validée/);
+    assert.ok(await page.locator("#pv-2.ok").count(), "le questionnaire passe en vert");
+    assert.match(await page.locator(".om-i").allInnerTexts().then(t => t.join("|")), /Pendant la visite[\s\S]*Après la visite[\s\S]*Les pros[\s\S]*Projet/);
     assert.equal(await page.getByText("Le remplir dans l'appli").count(), 0);
     assert.equal(await page.locator('#pv-2 a[href="#/questionnaire"]').count(), 1);
     await page.goto(URL + "#/");
