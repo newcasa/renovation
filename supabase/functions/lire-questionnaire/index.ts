@@ -12,8 +12,11 @@ const GROS = { i_cv_1: "Toiture : couverture", i_to_1: "Isolation de la toiture"
 const RAPPELS = { chassis: "Tester chaque châssis", plans: "Demander à voir les plans", peb: "Demander le certificat PEB", elec: "Demander le contrôle de l'installation électrique", chaudiere: "Âge et entretien de la chaudière", toiture: "Âge de la toiture, charpente", humidite: "Traces d'humidité", eau: "Ouvrir les robinets, tirer la chasse", amiante: "Maison d'avant 2001 : amiante", photos: "Photographier chaque pièce" };
 const CHAUFFAGES = { aucun: "Aucun / à créer", gaz: "Gaz", mazout: "Mazout", electrique: "Électrique", pac: "Pompe à chaleur", pellets: "Pellets", autre: "Autre" };
 
-const nombre = { type: ["number", "null"] };
-const texte = { type: ["string", "null"] };
+// Pas de types « ou null » (Anthropic en limite le nombre) : une case vide vaut 0, -1 ou "" et redevient null plus bas.
+const nombre = { type: "number", description: "0 si vide" };
+const texte = { type: "string", description: "\"\" si vide" };
+const entier = { type: "integer", description: "0 si vide" };
+const choix = (valeurs: string[]) => ({ type: "string", enum: [...valeurs, ""], description: "\"\" si rien n'est coché" });
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -26,14 +29,14 @@ const SCHEMA = {
       required: ["adresse", "commune", "prix", "annee", "surface", "etages", "facades", "largeur", "profondeur", "etat", "seule_habitation", "peb", "peb_conso", "chauffage"],
       properties: {
         adresse: texte, commune: texte, prix: nombre, annee: nombre, surface: nombre,
-        etages: { type: ["integer", "null"], description: "nombre écrit après « rez + » (0 = plain-pied)" },
-        facades: { type: ["integer", "null"], enum: [2, 3, 4, null] },
+        etages: { type: "integer", description: "nombre écrit après « rez + » (0 = plain-pied), -1 si vide" },
+        facades: { type: "integer", description: "2, 3 ou 4 ; 0 si vide" },
         largeur: nombre, profondeur: nombre,
-        etat: { type: ["string", "null"], enum: ["bon", "rafraichir", "renover", null] },
-        seule_habitation: { type: ["boolean", "null"] },
-        peb: { type: ["string", "null"], enum: ["A++", "A+", "A", "B", "C", "D", "E", "F", "G", null] },
+        etat: choix(["bon", "rafraichir", "renover"]),
+        seule_habitation: choix(["oui", "non"]),
+        peb: choix(["A++", "A+", "A", "B", "C", "D", "E", "F", "G"]),
         peb_conso: nombre,
-        chauffage: { type: ["string", "null"], enum: [...Object.keys(CHAUFFAGES), null] },
+        chauffage: choix(Object.keys(CHAUFFAGES)),
       },
     },
     pieces: {
@@ -43,7 +46,7 @@ const SCHEMA = {
         type: "object",
         additionalProperties: false,
         required: ["nom", "sol_m2", "sol_a_refaire", "murs_a_refaire", "chassis", "remarques"],
-        properties: { nom: { type: "string" }, sol_m2: nombre, sol_a_refaire: { type: "boolean" }, murs_a_refaire: { type: "boolean" }, chassis: { type: ["integer", "null"] }, remarques: texte },
+        properties: { nom: { type: "string" }, sol_m2: nombre, sol_a_refaire: { type: "boolean" }, murs_a_refaire: { type: "boolean" }, chassis: entier, remarques: texte },
       },
     },
     gros: { type: "array", items: { type: "string", enum: Object.keys(GROS) } },
@@ -53,7 +56,7 @@ const SCHEMA = {
 };
 
 const CONSIGNE = `Tu lis la photo d'un questionnaire de visite Valou (une feuille A4 imprimée, remplie au stylo, en français, en Belgique).
-Recopie fidèlement ce qui est écrit ou coché ; n'invente rien : une case vide donne null (ou false pour une case à cocher), une ligne de pièce vide n'est pas renvoyée.
+Recopie fidèlement ce qui est écrit ou coché ; n'invente rien. Une case vide donne 0 pour un nombre (-1 pour Étages), "" pour un texte ou un choix, false pour une case à cocher. Une ligne de pièce vide n'est pas renvoyée.
 La feuille contient :
 - en haut : Adresse, Commune, Prix (€), Année, Surface (m²), Étages (« rez + » suivi d'un chiffre), Façades (2, 3 ou 4), Largeur façade (m), Profondeur (m) ; État (${["Bon", "À rafraîchir", "À rénover"].join(", ")} → bon / rafraichir / renover) ; Seule habitation (Oui/Non) ; PEB (une lettre cochée) et la consommation en kWh/m²/an ; Chauffage existant (${Object.entries(CHAUFFAGES).map(([k, v]) => `${v} → ${k}`).join(", ")}).
 - un cadre « À ne pas oublier » avec des cases : ${Object.entries(RAPPELS).map(([k, v]) => `${v} → ${k}`).join(" ; ")}.
@@ -63,6 +66,18 @@ Les nombres belges utilisent la virgule décimale (« 12,5 » = 12.5) et parfois
 Si plusieurs photos sont fournies, ce sont des parties de la même feuille : fusionne-les.
 Mets dans « doutes » ce que tu as eu du mal à lire.`;
 
+/* valeurs « vide » → null, pour l'appli */
+const vide = (v: unknown) => (v === "" || v === 0 || v === -1 ? null : v);
+// deno-lint-ignore no-explicit-any
+function nettoyer(lu: any) {
+  const M = lu.maison || {};
+  for (const k of ["adresse", "commune", "prix", "annee", "surface", "facades", "largeur", "profondeur", "etat", "peb", "peb_conso", "chauffage"]) M[k] = vide(M[k]);
+  M.etages = M.etages === -1 || M.etages == null ? null : M.etages;
+  M.seule_habitation = M.seule_habitation === "oui" ? true : M.seule_habitation === "non" ? false : null;
+  // deno-lint-ignore no-explicit-any
+  lu.pieces = (lu.pieces || []).map((p: any) => ({ ...p, sol_m2: vide(p.sol_m2), chassis: vide(p.chassis), remarques: vide(p.remarques) }));
+  return lu;
+}
 function cors(origine: string | null) {
   const ok = origine && ORIGINES_OK.some(r => r.test(origine));
   return {
@@ -117,11 +132,16 @@ Deno.serve(async req => {
     if (reponse.stop_reason === "max_tokens") return repondre({ erreur: "réponse trop longue" }, 502, h);
     const bloc = reponse.content.find(b => b.type === "text");
     if (!bloc || bloc.type !== "text") return repondre({ erreur: "pas de réponse" }, 502, h);
-    return repondre({ lu: JSON.parse(bloc.text) }, 200, h);
+    return repondre({ lu: nettoyer(JSON.parse(bloc.text)) }, 200, h);
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return repondre({ erreur: "trop de demandes, réessayez dans une minute" }, 429, h);
     if (e instanceof Anthropic.AuthenticationError) return repondre({ erreur: "clé Anthropic refusée" }, 503, h);
-    if (e instanceof Anthropic.APIError) return repondre({ erreur: "service de lecture indisponible" }, 502, h);
+    if (e instanceof Anthropic.APIError) {
+      console.error("Anthropic", e.status, e.message);
+      const m = String(e.message || "");
+      const raison = /credit balance/i.test(m) ? "crédit Anthropic épuisé : ajoutez du crédit (Billing)" : `service de lecture indisponible (${e.status ?? "?"} : ${m.slice(0, 160)})`;
+      return repondre({ erreur: raison }, 502, h);
+    }
     if (e instanceof SyntaxError) return repondre({ erreur: "réponse illisible" }, 502, h);
     throw e;
   }
