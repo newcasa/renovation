@@ -168,7 +168,7 @@ function ecranAjouter() {
         </select></label>
 ${reno ? "" : `<label class="cb large"><input type="checkbox" name="uniqueHabitation" ${b.uniqueHabitation ? "checked" : ""}> Ce sera ma seule habitation, et j'y habiterai (droits d'enregistrement réduits à 3 % en Wallonie)</label>`}
       </div>
-      <p class="mu petit-t"><b class="oblig-e">*</b> obligatoire. Ensuite, la fiche de la maison vous guide : le questionnaire de visite (imprimé ou dans l'appli), les photos, puis ce qui manque (carrelage ou parquet, futur chauffage…).</p>
+      <p class="mu petit-t"><b class="oblig-e">*</b> obligatoire. Ensuite, la fiche de la maison vous guide : imprimer le questionnaire de visite, le remplir au stylo et prendre les photos pendant la visite, photographier la feuille, puis compléter ce qui manque (carrelage ou parquet, futur chauffage…).</p>
       <button class="btn" type="submit">${reno ? "Voir le budget de la rénovation →" : "Voir le vrai coût →"}</button>
     </form>
   </main>`;
@@ -663,11 +663,11 @@ function ecranMaison(m) {
       <h2>Les espaces</h2>
       <p class="mu">Les pièces remplies par le questionnaire. Ouvrez-les pour compléter le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
       <div class="grille-pieces">${cartesPieces}</div>
-      <div class="ajout-piece">
+      ${!m.questLu && !(m.pieces || []).length ? `<p class="consigne">Les pièces viennent du questionnaire de visite : imprimez-le (étape 2), remplissez-le pendant la visite, puis photographiez-le (étape 4).</p>` : `<div class="ajout-piece">
         <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
         <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
-        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
-      </div>
+        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce oubliée</button>
+      </div>`}
     </section>
 
       ${suivant("travaux", "Suivant : Technique")}`;
@@ -1552,7 +1552,7 @@ function donneesManquantes(m) {
   const L = [], P = m.pieces || [], D = m.toitDim || {};
   const im = infosManquantes(m);
   if (im.length) L.push(["Infos de la maison : " + im.join(", "), `data-action="etape-infos"`]);
-  if (!P.length) L.push(["Aucune pièce : remplissez le questionnaire", `href="#/maison/${m.id}/visite"`]);
+  if (!P.length) L.push(["Aucune pièce : photographiez le questionnaire rempli", `href="#/maison/${m.id}/questionnaire"`]);
   const sansSurf = P.filter(p => !p.sol && p.type !== "wc");
   if (sansSurf.length) L.push(["Surface au sol : " + sansSurf.map(p => p.nom).join(", "), `href="#/maison/${m.id}/piece/${sansSurf[0].id}"`]);
   const aChoisir = P.filter(p => (p.sOn || p.chOn || p.pOn) && !p.vu);
@@ -1565,8 +1565,8 @@ function donneesManquantes(m) {
   return L;
 }
 function blocParcoursVisite(m) {
-  const im = infosManquantes(m), nPh = photosDe(m).length, papier = m.questMode !== "appli", DM = donneesManquantes(m);
-  const fait = [im.length === 0, !!m.questFait, nPh > 0, m.questMode === "appli" ? !!m.questFait : !!m.questLu, DM.length === 0];
+  const im = infosManquantes(m), nPh = photosDe(m).length, DM = donneesManquantes(m);
+  const fait = [im.length === 0, !!(m.questImprime || m.questLu), nPh > 0, !!m.questLu, DM.length === 0];
   const courant = fait.findIndex(x => !x);
   const R0 = m.rappels || {}, nR = RAPPELS_VISITE.filter(([k]) => R0[k]).length, idR = `rappels-${m.id}`, idI = `infos-${m.id}`;
   const champ = (f, t, ph, txt) => `<label>${t}<input ${txt ? `data-ft="${f}" type="text"` : `data-f="${f}" type="number" inputmode="decimal" min="0"`} value="${esc(m[f] ?? "")}" placeholder="${ph}"></label>`;
@@ -1587,74 +1587,14 @@ function blocParcoursVisite(m) {
           <label>Label PEB<select data-ft="peb"><option value="">Je ne sais pas</option>${LABELS_PEB.map(l => `<option ${m.peb === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
           <label>Chauffage existant<select data-mchf="actuel">${CHAUFFAGE_ACTUEL.map(([v, t]) => `<option value="${v}" ${(m.chauffage || {}).actuel === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></label>
         </div></details>`)}
-      ${etape(1, "Le questionnaire de visite", m.questFait ? (m.questMode === "appli" ? "Rempli dans l'appli" : "Lu sur la photo") : "Imprimé à l'avance, ou rempli dans l'appli pendant la visite", `<span class="actions-g"><a class="btn ${m.questMode === "appli" ? "" : "sec"}" href="#/maison/${m.id}/visite">📱 ${m.questFait && m.questMode === "appli" ? "Revoir le questionnaire" : "Le remplir dans l'appli"}</a><a class="btn sec" href="#/questionnaire" data-action="quest-papier">🖨️ Imprimer le questionnaire</a></span>
+      ${etape(1, "Avant la visite : imprimer le questionnaire", m.questLu ? "Rempli et lu" : m.questImprime ? "Imprimé : emportez-le à la visite et remplissez-le au stylo" : "Une page A4, à remplir au stylo pendant la visite", `<p><a class="btn ${m.questImprime || m.questLu ? "sec" : ""}" href="#/questionnaire" data-action="quest-papier">🖨️ Imprimer le questionnaire</a></p>
         <details class="rappels" data-ouvert="${idR}" ${ouverts.has(idR) ? "open" : ""}><summary><span>✅ À ne pas oublier pendant la visite</span><small class="mu">${nR} / ${RAPPELS_VISITE.length}</small></summary>
         ${RAPPELS_VISITE.map(([k, t]) => `<label class="cb rp-l"><input type="checkbox" data-rappel="${k}" ${R0[k] ? "checked" : ""}> <span>${esc(t)}</span></label>`).join("")}</details>`)}
       ${etape(2, "Pendant la visite : les photos", nPh ? `${nPh} photo${nPh > 1 ? "s" : ""}, rangées par pièce` : "En même temps que le questionnaire, pièce par pièce", `<p>${boutonPhotosMaison(m)}</p>`)}
-      ${etape(3, "Après la visite : la photo du questionnaire", m.questMode === "appli" ? "Pas nécessaire : le questionnaire est rempli dans l'appli" : m.questLu ? "Lue : la maison est remplie" : "Valou lit votre feuille et remplit la maison", papier ? `<p><a class="btn sec" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>` : "")}
+      ${etape(3, "Après la visite : la photo du questionnaire", m.questLu ? "Lue : la maison est remplie" : "Valou lit votre feuille et remplit la maison : les pièces, les surfaces, les travaux", `<p><a class="btn ${m.questLu ? "sec" : ""}" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>`)}
       ${etape(4, "Compléter les données manquantes", DM.length ? `${DM.length} point${DM.length > 1 ? "s" : ""} à compléter` : "Tout est complet : voyez le vrai coût dans Projet", DM.length ? `<ul class="pv-manque">${DM.map(([t, attr]) => `<li><${/^href/.test(attr) ? "a" : "button"} class="pv-lien" ${attr}>${esc(t)} ›</${/^href/.test(attr) ? "a" : "button"}></li>`).join("")}</ul>` : `<button class="btn" data-action="onglet-m" data-o="projet">Voir le Projet →</button>`)}
     </ol>
   </section>`;
-}
-
-/* ---------- le questionnaire rempli dans l'appli (mêmes questions que la feuille) ---------- */
-const NOMS_FEUILLE = ["Hall d'entrée", "Séjour / salon", "Cuisine", "WC", "Salle de bain", "Chambre 1", "Chambre 2", "Chambre 3", "Bureau", "Garage"];
-function brouillonQuest(m) {
-  if (!m.questApp) {
-    const P = m.pieces || [];
-    const noms = P.length ? P.map(p => p.nom) : NOMS_FEUILLE;
-    m.questApp = { pieces: noms.map(nom => { const pc = P.find(p => memeNom(p.nom, nom)); return { nom, sol: pc ? pc.sol ?? null : null, solR: pc ? !!pc.sOn : false, mursR: pc ? MURS.some(([f]) => pc[f]) : false, chassis: pc && pc.chOn ? pc.chN ?? null : null, rem: "" }; }), gros: [] };
-  }
-  return m.questApp;
-}
-function ecranVisiteQuestionnaire(m) {
-  const Q = brouillonQuest(m), D = m.toitDim || {};
-  const ligne = (p, i) => `<div class="vq-l">
-      <div class="vq-t"><input class="vq-nom" data-qa="${i}:nom" value="${esc(p.nom)}" aria-label="Nom de la pièce"><button class="x" data-action="qa-suppr" data-i="${i}" aria-label="Retirer ${esc(p.nom)}">✕</button></div>
-      <div class="vq-c">
-        <label>Sol (m²)<input type="number" inputmode="decimal" min="0" step="any" data-qa="${i}:sol" value="${esc(p.sol ?? "")}" placeholder="m²"></label>
-        <label>Châssis à remplacer<input type="number" inputmode="numeric" min="0" data-qa="${i}:chassis" value="${esc(p.chassis ?? "")}" placeholder="0"></label>
-        <label class="cb"><input type="checkbox" data-qa="${i}:solR" ${p.solR ? "checked" : ""}> Sol à refaire</label>
-        <label class="cb"><input type="checkbox" data-qa="${i}:mursR" ${p.mursR ? "checked" : ""}> Murs à refaire</label>
-      </div>
-      ${/cuisine/i.test(p.nom) ? `<small class="vq-astuce">Cuisine ouverte sur le séjour : comptez tout le m² ici et retirez la ligne Séjour / salon.</small>` : ""}
-      <input class="vq-rem" data-qa="${i}:rem" value="${esc(p.rem || "")}" placeholder="Remarques">
-    </div>`;
-  return `${entete("maisons")}<main class="etroit vq">
-    <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
-    <h1>📱 Questionnaire de visite</h1>
-    <p class="mu">Les mêmes questions que la feuille imprimée. Tout est enregistré au fur et à mesure : vous pouvez prendre des photos entre deux pièces et revenir ici.</p>
-    <section class="carte"><h2>La maison</h2>
-      <div class="champs pv-grille">
-        <label>Largeur de la façade (m)<input type="number" inputmode="decimal" min="0" step="any" data-tdim="larg" value="${esc(D.larg ?? "")}" placeholder="ex. 9"></label>
-        <label>Profondeur (m)<input type="number" inputmode="decimal" min="0" step="any" data-tdim="prof" value="${esc(D.prof ?? "")}" placeholder="ex. 10"></label>
-        <label>État général<select data-ft="etat">${[["bon", "Bon"], ["rafraichir", "À rafraîchir"], ["renover", "À rénover"]].map(([v, t]) => `<option value="${v}" ${(m.etat || "rafraichir") === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
-      </div>
-    </section>
-    <section class="carte"><h2>Les pièces</h2>
-      ${Q.pieces.map(ligne).join("")}
-      <div class="ajout-piece"><input id="qa-nom" placeholder="Autre pièce (ex. Véranda)" aria-label="Nom de la pièce à ajouter"><button class="btn sec" data-action="qa-ajout">＋ Ajouter</button></div>
-    </section>
-    <section class="carte"><h2>Gros travaux (hors pièces)</h2>
-      <p class="mu petit-t">Cochez ce qui est à refaire : les quantités se complètent ensuite.</p>
-      ${GROS_TRAVAUX.map(([k, t]) => `<label class="cb rp-l"><input type="checkbox" data-qagros="${k}" ${Q.gros.includes(k) ? "checked" : ""}> <span>${esc(t)}</span></label>`).join("")}
-    </section>
-    <section class="carte"><h2>À ne pas oublier</h2>
-      ${RAPPELS_VISITE.map(([k, t]) => `<label class="cb rp-l"><input type="checkbox" data-rappel="${k}" ${(m.rappels || {})[k] ? "checked" : ""}> <span>${esc(t)}</span></label>`).join("")}
-    </section>
-    <p class="actions-g"><a class="btn sec" href="#/maison/${m.id}/photos">📷 Photos de la visite</a><button class="btn" data-action="qa-fini">✓ Questionnaire terminé</button></p>
-  </main>`;
-}
-function terminerQuestApp(m) {
-  const Q = brouillonQuest(m);
-  const lu = {
-    maison: { chauffage: null, etat: m.etat || null },
-    pieces: Q.pieces.filter(p => p.nom && (p.sol || p.solR || p.mursR || p.chassis || p.rem)).map(p => ({ nom: p.nom, sol_m2: p.sol, sol_a_refaire: p.solR, murs_a_refaire: p.mursR, chassis: p.chassis, remarques: p.rem })),
-    gros: Q.gros, rappels: [], doutes: [],
-  };
-  const r = depuisLecture(lu), L = maisonDepuisQuestionnaire(r, nouvelId);
-  appliquerQuestionnaire(m, { ...L, chauffageLu: false, gros: r.gros, rappels: [] });
-  m.questFait = true; m.questMode = "appli";
 }
 
 /* ---------- didacticiel bulle par bulle : à la première ouverture de chaque page, et avec le bouton « ❔ » ---------- */
@@ -1668,7 +1608,7 @@ const TUTOS = {
   maison: [
     [".vc-mini", "Le chiffre clé : ce que la maison va vraiment vous coûter. Le détail est dans l'onglet Projet."],
     [".onglets-m", "La fiche suit l'ordre de la visite, en 4 onglets."],
-    [".parcours-v", "Votre visite en 5 étapes : les infos connues, le questionnaire (imprimé ou dans l'appli), les photos, la photo du questionnaire, puis ce qui manque. L'étape en cours est en orange."],
+    [".parcours-v", "Votre visite en 5 étapes : les infos connues, le questionnaire à imprimer, les photos pendant la visite, la photo du questionnaire après, puis ce qui manque. L'étape en cours est en orange."],
     ['.om-i[data-o="pieces"]', "Espaces : le parcours de la visite et les pièces de la maison."],
     ['.om-i[data-o="travaux"]', "Technique : le chauffage, la toiture, l'isolation, l'électricité et tout ce qui ne dépend pas d'une pièce."],
     ['.om-i[data-o="artisans"]', "Les pros : choisissez vos artisans, recevez leurs devis, trouvez vos négociants et contactez un courtier."],
@@ -1815,7 +1755,7 @@ function afficher() {
   document.querySelectorAll("details[data-ouvert]").forEach(d => (d.open ? ouverts.add(d.dataset.ouvert) : ouverts.delete(d.dataset.ouvert)));
   const y = window.scrollY, meme = afficher.dernier === h;
   let html;
-  const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/), mqp = h.match(/^\/maison\/(\w+)\/questionnaire/), mvq = h.match(/^\/maison\/(\w+)\/visite$/);
+  const mm = h.match(/^\/maison\/(\w+)/), md = h.match(/^\/dossier\/(\w+)/), mp = h.match(/^\/maison\/(\w+)\/piece\/(\w+)/), mph = h.match(/^\/maison\/(\w+)\/photos/), mqp = h.match(/^\/maison\/(\w+)\/questionnaire/);
   if (h === "/bienvenue") html = ecranIntro();
   else if (h === "/essai") html = ecranEssai();
   else if (h === "/plus") html = ecranPlus();
@@ -1832,7 +1772,6 @@ function afficher() {
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
   else if (mph && trouver(mph[1])) html = ecranPhotos(trouver(mph[1]));
   else if (mqp && trouver(mqp[1])) html = ecranQuestionnairePhoto(trouver(mqp[1]));
-  else if (mvq && trouver(mvq[1])) html = ecranVisiteQuestionnaire(trouver(mvq[1]));
   else if (mp && trouver(mp[1]) && (trouver(mp[1]).pieces || []).some(p => p.id === mp[2])) html = ecranPiece(trouver(mp[1]), trouver(mp[1]).pieces.find(p => p.id === mp[2]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
@@ -1930,16 +1869,13 @@ document.addEventListener("click", e => {
   if (a === "q-recommencer") { qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: qPhoto.maisonId, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; afficher(); }
   if (a === "q-appliquer") {
     const mq = trouver(qPhoto.maisonId);
-    if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); mq.questFait = true; mq.questLu = true; mq.questMode = "papier"; sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; location.hash = `#/maison/${mq.id}`; }
+    if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); mq.questFait = true; mq.questLu = true; sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; location.hash = `#/maison/${mq.id}`; }
   }
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
   if (a === "toit-q") { const i = document.querySelector(`[data-mq="${el.dataset.k}"]`); if (i) { i.value = el.dataset.q; i.dispatchEvent(new Event("change", { bubbles: true })); } }
   if (a === "etape-infos" && m) { ouverts.add("infos-" + m.id); ongletsM[m.id] = "pieces"; afficher(); document.getElementById("pv-1")?.scrollIntoView({ block: "start" }); }
-  if (a === "quest-papier" && m) { m.questMode = "papier"; sauver(); }
-  if (a === "qa-ajout" && m) { const i = document.getElementById("qa-nom"), nom = (i && i.value.trim()) || "Autre pièce"; brouillonQuest(m).pieces.push({ nom, sol: null, solR: false, mursR: false, chassis: null, rem: "" }); sauver(); afficher(); }
-  if (a === "qa-suppr" && m) { brouillonQuest(m).pieces.splice(+el.dataset.i, 1); sauver(); afficher(); }
-  if (a === "qa-fini" && m) { terminerQuestApp(m); sauver(); ongletsM[m.id] = "pieces"; location.hash = `#/maison/${m.id}`; }
+  if (a === "quest-papier" && m) { m.questImprime = true; sauver(); }
   if (a === "essai-reno") { choisirParcours("renovation"); brouillon = null; location.hash = "#/ajouter"; }
   if (a === "gros" && m) { basculerGros(m, el.dataset.g); sauver(); afficher(); }
   if (a === "toit" && m) { m.toiture = m.toiture === el.dataset.t ? null : el.dataset.t; sauver(); afficher(); }
@@ -2072,13 +2008,6 @@ document.addEventListener("change", e => {
     afficher();
     return;
   }
-  /* questionnaire dans l'appli : enregistré au fur et à mesure */
-  if (t.dataset.qa && m) {
-    const [i, f] = t.dataset.qa.split(":"), p = brouillonQuest(m).pieces[+i];
-    if (p) p[f] = t.type === "checkbox" ? t.checked : t.type === "number" ? (t.value === "" ? null : +t.value) : t.value;
-    sauver(); if (t.type === "checkbox") afficher(); return;
-  }
-  if (t.dataset.qagros && m) { const Q = brouillonQuest(m), S = new Set(Q.gros); t.checked ? S.add(t.dataset.qagros) : S.delete(t.dataset.qagros); Q.gros = [...S]; sauver(); return; }
   if (t.dataset.ft && m) { m[t.dataset.ft] = t.value || null; if (t.dataset.ft === "etat") m.rep = { ...(m.rep || {}), etat: t.value === "renover" ? "oui" : "non" }; sauver(); afficher(); return; }
   /* rappels pendant la visite */
   if (t.dataset.rappel && m) { m.rappels = { ...(m.rappels || {}), [t.dataset.rappel]: t.checked }; ouverts.add("rappels-" + m.id); sauver(); afficher(); return; }
