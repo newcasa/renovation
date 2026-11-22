@@ -417,8 +417,16 @@ try {
     const tout = await page.locator("main").innerText();
     assert.match(tout, /Pompe à chaleur/);
     assert.match(tout, /cuve à mazout/);
-    /* une pièce : on l'ajoute, on l'ouvre, on remplit les postes imposés */
+    /* une pièce : les pièces viennent du questionnaire imprimé ; avant sa lecture, pas d'ajout à la main */
     await onglet("pieces");
+    assert.equal(await page.locator("#np-nom").count(), 0, "pas d'ajout de pièce avant le questionnaire");
+    assert.match(await page.locator(".consigne").innerText(), /viennent du questionnaire/);
+    await page.getByText("📝 Photo du questionnaire").click();
+    await page.locator("[data-qphoto]").setInputFiles([png]);
+    await page.locator('[data-action="q-lire"]').click();
+    await page.locator('[data-action="q-appliquer"]').click();
+    await page.locator(".carte-piece").first().waitFor();
+    /* une pièce oubliée : on l'ajoute, on l'ouvre, on remplit les postes imposés */
     await page.fill("#np-nom", "Chambre test");
     await page.getByText("＋ Ajouter une pièce").click();
     await page.locator(".titre-piece").waitFor();
@@ -434,7 +442,7 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-3b-piece.png`, fullPage: nom === "ordi" });
     await page.getByText("✓ Pièce terminée").click();
     await page.locator(".carte-piece").first().waitFor();
-    assert.match(await page.locator(".carte-piece").first().innerText(), /Murs · Plafond · 2 châssis/);
+    assert.match(await page.locator(".carte-piece:has-text(\"Chambre test\")").innerText(), /Murs · Plafond · 2 châssis/);
     /* structure, toiture et équipements : liste fixe, on remplit une quantité */
     await onglet("travaux");
     await page.locator('details:has([data-mq="i_pi"]) > summary').click();
@@ -538,6 +546,12 @@ try {
     await page.locator(".carte-piece").nth(5).waitFor();
     assert.match(await page.locator(".grille-pieces").innerText(), /Séjour \/ salon[\s\S]*Cuisine[\s\S]*Salle de bain[\s\S]*Chambre 2/);
     assert.doesNotMatch(await page.locator(".vc-mini").innerText(), /\b0 €/);
+    /* le parcours de la visite en 5 étapes : questionnaire imprimé obligatoire, pas de questionnaire dans l'appli */
+    await onglet("pieces");
+    assert.equal(await page.locator(".parcours-v .pv-e").count(), 5);
+    assert.match(await page.locator("#pv-4").innerText(), /Lue/);
+    assert.equal(await page.getByText("Le remplir dans l'appli").count(), 0);
+    assert.equal(await page.locator('#pv-2 a[href="#/questionnaire"]').count(), 1);
     await page.goto(URL + "#/");
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();

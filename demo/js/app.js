@@ -1,12 +1,12 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences, configServeur } from "./donnees.js?v=202611221331";
-import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611221331";
-import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611221331";
-import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611221331";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611221331";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611221331";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE } from "./questionnaire.js?v=202611221331";
-import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611221331";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611221421";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611221421";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611221421";
+import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611221421";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611221421";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611221421";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611221421";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611221421";
 
 let R = null;
 let maisons = lireMaisons();
@@ -152,7 +152,7 @@ function ecranAjouter() {
     <a href="#/" class="retour">← Mes maisons</a>
     <h1>${reno ? "Ajouter ma maison à rénover" : "Ajouter une maison à acheter"}</h1>
     <form id="f-ajout" class="carte">
-      <h2>La maison</h2>
+      <h2>Étape 1 · Avant la visite : ce que vous savez déjà</h2>
       <div class="champs">
         ${champ("nom", "Adresse", "text", `placeholder="Ex. : rue des Tilleuls 12" autocomplete="street-address" required`)}
         ${champ("commune", "Commune", "text", 'placeholder="Ex. : Seraing"')}
@@ -168,7 +168,7 @@ function ecranAjouter() {
         </select></label>
 ${reno ? "" : `<label class="cb large"><input type="checkbox" name="uniqueHabitation" ${b.uniqueHabitation ? "checked" : ""}> Ce sera ma seule habitation, et j'y habiterai (droits d'enregistrement réduits à 3 % en Wallonie)</label>`}
       </div>
-      <p class="mu petit-t"><b class="oblig-e">*</b> obligatoire. Le reste (carrelage ou parquet, futur chauffage, consommation PEB…) se complète plus tard sur la fiche de la maison : les pièces dans « Espaces », le chauffage et la structure dans « Technique ».</p>
+      <p class="mu petit-t"><b class="oblig-e">*</b> obligatoire. Ensuite, la fiche de la maison vous guide : imprimer le questionnaire de visite, le remplir au stylo et prendre les photos pendant la visite, photographier la feuille, puis compléter ce qui manque (carrelage ou parquet, futur chauffage…).</p>
       <button class="btn" type="submit">${reno ? "Voir le budget de la rénovation →" : "Voir le vrai coût →"}</button>
     </form>
   </main>`;
@@ -658,20 +658,16 @@ function ecranMaison(m) {
     </div>
 `}`;
       return `
+    ${blocParcoursVisite(m)}
     <section class="carte">
       <h2>Les espaces</h2>
-      <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
-      <p>${boutonPhotosMaison(m)}</p>
-      <p><a class="btn sec" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>
-      ${(() => { const R0 = m.rappels || {}, n = RAPPELS_VISITE.filter(([k]) => R0[k]).length, id = `rappels-${m.id}`;
-        return `<details class="rappels" data-ouvert="${id}" ${ouverts.has(id) ? "open" : ""}><summary><span>✅ À ne pas oublier pendant la visite</span><small class="mu">${n} / ${RAPPELS_VISITE.length}</small></summary>
-        ${RAPPELS_VISITE.map(([k, t]) => `<label class="cb rp-l"><input type="checkbox" data-rappel="${k}" ${R0[k] ? "checked" : ""}> <span>${esc(t)}</span></label>`).join("")}</details>`; })()}
+      <p class="mu">Les pièces remplies par le questionnaire. Ouvrez-les pour compléter le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
       <div class="grille-pieces">${cartesPieces}</div>
-      <div class="ajout-piece">
+      ${!m.questLu && !(m.pieces || []).length ? `<p class="consigne">Les pièces viennent du questionnaire de visite : imprimez-le (étape 2), remplissez-le pendant la visite, puis photographiez-le (étape 4).</p>` : `<div class="ajout-piece">
         <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
         <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
-        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce</button>
-      </div>
+        <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce oubliée</button>
+      </div>`}
     </section>
 
       ${suivant("travaux", "Suivant : Technique")}`;
@@ -759,6 +755,7 @@ function ecranPiece(m, pc) {
   ongletsM[m.id] = "pieces"; // au retour, la fiche s'ouvre sur l'onglet Pièces
   const b = calculerBudget(R, m), L = b.lignes.filter(l => l.pieceId === pc.id);
   const total = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
+  if (!pc.vu) { pc.vu = true; sauver(); } // la pièce a été ouverte : ses matériaux ont été vus
   return `${entete("maisons")}
   <main class="etroit piece-ecran" style="${stylePiece(m, pc)}">
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
@@ -1457,7 +1454,7 @@ function depuisLecture(lu) {
   const pieces = (lu.pieces || []).map(p => ({ nom: p.nom, type: typeDe(p.nom), sol: p.sol_m2, sol_refaire: p.sol_a_refaire, murs: p.murs_a_refaire ? ["peinture"] : [], chassis: p.chassis, remarque: p.remarques || "" }));
   return {
     maison: { nom: M.adresse, commune: M.commune, prix: M.prix, annee: M.annee, surface: M.surface, etat: M.etat, unique: M.seule_habitation !== false, peb: M.peb, peb_conso: M.peb_conso, etages: M.etages, facades: M.facades, largeur: M.largeur, profondeur: M.profondeur },
-    chauffage: { actuel: M.chauffage || "gaz", souhaite: "garder" },
+    chauffage: { actuel: M.chauffage || "gaz", souhaite: "garder" }, chauffageLu: !!M.chauffage,
     pieces,
     structure: {},
     notes: pieces.filter(p => p.remarque).map(p => `${p.nom} : ${p.remarque}`).join("\n"),
@@ -1531,7 +1528,7 @@ function appliquerQuestionnaire(m, L) {
     const ex = m.travaux.find(l => !l.pieceId && l.src !== "chauffage" && l.k === t.k);
     if (ex) Object.assign(ex, { q: t.q, marches: t.marches }); else m.travaux.push({ ...t, id: nouvelId() });
   });
-  m.chauffage = { ...(m.chauffage || {}), actuel: L.chauffage.actuel, souhaite: (m.chauffage || {}).souhaite || L.chauffage.souhaite };
+  m.chauffage = { ...(m.chauffage || {}), ...(L.chauffageLu === false ? {} : { actuel: L.chauffage.actuel }), souhaite: (m.chauffage || {}).souhaite || L.chauffage.souhaite };
   appliquerChauffage(m);
   /* gros travaux cochés : remplis tout de suite quand la quantité est connue (dimensions), sinon à compléter dans Technique */
   const VERS_GROS = { i_cv_1: "couv", i_to_1: "isoT", i_fa_3: "isoF", i_fa_1: "crepi", i_pe: "porte", i_co: "coffret" };
@@ -1540,6 +1537,64 @@ function appliquerQuestionnaire(m, L) {
     const G = VERS_GROS[k] && grosTravaux(m).find(x => x[0] === VERS_GROS[k]);
     if (G && G[3]) { G[3].filter(([, q]) => q > 0).forEach(([kk, q]) => { if (!ligneFixe(m, kk)) setFixe(m, kk, q); }); m.aCompleter = m.aCompleter.filter(x => x !== k); }
   });
+}
+
+
+/* ---------- LE parcours d'une maison, en 5 étapes (une seule façon d'utiliser l'appli) ----------
+   1. les infos connues avant la visite · 2. le questionnaire (imprimé, ou rempli dans l'appli) · 3. les photos pendant la visite
+   4. la photo du questionnaire papier après la visite · 5. les données manquantes */
+const vide = v => v == null || v === "" || v === 0;
+function infosManquantes(m) {
+  const achat = projetDe(m) === "achat";
+  return [achat && vide(m.prix) && "prix", vide(m.commune) && "commune", vide(m.annee) && "année", vide(m.surface) && "surface", vide(m.etages) && m.etages !== 0 && "étages", vide(m.facades) && "façades", !m.peb && "label PEB"].filter(Boolean);
+}
+function donneesManquantes(m) {
+  const L = [], P = m.pieces || [], D = m.toitDim || {};
+  const im = infosManquantes(m);
+  if (im.length) L.push(["Infos de la maison : " + im.join(", "), `data-action="etape-infos"`]);
+  if (!P.length) L.push(["Aucune pièce : photographiez le questionnaire rempli", `href="#/maison/${m.id}/questionnaire"`]);
+  const sansSurf = P.filter(p => !p.sol && p.type !== "wc");
+  if (sansSurf.length) L.push(["Surface au sol : " + sansSurf.map(p => p.nom).join(", "), `href="#/maison/${m.id}/piece/${sansSurf[0].id}"`]);
+  const aChoisir = P.filter(p => (p.sOn || p.chOn || p.pOn) && !p.vu);
+  if (aChoisir.length) L.push(["Choisir les matériaux (carrelage ou parquet, type de châssis…) : " + aChoisir.map(p => p.nom).join(", "), `href="#/maison/${m.id}/piece/${aChoisir[0].id}"`]);
+  if (!(+D.larg > 0) || !(+D.prof > 0)) L.push(["Largeur et profondeur de la maison (pour le toit et les façades)", `data-action="onglet-m" data-o="travaux"`]);
+  if (!m.toiture) L.push(["Type de toiture", `data-action="onglet-m" data-o="travaux"`]);
+  const ac = (m.aCompleter || []).filter(k => !ligneFixe(m, k));
+  if (ac.length) L.push(["Quantités des gros travaux cochés : " + ac.map(k => (R.postes[k] ? R.postes[k].n : k)).join(", "), `data-action="onglet-m" data-o="travaux"`]);
+  if (!(m.chauffage || {}).souhaiteOk && ((m.chauffage || {}).souhaite || "garder") === "garder") L.push(["Futur chauffage (garder l'actuel, gaz ou pompe à chaleur)", `data-action="onglet-m" data-o="travaux"`]);
+  return L;
+}
+function blocParcoursVisite(m) {
+  const im = infosManquantes(m), nPh = photosDe(m).length, DM = donneesManquantes(m);
+  const fait = [im.length === 0, !!(m.questImprime || m.questLu), nPh > 0, !!m.questLu, DM.length === 0];
+  const courant = fait.findIndex(x => !x);
+  const R0 = m.rappels || {}, nR = RAPPELS_VISITE.filter(([k]) => R0[k]).length, idR = `rappels-${m.id}`, idI = `infos-${m.id}`;
+  const champ = (f, t, ph, txt) => `<label>${t}<input ${txt ? `data-ft="${f}" type="text"` : `data-f="${f}" type="number" inputmode="decimal" min="0"`} value="${esc(m[f] ?? "")}" placeholder="${ph}"></label>`;
+  const etape = (i, titre, sous, corps) => `<li class="pv-e ${fait[i] ? "ok" : ""} ${i === courant ? "en-cours" : ""}" id="pv-${i + 1}">
+      <div class="pv-tete"><span class="pv-n">${fait[i] ? "✓" : i + 1}</span><div><b>${titre}</b><small class="mu">${sous}</small></div></div>
+      <div class="pv-corps">${corps}</div></li>`;
+  return `<section class="carte parcours-v">
+    <h2>Votre visite, étape par étape</h2>
+    <ol class="pv-liste">
+      ${etape(0, "Avant la visite : les infos connues", im.length ? `À compléter : ${esc(im.join(", "))}` : "Tout est rempli", `<details class="pv-infos" data-ouvert="${idI}" ${ouverts.has(idI) || (im.length && courant === 0) ? "open" : ""}><summary>${im.length ? "Compléter les infos" : "Voir ou modifier"}</summary>
+        <div class="champs pv-grille">
+          ${projetDe(m) === "achat" ? champ("prix", "Prix demandé (€)", "ex. 245000") : ""}
+          ${champ("commune", "Commune", "ex. Seraing", true)}
+          ${champ("annee", "Année de construction", "ex. 1965")}
+          ${champ("surface", "Surface habitable (m²)", "ex. 120")}
+          <label>Nombre d'étages<select data-f="etages"><option value="" ${vide(m.etages) && m.etages !== 0 ? "selected" : ""}>À choisir</option>${ETAGES.map(([v]) => `<option value="${v}" ${!vide(m.etages) || m.etages === 0 ? (+m.etages === v ? "selected" : "") : ""}>${v ? `Rez + ${v}` : "Plain-pied"}</option>`).join("")}</select></label>
+          <label>Nombre de façades<select data-f="facades"><option value="">?</option>${FACADES.map(([v]) => `<option value="${v}" ${+m.facades === v ? "selected" : ""}>${v} façades</option>`).join("")}</select></label>
+          <label>Label PEB<select data-ft="peb"><option value="">Je ne sais pas</option>${LABELS_PEB.map(l => `<option ${m.peb === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+          <label>Chauffage existant<select data-mchf="actuel">${CHAUFFAGE_ACTUEL.map(([v, t]) => `<option value="${v}" ${(m.chauffage || {}).actuel === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></label>
+        </div></details>`)}
+      ${etape(1, "Avant la visite : imprimer le questionnaire", m.questLu ? "Rempli et lu" : m.questImprime ? "Imprimé : emportez-le à la visite et remplissez-le au stylo" : "Une page A4, à remplir au stylo pendant la visite", `<p><a class="btn ${m.questImprime || m.questLu ? "sec" : ""}" href="#/questionnaire" data-action="quest-papier">🖨️ Imprimer le questionnaire</a></p>
+        <details class="rappels" data-ouvert="${idR}" ${ouverts.has(idR) ? "open" : ""}><summary><span>✅ À ne pas oublier pendant la visite</span><small class="mu">${nR} / ${RAPPELS_VISITE.length}</small></summary>
+        ${RAPPELS_VISITE.map(([k, t]) => `<label class="cb rp-l"><input type="checkbox" data-rappel="${k}" ${R0[k] ? "checked" : ""}> <span>${esc(t)}</span></label>`).join("")}</details>`)}
+      ${etape(2, "Pendant la visite : les photos", nPh ? `${nPh} photo${nPh > 1 ? "s" : ""}, rangées par pièce` : "En même temps que le questionnaire, pièce par pièce", `<p>${boutonPhotosMaison(m)}</p>`)}
+      ${etape(3, "Après la visite : la photo du questionnaire", m.questLu ? "Lue : la maison est remplie" : "Valou lit votre feuille et remplit la maison : les pièces, les surfaces, les travaux", `<p><a class="btn ${m.questLu ? "sec" : ""}" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>`)}
+      ${etape(4, "Compléter les données manquantes", DM.length ? `${DM.length} point${DM.length > 1 ? "s" : ""} à compléter` : "Tout est complet : voyez le vrai coût dans Projet", DM.length ? `<ul class="pv-manque">${DM.map(([t, attr]) => `<li><${/^href/.test(attr) ? "a" : "button"} class="pv-lien" ${attr}>${esc(t)} ›</${/^href/.test(attr) ? "a" : "button"}></li>`).join("")}</ul>` : `<button class="btn" data-action="onglet-m" data-o="projet">Voir le Projet →</button>`)}
+    </ol>
+  </section>`;
 }
 
 /* ---------- didacticiel bulle par bulle : à la première ouverture de chaque page, et avec le bouton « ❔ » ---------- */
@@ -1553,7 +1608,8 @@ const TUTOS = {
   maison: [
     [".vc-mini", "Le chiffre clé : ce que la maison va vraiment vous coûter. Le détail est dans l'onglet Projet."],
     [".onglets-m", "La fiche suit l'ordre de la visite, en 4 onglets."],
-    ['.om-i[data-o="pieces"]', "Espaces : ajoutez les pièces, prenez les photos, ou photographiez le questionnaire papier."],
+    [".parcours-v", "Votre visite en 5 étapes : les infos connues, le questionnaire à imprimer, les photos pendant la visite, la photo du questionnaire après, puis ce qui manque. L'étape en cours est en orange."],
+    ['.om-i[data-o="pieces"]', "Espaces : le parcours de la visite et les pièces de la maison."],
     ['.om-i[data-o="travaux"]', "Technique : le chauffage, la toiture, l'isolation, l'électricité et tout ce qui ne dépend pas d'une pièce."],
     ['.om-i[data-o="artisans"]', "Les pros : choisissez vos artisans, recevez leurs devis, trouvez vos négociants et contactez un courtier."],
     ['.om-i[data-o="projet"]', "Projet : le vrai coût, le PEB, le budget, la simulation d'une offre et du financement, les aides et le dossier pour la banque."],
@@ -1805,7 +1861,7 @@ document.addEventListener("click", e => {
     qPhoto.etape = "lecture"; afficher();
     const fin = (lu, exemple, raison = "") => { qPhoto.lu = lu; qPhoto.exemple = exemple; qPhoto.raison = raison; qPhoto.etape = "resultat"; afficher(); };
     lireQuestionnaire(qPhoto.fichiers)
-      .then(lu => { if (lu.lisible === false) throw new Error("la photo ne ressemble pas au questionnaire Valou, ou est illisible"); const r = depuisLecture(lu); const mq = maisonDepuisQuestionnaire(r, nouvelId); fin({ ...mq, gros: r.gros, rappels: r.rappels, doutes: r.doutes }, false); })
+      .then(lu => { if (lu.lisible === false) throw new Error("la photo ne ressemble pas au questionnaire Valou, ou est illisible"); const r = depuisLecture(lu); const mq = maisonDepuisQuestionnaire(r, nouvelId); fin({ ...mq, chauffageLu: r.chauffageLu, gros: r.gros, rappels: r.rappels, doutes: r.doutes }, false); })
       .catch(e => fin(maisonDepuisQuestionnaire(QUESTIONNAIRE_EXEMPLE, nouvelId), true,
         e && e.serveur ? e.message : e && e.name === "AbortError" ? "la lecture a pris trop de temps" : e && /configuré|ressemble/.test(e.message) ? e.message : "photo illisible ou service de lecture injoignable"));
     return;
@@ -1813,11 +1869,13 @@ document.addEventListener("click", e => {
   if (a === "q-recommencer") { qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: qPhoto.maisonId, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; afficher(); }
   if (a === "q-appliquer") {
     const mq = trouver(qPhoto.maisonId);
-    if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; location.hash = `#/maison/${mq.id}`; }
+    if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); mq.questFait = true; mq.questLu = true; sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; location.hash = `#/maison/${mq.id}`; }
   }
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
   if (a === "toit-q") { const i = document.querySelector(`[data-mq="${el.dataset.k}"]`); if (i) { i.value = el.dataset.q; i.dispatchEvent(new Event("change", { bubbles: true })); } }
+  if (a === "etape-infos" && m) { ouverts.add("infos-" + m.id); ongletsM[m.id] = "pieces"; afficher(); document.getElementById("pv-1")?.scrollIntoView({ block: "start" }); }
+  if (a === "quest-papier" && m) { m.questImprime = true; sauver(); }
   if (a === "essai-reno") { choisirParcours("renovation"); brouillon = null; location.hash = "#/ajouter"; }
   if (a === "gros" && m) { basculerGros(m, el.dataset.g); sauver(); afficher(); }
   if (a === "toit" && m) { m.toiture = m.toiture === el.dataset.t ? null : el.dataset.t; sauver(); afficher(); }
@@ -1950,6 +2008,7 @@ document.addEventListener("change", e => {
     afficher();
     return;
   }
+  if (t.dataset.ft && m) { m[t.dataset.ft] = t.value || null; if (t.dataset.ft === "etat") m.rep = { ...(m.rep || {}), etat: t.value === "renover" ? "oui" : "non" }; sauver(); afficher(); return; }
   /* rappels pendant la visite */
   if (t.dataset.rappel && m) { m.rappels = { ...(m.rappels || {}), [t.dataset.rappel]: t.checked }; ouverts.add("rappels-" + m.id); sauver(); afficher(); return; }
   /* dimensions du toit */
@@ -2009,7 +2068,7 @@ document.addEventListener("change", e => {
     if (t.dataset.pcwi) { const w = new Set(pc.wi || []); t.checked ? w.add(t.dataset.pcwi) : w.delete(t.dataset.pcwi); pc.wi = [...w]; }
     else { const f = t.dataset.pc; pc[f] = t.type === "checkbox" ? t.checked : t.type === "number" ? (t.value === "" ? null : +t.value) : t.value; }
   } else if (t.dataset.mchf) {
-    m.chauffage = { ...(m.chauffage || {}), [t.dataset.mchf]: t.value };
+    m.chauffage = { ...(m.chauffage || {}), [t.dataset.mchf]: t.value, ...(t.dataset.mchf === "souhaite" ? { souhaiteOk: true } : {}) };
     appliquerChauffage(m);
   } else return;
   sauver();
