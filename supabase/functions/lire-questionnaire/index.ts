@@ -12,10 +12,11 @@ const GROS = { i_cv_1: "Toiture : couverture", i_to_1: "Isolation de la toiture"
 const RAPPELS = { chassis: "Tester chaque châssis", plans: "Demander à voir les plans", peb: "Demander le certificat PEB", elec: "Demander le contrôle de l'installation électrique", chaudiere: "Âge et entretien de la chaudière", toiture: "Âge de la toiture, charpente", humidite: "Traces d'humidité", eau: "Ouvrir les robinets, tirer la chasse", amiante: "Maison d'avant 2001 : amiante", photos: "Photographier chaque pièce" };
 const CHAUFFAGES = { aucun: "Aucun / à créer", gaz: "Gaz", mazout: "Mazout", electrique: "Électrique", pac: "Pompe à chaleur", pellets: "Pellets", autre: "Autre" };
 
-const nombre = { type: ["number", "null"] };
-const texte = { type: ["string", "null"] };
-const entier = { type: ["integer", "null"] };
-const choix = (valeurs: string[]) => ({ anyOf: [{ type: "string", enum: valeurs }, { type: "null" }] });
+// Pas de types « ou null » (Anthropic en limite le nombre) : une case vide vaut 0, -1 ou "" et redevient null plus bas.
+const nombre = { type: "number", description: "0 si vide" };
+const texte = { type: "string", description: "\"\" si vide" };
+const entier = { type: "integer", description: "0 si vide" };
+const choix = (valeurs: string[]) => ({ type: "string", enum: [...valeurs, ""], description: "\"\" si rien n'est coché" });
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -28,11 +29,11 @@ const SCHEMA = {
       required: ["adresse", "commune", "prix", "annee", "surface", "etages", "facades", "largeur", "profondeur", "etat", "seule_habitation", "peb", "peb_conso", "chauffage"],
       properties: {
         adresse: texte, commune: texte, prix: nombre, annee: nombre, surface: nombre,
-        etages: { ...entier, description: "nombre écrit après « rez + » (0 = plain-pied)" },
-        facades: { ...entier, description: "2, 3 ou 4" },
+        etages: { type: "integer", description: "nombre écrit après « rez + » (0 = plain-pied), -1 si vide" },
+        facades: { type: "integer", description: "2, 3 ou 4 ; 0 si vide" },
         largeur: nombre, profondeur: nombre,
         etat: choix(["bon", "rafraichir", "renover"]),
-        seule_habitation: { type: ["boolean", "null"] },
+        seule_habitation: choix(["oui", "non"]),
         peb: choix(["A++", "A+", "A", "B", "C", "D", "E", "F", "G"]),
         peb_conso: nombre,
         chauffage: choix(Object.keys(CHAUFFAGES)),
@@ -65,6 +66,18 @@ Les nombres belges utilisent la virgule décimale (« 12,5 » = 12.5) et parfois
 Si plusieurs photos sont fournies, ce sont des parties de la même feuille : fusionne-les.
 Mets dans « doutes » ce que tu as eu du mal à lire.`;
 
+/* valeurs « vide » → null, pour l'appli */
+const vide = (v: unknown) => (v === "" || v === 0 || v === -1 ? null : v);
+// deno-lint-ignore no-explicit-any
+function nettoyer(lu: any) {
+  const M = lu.maison || {};
+  for (const k of ["adresse", "commune", "prix", "annee", "surface", "facades", "largeur", "profondeur", "etat", "peb", "peb_conso", "chauffage"]) M[k] = vide(M[k]);
+  M.etages = M.etages === -1 || M.etages == null ? null : M.etages;
+  M.seule_habitation = M.seule_habitation === "oui" ? true : M.seule_habitation === "non" ? false : null;
+  // deno-lint-ignore no-explicit-any
+  lu.pieces = (lu.pieces || []).map((p: any) => ({ ...p, sol_m2: vide(p.sol_m2), chassis: vide(p.chassis), remarques: vide(p.remarques) }));
+  return lu;
+}
 function cors(origine: string | null) {
   const ok = origine && ORIGINES_OK.some(r => r.test(origine));
   return {
@@ -119,7 +132,7 @@ Deno.serve(async req => {
     if (reponse.stop_reason === "max_tokens") return repondre({ erreur: "réponse trop longue" }, 502, h);
     const bloc = reponse.content.find(b => b.type === "text");
     if (!bloc || bloc.type !== "text") return repondre({ erreur: "pas de réponse" }, 502, h);
-    return repondre({ lu: JSON.parse(bloc.text) }, 200, h);
+    return repondre({ lu: nettoyer(JSON.parse(bloc.text)) }, 200, h);
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return repondre({ erreur: "trop de demandes, réessayez dans une minute" }, 429, h);
     if (e instanceof Anthropic.AuthenticationError) return repondre({ erreur: "clé Anthropic refusée" }, 503, h);
