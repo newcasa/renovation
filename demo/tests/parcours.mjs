@@ -538,6 +538,19 @@ try {
     await page.locator(".carte-piece").nth(5).waitFor();
     assert.match(await page.locator(".grille-pieces").innerText(), /Séjour \/ salon[\s\S]*Cuisine[\s\S]*Salle de bain[\s\S]*Chambre 2/);
     assert.doesNotMatch(await page.locator(".vc-mini").innerText(), /\b0 €/);
+    /* le parcours de la visite en 5 étapes, et le questionnaire rempli dans l'appli */
+    await onglet("pieces");
+    assert.equal(await page.locator(".parcours-v .pv-e").count(), 5);
+    await page.getByText("📱 Le remplir dans l'appli").click();
+    await page.locator(".vq-l").first().waitFor();
+    const nom0 = await page.inputValue('[data-qa="0:nom"]'); // les pièces déjà connues sont reprises dans le questionnaire
+    await page.fill('[data-qa="0:sol"]', "6"); await page.locator('[data-qa="0:sol"]').dispatchEvent("change");
+    await page.locator('[data-qa="0:mursR"]').check();
+    await page.locator('[data-action="qa-fini"]').click();
+    await page.locator(".parcours-v").waitFor();
+    assert.match(await page.locator("#pv-2").innerText(), /Rempli dans l'appli/);
+    assert.match(await page.locator("#pv-4").innerText(), /Pas nécessaire/);
+    assert.ok((await page.locator(".grille-pieces").innerText()).includes(`${nom0}\n6 m²`), "la surface du questionnaire est reprise");
     await page.goto(URL + "#/");
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();
