@@ -14,6 +14,8 @@ const CHAUFFAGES = { aucun: "Aucun / à créer", gaz: "Gaz", mazout: "Mazout", e
 
 const nombre = { type: ["number", "null"] };
 const texte = { type: ["string", "null"] };
+const entier = { type: ["integer", "null"] };
+const choix = (valeurs: string[]) => ({ anyOf: [{ type: "string", enum: valeurs }, { type: "null" }] });
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -26,14 +28,14 @@ const SCHEMA = {
       required: ["adresse", "commune", "prix", "annee", "surface", "etages", "facades", "largeur", "profondeur", "etat", "seule_habitation", "peb", "peb_conso", "chauffage"],
       properties: {
         adresse: texte, commune: texte, prix: nombre, annee: nombre, surface: nombre,
-        etages: { type: ["integer", "null"], description: "nombre écrit après « rez + » (0 = plain-pied)" },
-        facades: { type: ["integer", "null"], enum: [2, 3, 4, null] },
+        etages: { ...entier, description: "nombre écrit après « rez + » (0 = plain-pied)" },
+        facades: { ...entier, description: "2, 3 ou 4" },
         largeur: nombre, profondeur: nombre,
-        etat: { type: ["string", "null"], enum: ["bon", "rafraichir", "renover", null] },
+        etat: choix(["bon", "rafraichir", "renover"]),
         seule_habitation: { type: ["boolean", "null"] },
-        peb: { type: ["string", "null"], enum: ["A++", "A+", "A", "B", "C", "D", "E", "F", "G", null] },
+        peb: choix(["A++", "A+", "A", "B", "C", "D", "E", "F", "G"]),
         peb_conso: nombre,
-        chauffage: { type: ["string", "null"], enum: [...Object.keys(CHAUFFAGES), null] },
+        chauffage: choix(Object.keys(CHAUFFAGES)),
       },
     },
     pieces: {
@@ -43,7 +45,7 @@ const SCHEMA = {
         type: "object",
         additionalProperties: false,
         required: ["nom", "sol_m2", "sol_a_refaire", "murs_a_refaire", "chassis", "remarques"],
-        properties: { nom: { type: "string" }, sol_m2: nombre, sol_a_refaire: { type: "boolean" }, murs_a_refaire: { type: "boolean" }, chassis: { type: ["integer", "null"] }, remarques: texte },
+        properties: { nom: { type: "string" }, sol_m2: nombre, sol_a_refaire: { type: "boolean" }, murs_a_refaire: { type: "boolean" }, chassis: entier, remarques: texte },
       },
     },
     gros: { type: "array", items: { type: "string", enum: Object.keys(GROS) } },
@@ -121,7 +123,12 @@ Deno.serve(async req => {
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return repondre({ erreur: "trop de demandes, réessayez dans une minute" }, 429, h);
     if (e instanceof Anthropic.AuthenticationError) return repondre({ erreur: "clé Anthropic refusée" }, 503, h);
-    if (e instanceof Anthropic.APIError) return repondre({ erreur: "service de lecture indisponible" }, 502, h);
+    if (e instanceof Anthropic.APIError) {
+      console.error("Anthropic", e.status, e.message);
+      const m = String(e.message || "");
+      const raison = /credit balance/i.test(m) ? "crédit Anthropic épuisé : ajoutez du crédit (Billing)" : `service de lecture indisponible (${e.status ?? "?"} : ${m.slice(0, 160)})`;
+      return repondre({ erreur: raison }, 502, h);
+    }
     if (e instanceof SyntaxError) return repondre({ erreur: "réponse illisible" }, 502, h);
     throw e;
   }
