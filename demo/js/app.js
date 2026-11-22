@@ -1,12 +1,12 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences, configServeur } from "./donnees.js?v=202611222319";
-import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611222319";
-import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611222319";
-import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611222319";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611222319";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611222319";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611222319";
-import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611222319";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611222339";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611222339";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611222339";
+import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611222339";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611222339";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611222339";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611222339";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611222339";
 
 let R = null;
 let maisons = lireMaisons();
@@ -1172,13 +1172,14 @@ function ecranPhotos(m) {
           : `<div class="viseur"><video id="viseur" playsinline muted autoplay></video><div class="flash" id="flash"></div>
              <button class="declencheur" data-action="declencher" aria-label="Prendre la photo"><span></span></button></div>`}
         <div class="vis-miniatures" id="vis-miniatures">${enCours.slice(-12).reverse().map(p => `<img src="${p.url}" alt="">`).join("")}</div>
-        <div class="vis-suite"><button class="btn sec" data-action="visite-suivante">Pièce suivante →</button><button class="btn lien" data-action="visite-fin">Terminer la visite</button></div>
+        <div class="vis-suite"><button class="btn sec" data-action="visite-suivante">Pièce suivante →</button><button class="btn" data-action="visite-fin">✓ Terminer la visite</button></div>
       </section>`;
   return `${entete("maisons")}
   <main>
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
     <h1>📷 Photos de la visite</h1>
     ${carteVisite}
+    <p class="fin-visite"><button class="btn" data-action="visite-fin">✓ Terminer la visite</button><small class="mu">Ensuite : la photo du questionnaire, dans « Après la visite ».</small></p>
     ${P.length ? `<h2 class="sous-titre">Pièces photographiées</h2>` + groupes.map(g => {
       const L = P.filter(p => p.nomPiece === g), pc = pieceDePhoto(m, L[0]);
       return `<section class="carte groupe-photos" ${pc ? `style="${stylePiece(m, pc)}"` : ""}>
@@ -1454,7 +1455,20 @@ const TYPES_PAR_NOM = Object.fromEntries(PIECES_QUESTIONNAIRE.map(([n, t]) => [n
 function depuisLecture(lu) {
   const M = lu.maison || {};
   const typeDe = nom => TYPES_PAR_NOM[(nom || "").toLowerCase()] || (/cuisine/i.test(nom) ? "cuisine" : /bain|douche/i.test(nom) ? "sdb" : /^wc/i.test(nom) ? "wc" : /garage/i.test(nom) ? "garage" : "standard");
-  const pieces = (lu.pieces || []).map(p => ({ nom: p.nom, type: typeDe(p.nom), sol: p.sol_m2, sol_refaire: p.sol_a_refaire, murs: p.murs_a_refaire ? ["peinture"] : [], chassis: p.chassis, remarque: p.remarques || "" }));
+  let pieces = (lu.pieces || []).map(p => ({ nom: p.nom, type: typeDe(p.nom), sol: p.sol_m2, sol_refaire: p.sol_a_refaire, murs: p.murs_a_refaire ? ["peinture"] : [], chassis: p.chassis, remarque: p.remarques || "" }));
+  /* pièce « ouverte sur la cuisine » (remarque) : ses m² et ses travaux sont totalisés dans la cuisine */
+  const cuis = pieces.find(p => p.type === "cuisine");
+  if (cuis) {
+    const ouvertes = pieces.filter(p => p !== cuis && /ouvert\w*\s+(sur|vers|avec)\s+(la\s+)?cuisine/i.test(p.remarque || ""));
+    ouvertes.forEach(p => {
+      cuis.sol = (+cuis.sol || 0) + (+p.sol || 0) || null;
+      cuis.sol_refaire = cuis.sol_refaire || p.sol_refaire;
+      cuis.murs = [...new Set([...(cuis.murs || []), ...(p.murs || [])])];
+      cuis.chassis = (+cuis.chassis || 0) + (+p.chassis || 0) || null;
+      cuis.remarque = [cuis.remarque, `${p.nom} ouvert sur la cuisine (${String(p.sol || 0).replace(".", ",")} m² ajoutés)`].filter(Boolean).join(" · ");
+    });
+    pieces = pieces.filter(p => !ouvertes.includes(p));
+  }
   return {
     maison: { nom: M.adresse, commune: M.commune, prix: M.prix, annee: M.annee, surface: M.surface, etat: M.etat, unique: M.seule_habitation !== false, peb: M.peb, peb_conso: M.peb_conso, etages: M.etages, facades: M.facades, largeur: M.largeur, profondeur: M.profondeur },
     chauffage: { actuel: M.chauffage || "gaz", souhaite: "garder" }, chauffageLu: !!M.chauffage,
@@ -1572,7 +1586,7 @@ function donneesManquantes(m) {
 function blocParcoursVisite(m) {
   /* onglet « Pendant la visite » : les infos connues, le questionnaire (vert quand sa photo est lue), les photos */
   const im = infosManquantes(m), nPh = photosDe(m).length;
-  const fait = [!!m.infosOk, nPh > 0];
+  const fait = [!!m.infosOk, nPh > 0 && !!m.visiteFinie];
   const courant = fait.findIndex(x => !x);
   const R0 = m.rappels || {}, nR = RAPPELS_VISITE.filter(([k]) => R0[k]).length, idR = `rappels-${m.id}`, idI = `infos-${m.id}`;
   const champ = (f, t, ph, txt) => `<label>${t}<input ${txt ? `data-ft="${f}" type="text"` : `data-f="${f}" type="number" inputmode="decimal" min="0"`} value="${esc(m[f] ?? "")}" placeholder="${ph}"></label>`;
@@ -1594,7 +1608,7 @@ function blocParcoursVisite(m) {
           <label>Chauffage existant<select data-mchf="actuel">${CHAUFFAGE_ACTUEL.map(([v, t]) => `<option value="${v}" ${(m.chauffage || {}).actuel === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></label>
         </div>
         ${m.infosOk ? `<button class="btn lien" data-action="infos-ok" data-v="0">Modifier</button>` : `<button class="btn" data-action="infos-ok" data-v="1">✓ Valider les infos</button>`}</details>`)}
-      ${etape(1, "Les photos de la visite", nPh ? `${nPh} photo${nPh > 1 ? "s" : ""}, rangées par pièce` : "En même temps que le questionnaire, pièce par pièce", `<p>${boutonPhotosMaison(m)}</p>`)}
+      ${etape(1, "Les photos de la visite", nPh ? `${nPh} photo${nPh > 1 ? "s" : ""}, rangées par pièce${m.visiteFinie ? " · visite terminée" : ""}` : "En même temps que le questionnaire, pièce par pièce", `<p>${boutonPhotosMaison(m)}</p>`)}
     </ol>
   </section>`;
 }
@@ -1912,8 +1926,7 @@ document.addEventListener("click", e => {
   }
   if (a === "onglet-m" && m) {
     ongletsM[m.id] = el.dataset.o; afficher();
-    const t = document.querySelector(".onglets-m");
-    if (t) { const y = t.getBoundingClientRect().top + window.scrollY - (document.querySelector(".top")?.offsetHeight || 0) - 4; if (window.scrollY > y) window.scrollTo(0, y); }
+    window.scrollTo(0, 0); // un onglet s'ouvre toujours en haut de la page
   }
   if (a === "avis-envoyer") {
     const txt = texteAvis();
@@ -1959,7 +1972,7 @@ document.addEventListener("click", e => {
   if (a === "visite-suivante") { visite.saisie = true; afficher(); setTimeout(() => { const i = document.getElementById("visite-nom"); if (i) i.focus(); }, 0); }
   if (a === "visite-annuler") { visite.saisie = false; afficher(); }
   if (a === "declencher" && m) { declencher(m); return; }
-  if (a === "visite-fin" && m) { fermerCamera(); visite = { maisonId: m.id, nom: "", saisie: true }; afficher(); document.querySelector(".sous-titre")?.scrollIntoView({ behavior: "smooth" }); }
+  if (a === "visite-fin" && m) { fermerCamera(); visite = { maisonId: m.id, nom: "", saisie: true }; m.visiteFinie = true; sauver(); ongletsM[m.id] = "travaux"; location.hash = `#/maison/${m.id}`; }
   if (a === "creer-pieces-photos" && m) {
     [...new Set(photosDe(m).map(p => p.nomPiece))].filter(g => !pieceDePhoto(m, { nomPiece: g })).forEach(g => ajouterPieceNommee(m, g));
     appliquerChauffage(m); sauver(); afficher();
