@@ -66,6 +66,7 @@ export function ecranQuestionnaire(ctx) {
         <span class="q-bl"><b>Chauffage existant</b>${cases(CHAUFFAGE_ACTUEL.map(c => c[1]))}</span>
       </div>
     </div>
+    <div class="q-rappels"><b>À ne pas oublier</b><div>${RAPPELS_VISITE.map(([, t]) => `<span class="q-cb"><span class="q-carre"></span>${esc(t)}</span>`).join("")}</div></div>
     <div class="q-corps">
       <table class="q-table">
         <thead>
@@ -80,7 +81,6 @@ export function ecranQuestionnaire(ctx) {
         <div class="q-poste q-coche"><span class="q-carre"></span><span>Autre : ……………………</span></div>
       </aside>
     </div>
-    <div class="q-rappels"><b>À ne pas oublier</b><div>${RAPPELS_VISITE.map(([, t]) => `<span class="q-cb"><span class="q-carre"></span>${esc(t)}</span>`).join("")}</div></div>
     <div class="q-pied"><b>Notes</b><span class="q-petit">Pièce non imprimée : une ligne « Autre ». Le détail (type de sol, plafond, type de châssis, futur chauffage) se complète plus tard dans l'appli. Après la visite : une photo de la feuille, bien à plat.</span></div>
   </article>`;
   return `${entete("")}
