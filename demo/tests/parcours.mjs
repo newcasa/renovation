@@ -35,7 +35,7 @@ try {
     assert.match(await page.locator(".intro-boite").innerText(), /vrai coût[\s\S]*Commencer la démo[\s\S]*Acheteurs[\s\S]*acheteur confiant, un artisan gagnant, un négociant content… et une Wallonie qui va de l'avant/);
     await page.screenshot({ path: `${OUT}/${nom}-00-intro.png` });
     await page.getByText("Commencer la démo →").click();
-    await page.getByText("Ajouter une maison").first().waitFor();
+    await page.getByText("Ajouter une nouvelle adresse").first().waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-1-accueil.png` });
 
     /* la maison de démonstration est déjà là à la première visite */
@@ -338,7 +338,7 @@ try {
     await page.locator(".maison").first().waitFor();
 
     /* ajouter une maison (sans estimation rapide : les travaux se remplissent ensuite dans « Les travaux ») */
-    await page.getByText("Ajouter une maison").first().click();
+    await page.getByText("Ajouter une nouvelle adresse").first().click();
     await page.fill('input[name="nom"]', "Maison test");
     await page.fill('input[name="commune"]', "Seraing");
     await page.fill('input[name="prix"]', "245000");
@@ -421,7 +421,6 @@ try {
     await onglet("travaux");
     assert.equal(await page.locator("#np-nom").count(), 0, "pas d'ajout de pièce avant le questionnaire");
     assert.match(await page.locator(".consigne").innerText(), /viennent du questionnaire/);
-    await onglet("pieces");
     await page.getByText("📝 Photo du questionnaire").click();
     await page.locator("[data-qphoto]").setInputFiles([png]);
     await page.locator('[data-action="q-lire"]').click();
@@ -535,8 +534,8 @@ try {
     await page.locator(".vide-trav").waitFor();
     assert.equal(await page.locator('h2:has-text("Simulation de financement")').count(), 0);
     assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
-    /* photo du questionnaire : on photographie les 2 pages, Valou remplit la maison (démonstration : questionnaire d'exemple) */
-    await onglet("pieces");
+    /* photo du questionnaire (onglet Après la visite) : Valou remplit la maison (démonstration : questionnaire d'exemple) */
+    await onglet("travaux");
     await page.getByText("📝 Photo du questionnaire").click();
     await page.locator("[data-qphoto]").setInputFiles([png, { ...png, name: "page2.png" }]);
     await page.locator(".q-photos .vignette").nth(1).waitFor();
@@ -548,14 +547,14 @@ try {
     await page.locator(".carte-piece").nth(5).waitFor();
     assert.match(await page.locator(".grille-pieces").innerText(), /Séjour \/ salon[\s\S]*Cuisine[\s\S]*Salle de bain[\s\S]*Chambre 2/);
     assert.doesNotMatch(await page.locator(".vc-mini").innerText(), /\b0 €/);
-    /* le parcours de la visite en 5 étapes : questionnaire imprimé obligatoire, pas de questionnaire dans l'appli */
+    /* Après la visite : la photo du questionnaire passe en vert ; Pendant la visite : infos connues (à valider) et photos */
+    assert.ok(await page.locator(".q-etape.ok").count(), "la photo du questionnaire passe en vert");
+    assert.match(await page.locator(".q-etape").innerText(), /lue et validée/);
     await onglet("pieces");
-    assert.equal(await page.locator(".parcours-v .pv-e").count(), 3, "Pendant la visite : infos, questionnaire, photos");
-    assert.match(await page.locator("#pv-2").innerText(), /lue et validée/);
-    assert.ok(await page.locator("#pv-2.ok").count(), "le questionnaire passe en vert");
+    assert.equal(await page.locator(".parcours-v .pv-e").count(), 2, "Pendant la visite : infos connues et photos");
+    await page.locator('[data-action="infos-ok"][data-v="1"]').click();
+    assert.ok(await page.locator("#pv-1.ok").count(), "infos validées");
     assert.match(await page.locator(".om-i").allInnerTexts().then(t => t.join("|")), /Pendant la visite[\s\S]*Après la visite[\s\S]*Les pros[\s\S]*Projet/);
-    assert.equal(await page.getByText("Le remplir dans l'appli").count(), 0);
-    assert.equal(await page.locator('#pv-2 a[href="#/questionnaire"]').count(), 1);
     await page.goto(URL + "#/");
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();
