@@ -1100,3 +1100,4 @@ label.dd-ligne { justify-content: flex-start; }
 .q-ouvert { font-size: 8.5px; color: #8a4a10; font-style: italic; }
 .q-pied .q-petit b { color: var(--bordeaux); }
 .q-une .q-table td.q-rem { text-align: left; padding-left: 6px; }
+.q-ouvert { color: #8a4a10; opacity: .38; font-size: 8.5px; font-style: italic; }
