@@ -1133,3 +1133,5 @@ label.dd-ligne { justify-content: flex-start; }
 .vq-astuce { display: block; color: #8a4a10; opacity: .7; font-style: italic; margin-bottom: 6px; }
 .vq-c { align-items: start; } .vq-c label.cb { margin: 0; padding: 4px 0; }
 .depuis-photo { margin: -6px 0 14px; font-weight: 600; } .depuis-photo a { color: var(--or-fonce); font-weight: 800; }
+.apres-v.ok { background: #f4faf6; border-color: #bfe0cc; } .titre-tech { margin: 22px 4px 8px; font-size: 20px; }
+.q-etape.ok { background: #f4faf6; border-color: #bfe0cc; } .q-etape.ok .pv-n { background: #2f8f5b; } .q-etape.en-cours { border: 1.5px solid var(--or); } .q-etape.en-cours .pv-n { background: var(--or); }

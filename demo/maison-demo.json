@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "note": "Maisons FICTIVES pour la démonstration. À remplacer par de vraies maisons (mêmes champs). Seules les caractéristiques et les quantités sont ici : tous les prix viennent des références Valou.",
   "maisons": [
     {
@@ -11,6 +11,7 @@
       "surface": 125,
       "facades": 3,
       "etages": 1,
+      "questLu": true,
       "etat": "renover",
       "uniqueHabitation": true,
       "fraisNotaire": null,
@@ -201,6 +202,7 @@
       "surface": 135,
       "facades": 4,
       "etages": 1,
+      "questLu": true,
       "etat": "bon",
       "uniqueHabitation": true,
       "fraisNotaire": null,
@@ -273,6 +275,7 @@
       "surface": 110,
       "facades": 2,
       "etages": 1,
+      "questLu": true,
       "etat": "rafraichir",
       "uniqueHabitation": true,
       "fraisNotaire": null,
