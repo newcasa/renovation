@@ -56,7 +56,7 @@ const SCHEMA = {
 };
 
 const CONSIGNE = `Tu lis la photo d'un questionnaire de visite Valou (une feuille A4 imprimée, remplie au stylo, en français, en Belgique).
-Recopie fidèlement ce qui est écrit ou coché ; n'invente rien : une case vide donne null (ou false pour une case à cocher), une ligne de pièce vide n'est pas renvoyée.
+Recopie fidèlement ce qui est écrit ou coché ; n'invente rien. Une case vide donne 0 pour un nombre (-1 pour Étages), "" pour un texte ou un choix, false pour une case à cocher. Une ligne de pièce vide n'est pas renvoyée.
 La feuille contient :
 - en haut : Adresse, Commune, Prix (€), Année, Surface (m²), Étages (« rez + » suivi d'un chiffre), Façades (2, 3 ou 4), Largeur façade (m), Profondeur (m) ; État (${["Bon", "À rafraîchir", "À rénover"].join(", ")} → bon / rafraichir / renover) ; Seule habitation (Oui/Non) ; PEB (une lettre cochée) et la consommation en kWh/m²/an ; Chauffage existant (${Object.entries(CHAUFFAGES).map(([k, v]) => `${v} → ${k}`).join(", ")}).
 - un cadre « À ne pas oublier » avec des cases : ${Object.entries(RAPPELS).map(([k, v]) => `${v} → ${k}`).join(" ; ")}.
