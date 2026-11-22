@@ -36,19 +36,10 @@ export const PIECES_FEUILLE = [
 export function ecranQuestionnaire(ctx) {
   const { entete } = ctx;
   const pdf = DEMO_DIR + "questionnaire-visite.pdf"; // feuille A4 prête à imprimer (même mise en page, régénérée par demo/tests/pdf-questionnaire.mjs)
-  const na = `<td class="q-na"></td>`;
-  const lignes = PIECES_FEUILLE.map(([nom, type]) => {
-    /* équipement : on écrit E (équipé, à garder) ou R (à remplacer) ; seulement cuisine, salle de bain et WC */
-    const eq = ["cuisine", "sdb", "wc"].includes(type) ? `<td class="q-er"><small>${type === "cuisine" ? "cuisine" : type === "sdb" ? "SDB" : "WC"}</small></td>` : na;
-    /* l'essentiel seulement : les surfaces et ce qui est à refaire ; les choix (carrelage ou parquet, PVC ou alu, futur chauffage) se font plus tard dans l'appli */
-    return `<tr><th>${esc(nom)}${nom === "Autre :" ? " <span class=\"q-trait\"></span>" : ""}</th>
-      <td></td><td class="q-c">${carre}</td>
-      <td class="q-c">${carre}</td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>
-      <td class="q-c">${carre}</td>
-      <td></td>
-      ${type === "garage" ? na : "<td></td>"}
-      ${eq}<td></td></tr>`;
-  }).join("");
+
+  /* l'essentiel seulement : la surface, le sol à refaire, et une grande zone de remarques (le détail se fait plus tard dans l'appli) */
+  const lignes = PIECES_FEUILLE.map(([nom]) => `<tr><th>${esc(nom)}${nom === "Autre :" ? " <span class=\"q-trait\"></span>" : ""}</th>
+      <td></td><td class="q-c">${carre}</td><td class="q-rem"></td></tr>`).join("");
   const page = `<article class="q-page q-une">
     <header class="q-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Questionnaire de visite</b><small>Une page, à remplir au stylo, en chiffres bien lisibles</small></div></header>
     <div class="q-bandeau">
@@ -65,8 +56,7 @@ export function ecranQuestionnaire(ctx) {
     <div class="q-corps">
       <table class="q-table">
         <thead>
-          <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th rowspan="2">Sol à<br>refaire</th><th colspan="3">Murs (à refaire)</th><th rowspan="2">Plafond<br>à refaire</th><th rowspan="2">Châssis à<br>remplacer<br>(nombre)</th><th rowspan="2">Radia&shy;teurs<br>(nombre)</th><th rowspan="2">Équipé (E) /<br>à remplacer (R)</th><th rowspan="2">Remarques</th></tr>
-          <tr class="q-sous"><th>Plafon&shy;nage</th><th>Pein&shy;ture</th><th>Carre&shy;lage</th></tr>
+          <tr><th>Pièces</th><th>Sol<br>m²</th><th>Sol à<br>refaire</th><th class="q-rem-t">Remarques (ce qui est à refaire : murs, plafond, châssis, chauffage, équipements…)</th></tr>
         </thead>
         <tbody>${lignes}</tbody>
       </table>
@@ -77,7 +67,7 @@ export function ecranQuestionnaire(ctx) {
         <div class="q-poste"><span>Autre : ……………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
       </aside>
     </div>
-    <div class="q-pied"><b>Notes</b><span class="q-petit">E = équipé (à garder), R = à remplacer. Garage : nombre de portes dans « Châssis ». Pièce non imprimée : une ligne « Autre ». Le type de sol, des châssis et le futur chauffage se choisissent plus tard dans l'appli. Après la visite : une photo de la feuille, bien à plat.</span></div>
+    <div class="q-pied"><b>Notes</b><span class="q-petit">Pièce non imprimée : une ligne « Autre ». Le détail (murs, plafond, châssis, type de sol, futur chauffage) se complète plus tard dans l'appli. Après la visite : une photo de la feuille, bien à plat.</span></div>
   </article>`;
   return `${entete("")}
   <main class="questionnaire">

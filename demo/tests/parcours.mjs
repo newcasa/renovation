@@ -321,7 +321,7 @@ try {
     await page.locator(".q-page").first().waitFor();
     assert.equal(await page.locator(".q-page").count(), 1, "une seule page");
     assert.equal(await page.locator(".q-table tbody tr").count(), 16);
-    assert.equal(await page.locator(".q-table tbody .q-er .q-carre").count(), 0, "équipé / à remplacer : E ou R, sans case");
+    assert.match(await page.locator(".q-table thead").innerText(), /Remarques/); assert.equal(await page.locator(".q-table thead th").count(), 4, "pièces, sol, sol à refaire, remarques");
     const lienPdf = await page.locator(".barre-outils a[download]").getAttribute("href");
     assert.equal((await page.request.get(lienPdf)).status(), 200, "le PDF de la feuille existe");
     /* mode présentation : hoono.be/demo/#/presentation remet les maisons de démonstration à zéro */
