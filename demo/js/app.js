@@ -1455,7 +1455,20 @@ const TYPES_PAR_NOM = Object.fromEntries(PIECES_QUESTIONNAIRE.map(([n, t]) => [n
 function depuisLecture(lu) {
   const M = lu.maison || {};
   const typeDe = nom => TYPES_PAR_NOM[(nom || "").toLowerCase()] || (/cuisine/i.test(nom) ? "cuisine" : /bain|douche/i.test(nom) ? "sdb" : /^wc/i.test(nom) ? "wc" : /garage/i.test(nom) ? "garage" : "standard");
-  const pieces = (lu.pieces || []).map(p => ({ nom: p.nom, type: typeDe(p.nom), sol: p.sol_m2, sol_refaire: p.sol_a_refaire, murs: p.murs_a_refaire ? ["peinture"] : [], chassis: p.chassis, remarque: p.remarques || "" }));
+  let pieces = (lu.pieces || []).map(p => ({ nom: p.nom, type: typeDe(p.nom), sol: p.sol_m2, sol_refaire: p.sol_a_refaire, murs: p.murs_a_refaire ? ["peinture"] : [], chassis: p.chassis, remarque: p.remarques || "" }));
+  /* pièce « ouverte sur la cuisine » (remarque) : ses m² et ses travaux sont totalisés dans la cuisine */
+  const cuis = pieces.find(p => p.type === "cuisine");
+  if (cuis) {
+    const ouvertes = pieces.filter(p => p !== cuis && /ouvert\w*\s+(sur|vers|avec)\s+(la\s+)?cuisine/i.test(p.remarque || ""));
+    ouvertes.forEach(p => {
+      cuis.sol = (+cuis.sol || 0) + (+p.sol || 0) || null;
+      cuis.sol_refaire = cuis.sol_refaire || p.sol_refaire;
+      cuis.murs = [...new Set([...(cuis.murs || []), ...(p.murs || [])])];
+      cuis.chassis = (+cuis.chassis || 0) + (+p.chassis || 0) || null;
+      cuis.remarque = [cuis.remarque, `${p.nom} ouvert sur la cuisine (${String(p.sol || 0).replace(".", ",")} m² ajoutés)`].filter(Boolean).join(" · ");
+    });
+    pieces = pieces.filter(p => !ouvertes.includes(p));
+  }
   return {
     maison: { nom: M.adresse, commune: M.commune, prix: M.prix, annee: M.annee, surface: M.surface, etat: M.etat, unique: M.seule_habitation !== false, peb: M.peb, peb_conso: M.peb_conso, etages: M.etages, facades: M.facades, largeur: M.largeur, profondeur: M.profondeur },
     chauffage: { actuel: M.chauffage || "gaz", souhaite: "garder" }, chauffageLu: !!M.chauffage,

@@ -325,7 +325,7 @@ try {
     await page.goto(URL + "#/questionnaire");
     await page.locator(".q-page").first().waitFor();
     assert.equal(await page.locator(".q-page").count(), 1, "une seule page");
-    assert.equal(await page.locator(".q-table tbody tr").count(), 16);
+    assert.equal(await page.locator(".q-table tbody tr").count(), 17);
     assert.match(await page.locator(".q-table thead").innerText(), /Remarques/); assert.equal(await page.locator(".q-table thead th").count(), 6, "pièces, sol, sol à refaire, murs, châssis, remarques");
     assert.match(await page.locator(".q-rappels").innerText(), /Tester chaque châssis[\s\S]*plans/); // rappels de visite
     const lienPdf = await page.locator(".barre-outils a[download]").getAttribute("href");
