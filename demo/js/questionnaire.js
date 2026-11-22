@@ -15,7 +15,7 @@ export const PIECES_QUESTIONNAIRE = [
 ];
 /* gros travaux hors pièces repris sur la page 1 */
 export const GROS_TRAVAUX = [
-  ["i_cv_1", "Toiture : couverture à refaire", "m²"], ["i_to_1", "Isolation de la toiture", "m²"], ["i_fa_3", "Isolation de façade (extérieure)", "m²"],
+  ["i_cv_1", "Toiture : couverture", "m²"], ["i_to_1", "Isolation de la toiture", "m²"], ["i_fa_3", "Isolation de façade (extérieure)", "m²"],
   ["i_fa_1", "Façade : enduit / crépi", "m²"], ["i_re", "Électricité complète", "m²"], ["i_co", "Tableau électrique", "pièce"],
   ["i_pe", "Porte d'entrée", "pièce"], ["i_pi", "Portes intérieures", "pièce"], ["i_dem", "Démolition intérieure", "m²"],
   ["i_zi", "Gouttières", "m"], ["i_es_1", "Escalier à peindre", "marches"], ["i_te", "Terrasse", "m²"],
@@ -75,9 +75,9 @@ export function ecranQuestionnaire(ctx) {
       </table>
       <aside class="q-gt">
         <h2>Gros travaux (hors pièces)</h2>
-        <p class="q-petit">Quantité à prévoir, vide si rien à faire.</p>
-        ${GROS_TRAVAUX.map(([, t, u]) => `<div class="q-poste"><span>${esc(t)}</span><span class="q-box petit"></span><span class="q-u">${u}</span></div>`).join("")}
-        <div class="q-poste"><span>Autre : ……………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
+        <p class="q-petit">Cochez ce qui est à refaire : les quantités se complètent plus tard dans l'appli.</p>
+        ${GROS_TRAVAUX.map(([, t]) => `<div class="q-poste q-coche"><span class="q-carre"></span><span>${esc(t)}</span></div>`).join("")}
+        <div class="q-poste q-coche"><span class="q-carre"></span><span>Autre : ……………………</span></div>
       </aside>
     </div>
     <div class="q-rappels"><b>À ne pas oublier</b><div>${RAPPELS_VISITE.map(([, t]) => `<span class="q-cb"><span class="q-carre"></span>${esc(t)}</span>`).join("")}</div></div>
