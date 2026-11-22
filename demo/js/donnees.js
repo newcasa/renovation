@@ -5,9 +5,15 @@ import { indexer } from "./moteur.js?v=202611200931";
 
 const json = u => fetch(u, { cache: "no-cache" }).then(r => (r.ok ? r.json() : Promise.reject(new Error(u))));
 
+/* adresse du serveur Supabase (clé publique « anon » : elle peut être lue par tous, ce n'est pas un secret) */
+let cfgServeur;
+export function configServeur() {
+  if (cfgServeur === undefined) cfgServeur = json(RACINE + "kozi-config.json").then(c => (c && c.url && c.key ? c : null)).catch(() => null);
+  return cfgServeur;
+}
 async function prixPublies() {
   try {
-    const cfg = await json(RACINE + "kozi-config.json");
+    const cfg = await configServeur();
     if (!cfg || !cfg.url || !cfg.key) return null;
     const h = { apikey: cfg.key };
     if (!/^sb_/.test(cfg.key)) h.Authorization = "Bearer " + cfg.key;

@@ -1,5 +1,5 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences } from "./donnees.js?v=202611200931";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611200931";
 import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611200931";
 import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611200931";
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611200931";
@@ -320,6 +320,7 @@ function blocGrosTravaux(m) {
   return `<section class="carte gros-t">
       <h2>Qu'est-ce qui est à refaire ?</h2>
       <p class="mu petit-t">Touchez ce qui est à prévoir : Valou remplit les postes avec les mesures de la maison. Le détail reste modifiable plus bas.</p>
+      ${(m.aCompleter || []).filter(k => !ligneFixe(m, k)).length ? `<p class="alerte-mini">📝 Coché sur le questionnaire, quantité à compléter plus bas : ${m.aCompleter.filter(k => !ligneFixe(m, k)).map(k => esc(R.postes[k] ? R.postes[k].n : k)).join(", ")}.</p>` : ""}
       <div class="gt-liste">${grosTravaux(m).map(([g, ico, t, P, manque]) => {
         const actifs = P ? P.filter(([, q]) => q > 0) : [], oui = actifs.length && actifs.every(([k]) => ligneFixe(m, k));
         return P ? `<button type="button" class="gt ${oui ? "on" : ""}" data-action="gros" data-g="${g}" aria-pressed="${!!oui}"><span class="gt-ico">${ico}</span><span class="gt-t">${t}</span><span class="gt-r">${oui ? "✓ Oui" : "Non"}</span></button>`
@@ -1409,8 +1410,8 @@ function ecranAvis() {
 }
 
 /* ---------- photo du questionnaire de visite → remplissage de la maison ----------
-   DÉMONSTRATION : la lecture automatique d'un questionnaire écrit à la main demande un service de lecture d'image
-   (à brancher plus tard, avec une clé gardée sur le serveur). En attendant, les réponses viennent d'un questionnaire d'exemple. */
+   La photo est lue par Claude via la fonction Supabase « lire-questionnaire » (supabase/functions/lire-questionnaire) :
+   la clé Anthropic reste un secret du serveur. Si le serveur ne répond pas, les réponses viennent du questionnaire d'exemple. */
 const QUESTIONNAIRE_EXEMPLE = {
   maison: { annee: 1972, surface: 118, etat: "rafraichir", peb: "E" },
   chauffage: { actuel: "mazout", souhaite: "pac" },
@@ -1424,33 +1425,78 @@ const QUESTIONNAIRE_EXEMPLE = {
   ],
   structure: { i_to_1: 62, i_zi: 16, i_co: 1, i_pe: 1 },
 };
-let qPhoto = { maisonId: null, photos: [], etape: "photos", lu: null };
+let qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" };
+/* photo réduite (2000 px au plus, JPEG) puis envoyée au serveur Valou, qui la fait lire par Claude ; la clé reste sur le serveur */
+async function photoEnBase64(f) {
+  const img = await createImageBitmap(f), k = Math.min(1, 2000 / Math.max(img.width, img.height));
+  const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  const b = await new Promise(r => c.toBlob(r, "image/jpeg", 0.85));
+  const u = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); });
+  return { type: "image/jpeg", data: String(u).split(",")[1] };
+}
+async function lireQuestionnaire(fichiers) {
+  const cfg = await configServeur();
+  if (!cfg) throw new Error("serveur non configuré");
+  const h = { apikey: cfg.key, "Content-Type": "application/json" };
+  if (!/^sb_/.test(cfg.key)) h.Authorization = "Bearer " + cfg.key;
+  const photos = await Promise.all(fichiers.slice(0, 2).map(photoEnBase64));
+  const ctl = new AbortController(), minuterie = setTimeout(() => ctl.abort(), 120000);
+  try {
+    const r = await fetch(cfg.url.replace(/\/$/, "") + "/functions/v1/lire-questionnaire", { method: "POST", headers: h, body: JSON.stringify({ photos }), signal: ctl.signal });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.lu) throw Object.assign(new Error(j.erreur || `service indisponible (${r.status})`), { serveur: true });
+    return j.lu;
+  } finally { clearTimeout(minuterie); }
+}
+/* réponses lues par le serveur → format de maisonDepuisQuestionnaire */
+const TYPES_PAR_NOM = Object.fromEntries(PIECES_QUESTIONNAIRE.map(([n, t]) => [n.toLowerCase(), t]));
+function depuisLecture(lu) {
+  const M = lu.maison || {};
+  const typeDe = nom => TYPES_PAR_NOM[(nom || "").toLowerCase()] || (/cuisine/i.test(nom) ? "cuisine" : /bain|douche/i.test(nom) ? "sdb" : /^wc/i.test(nom) ? "wc" : /garage/i.test(nom) ? "garage" : "standard");
+  const pieces = (lu.pieces || []).map(p => ({ nom: p.nom, type: typeDe(p.nom), sol: p.sol_m2, sol_refaire: p.sol_a_refaire, murs: p.murs_a_refaire ? ["peinture"] : [], chassis: p.chassis, remarque: p.remarques || "" }));
+  return {
+    maison: { nom: M.adresse, commune: M.commune, prix: M.prix, annee: M.annee, surface: M.surface, etat: M.etat, unique: M.seule_habitation !== false, peb: M.peb, peb_conso: M.peb_conso, etages: M.etages, facades: M.facades, largeur: M.largeur, profondeur: M.profondeur },
+    chauffage: { actuel: M.chauffage || "gaz", souhaite: "garder" },
+    pieces,
+    structure: {},
+    notes: pieces.filter(p => p.remarque).map(p => `${p.nom} : ${p.remarque}`).join("\n"),
+    gros: lu.gros || [], rappels: lu.rappels || [], doutes: lu.doutes || [],
+  };
+}
 function ecranQuestionnairePhoto(m) {
-  if (qPhoto.maisonId !== m.id) qPhoto = { maisonId: m.id, photos: [], etape: "photos", lu: null };
+  if (qPhoto.maisonId !== m.id) qPhoto = { maisonId: m.id, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" };
   const Q = qPhoto;
   let corps;
   if (Q.etape === "lecture") corps = `<section class="carte q-lecture"><div class="q-roue" aria-hidden="true"></div><b>Lecture du questionnaire…</b><p class="mu">Valou repère les pièces, les cases cochées et les quantités.</p></section>`;
   else if (Q.etape === "resultat" && Q.lu) {
-    const L = Q.lu, M = QUESTIONNAIRE_EXEMPLE.maison;
+    const L = Q.lu, M = L;
     corps = `<section class="carte q-resultat">
-      <p class="alerte-mini">Démonstration : la lecture automatique de votre écriture arrive bientôt. Ces réponses viennent d'un <b>questionnaire d'exemple</b>.</p>
+      ${Q.exemple ? `<p class="alerte-mini">Démonstration : la lecture de votre photo n'a pas pu se faire${Q.raison ? ` (${esc(Q.raison)})` : ""}. Ces réponses viennent d'un <b>questionnaire d'exemple</b>.</p>` : `<p class="envoye">✓ Lu sur votre photo. Vérifiez avant de remplir la maison.</p>`}
+      ${(L.doutes || []).length ? `<p class="alerte-mini">À vérifier : ${L.doutes.map(esc).join(" ; ")}</p>` : ""}
       <h2>Ce que Valou a lu</h2>
       <div class="recap">
+        ${!Q.exemple && M.nom ? `<div><span>Adresse</span><b>${esc(M.nom)}${M.commune ? `, ${esc(M.commune)}` : ""}</b></div>` : ""}
+        ${M.prix ? `<div><span>Prix</span><b>${euros(M.prix)}</b></div>` : ""}
         ${M.annee ? `<div><span>Année de construction</span><b>${M.annee}</b></div>` : ""}
+        ${M.etages != null ? `<div><span>Étages</span><b>${M.etages ? `rez + ${M.etages}` : "plain-pied"}</b></div>` : ""}
+        ${M.facades ? `<div><span>Façades</span><b>${M.facades}</b></div>` : ""}
         ${M.surface ? `<div><span>Surface habitable</span><b>${nombre(M.surface)} m²</b></div>` : ""}
         ${M.peb ? `<div><span>Label PEB</span><b>${pebBadge(M.peb)}</b></div>` : ""}
-        <div><span>Chauffage</span><b>${esc((CHAUFFAGE_ACTUEL.find(c => c[0] === L.chauffage.actuel) || [, ""])[1])} → ${esc((CHAUFFAGE_SOUHAITE.find(c => c[0] === L.chauffage.souhaite) || [, ""])[1])}</b></div>
+        <div><span>Chauffage existant</span><b>${esc((CHAUFFAGE_ACTUEL.find(c => c[0] === L.chauffage.actuel) || [, ""])[1])}</b></div>
       </div>
       <h3>${L.pieces.length} pièces</h3>
       <ul class="q-pieces">${L.pieces.map(pc => `<li><b>${esc(pc.nom)}</b> <span class="mu">${pc.sol ? `${String(pc.sol).replace(".", ",")} m² · ` : ""}${esc(resumePiece(pc) || "rien de prévu")}</span></li>`).join("")}</ul>
-      <h3>Structure, toiture et équipements</h3>
-      <ul class="q-pieces">${L.travaux.map(t => `<li><b>${esc(R.postes[t.k] ? R.postes[t.k].n : t.k)}</b> <span class="mu">${nombre(t.q ?? t.marches)} ${esc(R.postes[t.k] ? unitePoste(R.postes[t.k].u, t.k) : "")}</span></li>`).join("")}</ul>
+      ${L.travaux.length ? `<h3>Structure, toiture et équipements</h3>
+      <ul class="q-pieces">${L.travaux.map(t => `<li><b>${esc(R.postes[t.k] ? R.postes[t.k].n : t.k)}</b> <span class="mu">${nombre(t.q ?? t.marches)} ${esc(R.postes[t.k] ? unitePoste(R.postes[t.k].u, t.k) : "")}</span></li>`).join("")}</ul>` : ""}
+      ${(L.gros || []).length ? `<h3>Gros travaux cochés</h3><ul class="q-pieces">${L.gros.map(k => `<li><b>${esc(R.postes[k] ? R.postes[k].n : k)}</b> <span class="mu">quantité à compléter dans Technique</span></li>`).join("")}</ul>` : ""}
+      ${L.description ? `<h3>Remarques</h3><p class="mu" style="white-space:pre-line">${esc(L.description)}</p>` : ""}
       <p class="mu petit-t">Les pièces portant le même nom qu'une pièce déjà encodée sont mises à jour ; les autres sont ajoutées. Vous pourrez tout corriger ensuite, pièce par pièce.</p>
       <span class="actions-g"><button class="btn" data-action="q-appliquer">✓ Remplir la maison avec ces réponses</button><button class="btn lien" data-action="q-recommencer">Reprendre les photos</button></span>
     </section>`;
   } else corps = `<section class="carte q-photos">
       <h2>Photographiez la feuille</h2>
-      <p class="mu">Posez le questionnaire bien à plat, avec de la lumière, et prenez-le en photo (une seule feuille). Valou remplit ensuite la maison : les pièces, le sol, les murs, le plafond, les châssis, le chauffage et la structure.</p>
+      <p class="mu">Posez le questionnaire bien à plat, avec de la lumière, et prenez-le en photo (une seule feuille). Valou lit votre écriture et remplit la maison : l'adresse, les pièces, le sol, les murs, les châssis, le chauffage, les gros travaux et vos remarques.</p>
       <label class="btn sec q-prendre">📷 ${Q.photos.length ? "Reprendre une photo" : "Prendre la photo"}<input type="file" accept="image/*" capture="environment" multiple data-qphoto hidden></label>
       ${Q.photos.length ? `<div class="galerie mini">${Q.photos.map((u, i) => `<figure class="vignette"><img src="${u}" alt="Photo ${i + 1} du questionnaire"><figcaption><small>Photo ${i + 1}</small></figcaption></figure>`).join("")}</div>` : ""}
       <p><button class="btn" data-action="q-lire" ${Q.photos.length ? "" : "disabled"}>Lire le questionnaire →</button></p>
@@ -1464,10 +1510,11 @@ function ecranQuestionnairePhoto(m) {
 }
 /* fusionne les réponses lues dans la maison (sans rien effacer d'autre) */
 function appliquerQuestionnaire(m, L) {
-  const M = QUESTIONNAIRE_EXEMPLE.maison;
-  if (!m.annee && M.annee) m.annee = M.annee;
-  if (!m.surface && M.surface) m.surface = M.surface;
-  if (!m.peb && M.peb) m.peb = M.peb;
+  for (const k of ["annee", "surface", "peb", "pebConso", "etages", "facades", "commune"]) if ((m[k] == null || m[k] === "" || m[k] === 0) && L[k] != null && L[k] !== "") m[k] = L[k];
+  if (!m.prix && L.prix && projetDe(m) === "achat") m.prix = L.prix;
+  if (L.toitDim && (L.toitDim.larg || L.toitDim.prof)) m.toitDim = { ...L.toitDim, ...Object.fromEntries(Object.entries(m.toitDim || {}).filter(([, v]) => v)) };
+  if (L.description) m.description = [m.description, L.description].filter(Boolean).join("\n");
+  if ((L.rappels || []).length) m.rappels = { ...(m.rappels || {}), ...Object.fromEntries(L.rappels.map(k => [k, true])) };
   m.pieces = m.pieces || [];
   m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; });
   L.pieces.forEach(p => {
@@ -1484,8 +1531,15 @@ function appliquerQuestionnaire(m, L) {
     const ex = m.travaux.find(l => !l.pieceId && l.src !== "chauffage" && l.k === t.k);
     if (ex) Object.assign(ex, { q: t.q, marches: t.marches }); else m.travaux.push({ ...t, id: nouvelId() });
   });
-  m.chauffage = { ...(m.chauffage || {}), actuel: L.chauffage.actuel, souhaite: L.chauffage.souhaite };
+  m.chauffage = { ...(m.chauffage || {}), actuel: L.chauffage.actuel, souhaite: (m.chauffage || {}).souhaite || L.chauffage.souhaite };
   appliquerChauffage(m);
+  /* gros travaux cochés : remplis tout de suite quand la quantité est connue (dimensions), sinon à compléter dans Technique */
+  const VERS_GROS = { i_cv_1: "couv", i_to_1: "isoT", i_fa_3: "isoF", i_fa_1: "crepi", i_pe: "porte", i_co: "coffret" };
+  m.aCompleter = [...new Set([...(m.aCompleter || []), ...(L.gros || [])])];
+  (L.gros || []).forEach(k => {
+    const G = VERS_GROS[k] && grosTravaux(m).find(x => x[0] === VERS_GROS[k]);
+    if (G && G[3]) { G[3].filter(([, q]) => q > 0).forEach(([kk, q]) => { if (!ligneFixe(m, kk)) setFixe(m, kk, q); }); m.aCompleter = m.aCompleter.filter(x => x !== k); }
+  });
 }
 
 /* ---------- didacticiel bulle par bulle : à la première ouverture de chaque page, et avec le bouton « ❔ » ---------- */
@@ -1749,12 +1803,17 @@ document.addEventListener("click", e => {
   if (a === "presentation") preparerPresentation();
   if (a === "q-lire" && qPhoto.photos.length) {
     qPhoto.etape = "lecture"; afficher();
-    setTimeout(() => { qPhoto.lu = maisonDepuisQuestionnaire(QUESTIONNAIRE_EXEMPLE, nouvelId); qPhoto.etape = "resultat"; afficher(); }, 1400);
+    const fin = (lu, exemple, raison = "") => { qPhoto.lu = lu; qPhoto.exemple = exemple; qPhoto.raison = raison; qPhoto.etape = "resultat"; afficher(); };
+    lireQuestionnaire(qPhoto.fichiers)
+      .then(lu => { if (lu.lisible === false) throw new Error("la photo ne ressemble pas au questionnaire Valou, ou est illisible"); const r = depuisLecture(lu); const mq = maisonDepuisQuestionnaire(r, nouvelId); fin({ ...mq, gros: r.gros, rappels: r.rappels, doutes: r.doutes }, false); })
+      .catch(e => fin(maisonDepuisQuestionnaire(QUESTIONNAIRE_EXEMPLE, nouvelId), true,
+        e && e.serveur ? e.message : e && e.name === "AbortError" ? "la lecture a pris trop de temps" : e && /configuré|ressemble/.test(e.message) ? e.message : "photo illisible ou service de lecture injoignable"));
+    return;
   }
-  if (a === "q-recommencer") { qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: qPhoto.maisonId, photos: [], etape: "photos", lu: null }; afficher(); }
+  if (a === "q-recommencer") { qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: qPhoto.maisonId, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; afficher(); }
   if (a === "q-appliquer") {
     const mq = trouver(qPhoto.maisonId);
-    if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], etape: "photos", lu: null }; location.hash = `#/maison/${mq.id}`; }
+    if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; location.hash = `#/maison/${mq.id}`; }
   }
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
@@ -1862,7 +1921,7 @@ document.addEventListener("change", e => {
     sauver(); afficher(); return;
   }
   /* photo du questionnaire : les pages choisies restent sur l'appareil (aperçu seulement) */
-  if (t.dataset.qphoto != null) { [...(t.files || [])].forEach(f => qPhoto.photos.push(URL.createObjectURL(f))); afficher(); return; }
+  if (t.dataset.qphoto != null) { [...(t.files || [])].forEach(f => { qPhoto.photos.push(URL.createObjectURL(f)); qPhoto.fichiers.push(f); }); afficher(); return; }
   /* photos de la visite */
   if (t.dataset.photoInput != null && m) {
     const nom = t.dataset.nom;
