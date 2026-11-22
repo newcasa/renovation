@@ -1135,3 +1135,4 @@ label.dd-ligne { justify-content: flex-start; }
 .depuis-photo { margin: -6px 0 14px; font-weight: 600; } .depuis-photo a { color: var(--or-fonce); font-weight: 800; }
 .apres-v.ok { background: #f4faf6; border-color: #bfe0cc; } .titre-tech { margin: 22px 4px 8px; font-size: 20px; }
 .q-etape.ok { background: #f4faf6; border-color: #bfe0cc; } .q-etape.ok .pv-n { background: #2f8f5b; } .q-etape.en-cours { border: 1.5px solid var(--or); } .q-etape.en-cours .pv-n { background: var(--or); }
+.fin-visite { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin: 4px 0 16px; }

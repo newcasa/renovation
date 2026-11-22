@@ -108,7 +108,12 @@ try {
     await page.waitForFunction(() => { const v = document.getElementById("viseur"); return v && v.videoWidth > 0; });
     await page.locator('[data-action="declencher"]').click();
     await page.locator(".vis-miniatures img").first().waitFor();
-    await page.getByText("Terminer la visite").click();
+    /* « Terminer la visite » : la caméra s'éteint, retour à la fiche sur l'onglet Après la visite, en haut de page */
+    const urlPhotos = page.url();
+    await page.locator('.vis-suite [data-action="visite-fin"]').click();
+    await page.locator('.om-i.on[data-o="travaux"]').waitFor();
+    assert.equal(await page.evaluate(() => window.scrollY), 0);
+    await page.goto(urlPhotos);
     await page.locator('.groupe-photos:has(h2:has-text("Mezzanine"))').waitFor();
     assert.match(await page.locator('.groupe-photos:has(h2:has-text("Cuisine"))').innerText(), /2 photos[\s\S]*Ouvrir la pièce/);
     await page.getByText("Créer la pièce « Mezzanine »").click();

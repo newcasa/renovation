@@ -1172,13 +1172,14 @@ function ecranPhotos(m) {
           : `<div class="viseur"><video id="viseur" playsinline muted autoplay></video><div class="flash" id="flash"></div>
              <button class="declencheur" data-action="declencher" aria-label="Prendre la photo"><span></span></button></div>`}
         <div class="vis-miniatures" id="vis-miniatures">${enCours.slice(-12).reverse().map(p => `<img src="${p.url}" alt="">`).join("")}</div>
-        <div class="vis-suite"><button class="btn sec" data-action="visite-suivante">Pièce suivante →</button><button class="btn lien" data-action="visite-fin">Terminer la visite</button></div>
+        <div class="vis-suite"><button class="btn sec" data-action="visite-suivante">Pièce suivante →</button><button class="btn" data-action="visite-fin">✓ Terminer la visite</button></div>
       </section>`;
   return `${entete("maisons")}
   <main>
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
     <h1>📷 Photos de la visite</h1>
     ${carteVisite}
+    <p class="fin-visite"><button class="btn" data-action="visite-fin">✓ Terminer la visite</button><small class="mu">Ensuite : la photo du questionnaire, dans « Après la visite ».</small></p>
     ${P.length ? `<h2 class="sous-titre">Pièces photographiées</h2>` + groupes.map(g => {
       const L = P.filter(p => p.nomPiece === g), pc = pieceDePhoto(m, L[0]);
       return `<section class="carte groupe-photos" ${pc ? `style="${stylePiece(m, pc)}"` : ""}>
@@ -1572,7 +1573,7 @@ function donneesManquantes(m) {
 function blocParcoursVisite(m) {
   /* onglet « Pendant la visite » : les infos connues, le questionnaire (vert quand sa photo est lue), les photos */
   const im = infosManquantes(m), nPh = photosDe(m).length;
-  const fait = [!!m.infosOk, nPh > 0];
+  const fait = [!!m.infosOk, nPh > 0 && !!m.visiteFinie];
   const courant = fait.findIndex(x => !x);
   const R0 = m.rappels || {}, nR = RAPPELS_VISITE.filter(([k]) => R0[k]).length, idR = `rappels-${m.id}`, idI = `infos-${m.id}`;
   const champ = (f, t, ph, txt) => `<label>${t}<input ${txt ? `data-ft="${f}" type="text"` : `data-f="${f}" type="number" inputmode="decimal" min="0"`} value="${esc(m[f] ?? "")}" placeholder="${ph}"></label>`;
@@ -1594,7 +1595,7 @@ function blocParcoursVisite(m) {
           <label>Chauffage existant<select data-mchf="actuel">${CHAUFFAGE_ACTUEL.map(([v, t]) => `<option value="${v}" ${(m.chauffage || {}).actuel === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></label>
         </div>
         ${m.infosOk ? `<button class="btn lien" data-action="infos-ok" data-v="0">Modifier</button>` : `<button class="btn" data-action="infos-ok" data-v="1">✓ Valider les infos</button>`}</details>`)}
-      ${etape(1, "Les photos de la visite", nPh ? `${nPh} photo${nPh > 1 ? "s" : ""}, rangées par pièce` : "En même temps que le questionnaire, pièce par pièce", `<p>${boutonPhotosMaison(m)}</p>`)}
+      ${etape(1, "Les photos de la visite", nPh ? `${nPh} photo${nPh > 1 ? "s" : ""}, rangées par pièce${m.visiteFinie ? " · visite terminée" : ""}` : "En même temps que le questionnaire, pièce par pièce", `<p>${boutonPhotosMaison(m)}</p>`)}
     </ol>
   </section>`;
 }
@@ -1912,8 +1913,7 @@ document.addEventListener("click", e => {
   }
   if (a === "onglet-m" && m) {
     ongletsM[m.id] = el.dataset.o; afficher();
-    const t = document.querySelector(".onglets-m");
-    if (t) { const y = t.getBoundingClientRect().top + window.scrollY - (document.querySelector(".top")?.offsetHeight || 0) - 4; if (window.scrollY > y) window.scrollTo(0, y); }
+    window.scrollTo(0, 0); // un onglet s'ouvre toujours en haut de la page
   }
   if (a === "avis-envoyer") {
     const txt = texteAvis();
@@ -1959,7 +1959,7 @@ document.addEventListener("click", e => {
   if (a === "visite-suivante") { visite.saisie = true; afficher(); setTimeout(() => { const i = document.getElementById("visite-nom"); if (i) i.focus(); }, 0); }
   if (a === "visite-annuler") { visite.saisie = false; afficher(); }
   if (a === "declencher" && m) { declencher(m); return; }
-  if (a === "visite-fin" && m) { fermerCamera(); visite = { maisonId: m.id, nom: "", saisie: true }; afficher(); document.querySelector(".sous-titre")?.scrollIntoView({ behavior: "smooth" }); }
+  if (a === "visite-fin" && m) { fermerCamera(); visite = { maisonId: m.id, nom: "", saisie: true }; m.visiteFinie = true; sauver(); ongletsM[m.id] = "travaux"; location.hash = `#/maison/${m.id}`; }
   if (a === "creer-pieces-photos" && m) {
     [...new Set(photosDe(m).map(p => p.nomPiece))].filter(g => !pieceDePhoto(m, { nomPiece: g })).forEach(g => ajouterPieceNommee(m, g));
     appliquerChauffage(m); sauver(); afficher();
