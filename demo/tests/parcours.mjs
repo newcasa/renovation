@@ -63,6 +63,15 @@ try {
     await page.locator('[data-f="offre"]').dispatchEvent("change");
     await page.locator(".sim-ecart").waitFor({ state: "detached" });
     assert.equal(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
+    /* travaux à inclure ou non dans la demande de prêt */
+    const emp = () => page.locator('.ligne:has-text("Montant à emprunter") b').first().innerText();
+    const empAvant = await emp();
+    await page.locator(".pret-trav > summary").click();
+    await page.locator("[data-pret]").first().uncheck();
+    assert.notEqual(await emp(), empAvant);
+    assert.match(await page.locator(".pret-trav > summary").innerText(), /sur[\s\S]*− /);
+    await page.locator("[data-pret]").first().check();
+    assert.equal(await emp(), empAvant);
     /* Les pros : contacter un courtier */
     await onglet("artisans");
     await page.locator('[data-action="courtier-envoyer"]').first().click();
@@ -115,9 +124,17 @@ try {
     await onglet("artisans");
     await page.locator("main > .envoi").waitFor();
     assert.ok(await page.evaluate(() => { const m = document.querySelector("main"); return m.lastElementChild.classList.contains("envoi"); }), "l'envoi aux artisans est le dernier bloc");
+    /* négociants repliés : une ligne chacun, la fiche s'ouvre au toucher */
+    assert.equal(await page.locator(".negs .neg-l").count(), 6, "plusieurs négociants");
+    assert.equal(await page.locator(".negs .neg-l[open]").count(), 0, "repliés au départ");
+    await page.locator('.neg-l > summary:has-text("Brik")').click();
     assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Brik'O[\s\S]*Matériaux vendus[\s\S]*✓/);
-    assert.equal(await page.locator(".negs .fiche-neg").count(), 6, "plusieurs négociants");
     assert.match(await page.locator(".negs").innerText(), /Comptoir du Sanitaire[\s\S]*|Loca'Chantier/);
+    await page.getByText("👷 Choisir les artisans").click();
+    assert.equal(await page.locator(".negs .neg-l").count(), 6, "négociants repliés aussi sur la page des artisans");
+    assert.ok(await page.locator(".negs .neg-l[open]").count() <= 1, "seul le négociant déjà ouvert reste ouvert");
+    await page.goBack();
+    await onglet("artisans");
     await page.getByText("📨 Envoyer le projet aux artisans").click();
     await page.locator('[data-action="envoi-ok"]').click();
     await page.getByText("Voir ce que reçoit l'artisan →").click();
@@ -304,7 +321,8 @@ try {
     await page.locator(".q-page").first().waitFor();
     assert.equal(await page.locator(".q-page").count(), 1, "une seule page");
     assert.equal(await page.locator(".q-table tbody tr").count(), 16);
-    assert.equal(await page.locator(".q-table tbody .q-er .q-carre").count(), 0, "équipé / à remplacer : E ou R, sans case");
+    assert.match(await page.locator(".q-table thead").innerText(), /Remarques/); assert.equal(await page.locator(".q-table thead th").count(), 6, "pièces, sol, sol à refaire, murs, châssis, remarques");
+    assert.match(await page.locator(".q-rappels").innerText(), /Tester chaque châssis[\s\S]*plans/); // rappels de visite
     const lienPdf = await page.locator(".barre-outils a[download]").getAttribute("href");
     assert.equal((await page.request.get(lienPdf)).status(), 200, "le PDF de la feuille existe");
     /* mode présentation : hoono.be/demo/#/presentation remet les maisons de démonstration à zéro */
@@ -326,10 +344,12 @@ try {
     await page.fill('input[name="prix"]', "245000");
     await page.fill('input[name="annee"]', "1965");
     await page.fill('input[name="surface"]', "120");
+    await page.selectOption('select[name="etages"]', "1"); // nombre d'étages : obligatoire
     await page.selectOption('select[name="etat"]', "renover");
     assert.equal(await page.locator("[data-chf]").count(), 0, "plus de chauffage dans le formulaire d'ajout");
     await page.screenshot({ path: `${OUT}/${nom}-2-ajouter.png`, fullPage: nom === "ordi" }); // sur téléphone, la capture pleine page perturbe le clic suivant
     assert.equal(await page.locator("[data-choix]").count(), 0, "plus d'estimation rapide");
+    await page.selectOption('select[name="facades"]', "3"); // nombre de façades
     await page.getByText("Voir le vrai coût").click();
 
     /* le vrai coût */
@@ -338,6 +358,29 @@ try {
     assert.match(total, /€/);
     assert.match(await page.locator(".vrai-cout .legende").innerText(), /Prix d'achat\s*245\s?000 €/); // le nom et le prix ont bien été gardés
     assert.match(await page.locator("h1").innerText(), /Maison test/);
+    assert.match(await page.locator(".titre-maison").innerText(), /3 façades · rez \+ 1/);
+    /* type de toiture : on clique sur le schéma */
+    await onglet("travaux");
+    await page.locator('.toit-c[data-t="croupe"]').click();
+    assert.match(await page.locator(".toit-c.on").innerText(), /Quatre pans/);
+    assert.match(await page.locator(".titre-maison").innerText(), /toit : quatre pans/);
+    /* surface du toit : 9 m × 10 m, 4 pans à 35° → 90 ÷ cos 35° ≈ 110 m² ; « = 110 » reprend la mesure dans la couverture */
+    for (const [k, v] of [["larg", "9"], ["prof", "10"]]) { await page.fill(`[data-tdim="${k}"]`, v); await page.locator(`[data-tdim="${k}"]`).dispatchEvent("change"); }
+    assert.match(await page.locator(".toit-res:has-text(\"Surface de toiture\")").innerText(), /Surface de toiture\s*≈ 110 m²[\s\S]*Sol des combles[^\n]*\n?\s*≈ 90 m²/);
+    await page.locator('details:has([data-mq="i_cv_1"]) > summary').click();
+    await page.locator('.toit-q[data-k="i_cv_1"]').click();
+    assert.equal(await page.inputValue('[data-mq="i_cv_1"]'), "110");
+    /* surface des façades : 3 façades, rez + 1 → (2 × 9 + 1 × 10) × 6 m = 168 m² */
+    assert.match(await page.locator(".toit-res").first().innerText(), /Surface des façades\s*≈ 168 m²/);
+    await page.locator('details:has([data-mq="i_fa_3"]) > summary').click();
+    await page.locator('.toit-q[data-k="i_fa_3"]').click();
+    assert.equal(await page.inputValue('[data-mq="i_fa_3"]'), "168");
+    /* « Qu'est-ce qui est à refaire ? » : Oui remplit les postes avec les mesures, un 2e toucher les retire */
+    await page.locator('.gt[data-g="crepi"]').click();
+    assert.match(await page.locator('.gt[data-g="crepi"]').innerText(), /Oui/);
+    assert.equal(await page.inputValue('[data-mq="i_fa_1"]'), "168");
+    await page.locator('.gt[data-g="crepi"]').click();
+    assert.equal(await page.inputValue('[data-mq="i_fa_1"]'), "");
     await page.screenshot({ path: `${OUT}/${nom}-3-vrai-cout.png` });
 
     /* le chauffage se règle sur la fiche, onglet Travaux : mazout → pompe à chaleur + 7 radiateurs */
@@ -475,8 +518,12 @@ try {
     await page.fill('input[name="nom"]', "Rénovation test");
     await page.fill('input[name="annee"]', "1970");
     await page.fill('input[name="surface"]', "100");
+    await page.selectOption('select[name="etages"]', "0");
     await page.getByText("Voir le budget de la rénovation").click();
     await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor();
+    /* rénovation sans travaux : pas de tableaux à 0 €, un rappel à la place */
+    await page.locator(".vide-trav").waitFor();
+    assert.equal(await page.locator('h2:has-text("Simulation de financement")').count(), 0);
     assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
     /* photo du questionnaire : on photographie les 2 pages, Valou remplit la maison (démonstration : questionnaire d'exemple) */
     await onglet("pieces");
@@ -509,7 +556,7 @@ try {
     await page.locator(".conf").waitFor({ state: "detached" });
     assert.equal(await page.locator('.m-case:has-text("Maison de démonstration B")').count(), 0, "la maison est supprimée");
 
-    /* version d'essai pour les particuliers : sans maisons de démonstration ni pages pour les professionnels */
+    /* version d'essai pour les particuliers : maisons d'exemple étiquetées « Fictive », sans pages pour les professionnels */
     await page.goto(URL + "#/essai");
     await page.locator(".essai-etapes").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-11-essai.png` });
@@ -519,13 +566,13 @@ try {
     assert.equal(await page.locator('.nav-i[href="#/avis"]').count(), 1);
     assert.equal(await page.locator('.bb-i[href="#/avis"]').count(), 1);
     if (nom === "tel") assert.ok(await page.locator(".barre-bas").isVisible(), "barre du bas sur téléphone");
-    assert.doesNotMatch(await page.locator("main").innerText(), /Maison de démonstration/);
+    assert.match(await page.locator(".grille").innerText(), /Maison de démonstration A[\s\S]*Fictive/); // les maisons d'exemple restent pour montrer un projet rempli
     assert.match(await page.locator(".grille").innerText(), /Maison test/); // la maison du testeur est là
     await page.screenshot({ path: `${OUT}/${nom}-12-essai-maisons.png` });
     await page.goto(URL + "#/pro/artisan");
     await page.locator(".essai-etapes").waitFor(); // les pages pro ramènent à l'accueil de l'essai
     await page.goto(URL + "#/comparer");
-    assert.doesNotMatch(await page.locator("main").innerText(), /Maison de démonstration/);
+    await page.locator("main").waitFor();
     await page.goto(URL + "#/avis");
     await page.fill("#avis-aime", "Le vrai coût");
     await page.locator("#avis-aime").dispatchEvent("change");

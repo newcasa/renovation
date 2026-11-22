@@ -883,7 +883,7 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 @media print {
   .q-une { padding: 0; overflow: visible; }
   .q-corps { min-width: 0 !important; grid-template-columns: minmax(0, 1fr) 58mm !important; }
-  .q-une .q-table tbody tr { height: 7mm; }
+  .q-une .q-table tbody tr { height: 6.3mm; }
 }
 .q-une .q-wc small { font-size: 8px; } .q-une .q-wc .q-carre { width: 11px; height: 11px; }
 .q-escalier-u { white-space: nowrap; }
@@ -989,3 +989,115 @@ label.dd-ligne { justify-content: flex-start; }
 .sim-cmp tr.sim-tot b { font: 900 18px Outfit, Manrope, sans-serif; }
 .sim-cmp tr.sim-tot td:nth-child(3) b { color: var(--or-fonce, #b35a00); }
 @media (max-width: 400px) { .sim-cmp { font-size: 14px; } .sim-cmp th, .sim-cmp td { padding: 6px 3px; } .sim-cmp tr.sim-tot b { font-size: 16px; } }
+
+/* travaux inclus dans le prêt */
+.pret-trav { border: 1px solid var(--bord); border-radius: 12px; padding: 4px 12px; margin: 6px 0 10px; background: #fff; }
+.pret-trav > summary { display: flex; justify-content: space-between; gap: 10px; align-items: center; cursor: pointer; padding: 8px 0; font-weight: 700; list-style: none; }
+.pret-trav > summary::-webkit-details-marker { display: none; }
+.pret-trav > summary::before { content: "›"; color: var(--or); font-weight: 900; margin-right: 6px; transition: transform .15s; }
+.pret-trav[open] > summary::before { transform: rotate(90deg); }
+.pret-trav > summary > span { flex: 1; }
+.pret-trav > summary > b { color: var(--or-fonce); white-space: nowrap; }
+.pret-trav .pt-l { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--bord); margin: 0; }
+.pret-trav .pt-l span { flex: 1; }
+.pret-trav .pt-l b { white-space: nowrap; }
+.pret-trav .pt-hors { text-decoration: line-through; color: var(--mu); font-weight: 600; }
+.facades-m { display: block; max-width: 340px; margin: 4px 0 12px; font-weight: 700; }
+
+/* type de toiture */
+.toits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.toit-c { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; border: 2px solid var(--bord); border-radius: 14px; background: #fff; cursor: pointer; font: 700 13.5px Manrope, sans-serif; color: var(--bordeaux); }
+.toit-c svg { width: 100%; max-width: 92px; height: auto; }
+.toit-c polygon { stroke: #5d6b80; stroke-width: .7; stroke-linejoin: round; }
+.toit-c .f-mur { fill: #eef1f6; }
+.toit-c .f-cote { fill: #cdd5e0; }
+.toit-c .f-trou { fill: #8a97a8; }
+.toit-c .f-vitre { fill: #b8d4ec; }
+.toit-c .f-vitre2 { fill: #9dbcd8; }
+.toit-c .f-toit { fill: #8f9cae; }
+.toit-c .f-toit2 { fill: #6f7c8f; }
+.toit-c .f-toit3 { fill: #adb8c7; }
+.toit-c:hover { border-color: var(--or); }
+.toit-c.on { border-color: var(--or); background: #fff6ec; box-shadow: 0 0 0 2px rgba(236, 130, 36, .25); }
+.toit-c.on polygon { stroke: #8a3f05; }
+.toit-c.on .f-toit { fill: #EC8224; }
+.toit-c.on .f-toit2 { fill: #c4650f; }
+.toit-c.on .f-toit3 { fill: #f4a55a; }
+.toit-c.on .f-mur { fill: #fff4e8; }
+.toit-c.on .f-cote { fill: #f3d5b5; }
+@media (min-width: 761px) { .toits { grid-template-columns: repeat(6, 1fr); } }
+
+/* surface du toit */
+.td-titre { margin: 16px 0 6px; font-size: 16px; }
+.toit-dim { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.toit-dim label { font-weight: 700; font-size: 14px; }
+.toit-res { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #fff6ec; border: 1px solid #f3d5b5; }
+.toit-res .ligne b { color: var(--or-fonce); }
+.toit-q { margin-left: 6px; border: 1px solid var(--or); background: #fff6ec; color: var(--or-fonce); border-radius: 999px; padding: 3px 9px; font: 800 13px Manrope, sans-serif; cursor: pointer; white-space: nowrap; }
+@media (max-width: 380px) { .toit-dim { grid-template-columns: 1fr; } }
+
+/* corrections après le test « comme un utilisateur » */
+.consigne { margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; background: #fff6ec; border: 1px solid #f3d5b5; color: var(--bordeaux); font-size: 15.5px; }
+.sans-trav { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, .14); font-size: 14px; font-weight: 600; }
+.vc-alerte { font-style: normal; color: #ffd2a6; margin-right: 4px; }
+.legende-d { margin-top: 10px; }
+.legende-d > summary { cursor: pointer; color: var(--mu); font-weight: 700; font-size: 14px; }
+.neg-liste { display: flex; flex-direction: column; gap: 8px; }
+.neg-l { border: 1px solid var(--bord); border-radius: 12px; background: #fff; }
+.neg-l > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; list-style: none; }
+.neg-l > summary::-webkit-details-marker { display: none; }
+.neg-l > summary > span:first-child { display: flex; flex-direction: column; }
+.neg-l > summary::after { content: "›"; color: var(--or); font-weight: 900; font-size: 20px; transition: transform .15s; }
+.neg-l[open] > summary::after { transform: rotate(90deg); }
+.neg-l > .fiche-neg, .neg-l > div { margin: 0 10px 10px; }
+.neg-utile { margin-left: auto; color: #1d7a46; font-weight: 800; font-size: 13px; white-space: nowrap; }
+.gt-liste { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.gt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border: 2px solid var(--bord); border-radius: 14px; background: #fff; font: 700 15px Manrope, sans-serif; color: var(--bordeaux); cursor: pointer; }
+.gt .gt-ico { font-size: 22px; }
+.gt .gt-t { flex: 1; display: flex; flex-direction: column; }
+.gt .gt-t small { font-weight: 500; font-size: 13px; }
+.gt .gt-r { font-weight: 800; color: var(--mu); white-space: nowrap; }
+.gt.on { border-color: var(--or); background: #fff6ec; }
+.gt.on .gt-r { color: var(--or-fonce); }
+.gt.off { opacity: .7; cursor: default; border-style: dashed; }
+.intro-btn.sec { background: #fff; color: var(--bordeaux); border: 2px solid var(--bordeaux); }
+.oblig-e { color: var(--or-fonce); }
+.vide-trav p { margin: 0; }
+.lien-o { border: 0; background: none; padding: 0; font: inherit; font-weight: 800; color: var(--or-fonce); text-decoration: underline; cursor: pointer; }
+/* questionnaire : une seule page malgré la ligne des dimensions */
+.q-b1 .q-box { width: 60px; } .q-b1 .q-champ.large .q-box { width: 150px; } .q-b1 .q-champ { margin-right: 4px; }
+@media print { .q-pied { min-height: 0; } }
+
+/* questionnaire : pièces, sol, et une grande zone de remarques */
+.q-une .q-table thead tr:first-child th:first-child { width: 34mm; }
+.q-une .q-table thead tr:first-child th:nth-child(2) { width: 14mm; }
+.q-une .q-table thead tr:first-child th:nth-child(3) { width: 16mm; }
+.q-une .q-table thead tr:first-child th:last-child { width: auto; }
+.q-une .q-table th.q-rem-t { text-align: left; padding-left: 8px; }
+.q-une .q-table tbody th { width: 34mm; }
+.q-une .q-table thead tr:first-child th:nth-child(4) { width: 16mm; }
+.q-une .q-table thead tr:first-child th:nth-child(5) { width: 20mm; }
+
+/* questionnaire : rappels pendant la visite */
+.q-rappels { display: grid; grid-template-columns: auto 1fr; gap: 10px; margin-top: 6px; padding: 5px 8px; border: 1.5px solid var(--or); border-radius: 6px; align-items: start; }
+.q-rappels > b { color: var(--bordeaux); font-size: 12px; white-space: nowrap; }
+.q-rappels > div { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px 10px; }
+.q-rappels .q-cb { font-size: 9.5px; margin: 0; display: flex; gap: 4px; align-items: flex-start; line-height: 1.2; }
+.q-rappels .q-carre { flex: none; width: 10px; height: 10px; }
+@media print { .q-une .q-table tbody tr { height: 5.6mm !important; } .q-pied { margin-top: 4px; } }
+@media (max-width: 900px) { .q-rappels > div { grid-template-columns: 1fr 1fr; } }
+
+/* rappels pendant la visite (appli) */
+.rappels { border: 2px solid #f3d5b5; border-radius: 14px; background: #fff6ec; padding: 4px 14px; margin: 10px 0 14px; }
+.rappels > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; font-weight: 800; color: var(--bordeaux); list-style: none; }
+.rappels > summary::-webkit-details-marker { display: none; }
+.rappels .rp-l { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid #f3d5b5; margin: 0; font-size: 15px; }
+.rappels .rp-l input:checked + span { text-decoration: line-through; color: var(--mu); }
+.rappels > summary small { white-space: nowrap; }
+.q-gt .q-poste.q-coche { grid-template-columns: 14px 1fr; gap: 8px; padding: 4px 0; }
+.q-b1 .q-champ.large:first-child .q-box { width: 230px; }
+.q-une .q-rappels { margin: 6px 0 8px; }
+.q-ouvert { font-size: 8.5px; color: #8a4a10; font-style: italic; }
+.q-pied .q-petit b { color: var(--bordeaux); }
+.q-une .q-table td.q-rem { text-align: left; padding-left: 6px; }
+.q-ouvert { color: #8a4a10; opacity: .38; font-size: 8.5px; font-style: italic; }

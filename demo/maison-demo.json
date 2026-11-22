@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 9,
   "note": "Maisons FICTIVES pour la démonstration. À remplacer par de vraies maisons (mêmes champs). Seules les caractéristiques et les quantités sont ici : tous les prix viennent des références Valou.",
   "maisons": [
     {
@@ -9,6 +9,8 @@
       "prix": 245000,
       "annee": 1965,
       "surface": 125,
+      "facades": 3,
+      "etages": 1,
       "etat": "renover",
       "uniqueHabitation": true,
       "fraisNotaire": null,
@@ -197,6 +199,8 @@
       "prix": 299000,
       "annee": 1998,
       "surface": 135,
+      "facades": 4,
+      "etages": 1,
       "etat": "bon",
       "uniqueHabitation": true,
       "fraisNotaire": null,
@@ -267,6 +271,8 @@
       "prix": 0,
       "annee": 1958,
       "surface": 110,
+      "facades": 2,
+      "etages": 1,
       "etat": "rafraichir",
       "uniqueHabitation": true,
       "fraisNotaire": null,

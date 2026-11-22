@@ -1,9 +1,9 @@
 /* Valou — questionnaire de visite à imprimer et à remplir à la main.
    Mêmes rubriques que l'appli : la maison, le chauffage, les pièces (postes imposés), structure / toiture / équipements.
    maisonDepuisQuestionnaire() transforme les réponses (lues sur la photo) en maison Valou. */
-import { TYPES_PIECE, PLAFONDS, WC, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE } from "./moteur.js?v=202611200931";
-import { img, DEMO_DIR } from "./chemins.js?v=202611200931";
-import { esc } from "./format.js?v=202611200931";
+import { TYPES_PIECE, PLAFONDS, WC, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE } from "./moteur.js?v=202611221331";
+import { img, DEMO_DIR } from "./chemins.js?v=202611221331";
+import { esc } from "./format.js?v=202611221331";
 
 /* pièces pré-imprimées : celles qui peuvent composer une grande maison (+ 2 lignes libres) */
 export const PIECES_QUESTIONNAIRE = [
@@ -15,12 +15,25 @@ export const PIECES_QUESTIONNAIRE = [
 ];
 /* gros travaux hors pièces repris sur la page 1 */
 export const GROS_TRAVAUX = [
-  ["i_cv_1", "Toiture : couverture à refaire", "m²"], ["i_to_1", "Isolation de la toiture", "m²"], ["i_fa_3", "Isolation de façade (extérieure)", "m²"],
+  ["i_cv_1", "Toiture : couverture", "m²"], ["i_to_1", "Isolation de la toiture", "m²"], ["i_fa_3", "Isolation de façade (extérieure)", "m²"],
   ["i_fa_1", "Façade : enduit / crépi", "m²"], ["i_re", "Électricité complète", "m²"], ["i_co", "Tableau électrique", "pièce"],
   ["i_pe", "Porte d'entrée", "pièce"], ["i_pi", "Portes intérieures", "pièce"], ["i_dem", "Démolition intérieure", "m²"],
   ["i_zi", "Gouttières", "m"], ["i_es_1", "Escalier à peindre", "marches"], ["i_te", "Terrasse", "m²"],
 ];
 
+/* rappels pendant la visite (feuille papier et appli) */
+export const RAPPELS_VISITE = [
+  ["chassis", "Tester chaque châssis (ouverture, joints, buée entre les vitres)"],
+  ["plans", "Demander à voir les plans"],
+  ["peb", "Demander le certificat PEB"],
+  ["elec", "Demander le contrôle de l'installation électrique"],
+  ["chaudiere", "Âge et entretien de la chaudière (factures)"],
+  ["toiture", "Âge de la toiture, regarder la charpente au grenier"],
+  ["humidite", "Traces d'humidité : cave, bas des murs, plafonds"],
+  ["eau", "Ouvrir les robinets, tirer la chasse (pression, évacuation)"],
+  ["amiante", "Maison d'avant 2001 : repérer ce qui pourrait contenir de l'amiante"],
+  ["photos", "Photographier chaque pièce et ce qui pose question"],
+];
 const box = (l = "", u = "", large = false) => `<span class="q-champ ${large ? "large" : ""}"><span class="q-lab">${l}</span><span class="q-box"></span>${u ? `<span class="q-u">${u}</span>` : ""}</span>`;
 const cases = L => L.map(t => `<span class="q-cb"><span class="q-carre"></span>${esc(t)}</span>`).join("");
 const ligne = (t, contenu) => `<div class="q-ligne"><b>${t}</b><div>${contenu}</div></div>`;
@@ -36,22 +49,14 @@ export const PIECES_FEUILLE = [
 export function ecranQuestionnaire(ctx) {
   const { entete } = ctx;
   const pdf = DEMO_DIR + "questionnaire-visite.pdf"; // feuille A4 prête à imprimer (même mise en page, régénérée par demo/tests/pdf-questionnaire.mjs)
-  const na = `<td class="q-na"></td>`;
-  const lignes = PIECES_FEUILLE.map(([nom, type]) => {
-    /* équipement : on écrit E (équipé, à garder) ou R (à remplacer) ; seulement cuisine, salle de bain et WC */
-    const eq = ["cuisine", "sdb", "wc"].includes(type) ? `<td class="q-er"><small>${type === "cuisine" ? "cuisine" : type === "sdb" ? "SDB" : "WC"}</small></td>` : na;
-    return `<tr><th>${esc(nom)}${nom === "Autre :" ? " <span class=\"q-trait\"></span>" : ""}</th>
-      <td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>
-      <td class="q-c">${carre}</td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>
-      <td class="q-c">${carre}</td><td class="q-c">${carre}</td>
-      ${type === "garage" ? `<td></td>${na}${na}` : `<td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>`}
-      ${type === "garage" ? `${na}${na}` : `<td></td><td class="q-c">${carre}</td>`}
-      ${eq}<td></td></tr>`;
-  }).join("");
+
+  /* l'essentiel seulement : la surface, le sol à refaire, et une grande zone de remarques (le détail se fait plus tard dans l'appli) */
+  const lignes = PIECES_FEUILLE.map(([nom]) => `<tr><th>${esc(nom)}${nom === "Autre :" ? " <span class=\"q-trait\"></span>" : ""}</th>
+      <td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td><td></td><td class="q-rem">${nom === "Cuisine" ? `<small class="q-ouvert">Cuisine ouverte sur le séjour : tout le m² ici, laissez Séjour / salon vide</small>` : ""}</td></tr>`).join("");
   const page = `<article class="q-page q-une">
     <header class="q-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Questionnaire de visite</b><small>Une page, à remplir au stylo, en chiffres bien lisibles</small></div></header>
     <div class="q-bandeau">
-      <div class="q-b1">${box("Nom", "", true)}${box("Commune", "", true)}${box("Prix", "€")}${box("Année")}${box("Surface", "m²")}</div>
+      <div class="q-b1">${box("Adresse", "", true)}${box("Commune", "", true)}${box("Prix", "€")}${box("Année")}${box("Surface", "m²")}${box("Étages", "rez +")}${box("Façades", "2/3/4")}${box("Largeur façade", "m")}${box("Profondeur", "m")}</div>
       <div class="q-b2">
         <span class="q-bl"><b>État</b>${cases(["Bon", "À rafraîchir", "À rénover"])}</span>
         <span class="q-bl"><b>Seule habitation</b>${cases(["Oui", "Non"])}</span>
@@ -59,25 +64,24 @@ export function ecranQuestionnaire(ctx) {
       </div>
       <div class="q-b2">
         <span class="q-bl"><b>Chauffage existant</b>${cases(CHAUFFAGE_ACTUEL.map(c => c[1]))}</span>
-        <span class="q-bl"><b>Souhaité</b>${cases(["Garder", "Gaz à condensation", "Pompe à chaleur"])}</span>
       </div>
     </div>
+    <div class="q-rappels"><b>À ne pas oublier</b><div>${RAPPELS_VISITE.map(([, t]) => `<span class="q-cb"><span class="q-carre"></span>${esc(t)}</span>`).join("")}</div></div>
     <div class="q-corps">
       <table class="q-table">
         <thead>
-          <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th colspan="2">Sol à refaire</th><th colspan="3">Murs (à refaire)</th><th colspan="2">Plafond</th><th colspan="3">Châssis à remplacer</th><th colspan="2">Chauffage</th><th rowspan="2">Équipé (E) /<br>à remplacer (R)</th><th rowspan="2">Remarques</th></tr>
-          <tr class="q-sous"><th>Carre&shy;lage</th><th>Par&shy;quet</th><th>Plafon&shy;nage</th><th>Pein&shy;ture</th><th>Carre&shy;lage</th><th>Pein&shy;ture</th><th>Pla&shy;ques</th><th>Nom&shy;bre</th><th>PVC</th><th>Alu</th><th>Radia&shy;teurs</th><th>Au sol</th></tr>
+          <tr><th>Pièces</th><th>Sol<br>m²</th><th>Sol à<br>refaire</th><th>Murs à<br>refaire</th><th>Châssis à<br>remplacer<br>(nombre)</th><th class="q-rem-t">Remarques</th></tr>
         </thead>
         <tbody>${lignes}</tbody>
       </table>
       <aside class="q-gt">
         <h2>Gros travaux (hors pièces)</h2>
-        <p class="q-petit">Quantité à prévoir, vide si rien à faire.</p>
-        ${GROS_TRAVAUX.map(([, t, u]) => `<div class="q-poste"><span>${esc(t)}</span><span class="q-box petit"></span><span class="q-u">${u}</span></div>`).join("")}
-        <div class="q-poste"><span>Autre : ……………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
+        <p class="q-petit">Cochez ce qui est à refaire : les quantités se complètent plus tard dans l'appli.</p>
+        ${GROS_TRAVAUX.map(([, t]) => `<div class="q-poste q-coche"><span class="q-carre"></span><span>${esc(t)}</span></div>`).join("")}
+        <div class="q-poste q-coche"><span class="q-carre"></span><span>Autre : ……………………</span></div>
       </aside>
     </div>
-    <div class="q-pied"><b>Notes</b><span class="q-petit">Équipé / à remplacer : écrivez E (équipé, à garder) ou R (à remplacer). WC à remplacer : suspendu par défaut, écrivez « sur pied » dans Remarques si besoin. Garage : nombre de portes dans « Châssis : nombre ». Pièce non imprimée (salle à manger, véranda, cave…) : une ligne « Autre ». Après la visite : une photo de la feuille, bien à plat, avec de la lumière.</span></div>
+    <div class="q-pied"><b>Notes</b><span class="q-petit"><b>Séjour ouvert sur la cuisine : comptez la totalité des m² sur la ligne « Cuisine » et laissez vides les lignes Séjour / salon, salle à manger ou séjour.</b> Pièce non imprimée : une ligne « Autre ». Le détail (type de sol, plafond, type de châssis, futur chauffage) se complète plus tard dans l'appli. Après la visite : une photo de la feuille, bien à plat.</span></div>
   </article>`;
   return `${entete("")}
   <main class="questionnaire">
@@ -107,6 +111,8 @@ export function maisonDepuisQuestionnaire(r, nouvelId) {
     chauffage: { actuel: CHAUFFAGE_ACTUEL.some(c => c[0] === C.actuel) ? C.actuel : "gaz", souhaite: CHAUFFAGE_SOUHAITE.some(c => c[0] === C.souhaite) ? C.souhaite : "garder" },
     description: r.notes || "", source: "questionnaire",
     peb: ["A++", "A+", "A", "B", "C", "D", "E", "F", "G"].includes(M.peb) ? M.peb : null, pebConso: nombreOuNull(M.peb_conso),
+    etages: nombreOuNull(M.etages), facades: [2, 3, 4].includes(+M.facades) ? +M.facades : null,
+    toitDim: { larg: nombreOuNull(M.largeur), prof: nombreOuNull(M.profondeur) },
   };
   m.pieces = (r.pieces || []).filter(p => p && (p.nom || p.sol)).map((p, i) => {
     const murs = p.murs || [];
