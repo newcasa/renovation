@@ -108,7 +108,7 @@ function ecranAccueil() {
     <section class="hero">
       <h1>${P.h}</h1>
       <p>${esc(P.p)}</p>
-      <span class="actions-g"><a class="btn" href="#/ajouter">${P.ajout}</a>${parcours === "achat" ? `<a class="btn sec" href="#/questionnaire">📝 Questionnaire de visite à imprimer</a>` : ""}</span>
+      <span class="actions-g"><a class="btn" href="#/ajouter">${P.ajout}</a><a class="btn sec" href="#/nouvelle-photo">📷 Créer depuis la photo du questionnaire</a>${parcours === "achat" ? `<a class="btn sec" href="#/questionnaire">📝 Questionnaire de visite à imprimer</a>` : ""}</span>
     </section>
     ${essai ? `<section class="carte essai-info"><b>Version d'essai</b>
       <p>Vos maisons restent <b>sur ce téléphone</b> : pas de compte, rien n'est envoyé. L'envoi aux artisans et à la banque est simulé, et les artisans et négociants affichés sont fictifs.</p>
@@ -151,6 +151,7 @@ function ecranAjouter() {
   <main class="etroit">
     <a href="#/" class="retour">← Mes maisons</a>
     <h1>${reno ? "Ajouter ma maison à rénover" : "Ajouter une maison à acheter"}</h1>
+    <p class="depuis-photo">Questionnaire déjà rempli ? <a href="#/nouvelle-photo">📷 Créer la maison depuis sa photo</a></p>
     <form id="f-ajout" class="carte">
       <h2>Étape 1 · Avant la visite : ce que vous savez déjà</h2>
       <div class="champs">
@@ -1462,6 +1463,7 @@ function depuisLecture(lu) {
   };
 }
 function ecranQuestionnairePhoto(m) {
+  const nouvelle = m.id === "nouvelle"; // créer une nouvelle maison à partir de la photo
   if (qPhoto.maisonId !== m.id) qPhoto = { maisonId: m.id, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" };
   const Q = qPhoto;
   let corps;
@@ -1489,7 +1491,7 @@ function ecranQuestionnairePhoto(m) {
       ${(L.gros || []).length ? `<h3>Gros travaux cochés</h3><ul class="q-pieces">${L.gros.map(k => `<li><b>${esc(R.postes[k] ? R.postes[k].n : k)}</b> <span class="mu">quantité à compléter dans Technique</span></li>`).join("")}</ul>` : ""}
       ${L.description ? `<h3>Remarques</h3><p class="mu" style="white-space:pre-line">${esc(L.description)}</p>` : ""}
       <p class="mu petit-t">Les pièces portant le même nom qu'une pièce déjà encodée sont mises à jour ; les autres sont ajoutées. Vous pourrez tout corriger ensuite, pièce par pièce.</p>
-      <span class="actions-g"><button class="btn" data-action="q-appliquer">✓ Remplir la maison avec ces réponses</button><button class="btn lien" data-action="q-recommencer">Reprendre les photos</button></span>
+      <span class="actions-g"><button class="btn" data-action="q-appliquer">${nouvelle ? "✓ Créer la maison avec ces réponses" : "✓ Remplir la maison avec ces réponses"}</button><button class="btn lien" data-action="q-recommencer">Reprendre les photos</button></span>
     </section>`;
   } else corps = `<section class="carte q-photos">
       <h2>Photographiez la feuille</h2>
@@ -1500,8 +1502,9 @@ function ecranQuestionnairePhoto(m) {
       <p class="mu petit-t">Pas encore de questionnaire ? <a href="#/questionnaire">📝 Le télécharger et l'imprimer</a> (une page A4).</p>
     </section>`;
   return `${entete("maisons")}<main class="etroit">
-    <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
-    <h1>📝 Photo du questionnaire</h1>
+    ${nouvelle ? `<a href="#/" class="retour">← Mes maisons</a>` : `<a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>`}
+    <h1>📝 ${nouvelle ? "Nouvelle maison depuis le questionnaire" : "Photo du questionnaire"}</h1>
+    ${nouvelle && Q.etape === "photos" ? `<p class="mu">Vous avez rempli le questionnaire imprimé pendant la visite ? Photographiez-le : Valou crée la maison avec l'adresse, les pièces et les travaux.</p>` : ""}
     ${corps}
   </main>`;
 }
@@ -1772,6 +1775,7 @@ function afficher() {
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
   else if (mph && trouver(mph[1])) html = ecranPhotos(trouver(mph[1]));
   else if (mqp && trouver(mqp[1])) html = ecranQuestionnairePhoto(trouver(mqp[1]));
+  else if (h === "/nouvelle-photo") html = ecranQuestionnairePhoto({ id: "nouvelle" });
   else if (mp && trouver(mp[1]) && (trouver(mp[1]).pieces || []).some(p => p.id === mp[2])) html = ecranPiece(trouver(mp[1]), trouver(mp[1]).pieces.find(p => p.id === mp[2]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
@@ -1867,6 +1871,14 @@ document.addEventListener("click", e => {
     return;
   }
   if (a === "q-recommencer") { qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: qPhoto.maisonId, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; afficher(); }
+  if (a === "q-appliquer" && qPhoto.maisonId === "nouvelle" && qPhoto.lu) {
+    /* nouvelle maison créée à partir de la photo du questionnaire */
+    const L = qPhoto.lu;
+    const mq = creerMaison({ ...brouillonVide(), projet: parcours, nom: L.nom && L.nom !== "Maison visitée" ? L.nom : "Maison visitée", commune: L.commune || "", prix: L.prix || "", annee: L.annee || "", surface: L.surface || "",
+      etages: L.etages ?? "", facades: L.facades || "", etat: L.etat || "rafraichir", uniqueHabitation: L.uniqueHabitation !== false, peb: L.peb || "", pebConso: L.pebConso || "",
+      chauffageActuel: L.chauffageLu === false ? "gaz" : L.chauffage.actuel });
+    qPhoto.maisonId = mq.id;
+  }
   if (a === "q-appliquer") {
     const mq = trouver(qPhoto.maisonId);
     if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); mq.questFait = true; mq.questLu = true; sauver(); ongletsM[mq.id] = "pieces"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; location.hash = `#/maison/${mq.id}`; }
