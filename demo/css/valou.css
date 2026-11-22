@@ -1077,3 +1077,20 @@ label.dd-ligne { justify-content: flex-start; }
 .q-une .q-table tbody th { width: 34mm; }
 .q-une .q-table thead tr:first-child th:nth-child(4) { width: 16mm; }
 .q-une .q-table thead tr:first-child th:nth-child(5) { width: 20mm; }
+
+/* questionnaire : rappels pendant la visite */
+.q-rappels { display: grid; grid-template-columns: auto 1fr; gap: 10px; margin-top: 6px; padding: 5px 8px; border: 1.5px solid var(--or); border-radius: 6px; align-items: start; }
+.q-rappels > b { color: var(--bordeaux); font-size: 12px; white-space: nowrap; }
+.q-rappels > div { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px 10px; }
+.q-rappels .q-cb { font-size: 9.5px; margin: 0; display: flex; gap: 4px; align-items: flex-start; line-height: 1.2; }
+.q-rappels .q-carre { flex: none; width: 10px; height: 10px; }
+@media print { .q-une .q-table tbody tr { height: 5.6mm !important; } .q-pied { margin-top: 4px; } }
+@media (max-width: 900px) { .q-rappels > div { grid-template-columns: 1fr 1fr; } }
+
+/* rappels pendant la visite (appli) */
+.rappels { border: 2px solid #f3d5b5; border-radius: 14px; background: #fff6ec; padding: 4px 14px; margin: 10px 0 14px; }
+.rappels > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; font-weight: 800; color: var(--bordeaux); list-style: none; }
+.rappels > summary::-webkit-details-marker { display: none; }
+.rappels .rp-l { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid #f3d5b5; margin: 0; font-size: 15px; }
+.rappels .rp-l input:checked + span { text-decoration: line-through; color: var(--mu); }
+.rappels > summary small { white-space: nowrap; }

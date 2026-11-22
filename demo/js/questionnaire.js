@@ -21,6 +21,19 @@ export const GROS_TRAVAUX = [
   ["i_zi", "Gouttières", "m"], ["i_es_1", "Escalier à peindre", "marches"], ["i_te", "Terrasse", "m²"],
 ];
 
+/* rappels pendant la visite (feuille papier et appli) */
+export const RAPPELS_VISITE = [
+  ["chassis", "Tester chaque châssis (ouverture, joints, buée entre les vitres)"],
+  ["plans", "Demander à voir les plans"],
+  ["peb", "Demander le certificat PEB"],
+  ["elec", "Demander le contrôle de l'installation électrique"],
+  ["chaudiere", "Âge et entretien de la chaudière (factures)"],
+  ["toiture", "Âge de la toiture, regarder la charpente au grenier"],
+  ["humidite", "Traces d'humidité : cave, bas des murs, plafonds"],
+  ["eau", "Ouvrir les robinets, tirer la chasse (pression, évacuation)"],
+  ["amiante", "Maison d'avant 2001 : repérer ce qui pourrait contenir de l'amiante"],
+  ["photos", "Photographier chaque pièce et ce qui pose question"],
+];
 const box = (l = "", u = "", large = false) => `<span class="q-champ ${large ? "large" : ""}"><span class="q-lab">${l}</span><span class="q-box"></span>${u ? `<span class="q-u">${u}</span>` : ""}</span>`;
 const cases = L => L.map(t => `<span class="q-cb"><span class="q-carre"></span>${esc(t)}</span>`).join("");
 const ligne = (t, contenu) => `<div class="q-ligne"><b>${t}</b><div>${contenu}</div></div>`;
@@ -67,6 +80,7 @@ export function ecranQuestionnaire(ctx) {
         <div class="q-poste"><span>Autre : ……………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
       </aside>
     </div>
+    <div class="q-rappels"><b>À ne pas oublier</b><div>${RAPPELS_VISITE.map(([, t]) => `<span class="q-cb"><span class="q-carre"></span>${esc(t)}</span>`).join("")}</div></div>
     <div class="q-pied"><b>Notes</b><span class="q-petit">Pièce non imprimée : une ligne « Autre ». Le détail (type de sol, plafond, type de châssis, futur chauffage) se complète plus tard dans l'appli. Après la visite : une photo de la feuille, bien à plat.</span></div>
   </article>`;
   return `${entete("")}

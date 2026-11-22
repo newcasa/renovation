@@ -5,7 +5,7 @@ import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePost
 import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611200931";
 import { euros, euros2, nombre, esc } from "./format.js?v=202611200931";
 import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611200931";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire } from "./questionnaire.js?v=202611200931";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE } from "./questionnaire.js?v=202611200931";
 import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611200931";
 
 let R = null;
@@ -662,6 +662,9 @@ function ecranMaison(m) {
       <p class="mu">Ajoutez les pièces dans l'ordre de la visite, puis ouvrez-les pour remplir le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
       <p>${boutonPhotosMaison(m)}</p>
       <p><a class="btn sec" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>
+      ${(() => { const R0 = m.rappels || {}, n = RAPPELS_VISITE.filter(([k]) => R0[k]).length, id = `rappels-${m.id}`;
+        return `<details class="rappels" data-ouvert="${id}" ${ouverts.has(id) ? "open" : ""}><summary><span>✅ À ne pas oublier pendant la visite</span><small class="mu">${n} / ${RAPPELS_VISITE.length}</small></summary>
+        ${RAPPELS_VISITE.map(([k, t]) => `<label class="cb rp-l"><input type="checkbox" data-rappel="${k}" ${R0[k] ? "checked" : ""}> <span>${esc(t)}</span></label>`).join("")}</details>`; })()}
       <div class="grille-pieces">${cartesPieces}</div>
       <div class="ajout-piece">
         <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
@@ -1888,6 +1891,8 @@ document.addEventListener("change", e => {
     afficher();
     return;
   }
+  /* rappels pendant la visite */
+  if (t.dataset.rappel && m) { m.rappels = { ...(m.rappels || {}), [t.dataset.rappel]: t.checked }; ouverts.add("rappels-" + m.id); sauver(); afficher(); return; }
   /* dimensions du toit */
   if (t.dataset.tdim && m) {
     m.toitDim = { ...(m.toitDim || {}), [t.dataset.tdim]: t.value === "" ? null : +t.value };
