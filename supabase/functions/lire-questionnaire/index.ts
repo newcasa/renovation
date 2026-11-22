@@ -57,7 +57,7 @@ Recopie fidèlement ce qui est écrit ou coché ; n'invente rien : une case vide
 La feuille contient :
 - en haut : Adresse, Commune, Prix (€), Année, Surface (m²), Étages (« rez + » suivi d'un chiffre), Façades (2, 3 ou 4), Largeur façade (m), Profondeur (m) ; État (${["Bon", "À rafraîchir", "À rénover"].join(", ")} → bon / rafraichir / renover) ; Seule habitation (Oui/Non) ; PEB (une lettre cochée) et la consommation en kWh/m²/an ; Chauffage existant (${Object.entries(CHAUFFAGES).map(([k, v]) => `${v} → ${k}`).join(", ")}).
 - un cadre « À ne pas oublier » avec des cases : ${Object.entries(RAPPELS).map(([k, v]) => `${v} → ${k}`).join(" ; ")}.
-- le tableau des pièces, lignes pré-imprimées : ${PIECES_IMPRIMEES.join(", ")} (« Autre » : prends le nom écrit à la main). Colonnes : Sol m², Sol à refaire (case), Murs à refaire (case), Châssis à remplacer (nombre), Remarques (texte libre, recopie-le).
+- le tableau des pièces, lignes pré-imprimées : ${PIECES_IMPRIMEES.join(", ")} (« Autre » : prends le nom écrit à la main). Colonnes : Sol m², Sol à refaire (case), Murs à refaire (case), Châssis à remplacer (nombre), Remarques (texte libre, recopie-le). Le petit texte imprimé en italique sur la ligne Cuisine (« Cuisine ouverte sur le séjour… ») fait partie de la feuille : ce n'est pas une remarque, ne le recopie pas.
 - à droite, « Gros travaux (hors pièces) », des cases : ${Object.entries(GROS).map(([k, v]) => `${v} → ${k}`).join(" ; ")}.
 Les nombres belges utilisent la virgule décimale (« 12,5 » = 12.5) et parfois un point ou une espace pour les milliers (« 245.000 » = 245000).
 Si plusieurs photos sont fournies, ce sont des parties de la même feuille : fusionne-les.

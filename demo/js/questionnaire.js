@@ -52,7 +52,7 @@ export function ecranQuestionnaire(ctx) {
 
   /* l'essentiel seulement : la surface, le sol à refaire, et une grande zone de remarques (le détail se fait plus tard dans l'appli) */
   const lignes = PIECES_FEUILLE.map(([nom]) => `<tr><th>${esc(nom)}${nom === "Autre :" ? " <span class=\"q-trait\"></span>" : ""}</th>
-      <td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td><td></td><td class="q-rem"></td></tr>`).join("");
+      <td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td><td></td><td class="q-rem">${nom === "Cuisine" ? `<small class="q-ouvert">Cuisine ouverte sur le séjour : tout le m² ici, laissez Séjour / salon vide</small>` : ""}</td></tr>`).join("");
   const page = `<article class="q-page q-une">
     <header class="q-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Questionnaire de visite</b><small>Une page, à remplir au stylo, en chiffres bien lisibles</small></div></header>
     <div class="q-bandeau">
@@ -81,7 +81,7 @@ export function ecranQuestionnaire(ctx) {
         <div class="q-poste q-coche"><span class="q-carre"></span><span>Autre : ……………………</span></div>
       </aside>
     </div>
-    <div class="q-pied"><b>Notes</b><span class="q-petit">Pièce non imprimée : une ligne « Autre ». Le détail (type de sol, plafond, type de châssis, futur chauffage) se complète plus tard dans l'appli. Après la visite : une photo de la feuille, bien à plat.</span></div>
+    <div class="q-pied"><b>Notes</b><span class="q-petit"><b>Séjour ouvert sur la cuisine : comptez la totalité des m² sur la ligne « Cuisine » et laissez vides les lignes Séjour / salon, salle à manger ou séjour.</b> Pièce non imprimée : une ligne « Autre ». Le détail (type de sol, plafond, type de châssis, futur chauffage) se complète plus tard dans l'appli. Après la visite : une photo de la feuille, bien à plat.</span></div>
   </article>`;
   return `${entete("")}
   <main class="questionnaire">
