@@ -146,7 +146,7 @@ function ecranAjouter() {
   if (!brouillon || brouillon.projet !== parcours) brouillon = { ...brouillonVide(), projet: parcours };
   const b = brouillon, reno = parcours === "renovation";
   const champ = (id, t, type = "text", extra = "") =>
-    `<label>${t}<input name="${id}" type="${type}" value="${esc(b[id])}" ${extra}></label>`;
+    `<label>${t}${/required/.test(extra) ? ' <b class="oblig-e">*</b>' : ""}<input name="${id}" type="${type}" value="${esc(b[id])}" ${extra}></label>`;
   return `${entete("")}
   <main class="etroit">
     <a href="#/" class="retour">← Mes maisons</a>
@@ -159,16 +159,16 @@ function ecranAjouter() {
         ${reno ? "" : champ("prix", "Prix demandé (€)", "number", 'min="0" inputmode="numeric" required')}
         ${champ("annee", "Année de construction", "number", 'min="1800" max="2030" inputmode="numeric" required')}
         ${champ("surface", "Surface habitable (m²)", "number", 'min="10" inputmode="numeric" required')}
-        <label>Nombre d'étages<select name="etages" required><option value="" disabled ${b.etages === "" ? "selected" : ""}>Choisir…</option>${ETAGES.map(([v, t]) => `<option value="${v}" ${b.etages !== "" && +b.etages === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+        <label>Nombre d'étages <b class="oblig-e">*</b><select name="etages" required><option value="" disabled ${b.etages === "" ? "selected" : ""}>Choisir…</option>${ETAGES.map(([v, t]) => `<option value="${v}" ${b.etages !== "" && +b.etages === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
         <label>Nombre de façades<select name="facades"><option value="">Je ne sais pas</option>${FACADES.map(([v, t]) => `<option value="${v}" ${+b.facades === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
         <label>${reno ? "Label PEB (si vous avez un certificat)" : "Label PEB (certificat de l'annonce)"}<select name="peb"><option value="">Je ne sais pas</option>${LABELS_PEB.map(l => `<option ${b.peb === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
-        ${champ("pebConso", "Consommation (kWh/m²/an)", "number", 'min="0" inputmode="numeric" placeholder="sur le certificat"')}
+        <label>Chauffage existant<select name="chauffageActuel">${CHAUFFAGE_ACTUEL.map(([v, t]) => `<option value="${v}" ${(b.chauffageActuel || "gaz") === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
         <label>État général<select name="etat">
           ${[["bon", "Bon état"], ["rafraichir", "À rafraîchir"], ["renover", "À rénover (support abîmé)"]].map(([v, t]) => `<option value="${v}" ${b.etat === v ? "selected" : ""}>${t}</option>`).join("")}
         </select></label>
 ${reno ? "" : `<label class="cb large"><input type="checkbox" name="uniqueHabitation" ${b.uniqueHabitation ? "checked" : ""}> Ce sera ma seule habitation, et j'y habiterai (droits d'enregistrement réduits à 3 % en Wallonie)</label>`}
       </div>
-      <p class="mu">Ensuite, sur la fiche de la maison : ajoutez les pièces dans l'onglet « Espaces », puis le chauffage et la structure dans l'onglet « Technique ». C'est là que le budget devient précis.</p>
+      <p class="mu petit-t"><b class="oblig-e">*</b> obligatoire. Le reste (carrelage ou parquet, futur chauffage, consommation PEB…) se complète plus tard sur la fiche de la maison : les pièces dans « Espaces », le chauffage et la structure dans « Technique ».</p>
       <button class="btn" type="submit">${reno ? "Voir le budget de la rénovation →" : "Voir le vrai coût →"}</button>
     </form>
   </main>`;
@@ -183,7 +183,7 @@ function creerMaison(b, exemple = false) {
     rep: { etat: b.etat === "renover" ? "oui" : "non" },
   };
   m.travaux = [];
-  m.chauffage = { ...b.chauffage };
+  m.chauffage = { ...b.chauffage, actuel: b.chauffageActuel || (b.chauffage || {}).actuel || "gaz" };
   appliquerChauffage(m);
   maisons.unshift(m);
   sauver();
@@ -491,7 +491,7 @@ function ecranMaison(m) {
     const P = fixes.filter(p => groupe(p) === g), rempli = P.filter(p => ligneDe(p.k)), t = rempli.reduce((s, p) => s + (ligneDe(p.k).fiab ? ligneDe(p.k).total[1] : 0), 0);
     return `<details class="grp fixe" data-ouvert="${m.id}:${esc(g)}" ${ouverts.has(`${m.id}:${g}`) ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
       <table class="fixes">${P.map(p => { const l = ligneDe(p.k); return `<tr>
-        <td>${esc(p.n)}</td>
+        <td>${esc(p.n)}${p.moinc ? `<small class="mu bloc">Main-d'œuvre ${esc(p.moinc)} : seul le matériau est compté ici.</small>` : ""}</td>
         <td class="q">${/escalier/.test(p.u)
           ? `<input type="number" min="0" step="1" inputmode="numeric" data-mmarches="${p.k}" value="${esc(l ? (l.marches ?? l.q * MARCHES_PAR_ESCALIER) : "")}" placeholder="0" aria-label="Nombre de marches : ${esc(p.n)}"><small>marches</small><small class="mu bloc">${MARCHES_PAR_ESCALIER} marches = 1 escalier</small>`
           : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>${(() => { const v = /^i_fa_\d$/.test(p.k) ? rf && rf.surf : rt && (POSTES_TOIT_M2.test(p.k) ? rt.surf : p.k === "i_to_0" ? rt.combles : p.k === "i_zi" ? rt.goutt : 0); return v && (!l || +l.q !== v) ? `<button type="button" class="toit-q" data-action="toit-q" data-k="${p.k}" data-q="${v}" title="Reprendre la mesure calculée">= ${nombre(v)}</button>` : ""; })()}`}</td>
@@ -524,6 +524,12 @@ function ecranMaison(m) {
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
 
+    ${blocDimensions(m)}
+
+    ${blocToiture(m)}
+
+    ${blocGrosTravaux(m)}
+
     <section class="carte">
       <h2>Le chauffage</h2>
       ${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
@@ -531,12 +537,6 @@ function ecranMaison(m) {
       ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
       ${(m.pieces || []).length ? `<p class="mu petit-t">Radiateurs et chauffage au sol : à remplir dans chaque pièce.${chf.rad === "nouv" ? " Ils sont comptés en nouveau raccordement (pas de chauffage existant)." : ""}</p>` : ""}
     </section>
-
-    ${blocDimensions(m)}
-
-    ${blocToiture(m)}
-
-    ${blocGrosTravaux(m)}
 
     <section class="carte">
       <h2>Structure, toiture et équipements</h2>
@@ -581,7 +581,7 @@ function ecranMaison(m) {
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
 
-      <section class="carte">
+      ${c.travaux[1] ? `      <section class="carte">
         <h2>Budget travaux</h2>
         <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
         <div class="recap">
@@ -593,9 +593,9 @@ function ecranMaison(m) {
         </div>
         ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
         ${lignesG ? `<details class="legende-d"><summary>Que veulent dire les étiquettes ?</summary><p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p></details>` : ""}
-      </section>
+      </section>` : `<section class="carte vide-trav"><h2>Budget travaux</h2><p>Pas encore de travaux encodés. Commencez par les pièces (onglet <button class="lien-o" data-action="onglet-m" data-o="pieces">Espaces</button>) ou par « Qu'est-ce qui est à refaire ? » (onglet <button class="lien-o" data-action="onglet-m" data-o="travaux">Technique</button>).</p></section>`}
 
-    ${reno ? blocFinancerRenovation(m, b, c) : `<div class="fin-page">
+    ${reno ? (c.travaux[1] ? blocFinancerRenovation(m, b, c) : `<div class="fin-page">${aides()}</div>`) : `<div class="fin-page">
         <section class="carte sim-achat">
           <h2>Simulation d'achat</h2>
           <div class="champs">
@@ -855,13 +855,13 @@ function resume(m) {
 }
 
 function ecranComparer() {
-  if (!selection) selection = achats().slice(0, 3).map(m => m.id);
+  if (!selection) { const miennes = achats().filter(m => !m.demo); selection = (miennes.length ? miennes : achats()).slice(0, 3).map(m => m.id); } // vos maisons d'abord ; les exemples se cochent
   selection = selection.filter(id => trouver(id) && achats().includes(trouver(id)));
   const choix = achats().map(m => `<label class="puce ${selection.includes(m.id) ? "on" : ""}"><input type="checkbox" data-comp="${m.id}" ${selection.includes(m.id) ? "checked" : ""}> ${esc(m.nom || "Maison")}</label>`).join("");
   const L = selection.map(id => resume(trouver(id)));
   if (L.length < 2) {
     return `${entete("comparer")}<main><h1>Comparer</h1><div class="puces">${choix}</div>
-      <div class="carte vide"><p>Choisissez au moins deux maisons à comparer.</p><a class="btn" href="#/ajouter">＋ Ajouter une maison</a></div></main>`;
+      <div class="carte vide"><p>Choisissez au moins deux maisons à comparer.${achats().some(m => m.demo) ? " Ajoutez une autre maison, ou cochez une maison d'exemple ci-dessus pour essayer." : ""}</p><a class="btn" href="#/ajouter">＋ Ajouter une maison</a></div></main>`;
   }
   const best = L.reduce((a, x) => (x.c.total[1] < a.c.total[1] ? x : a));
   const autres = L.filter(x => x !== best);
@@ -1325,7 +1325,7 @@ function ecranContacts(id) {
       ${metiers.length ? metiers.map(ligneMetier).join("") : `<p class="mu">Aucun travail encodé pour l'instant.</p>`}
       <p class="mu petit-t">Les coordonnées d'un artisan apparaissent quand il répond à votre projet (visite ou devis).</p>
     </section>
-    <section class="carte"><h2>Négociants de votre région</h2>${blocNegociants(b)}</section>
+    <section class="carte negs"><h2>Négociants de votre région</h2><p class="mu petit-t">Touchez un négociant pour voir ce qu'il vend, ses coordonnées et ses horaires.</p>${listeNegociants(m, b)}</section>
   </main>`;
 }
 

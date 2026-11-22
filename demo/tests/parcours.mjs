@@ -130,6 +130,11 @@ try {
     await page.locator('.neg-l > summary:has-text("Brik")').click();
     assert.match(await page.locator(".negs").innerText(), /Négociants de votre région[\s\S]*Brik'O[\s\S]*Matériaux vendus[\s\S]*✓/);
     assert.match(await page.locator(".negs").innerText(), /Comptoir du Sanitaire[\s\S]*|Loca'Chantier/);
+    await page.getByText("👷 Choisir les artisans").click();
+    assert.equal(await page.locator(".negs .neg-l").count(), 6, "négociants repliés aussi sur la page des artisans");
+    assert.ok(await page.locator(".negs .neg-l[open]").count() <= 1, "seul le négociant déjà ouvert reste ouvert");
+    await page.goBack();
+    await onglet("artisans");
     await page.getByText("📨 Envoyer le projet aux artisans").click();
     await page.locator('[data-action="envoi-ok"]').click();
     await page.getByText("Voir ce que reçoit l'artisan →").click();
@@ -515,6 +520,9 @@ try {
     await page.selectOption('select[name="etages"]', "0");
     await page.getByText("Voir le budget de la rénovation").click();
     await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor();
+    /* rénovation sans travaux : pas de tableaux à 0 €, un rappel à la place */
+    await page.locator(".vide-trav").waitFor();
+    assert.equal(await page.locator('h2:has-text("Simulation de financement")').count(), 0);
     assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
     /* photo du questionnaire : on photographie les 2 pages, Valou remplit la maison (démonstration : questionnaire d'exemple) */
     await onglet("pieces");

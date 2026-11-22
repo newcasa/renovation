@@ -883,7 +883,7 @@ textarea { font: 500 15px Manrope, sans-serif; color: var(--bordeaux); backgroun
 @media print {
   .q-une { padding: 0; overflow: visible; }
   .q-corps { min-width: 0 !important; grid-template-columns: minmax(0, 1fr) 58mm !important; }
-  .q-une .q-table tbody tr { height: 7mm; }
+  .q-une .q-table tbody tr { height: 6.3mm; }
 }
 .q-une .q-wc small { font-size: 8px; } .q-une .q-wc .q-carre { width: 11px; height: 11px; }
 .q-escalier-u { white-space: nowrap; }
@@ -1061,3 +1061,9 @@ label.dd-ligne { justify-content: flex-start; }
 .gt.on .gt-r { color: var(--or-fonce); }
 .gt.off { opacity: .7; cursor: default; border-style: dashed; }
 .intro-btn.sec { background: #fff; color: var(--bordeaux); border: 2px solid var(--bordeaux); }
+.oblig-e { color: var(--or-fonce); }
+.vide-trav p { margin: 0; }
+.lien-o { border: 0; background: none; padding: 0; font: inherit; font-weight: 800; color: var(--or-fonce); text-decoration: underline; cursor: pointer; }
+/* questionnaire : une seule page malgré la ligne des dimensions */
+.q-b1 .q-box { width: 60px; } .q-b1 .q-champ.large .q-box { width: 150px; } .q-b1 .q-champ { margin-right: 4px; }
+@media print { .q-pied { min-height: 0; } }

@@ -40,18 +40,19 @@ export function ecranQuestionnaire(ctx) {
   const lignes = PIECES_FEUILLE.map(([nom, type]) => {
     /* équipement : on écrit E (équipé, à garder) ou R (à remplacer) ; seulement cuisine, salle de bain et WC */
     const eq = ["cuisine", "sdb", "wc"].includes(type) ? `<td class="q-er"><small>${type === "cuisine" ? "cuisine" : type === "sdb" ? "SDB" : "WC"}</small></td>` : na;
+    /* l'essentiel seulement : les surfaces et ce qui est à refaire ; les choix (carrelage ou parquet, PVC ou alu, futur chauffage) se font plus tard dans l'appli */
     return `<tr><th>${esc(nom)}${nom === "Autre :" ? " <span class=\"q-trait\"></span>" : ""}</th>
-      <td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>
+      <td></td><td class="q-c">${carre}</td>
       <td class="q-c">${carre}</td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>
-      <td class="q-c">${carre}</td><td class="q-c">${carre}</td>
-      ${type === "garage" ? `<td></td>${na}${na}` : `<td></td><td class="q-c">${carre}</td><td class="q-c">${carre}</td>`}
-      ${type === "garage" ? `${na}${na}` : `<td></td><td class="q-c">${carre}</td>`}
+      <td class="q-c">${carre}</td>
+      <td></td>
+      ${type === "garage" ? na : "<td></td>"}
       ${eq}<td></td></tr>`;
   }).join("");
   const page = `<article class="q-page q-une">
     <header class="q-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Questionnaire de visite</b><small>Une page, à remplir au stylo, en chiffres bien lisibles</small></div></header>
     <div class="q-bandeau">
-      <div class="q-b1">${box("Nom", "", true)}${box("Commune", "", true)}${box("Prix", "€")}${box("Année")}${box("Surface", "m²")}</div>
+      <div class="q-b1">${box("Nom", "", true)}${box("Commune", "", true)}${box("Prix", "€")}${box("Année")}${box("Surface", "m²")}${box("Étages", "rez +")}${box("Façades", "2/3/4")}${box("Largeur façade", "m")}${box("Profondeur", "m")}</div>
       <div class="q-b2">
         <span class="q-bl"><b>État</b>${cases(["Bon", "À rafraîchir", "À rénover"])}</span>
         <span class="q-bl"><b>Seule habitation</b>${cases(["Oui", "Non"])}</span>
@@ -59,14 +60,13 @@ export function ecranQuestionnaire(ctx) {
       </div>
       <div class="q-b2">
         <span class="q-bl"><b>Chauffage existant</b>${cases(CHAUFFAGE_ACTUEL.map(c => c[1]))}</span>
-        <span class="q-bl"><b>Souhaité</b>${cases(["Garder", "Gaz à condensation", "Pompe à chaleur"])}</span>
       </div>
     </div>
     <div class="q-corps">
       <table class="q-table">
         <thead>
-          <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th colspan="2">Sol à refaire</th><th colspan="3">Murs (à refaire)</th><th colspan="2">Plafond</th><th colspan="3">Châssis à remplacer</th><th colspan="2">Chauffage</th><th rowspan="2">Équipé (E) /<br>à remplacer (R)</th><th rowspan="2">Remarques</th></tr>
-          <tr class="q-sous"><th>Carre&shy;lage</th><th>Par&shy;quet</th><th>Plafon&shy;nage</th><th>Pein&shy;ture</th><th>Carre&shy;lage</th><th>Pein&shy;ture</th><th>Pla&shy;ques</th><th>Nom&shy;bre</th><th>PVC</th><th>Alu</th><th>Radia&shy;teurs</th><th>Au sol</th></tr>
+          <tr><th rowspan="2">Pièces</th><th rowspan="2">Sol<br>m²</th><th rowspan="2">Sol à<br>refaire</th><th colspan="3">Murs (à refaire)</th><th rowspan="2">Plafond<br>à refaire</th><th rowspan="2">Châssis à<br>remplacer<br>(nombre)</th><th rowspan="2">Radia&shy;teurs<br>(nombre)</th><th rowspan="2">Équipé (E) /<br>à remplacer (R)</th><th rowspan="2">Remarques</th></tr>
+          <tr class="q-sous"><th>Plafon&shy;nage</th><th>Pein&shy;ture</th><th>Carre&shy;lage</th></tr>
         </thead>
         <tbody>${lignes}</tbody>
       </table>
@@ -77,7 +77,7 @@ export function ecranQuestionnaire(ctx) {
         <div class="q-poste"><span>Autre : ……………………</span><span class="q-box petit"></span><span class="q-u"></span></div>
       </aside>
     </div>
-    <div class="q-pied"><b>Notes</b><span class="q-petit">Équipé / à remplacer : écrivez E (équipé, à garder) ou R (à remplacer). WC à remplacer : suspendu par défaut, écrivez « sur pied » dans Remarques si besoin. Garage : nombre de portes dans « Châssis : nombre ». Pièce non imprimée (salle à manger, véranda, cave…) : une ligne « Autre ». Après la visite : une photo de la feuille, bien à plat, avec de la lumière.</span></div>
+    <div class="q-pied"><b>Notes</b><span class="q-petit">E = équipé (à garder), R = à remplacer. Garage : nombre de portes dans « Châssis ». Pièce non imprimée : une ligne « Autre ». Le type de sol, des châssis et le futur chauffage se choisissent plus tard dans l'appli. Après la visite : une photo de la feuille, bien à plat.</span></div>
   </article>`;
   return `${entete("")}
   <main class="questionnaire">
@@ -107,6 +107,8 @@ export function maisonDepuisQuestionnaire(r, nouvelId) {
     chauffage: { actuel: CHAUFFAGE_ACTUEL.some(c => c[0] === C.actuel) ? C.actuel : "gaz", souhaite: CHAUFFAGE_SOUHAITE.some(c => c[0] === C.souhaite) ? C.souhaite : "garder" },
     description: r.notes || "", source: "questionnaire",
     peb: ["A++", "A+", "A", "B", "C", "D", "E", "F", "G"].includes(M.peb) ? M.peb : null, pebConso: nombreOuNull(M.peb_conso),
+    etages: nombreOuNull(M.etages), facades: [2, 3, 4].includes(+M.facades) ? +M.facades : null,
+    toitDim: { larg: nombreOuNull(M.largeur), prof: nombreOuNull(M.profondeur) },
   };
   m.pieces = (r.pieces || []).filter(p => p && (p.nom || p.sol)).map((p, i) => {
     const murs = p.murs || [];
