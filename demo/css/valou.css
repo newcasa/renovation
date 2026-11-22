@@ -1075,3 +1075,5 @@ label.dd-ligne { justify-content: flex-start; }
 .q-une .q-table thead tr:first-child th:last-child { width: auto; }
 .q-une .q-table th.q-rem-t { text-align: left; padding-left: 8px; }
 .q-une .q-table tbody th { width: 34mm; }
+.q-une .q-table thead tr:first-child th:nth-child(4) { width: 16mm; }
+.q-une .q-table thead tr:first-child th:nth-child(5) { width: 20mm; }
