@@ -56,7 +56,7 @@ export function ecranQuestionnaire(ctx) {
   const page = `<article class="q-page q-une">
     <header class="q-tete"><img src="${img("logo-valou.png")}" alt="Valou"><div><b>Questionnaire de visite</b><small>Une page, à remplir au stylo, en chiffres bien lisibles</small></div></header>
     <div class="q-bandeau">
-      <div class="q-b1">${box("Nom", "", true)}${box("Commune", "", true)}${box("Prix", "€")}${box("Année")}${box("Surface", "m²")}${box("Étages", "rez +")}${box("Façades", "2/3/4")}${box("Largeur façade", "m")}${box("Profondeur", "m")}</div>
+      <div class="q-b1">${box("Adresse", "", true)}${box("Commune", "", true)}${box("Prix", "€")}${box("Année")}${box("Surface", "m²")}${box("Étages", "rez +")}${box("Façades", "2/3/4")}${box("Largeur façade", "m")}${box("Profondeur", "m")}</div>
       <div class="q-b2">
         <span class="q-bl"><b>État</b>${cases(["Bon", "À rafraîchir", "À rénover"])}</span>
         <span class="q-bl"><b>Seule habitation</b>${cases(["Oui", "Non"])}</span>

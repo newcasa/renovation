@@ -154,7 +154,7 @@ function ecranAjouter() {
     <form id="f-ajout" class="carte">
       <h2>La maison</h2>
       <div class="champs">
-        ${champ("nom", "Nom (pour vous)", "text", `placeholder="${reno ? "Ex. : ma maison" : "Ex. : maison rue des Tilleuls"}" required`)}
+        ${champ("nom", "Adresse", "text", `placeholder="Ex. : rue des Tilleuls 12" autocomplete="street-address" required`)}
         ${champ("commune", "Commune", "text", 'placeholder="Ex. : Seraing"')}
         ${reno ? "" : champ("prix", "Prix demandé (€)", "number", 'min="0" inputmode="numeric" required')}
         ${champ("annee", "Année de construction", "number", 'min="1800" max="2030" inputmode="numeric" required')}
