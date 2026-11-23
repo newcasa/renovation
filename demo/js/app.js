@@ -625,9 +625,11 @@ function ecranMaison(m) {
     <section class="carte pj-bref">
       <h2>En bref</h2>
       <div class="pj-chiffres">
-        <div><small>${reno ? "Budget de la rénovation" : "Vrai coût"}</small><b>${euros((reno ? c : cO).total[1], 100)}</b></div>
-        ${reno ? "" : `<div><small>dont travaux</small><b>${euros(cO.travaux[1], 100)}</b></div>`}
-        <div><small>${mensP ? "Mensualité" : "À emprunter"}</small><b>${mensP ? `${euros(mensP)}<i>/mois</i>` : euros(empruntP, 100)}</b></div>
+        ${(() => { /* En bref : toujours au prix de l'annonce (l'offre est dans la conclusion) */
+          const empA = Math.max(0, c.total[1] - (reno ? 0 : tpP.hors) - (+fP.apport || 0)), mensA = mensualite(empA, fP.taux, fP.duree);
+          return `<div><small>${reno ? "Budget de la rénovation" : "Vrai coût au prix annoncé"}</small><b>${euros(c.total[1], 100)}</b></div>
+        ${reno ? "" : `<div><small>dont travaux</small><b>${euros(c.travaux[1], 100)}</b></div>`}
+        <div><small>${mensA ? "Mensualité" : "À emprunter"}</small><b>${mensA ? `${euros(mensA)}<i>/mois</i>` : euros(empA, 100)}</b></div>`; })()}
       </div>
     <details class="pj-plus" data-ouvert="pjt-${m.id}" ${ouverts.has(`pjt-${m.id}`) ? "open" : ""}><summary><span>🔨 Détail des travaux</span><b>${euros(c.travaux[1], 100)}</b></summary>
       ${c.travaux[1] ? `      <section class="carte">
