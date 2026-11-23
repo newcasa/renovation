@@ -1445,6 +1445,13 @@ const INTRO = {
   artisan: { h: `Des chantiers déjà chiffrés, <span>avec les photos.</span>`, p: "Le client a visité, chiffré et photographié sa maison. Vous recevez son projet et vous choisissez : visite, devis ou pas disponible.", lien: "#/demo-artisan" },
   negociant: { h: `Soyez vu sur les chantiers <span>de votre région.</span>`, p: "Chaque maison chiffrée dans Valou, ce sont des matériaux à acheter. Votre fiche montre ce que vous vendez, vos services et vos horaires.", lien: "#/demo-negociant" },
 };
+/* la méthode, en 4 étapes (page d'intro et accueil de l'essai) */
+const METHODE = `<ol class="essai-etapes methode">
+        <li><b>Avant la visite</b><span>ajoutez l'adresse et imprimez le questionnaire</span></li>
+        <li><b>Pendant la visite</b><span>remplissez la feuille au stylo et prenez les photos</span></li>
+        <li><b>Après la visite</b><span>photographiez la feuille : Valou remplit la maison</span></li>
+        <li><b>Projet</b><span>le vrai coût, votre offre et votre financement</span></li>
+      </ol>`;
 function ecranIntro() {
   const I = INTRO[VERSION] || INTRO.complete;
   return `<main class="intro-page">
@@ -1452,6 +1459,7 @@ function ecranIntro() {
       <img class="intro-logo" src="${img("logo-valou.png")}" alt="Valou">
       <h1>${I.h}</h1>
       <p class="intro-sous">${esc(I.p)}</p>
+      ${VERSION === "complete" ? `<h2 class="methode-t">Comment ça marche</h2>${METHODE}` : ""}
       <a class="btn intro-btn" href="${I.lien}">Commencer la démo →</a>
       <ul class="intro-pour">
         <li><b>🏠 Acheteurs</b><span>le vrai budget, gratuit</span></li>
@@ -1473,11 +1481,7 @@ function ecranEssai() {
       <img class="intro-logo" src="${img("logo-valou.png")}" alt="Valou">
       <h1>Bienvenue dans la <span>version d'essai</span></h1>
       <p class="intro-sous">Vous visitez une maison à acheter, ou vous voulez rénover la vôtre ? Valou calcule ce que ça va vraiment vous coûter, travaux compris.</p>
-      <ol class="essai-etapes">
-        <li><b>Ajoutez la maison</b><span>à acheter (avec son prix) ou à rénover</span></li>
-        <li><b>Encodez les pièces et les travaux</b><span>pièce par pièce, avec des photos si vous le voulez</span></li>
-        <li><b>Découvrez son vrai coût</b><span>et comparez-la à d'autres maisons</span></li>
-      </ol>
+      ${METHODE}
       <section class="avantages av-particulier intro-av"><b>Pour vous, c'est gratuit</b><ul>${["Le vrai coût avant de faire une offre : prix, droits, notaire et travaux", "Le budget de votre rénovation, pièce par pièce", "Vos maisons comparées sur leur vrai coût, PEB compris", "Un dossier complet pour la banque", "Votre projet envoyé aux artisans, qui le comprennent sans se déplacer"].map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>
       <span class="actions-g centre"><a class="btn intro-btn" href="#/ajouter">＋ Ajouter une maison à acheter</a><button class="btn intro-btn sec" data-action="essai-reno">🔨 Ajouter ma maison à rénover</button></span>
       ${n ? `<p class="centre"><a class="btn lien" href="#/">👀 Voir ${maisons.some(m => m.demo) ? "les maisons d'exemple et les vôtres" : `mes maisons (${n})`} →</a></p>` : ""}

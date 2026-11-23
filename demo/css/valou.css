@@ -1247,3 +1247,5 @@ label.dd-ligne { justify-content: flex-start; }
 @media print { .imprime-seul { display: table; } }
 .ic-q { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #eef3fb; border: 1px solid #c8d6ee; color: #3a5a8c; font: 700 11.5px Manrope, sans-serif; letter-spacing: 0; white-space: nowrap; text-transform: none; }
 h1 .ic-q { font-size: 12px; }
+.methode-t { margin: 18px 0 6px; font-size: 17px; text-align: left; }
+.intro-boite .methode { margin-bottom: 18px; }
