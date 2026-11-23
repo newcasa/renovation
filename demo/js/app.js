@@ -1,13 +1,13 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences, configServeur } from "./donnees.js?v=202611231235";
-import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611231235";
-import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611231235";
-import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611231235";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611231235";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611231235";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611231235";
-import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611231235";
-import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611231235";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611231327";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611231327";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611231327";
+import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611231327";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611231327";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611231327";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611231327";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611231327";
+import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611231327";
 
 let R = null;
 let maisons = lireMaisons();
@@ -109,7 +109,7 @@ function ecranAccueil() {
     <section class="hero">
       <h1>${P.h}</h1>
       <p>${esc(P.p)}</p>
-      <span class="actions-g">${parcours === "achat" ? `<a class="btn sec" href="#/questionnaire">📝 Questionnaire à imprimer</a>` : ""}<a class="btn" href="#/ajouter">${P.ajout}</a><a class="btn sec" href="#/nouvelle-photo">📷 Créer depuis la photo du questionnaire</a></span>
+      <span class="actions-g">${parcours === "achat" ? `<a class="btn sec" href="#/questionnaire">📝 Questionnaire à imprimer</a>${boutonPartagerQ("btn lien")}` : ""}<a class="btn" href="#/ajouter">${P.ajout}</a><a class="btn sec" href="#/nouvelle-photo">📷 Créer depuis la photo du questionnaire</a></span>
     </section>
     ${essai ? `<section class="carte essai-info"><b>Version d'essai</b>
       <p>Vos maisons restent <b>sur ce téléphone</b> : pas de compte, rien n'est envoyé. L'envoi aux artisans et à la banque est simulé, et les artisans et négociants affichés sont fictifs.</p>
@@ -151,7 +151,7 @@ function ecranAjouter() {
   <main class="etroit">
     <a href="#/" class="retour">← Mes maisons</a>
     <h1>${reno ? "Ajouter ma maison à rénover" : "Ajouter une maison à acheter"}</h1>
-    <p class="depuis-photo">Questionnaire déjà rempli ? <a href="#/nouvelle-photo">📷 Créer la maison depuis sa photo</a></p>
+    <p class="depuis-photo">Questionnaire déjà rempli ? <a href="#/nouvelle-photo">📷 Créer la maison depuis sa photo</a><br>Pas encore imprimé ? ${boutonPartagerQ("lien-o")}</p>
     <form id="f-ajout" class="carte">
       <h2>Étape 1 · Avant la visite : ce que vous savez déjà</h2>
       <div class="champs">
@@ -394,7 +394,7 @@ function travauxPret(m, b, travauxMoy) {
 function blocTravauxPret(m, tp) {
   if (!tp.groupes.length) return "";
   const n = tp.groupes.filter(x => x.inclus).length, id = "pret-" + m.id;
-  const ligne = x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.k)}" ${x.inclus ? "checked" : ""}><span>${esc(x.g)} <em class="pt-src ${x.devis ? "devis" : ""}">${x.devis ? "Devis" : "Estimation"}</em></span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`;
+  const ligne = x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.k)}" ${x.inclus ? "checked" : ""}><span>${lx(x.g)} <em class="pt-src ${x.devis ? "devis" : ""}">${x.devis ? "Devis" : "Estimation"}</em></span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`;
   const grps = [...new Set(tp.groupes.map(x => x.grp))];
   return `<details class="pret-trav" data-ouvert="${id}" ${ouverts.has(id) ? "open" : ""}>
     <summary class="pt-tete"><span><b>Travaux inclus dans le prêt</b><small class="mu">${n} sur ${tp.groupes.length}${tp.hors ? ` · ${euros(tp.hors, 100)} payés vous-même` : " · touchez pour choisir"}</small></span></summary>
@@ -466,7 +466,7 @@ function carteEnergie(m, b) {
 }
 
 /* ---------- écran : le vrai coût d'une maison (en 5 onglets) ---------- */
-const ONGLETS_M = [["pieces", "Pendant la visite"], ["travaux", "Après la visite"], ["artisans", "Les pros"], ["projet", "Projet"]];
+const ONGLETS_M = [["pieces", "Pendant la visite"], ["travaux", "Après la visite"], ["artisans", "Les artisans"], ["projet", "Projet"]];
 const ONGLETS_R = ONGLETS_M;
 const ongletsDe = m => (projetDe(m) === "renovation" ? ONGLETS_R : ONGLETS_M);
 const ongletsM = {}; // onglet ouvert, par maison
@@ -512,7 +512,7 @@ function ecranMaison(m) {
     return `<div class="carte-piece" style="${stylePiece(m, pc)}"><a href="#/maison/${m.id}/piece/${pc.id}">
         <span class="pc-ico">${iconePiece(pc)}</span><b>${esc(pc.nom)}${icQ(pc.depuisPhoto)}</b>
         <small class="mu">${pc.sol ? `${String(pc.sol).replace(".", ",")} m²` : "surface à remplir"}</small>
-        <small class="pc-res">${esc(resumePiece(pc)) || "Rien de coché : touchez pour choisir les travaux"}</small>
+        <small class="pc-res">${esc(resumePiece(pc)) || "Rien de coché : touchez pour choisir les travaux"}</small>${pc.note ? `<small class="pc-note">« ${esc(pc.note)} »</small>` : ""}
         <span class="pc-bud">${t ? euros(t, 10) : "–"}</span>${(n => (n ? `<small class="pc-photos">📷 ${n}</small>` : ""))(photosDe(m).filter(p => memeNom(p.nomPiece, pc.nom)).length)}</a>
       <button class="x" data-action="suppr-piece" data-id="${pc.id}" aria-label="Supprimer ${esc(pc.nom)}">✕</button></div>`;
   }).join("");
@@ -526,7 +526,7 @@ function ecranMaison(m) {
     const P = fixes.filter(p => groupe(p) === g), rempli = P.filter(p => ligneDe(p.k)), t = rempli.reduce((s, p) => s + (ligneDe(p.k).fiab ? ligneDe(p.k).total[1] : 0), 0);
     return `<details class="grp fixe" data-ouvert="${m.id}:${esc(g)}" ${ouverts.has(`${m.id}:${g}`) ? "open" : ""}><summary><span>${esc(g)} ${rempli.length ? `<small class="mu">· ${rempli.length} poste${rempli.length > 1 ? "s" : ""}</small>` : ""}</span><span class="r">${t ? euros(t, 10) : ""}</span></summary>
       <table class="fixes">${P.map(p => { const l = ligneDe(p.k); return `<tr>
-        <td>${esc(p.n)}${p.moinc ? `<small class="mu bloc">Main-d'œuvre ${esc(p.moinc)} : seul le matériau est compté ici.</small>` : ""}</td>
+        <td>${lx(p.n)}${p.moinc ? `<small class="mu bloc">Main-d'œuvre ${esc(p.moinc)} : seul le matériau est compté ici.</small>` : ""}</td>
         <td class="q">${/escalier/.test(p.u)
           ? `<input type="number" min="0" step="1" inputmode="numeric" data-mmarches="${p.k}" value="${esc(l ? (l.marches ?? l.q * MARCHES_PAR_ESCALIER) : "")}" placeholder="0" aria-label="Nombre de marches : ${esc(p.n)}"><small>marches</small><small class="mu bloc">${MARCHES_PAR_ESCALIER} marches = 1 escalier</small>`
           : `<input type="number" min="0" step="any" inputmode="decimal" data-mq="${p.k}" value="${esc(l ? l.q : "")}" placeholder="0" aria-label="Quantité : ${esc(p.n)}"><small>${esc(unitePoste(p.u, p.k))}</small>${(() => { const v = /^i_fa_\d$/.test(p.k) ? rf && rf.surf : rt && (POSTES_TOIT_M2.test(p.k) ? rt.surf : p.k === "i_to_0" ? rt.combles : p.k === "i_zi" ? rt.goutt : 0); return v && (!l || +l.q !== v) ? `<button type="button" class="toit-q" data-action="toit-q" data-k="${p.k}" data-q="${v}" title="Reprendre la mesure calculée">= ${nombre(v)}</button>` : ""; })()}`}</td>
@@ -549,7 +549,7 @@ function ecranMaison(m) {
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), txtEtages(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
-    ${ongletMaison(m) === "projet" ? "" : `<button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>${c.travaux[1] ? "" : `<i class="vc-alerte">⚠️ sans les travaux</i> `}voir Projet ›</small></button>`}
+    ${ongletMaison(m) === "projet" ? "" : `<button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${nonChiffres(m).length ? "Au moins" : reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>${!c.travaux[1] ? `<i class="vc-alerte">⚠️ sans les travaux</i> ` : nonChiffres(m).length ? `<i class="vc-alerte">⚠️ ${nonChiffres(m).length} travaux non chiffrés</i> ` : ""}voir Projet ›</small></button>`}
 
     <nav class="onglets-m" aria-label="Parties de la fiche">${ongletsDe(m).map(([id, t]) => `<button class="om-i ${ongletMaison(m) === id ? "on" : ""}" data-action="onglet-m" data-o="${id}"${ongletMaison(m) === id ? ' aria-current="true"' : ""}>${t}${id === "travaux" && (m.pieces || []).length ? ` <small>${m.pieces.length}</small>` : ""}</button>`).join("")}</nav>
     ${(() => {
@@ -568,7 +568,8 @@ function ecranMaison(m) {
       </div>`}
     </section>
 
-    <h2 class="titre-tech">La technique</h2>
+    <details class="carte ap-sec" data-ouvert="tech-${m.id}" ${ouverts.has(`tech-${m.id}`) ? "open" : ""}>
+      <summary><h2 class="titre-tech">🏗️ La technique</h2><small class="mu">Dimensions, toiture, gros travaux, chauffage, réglages${manques.length ? ` · ⚠️ ${manques.length} à compléter` : ""}</small></summary>
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
 
@@ -600,7 +601,8 @@ function ecranMaison(m) {
             ${hyp}
           </div>
         </details>
-      ${suivant("artisans", "Suivant : Les pros")}`;
+    </details>
+      ${suivant("artisans", "Suivant : Les artisans")}`;
       if (o === "artisans") return `
     <section class="carte choisir-art"><h2>Choisir vos artisans</h2>
       <p class="mu">Pour chaque métier : le projet propre à ce métier (les pièces et les postes à envoyer, le matériau souhaité), puis jusqu'à 3 artisans à qui l'envoyer.</p>
@@ -628,10 +630,13 @@ function ecranMaison(m) {
       <div class="pj-chiffres">
         ${(() => { /* En bref : toujours au prix de l'annonce (l'offre est dans la conclusion) */
           const empA = Math.max(0, c.total[1] - (reno ? 0 : tpP.hors) - (+fP.apport || 0)), mensA = mensualite(empA, fP.taux, fP.duree);
-          return `<div><small>${reno ? "Budget de la rénovation" : "Vrai coût au prix annoncé"}</small><b>${euros(c.total[1], 100)}</b></div>
-        ${reno ? "" : `<div><small>dont travaux</small><b>${euros(c.travaux[1], 100)}</b></div>`}
+          const nc = nonChiffres(m).length ? "au moins " : "";
+          return `<div><small>${reno ? "Budget de la rénovation" : "Vrai coût au prix annoncé"}</small><b>${nc}${euros(c.total[1], 100)}</b></div>
+        ${reno ? "" : `<div><small>dont travaux</small><b>${nc}${euros(c.travaux[1], 100)}</b>${c.travaux[0] !== c.travaux[2] ? `<i class="pj-f">entre ${euros(c.travaux[0], 100)} et ${euros(c.travaux[2], 100)}</i>` : ""}</div>`}
         <div><small>${mensA ? "Mensualité" : "À emprunter"}</small><b>${mensA ? `${euros(mensA)}<i>/mois</i>` : euros(empA, 100)}</b></div>`; })()}
       </div>
+      ${alerteNonChiffres(m)}
+      ${!reno && concerneParObligation(m.peb) ? `<p class="nc-alerte peb-alerte">⚡ PEB ${esc(m.peb)} : obligation de rénovation annoncée, atteindre le label ${OBLIGATION_PEB.cible} dans les ${OBLIGATION_PEB.delaiAns} ans (à confirmer). Aide possible : ${lx("Rénopack")}.</p>` : ""}
     <details class="pj-plus" data-ouvert="pjt-${m.id}" ${ouverts.has(`pjt-${m.id}`) ? "open" : ""}><summary><span>🔨 Détail des travaux</span><b>${euros(c.travaux[1], 100)}</b></summary>
       ${c.travaux[1] ? `      <section class="carte">
         <h2>Budget travaux</h2>
@@ -639,9 +644,9 @@ function ecranMaison(m) {
         <div class="recap">
           <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
           <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
-          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
+          <div><span>${lx("TVA")} (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
           ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
-          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
+          <div><span>${lx("Imprévus")} (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
         </div>
         ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
         ${lignesG ? `<details class="legende-d"><summary>Que veulent dire les étiquettes ?</summary><p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p></details>` : ""}
@@ -669,7 +674,7 @@ function ecranMaison(m) {
               <thead><tr><th></th><td>Prix demandé</td>${o ? `<td class="sim-o">Votre offre</td>` : ""}</tr></thead>
               <tbody>
                 ${L("Prix", euros(c.prix), euros(cO.prix))}
-                ${L(`Droits d'enregistrement (${String(c.tauxDroits).replace(".", ",")}&nbsp;%)`, euros(c.droits), euros(cO.droits))}
+                ${L(`${lx("Droits d'enregistrement")} (${String(c.tauxDroits).replace(".", ",")}&nbsp;%)`, euros(c.droits), euros(cO.droits))}
                 ${L("Frais de notaire", nc(c), nc(cO))}
                 ${L("Travaux (TVA et imprévus)", euros(c.travaux[1], 100), euros(cO.travaux[1], 100))}
                 ${L("Total", `<b>${euros(c.total[1], 100)}</b>`, `<b>${euros(cO.total[1], 100)}</b>`, "sim-tot")}
@@ -698,7 +703,11 @@ function ecranMaison(m) {
           <h2>Simulation de financement</h2>
           <div class="champs">
             ${blocTravauxPret(m, tp)}
-            ${ch("apport", "Apport personnel", "€", "ex. 40000")}
+            ${ch("apport", `${lx("Apport")} personnel`, "€", "ex. 40000")}
+            ${(() => { const mini = (cO.droits || 0) + (cO.notaire || 0);
+              if (!mini) return "";
+              if (!(+f.apport > 0)) return `<small class="mu">Conseil : les banques demandent souvent un apport qui couvre au moins les droits et le notaire, ici ${euros(mini, 100)}.</small>`;
+              return apport < mini ? `<p class="alerte-mini">⚠️ Votre apport (${euros(apport)}) ne couvre pas les droits et le notaire (${euros(mini, 100)}) : beaucoup de banques le demandent. À vérifier avec elle.</p>` : ""; })()}
             <div class="ligne"><span>Montant à emprunter</span><b>${euros(emprunt, 100)}</b></div>
             <small class="mu">Coût total ${m.offre ? "avec votre offre" : "au prix demandé"} ${euros(cO.total[1], 100)}${tp.hors ? ` − travaux hors prêt ${euros(tp.hors, 100)}` : ""} − apport${apport ? "" : " (à compléter)"}.</small>
             ${ch("taux", "Taux annuel du crédit (si vous l'avez)", "%", "taux de la banque")}
@@ -724,7 +733,8 @@ function ecranMaison(m) {
       })()}
     <section class="carte vrai-cout pj-conclu">
       <small>${reno ? "Le budget de votre rénovation" : "En conclusion"}</small>
-      <div class="gros">${euros((reno ? c : cO).total[1], 100)}</div>
+      <div class="gros">${nonChiffres(m).length ? "au moins " : ""}${euros((reno ? c : cO).total[1], 100)}</div>
+      ${alerteNonChiffres(m)}
       ${(reno ? c : cO).travaux[1] ? "" : `<p class="sans-trav">⚠️ Travaux pas encore encodés : ce montant ${reno ? "est vide" : "ne compte que le prix, les droits et le notaire"}. Complétez l'onglet Après la visite.</p>`}
       ${(() => {
         if (reno) return `<p>La banque financerait <b>${euros(empruntP, 100)}</b>${mensP ? `, soit <b>${euros(mensP)} par mois</b>` : ""}.</p>`;
@@ -733,6 +743,8 @@ function ecranMaison(m) {
         return `<p>${offreOn ? `Avec votre offre de <b>${euros(+m.offre)}</b>, la maison vous coûte <b>${euros(Math.abs(d), 100)} ${d >= 0 ? "de moins" : "de plus"}</b> qu'au prix de l'annonce (${euros(c.total[1], 100)}).` : `Au prix de l'annonce, travaux compris, soit <b>${euros(c.total[1] - c.prix, 100)} de plus</b> que le prix affiché.`}</p>
         <p>La banque financerait <b>${euros(empruntP, 100)}</b>${mensP ? `, soit <b>${euros(mensP)} par mois</b>${offreOn && mensA !== mensP ? ` (${euros(Math.abs(mensA - mensP))} de ${mensA > mensP ? "moins" : "plus"} qu'au prix de l'annonce)` : ""}` : ""}.</p>`;
       })()}
+      ${(reno ? c : cO).travaux[0] !== (reno ? c : cO).travaux[2] ? `<p class="mu">Travaux estimés entre ${euros((reno ? c : cO).travaux[0], 100)} et ${euros((reno ? c : cO).travaux[2], 100)}, selon les choix et les devis.</p>` : ""}
+      <p><button class="btn sec" data-action="partager-resume">📤 Partager le résumé</button></p>
     </section>
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
@@ -777,7 +789,7 @@ function corpsPiece(m, pc) {
   const b = calculerBudget(R, m), L = b.lignes.filter(l => l.pieceId === pc.id);
   const bud = sec => { const t = L.filter(l => l.sec === sec).reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0); return t ? `<span class="rb-bud">${euros(t, 10)}</span>` : ""; };
   const fiab = sec => { const l = L.find(x => x.sec === sec); return l ? badge(l.fiab) : ""; };
-  const cb = (f, t) => `<label class="cb"><input type="checkbox" data-pc="${f}" ${pc[f] ? "checked" : ""}> ${t}</label>`;
+  const cb = (f, t) => `<label class="cb"><input type="checkbox" data-pc="${f}" ${pc[f] ? "checked" : ""}> ${lx(t)}</label>`;
   const sel = (f, L2) => `<select data-pc="${f}">${L2.map(([v, t]) => `<option value="${v}" ${(pc[f] || L2[0][0]) === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
   const num = (f, t, ph = "") => `<label>${t}<input type="number" min="0" step="any" inputmode="decimal" data-pc="${f}" value="${esc(pc[f] ?? "")}" placeholder="${esc(ph)}"></label>`;
   const sol = +pc.sol || 0, murs = mursPiece(pc);
@@ -836,7 +848,7 @@ function ecranPiece(m, pc) {
   return `${entete("maisons")}
   <main class="etroit piece-ecran" style="${stylePiece(m, pc)}">
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
-    <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}${icQ(pc.depuisPhoto)}</h1><p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
+    <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}${icQ(pc.depuisPhoto)}</h1>${pc.note ? `<p class="pc-note">Remarque du questionnaire : « ${esc(pc.note)} »</p>` : ""}<p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
     ${total ? "" : `<p class="consigne">👇 Tapez la surface au sol, puis <b>cochez ce qui est à refaire</b> (sol, murs, plafond, châssis…) : le budget de la pièce se calcule tout de suite.</p>`}
     ${corpsPiece(m, pc)}
     <p><a class="btn" href="#/maison/${m.id}">✓ Pièce terminée</a></p>
@@ -929,7 +941,9 @@ function resume(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
   const tot = b.postes.reduce((s, p) => s + p.total[1], 0) || 1;
   const part = f => Math.round((b.postes.filter(p => f.includes(p.fiab)).reduce((s, p) => s + p.total[1], 0) / tot) * 100);
-  return { m, b, c, detail: part(["reference", "estimation"]), fourch: part(["fourchette", "incomplet"]) };
+  const cO = +m.offre > 0 ? coutTotal({ ...m, prix: +m.offre }, b) : null, X = cO || c;
+  const f = m.fin || {}, tp = travauxPret(m, b, X.travaux[1]), emprunt = Math.max(0, X.total[1] - tp.hors - (+f.apport || 0));
+  return { m, b, c, cO, mens: mensualite(emprunt, f.taux, f.duree), emprunt, detail: part(["reference", "estimation"]), fourch: part(["fourchette", "incomplet"]) };
 }
 
 function ecranComparer() {
@@ -964,6 +978,9 @@ function ecranComparer() {
       ${ligne("Notaire", x => (x.c.notaire == null ? `<span class="manque">à compléter</span>` : euros(x.c.notaire)))}
       ${ligne("Travaux (moyen)", x => `${euros(x.c.travaux[1], 100)}<small class="mu">${fourchette(x.c.travaux)}</small>`)}
       ${ligne("<b>Vrai coût</b>", x => `<b>${euros(x.c.total[1], 100)}</b><small class="mu">${fourchette(x.c.total)}</small>`, "fort")}
+      ${L.some(x => x.cO) ? ligne("Votre offre", x => (x.cO ? euros(+x.m.offre) : `<span class="mu">pas d'offre</span>`)) : ""}
+      ${L.some(x => x.cO) ? ligne("Vrai coût avec l'offre", x => (x.cO ? `<b>${euros(x.cO.total[1], 100)}</b>` : `<span class="mu">–</span>`)) : ""}
+      ${ligne("Mensualité", x => (x.mens ? `${euros(x.mens)} / mois` : `<span class="mu">à simuler (onglet Projet)</span>`))}
       ${ligne("Écart avec le prix affiché", x => `+${euros(x.c.total[1] - x.c.prix, 100)} <small class="mu">(+${x.c.prix ? Math.round(((x.c.total[1] - x.c.prix) / x.c.prix) * 100) : 0} %)</small>`)}
       ${ligne("Label PEB", x => (x.m.peb ? pebBadge(x.m.peb) + (concerneParObligation(x.m.peb) ? ` <small class="mu">obligation annoncée : label ${OBLIGATION_PEB.cible} en ${OBLIGATION_PEB.delaiAns} ans</small>` : "") : `<span class="mu">inconnu</span>`))}
       ${ligne("Travaux énergétiques (moyen)", x => euros(travauxEnergie(x.b).total[1], 100))}
@@ -1182,7 +1199,7 @@ function blocDocsDossier(m) {
       ${docErreur ? `<p class="alerte-mini">${esc(docErreur)}</p>` : ""}
       ${types.map(([k, t]) => { const L = D.filter(d => d.type === k);
         return `<div class="doc-l ${L.length ? "ok" : ""}">
-          <div class="doc-t"><span class="doc-ic">${L.length ? "✓" : "📄"}</span><b>${esc(t)}</b><label class="btn sec petit-btn doc-aj">📎 Ajouter<input type="file" accept="image/*,application/pdf" multiple data-doc="${k}" hidden></label></div>
+          <div class="doc-t"><span class="doc-ic">${L.length ? "✓" : "📄"}</span><b>${lx(t)}</b><label class="btn sec petit-btn doc-aj">📎 Ajouter<input type="file" accept="image/*,application/pdf" multiple data-doc="${k}" hidden></label></div>
           ${L.length ? `<ul class="doc-f">${L.map(d => `<li><a href="${d.url}" target="_blank" rel="noopener">${d.mime === "application/pdf" ? "📕" : "🖼️"} ${esc(d.nom)}</a><small class="mu">${tailleDoc(d.taille)}</small><button class="x" data-action="doc-suppr" data-id="${d.id}" aria-label="Retirer ${esc(d.nom)}">✕</button></li>`).join("")}</ul>` : ""}
         </div>`; }).join("")}
     </div>
@@ -1564,6 +1581,15 @@ function depuisLecture(lu) {
   const M = lu.maison || {};
   const typeDe = nom => TYPES_PAR_NOM[(nom || "").toLowerCase()] || (/cuisine/i.test(nom) ? "cuisine" : /bain|douche/i.test(nom) ? "sdb" : /^wc/i.test(nom) ? "wc" : /garage/i.test(nom) ? "garage" : "standard");
   let pieces = (lu.pieces || []).map(p => ({ nom: p.nom, type: typeDe(p.nom), sol: p.sol_m2, sol_refaire: p.sol_a_refaire, murs: p.murs_a_refaire ? ["peinture"] : [], chassis: p.chassis, remarque: p.remarques || "" }));
+  /* remarques courantes → travaux cochés (à vérifier) */
+  const interp = [];
+  pieces.forEach(p => {
+    const r = (p.remarque || "").toLowerCase(), refaire = /(remplac|refaire|à refaire|neuve?|vétuste|vetuste|abîm|abim|vieill)/.test(r);
+    if (p.type === "cuisine" && refaire && !/ouvert/.test(r)) { p.cuisine = true; interp.push(`${p.nom} : cuisine équipée à remplacer (cochée)`); }
+    if (p.type === "sdb" && refaire) { p.sdb = true; interp.push(`${p.nom} : salle de bain à refaire (cochée)`); }
+    if (/plafond/.test(r) && refaire) { p.plafond = "peinture"; interp.push(`${p.nom} : plafond à refaire (coché)`); }
+    if (/(humid|moisi|salpêtre|salpetre|infiltr|champignon)/.test(r)) interp.push(`${p.nom} : humidité signalée, à faire vérifier (traitement non chiffré)`);
+  });
   /* pièce « ouverte sur la cuisine » (remarque) : ses m² et ses travaux sont totalisés dans la cuisine */
   const cuis = pieces.find(p => p.type === "cuisine");
   if (cuis) {
@@ -1582,8 +1608,8 @@ function depuisLecture(lu) {
     chauffage: { actuel: M.chauffage || "gaz", souhaite: "garder" }, chauffageLu: !!M.chauffage,
     pieces,
     structure: {},
-    notes: pieces.filter(p => p.remarque).map(p => `${p.nom} : ${p.remarque}`).join("\n"),
-    gros: lu.gros || [], rappels: lu.rappels || [], doutes: lu.doutes || [],
+    notes: "", // les remarques vont dans leur pièce (plus dans l'en-tête de la fiche)
+    gros: lu.gros || [], rappels: lu.rappels || [], doutes: [...(lu.doutes || []), ...interp.map(t => "Interprété : " + t)],
   };
 }
 function ecranQuestionnairePhoto(m) {
@@ -1633,8 +1659,52 @@ function ecranQuestionnairePhoto(m) {
   </main>`;
 }
 /* fusionne les réponses lues dans la maison (sans rien effacer d'autre) */
+/* ---------- partager (téléphone) ou copier (ordinateur) ---------- */
+function bulleInfo(txt) {
+  document.querySelector(".lex-bulle")?.remove();
+  const d = document.createElement("div"); d.className = "lex-bulle"; d.setAttribute("role", "status"); d.textContent = txt;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 5000);
+}
+function partager(donnees, copie) {
+  const texte = [donnees.text, donnees.url].filter(Boolean).join("\n");
+  if (navigator.share) return navigator.share(donnees).catch(() => {});
+  if (navigator.clipboard) return navigator.clipboard.writeText(texte).then(() => bulleInfo(copie), () => bulleInfo("Copie impossible ici : " + texte));
+  bulleInfo("Copie impossible ici : " + texte);
+}
+const URL_QUESTIONNAIRE = () => new URL(DEMO_DIR + "questionnaire-visite.pdf", location.href).href;
+function partagerQuestionnaire() {
+  partager({ title: "Questionnaire de visite Valou", text: "Le questionnaire à imprimer et remplir pendant la visite :", url: URL_QUESTIONNAIRE() }, "Le lien du questionnaire est copié : envoyez-le-vous par message ou par e-mail.");
+}
+const boutonPartagerQ = (cls = "btn sec") => `<button type="button" class="${cls}" data-action="partager-q">📩 M'envoyer le questionnaire</button>`;
+/* ---------- lexique : un mot technique touché → une explication en une phrase ---------- */
+const LEXIQUE = [
+  [/rampants?/i, "Les pans inclinés du toit, vus de l'intérieur : on isole sous la toiture, entre les chevrons."],
+  [/sarking/i, "Isolation posée par l'extérieur, au-dessus de la charpente, quand on refait la couverture."],
+  [/sous-toiture/i, "La membrane posée sous les tuiles : elle protège de l'eau et du vent."],
+  [/zinguerie/i, "Les gouttières, descentes d'eau et pièces en zinc du toit."],
+  [/plafonnage/i, "L'enduit au plâtre des murs ou du plafond, posé avant la peinture."],
+  [/imprévus/i, "Une réserve de 10 à 15 % pour les mauvaises surprises découvertes pendant les travaux."],
+  [/TVA/, "6 % pour la rénovation d'un logement de plus de 10 ans par un entrepreneur ; 21 % pour le matériel acheté soi-même."],
+  [/droits d'enregistrement/i, "L'impôt payé à l'achat : 3 % en Wallonie pour votre seule habitation, sinon 12,5 %."],
+  [/extrait de rôle/i, "Le document des impôts qui montre vos revenus de l'année : la banque le demande."],
+  [/\bPEB\b/, "Le certificat de performance énergétique : de A++ (très économe) à G (très énergivore)."],
+  [/Rénopack/, "Le prêt à taux zéro de la Wallonie pour rénover, avec une partie remboursée sous conditions."],
+  [/\bapport\b/i, "L'argent que vous mettez vous-même : il paie d'abord les droits et le notaire."],
+  [/\(ITE\)/, "Isolation thermique par l'extérieur des façades."],
+];
+function lx(texte) {
+  let h = esc(texte);
+  LEXIQUE.forEach(([re], i) => { h = h.replace(new RegExp(re.source, re.flags.includes("i") ? "i" : ""), m => `<span class="lex" data-lex="${i}" tabindex="0">${m}</span>`); });
+  return h;
+}
 /* petit badge : ce bloc a été prérempli grâce à la photo du questionnaire */
 const icQ = on => (on ? ` <span class="ic-q" title="Prérempli grâce à la photo du questionnaire">📝 questionnaire</span>` : "");
+/* travaux cochés (questionnaire) dont la quantité n'est pas encore connue : pas comptés dans le vrai coût */
+const nonChiffres = m => [...new Set(m.aCompleter || [])].filter(k => !ligneFixe(m, k)).map(k => (R.postes[k] ? R.postes[k].n : k));
+function alerteNonChiffres(m) {
+  const N = nonChiffres(m);
+  return N.length ? `<p class="nc-alerte">⚠️ ${N.length} travau${N.length > 1 ? "x cochés" : " coché"} pas encore compté${N.length > 1 ? "s" : ""} (${esc(N.join(", "))}) : le vrai coût sera plus élevé. <button class="lien-o" data-action="onglet-m" data-o="travaux" data-ouvrir="tech-${m.id}">Les compléter ›</button></p>` : "";
+}
 function appliquerQuestionnaire(m, L) {
   const D = L.toitDim || {};
   m.depuisPhoto = { ...(m.depuisPhoto || {}), infos: true, dims: !!(D.larg || D.prof || L.facades || L.etages != null), chauffage: L.chauffageLu !== false, gros: !!(L.gros || []).length, rappels: !!(L.rappels || []).length };
@@ -1687,12 +1757,12 @@ function donneesManquantes(m) {
   const sansSurf = P.filter(p => !p.sol && p.type !== "wc");
   if (sansSurf.length) L.push(["Surface au sol : " + sansSurf.map(p => p.nom).join(", "), `href="#/maison/${m.id}/piece/${sansSurf[0].id}"`]);
   const aChoisir = P.filter(p => (p.sOn || p.chOn || p.pOn) && !p.vu);
-  if (aChoisir.length) L.push(["Choisir les matériaux (carrelage ou parquet, type de châssis…) : " + aChoisir.map(p => p.nom).join(", "), `href="#/maison/${m.id}/piece/${aChoisir[0].id}"`]);
-  if (!(+D.larg > 0) || !(+D.prof > 0)) L.push(["Largeur et profondeur de la maison (pour le toit et les façades)", `data-action="onglet-m" data-o="travaux"`]);
-  if (!m.toiture) L.push(["Type de toiture", `data-action="onglet-m" data-o="travaux"`]);
+  if (aChoisir.length) L.push(["Choisir les matériaux (carrelage ou parquet, type de châssis…)", `href="#/maison/${m.id}/piece/${aChoisir[0].id}"`, aChoisir.map(p => `<a class="puce pv-puce" href="#/maison/${m.id}/piece/${p.id}">${esc(p.nom)} ›</a>`).join("")]);
+  if (!(+D.larg > 0) || !(+D.prof > 0)) L.push(["Largeur et profondeur de la maison (pour le toit et les façades)", `data-action="onglet-m" data-o="travaux" data-ouvrir="tech-${m.id}"`]);
+  if (!m.toiture) L.push(["Type de toiture", `data-action="onglet-m" data-o="travaux" data-ouvrir="tech-${m.id}"`]);
   const ac = (m.aCompleter || []).filter(k => !ligneFixe(m, k));
-  if (ac.length) L.push(["Quantités des gros travaux cochés : " + ac.map(k => (R.postes[k] ? R.postes[k].n : k)).join(", "), `data-action="onglet-m" data-o="travaux"`]);
-  if (!(m.chauffage || {}).souhaiteOk && ((m.chauffage || {}).souhaite || "garder") === "garder") L.push(["Futur chauffage (garder l'actuel, gaz ou pompe à chaleur)", `data-action="onglet-m" data-o="travaux"`]);
+  if (ac.length) L.push(["Quantités des gros travaux cochés : " + ac.map(k => (R.postes[k] ? R.postes[k].n : k)).join(", "), `data-action="onglet-m" data-o="travaux" data-ouvrir="tech-${m.id}"`]);
+  if (!(m.chauffage || {}).souhaiteOk && ((m.chauffage || {}).souhaite || "garder") === "garder") L.push(["Futur chauffage (garder l'actuel, gaz ou pompe à chaleur)", `data-action="onglet-m" data-o="travaux" data-ouvrir="tech-${m.id}"`]);
   return L;
 }
 function blocParcoursVisite(m) {
@@ -1729,11 +1799,12 @@ function blocApresVisite(m) {
   const DM = donneesManquantes(m);
   return `<section class="carte parcours-v q-etape ${m.questLu ? "ok" : "en-cours"}">
     <div class="pv-tete"><span class="pv-n">${m.questLu ? "✓" : "📝"}</span><div><b>Faire la photo du questionnaire</b><small class="mu">${m.questLu ? "Photo lue et validée : la maison est remplie" : "Photographiez la feuille remplie pendant la visite : Valou remplit les pièces et les travaux"}</small></div></div>
-    <p class="pv-corps"><a class="btn ${m.questLu ? "sec" : ""}" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>
+    ${!m.questLu && photosDe(m).length ? `<p class="pv-rappel">📷 Vous avez pris ${photosDe(m).length} photo${photosDe(m).length > 1 ? "s" : ""} pendant la visite : n'oubliez pas la photo de la feuille du questionnaire.</p>` : ""}
+    <p class="pv-corps"><a class="btn ${m.questLu ? "sec" : ""}" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a>${m.questLu ? "" : ` ${boutonPartagerQ("btn lien")}`}</p>
   </section>
   <section class="carte parcours-v apres-v ${DM.length ? "" : "ok"}">
     <h2>${DM.length ? `À compléter (${DM.length})` : "✓ Tout est complet"}</h2>
-    ${DM.length ? `<ul class="pv-manque">${DM.map(([t, attr]) => `<li><${/^href/.test(attr) ? "a" : "button"} class="pv-lien" ${attr}>${esc(t)} ›</${/^href/.test(attr) ? "a" : "button"}></li>`).join("")}</ul>` : `<p class="mu">Voyez le vrai coût dans l'onglet Projet.</p><button class="btn" data-action="onglet-m" data-o="projet">Voir le Projet →</button>`}
+    ${DM.length ? `<ul class="pv-manque">${DM.map(([t, attr, puces]) => puces ? `<li><span class="pv-lien pv-sans">${esc(t)} :</span><span class="pv-puces">${puces}</span></li>` : `<li><${/^href/.test(attr) ? "a" : "button"} class="pv-lien" ${attr}>${esc(t)} ›</${/^href/.test(attr) ? "a" : "button"}></li>`).join("")}</ul>` : `<p class="mu">Voyez le vrai coût dans l'onglet Projet.</p><button class="btn" data-action="onglet-m" data-o="projet">Voir le Projet →</button>`}
   </section>`;
 }
 /* ---------- didacticiel bulle par bulle : à la première ouverture de chaque page, et avec le bouton « ❔ » ---------- */
@@ -1745,14 +1816,10 @@ const TUTOS = {
     [".barre-bas, .nav-haut", "Le menu : vos maisons, la comparaison, les artisans à contacter, et le reste dans « Plus »."],
   ],
   maison: [
-    [".vc-mini", "Le chiffre clé : ce que la maison va vraiment vous coûter. Le détail est dans l'onglet Projet."],
-    [".onglets-m", "La fiche suit l'ordre de la visite, en 4 onglets."],
-    [".parcours-v", "Pendant la visite : validez les infos connues, puis prenez les photos de la visite. L'étape en cours est en orange."],
-    ['.om-i[data-o="pieces"]', "Pendant la visite : les infos connues et les photos."],
-    ['.om-i[data-o="travaux"]', "Après la visite : la photo du questionnaire, ce qui manque encore, les pièces à compléter, puis la technique."],
-    ['.om-i[data-o="artisans"]', "Les pros : choisissez vos artisans, recevez leurs devis, trouvez vos négociants et contactez un courtier."],
-    ['.om-i[data-o="projet"]', "Projet : le vrai coût, le PEB, le budget, la simulation d'une offre et du financement, les aides et le dossier pour la banque."],
-    [".aide-btn", "Besoin d'un rappel ? Ce bouton relance le didacticiel de la page."],
+    [".vc-mini", "Le chiffre clé : ce que la maison va vraiment vous coûter."],
+    [".onglets-m", "4 onglets, dans l'ordre : Pendant la visite, Après la visite, Les artisans, Projet."],
+    [".parcours-v", "Suivez les étapes : l'étape en cours est en orange, elle passe en vert une fois faite."],
+    [".aide-btn", "Ce bouton relance ces explications quand vous voulez."],
   ],
   piece: [
     [".titre-piece", "La pièce et son budget, qui se met à jour à chaque case cochée."],
@@ -1830,6 +1897,16 @@ document.addEventListener("click", e => {
 addEventListener("resize", () => tuto && dessinerTuto(false));
 addEventListener("scroll", () => tuto && dessinerTuto(false), { passive: true });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && tuto) fermerTuto(); });
+/* lexique : toucher un mot souligné affiche son explication */
+document.addEventListener("click", e => {
+  const x = e.target.closest && e.target.closest("[data-lex]");
+  if (!x) return;
+  e.preventDefault(); e.stopPropagation();
+  document.querySelector(".lex-bulle")?.remove();
+  const d = document.createElement("div"); d.className = "lex-bulle"; d.setAttribute("role", "status");
+  d.innerHTML = `<b>${esc(x.textContent)}</b> : ${esc(LEXIQUE[+x.dataset.lex][1])}`;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 6000);
+}, true);
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches && e.target.matches("[data-offre-saisie]")) { e.preventDefault(); document.querySelector('[data-action="offre-ok"]')?.click(); } });
 /* après chaque écran : première visite de la page → didacticiel (pas pendant les tests automatiques) */
 function apresAffichage() {
@@ -2043,8 +2120,16 @@ document.addEventListener("click", e => {
     }
   }
   if (a === "onglet-m" && m) {
-    ongletsM[m.id] = el.dataset.o; afficher();
-    window.scrollTo(0, 0); // un onglet s'ouvre toujours en haut de la page
+    ongletsM[m.id] = el.dataset.o;
+    if (el.dataset.ouvrir) { ouverts.add(el.dataset.ouvrir); document.querySelectorAll(`details[data-ouvert="${el.dataset.ouvrir}"]`).forEach(d => { d.open = true; }); } // lien vers une partie repliée : on l'ouvre
+    afficher();
+    const cible = el.dataset.ouvrir && document.querySelector(`[data-ouvert="${el.dataset.ouvrir}"]`);
+    if (cible) cible.scrollIntoView({ block: "start" }); else window.scrollTo(0, 0); // sinon un onglet s'ouvre en haut
+  }
+  if (a === "partager-q") partagerQuestionnaire();
+  if (a === "partager-resume") {
+    const z = document.querySelector(".pj-conclu"), txt = `${(m && m.nom) || "Maison"} : ${z ? z.innerText.replace(/📤.*$/s, "").replace(/\n{2,}/g, "\n").trim() : ""}\n(estimation Valou, à confirmer)`;
+    partager({ title: "Vrai coût de la maison", text: txt }, "Le résumé est copié : collez-le dans un message.");
   }
   if (a === "avis-envoyer") {
     const txt = texteAvis();

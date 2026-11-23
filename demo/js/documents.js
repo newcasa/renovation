@@ -1,7 +1,7 @@
 /* Valou — documents du dossier pour la banque (fiches de paie, PEB, compromis…).
    Ils restent sur l'appareil (IndexedDB) : rien n'est envoyé. Les photos sont réduites, les PDF gardés tels quels. */
-import { cle } from "./chemins.js?v=202611231235";
-import { reduire } from "./photos.js?v=202611231235";
+import { cle } from "./chemins.js?v=202611231327";
+import { reduire } from "./photos.js?v=202611231327";
 
 const DB = cle("valou_demo_docs"), STORE = "docs";
 const MAX_OCTETS = 10 * 1024 * 1024; // 10 Mo par document
