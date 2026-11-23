@@ -1281,3 +1281,4 @@ p.pc-note { background: #F4F6FA; padding: 8px 10px; border-radius: 8px; font-siz
   .q-page.q-une { break-inside: avoid; break-after: auto; }
 }
 @media print { .q-rappels > div { grid-template-columns: repeat(5, 1fr) !important; } .q-deux { grid-template-columns: 1.15fr 1fr !important; } }
+.pv-e, .ap-sec { scroll-margin-top: 150px; }

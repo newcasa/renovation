@@ -40,6 +40,7 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-00-intro.png` });
     await page.getByText("Commencer la démo →").click();
     await page.getByText("Ajouter une nouvelle adresse").first().waitFor();
+    assert.equal(await page.getByText("Créer depuis la photo du questionnaire").count(), 0, "plus de création depuis la photo");
     await page.screenshot({ path: `${OUT}/${nom}-1-accueil.png` });
 
     /* la maison de démonstration est déjà là à la première visite */
@@ -124,11 +125,13 @@ try {
     await page.waitForFunction(() => { const v = document.getElementById("viseur"); return v && v.videoWidth > 0; });
     await page.locator('[data-action="declencher"]').click();
     await page.locator(".vis-miniatures img").first().waitFor();
-    /* « Terminer la visite » : la caméra s'éteint, retour à la fiche sur l'onglet Après la visite, en haut de page */
+    /* « Terminer la visite » : la caméra s'éteint, retour sur Pendant la visite, étape 2 : la photo du questionnaire */
     const urlPhotos = page.url();
     await page.locator('.vis-suite [data-action="visite-fin"]').click();
-    await page.locator('.om-i.on[data-o="travaux"]').waitFor();
-    assert.equal(await page.evaluate(() => window.scrollY), 0);
+    await page.locator('.om-i.on[data-o="pieces"]').waitFor();
+    assert.ok(await page.locator("#pv-1.ok").count(), "photos de la visite faites");
+    assert.match(await page.locator("#pv-2").innerText(), /La photo du questionnaire|Les infos connues à valider/);
+    await page.locator("#pv-2").screenshot({ path: `${OUT}/${nom}-13-etape2.png` });
     await page.goto(urlPhotos);
     await page.locator('.groupe-photos:has(h2:has-text("Mezzanine"))').waitFor();
     assert.match(await page.locator('.groupe-photos:has(h2:has-text("Cuisine"))').innerText(), /2 photos[\s\S]*Ouvrir la pièce/);
@@ -560,9 +563,10 @@ try {
     await page.locator(".vide-trav").waitFor();
     assert.equal(await page.locator('h2:has-text("Simulation de financement")').count(), 0);
     assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/i);
-    /* photo du questionnaire (onglet Après la visite) : Valou remplit la maison (démonstration : questionnaire d'exemple) */
-    await onglet("travaux");
-    await page.getByText("📝 Photo du questionnaire").click();
+    /* photo du questionnaire (Pendant la visite, étape 2) : Valou remplit la maison (démonstration : questionnaire d'exemple) */
+    await onglet("pieces");
+    assert.equal(await page.locator(".parcours-v .pv-e").count(), 2, "Pendant la visite : 1 photos, 2 photo du questionnaire");
+    await page.locator('#pv-2 a:has-text("📝 Photo du questionnaire")').click();
     await page.locator("[data-qphoto]").setInputFiles([png, { ...png, name: "page2.png" }]);
     await page.locator(".q-photos .vignette").nth(1).waitFor();
     await page.locator('[data-action="q-lire"]').click();
@@ -570,16 +574,18 @@ try {
     assert.match(await page.locator(".q-resultat").innerText(), /Démonstration[\s\S]*6 pièces[\s\S]*Séjour \/ salon[\s\S]*Structure/);
     await page.screenshot({ path: `${OUT}/${nom}-20-questionnaire-photo.png`, fullPage: nom === "ordi" });
     await page.locator('[data-action="q-appliquer"]').click();
+    /* l'étape 2 devient « Les infos connues à valider » */
+    await page.locator('.om-i.on[data-o="pieces"]').waitFor();
+    assert.match(await page.locator("#pv-2").innerText(), /Les infos connues à valider/);
+    assert.equal(await page.locator("#pv-2.ok").count(), 0, "pas encore validées");
+    await page.screenshot({ path: `${OUT}/${nom}-20b-infos-a-valider.png` });
+    await page.locator('#pv-2 [data-action="infos-ok"][data-v="1"]').click();
+    assert.ok(await page.locator("#pv-2.ok").count(), "infos validées");
+    await onglet("travaux");
     await page.locator(".carte-piece").nth(5).waitFor();
     assert.match(await page.locator(".grille-pieces").innerText(), /Séjour \/ salon[\s\S]*Cuisine[\s\S]*Salle de bain[\s\S]*Chambre 2/);
     assert.doesNotMatch(await page.locator(".vc-mini").innerText(), /\b0 €/);
-    /* Après la visite : la photo du questionnaire passe en vert ; Pendant la visite : infos connues (à valider) et photos */
-    assert.ok(await page.locator(".q-etape.ok").count(), "la photo du questionnaire passe en vert");
-    assert.match(await page.locator(".q-etape").innerText(), /lue et validée/);
-    await onglet("pieces");
-    assert.equal(await page.locator(".parcours-v .pv-e").count(), 2, "Pendant la visite : infos connues et photos");
-    await page.locator('[data-action="infos-ok"][data-v="1"]').click();
-    assert.ok(await page.locator("#pv-1.ok").count(), "infos validées");
+    assert.equal(await page.locator(".q-etape").count(), 0, "plus de photo du questionnaire dans Après la visite");
     assert.match(await page.locator(".om-i").allInnerTexts().then(t => t.join("|")), /Pendant la visite[\s\S]*Après la visite[\s\S]*Les artisans[\s\S]*Projet/);
     await page.goto(URL + "#/");
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »

@@ -109,7 +109,7 @@ function ecranAccueil() {
     <section class="hero">
       <h1>${P.h}</h1>
       <p>${esc(P.p)}</p>
-      <span class="actions-g">${parcours === "achat" ? `<a class="btn sec" href="#/questionnaire">📝 Questionnaire à imprimer</a>${boutonPartagerQ("btn lien")}` : ""}<a class="btn" href="#/ajouter">${P.ajout}</a><a class="btn sec" href="#/nouvelle-photo">📷 Créer depuis la photo du questionnaire</a></span>
+      <span class="actions-g">${parcours === "achat" ? `<a class="btn sec" href="#/questionnaire">📝 Questionnaire à imprimer</a>${boutonPartagerQ("btn lien")}` : ""}<a class="btn" href="#/ajouter">${P.ajout}</a></span>
     </section>
     ${essai ? `<section class="carte essai-info"><b>Version d'essai</b>
       <p>Vos maisons restent <b>sur ce téléphone</b> : pas de compte, rien n'est envoyé. L'envoi aux artisans et à la banque est simulé, et les artisans et négociants affichés sont fictifs.</p>
@@ -151,7 +151,7 @@ function ecranAjouter() {
   <main class="etroit">
     <a href="#/" class="retour">← Mes maisons</a>
     <h1>${reno ? "Ajouter ma maison à rénover" : "Ajouter une maison à acheter"}</h1>
-    <p class="depuis-photo">Questionnaire déjà rempli ? <a href="#/nouvelle-photo">📷 Créer la maison depuis sa photo</a><br>Pas encore imprimé ? ${boutonPartagerQ("lien-o")}</p>
+    <p class="depuis-photo">Questionnaire pas encore imprimé ? ${boutonPartagerQ("lien-o")}</p>
     <form id="f-ajout" class="carte">
       <h2>Étape 1 · Avant la visite : ce que vous savez déjà</h2>
       <div class="champs">
@@ -473,6 +473,7 @@ const ongletsM = {}; // onglet ouvert, par maison
 const ongletMaison = m => (ongletsDe(m).some(([id]) => id === ongletsM[m.id]) ? ongletsM[m.id] : "pieces");
 /* groupes de postes et réglages ouverts par l'utilisateur (fermés par défaut) */
 const ouverts = new Set();
+let allerA = null; // id d'un bloc à montrer au prochain affichage (ex. « pv-2 » après la visite)
 document.addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.ouvert) d.open ? ouverts.add(d.dataset.ouvert) : ouverts.delete(d.dataset.ouvert); }, true);
 function ecranMaison(m) {
   const b = calculerBudget(R, m), c = coutTotal(m, b);
@@ -561,7 +562,7 @@ function ecranMaison(m) {
       <h2>Les espaces${icQ((m.pieces || []).some(pc => pc.depuisPhoto))}</h2>
       <p class="mu">Les pièces remplies par le questionnaire. Ouvrez-les pour compléter le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
       <div class="grille-pieces">${cartesPieces}</div>
-      ${!m.questLu && !(m.pieces || []).length ? `<p class="consigne">Les pièces viennent du questionnaire de visite : imprimez-le, remplissez-le pendant la visite, puis photographiez-le (ci-dessus).</p>` : `<div class="ajout-piece">
+      ${!m.questLu && !(m.pieces || []).length ? `<p class="consigne">Les pièces viennent du questionnaire de visite : imprimez-le, remplissez-le pendant la visite, puis photographiez-le (onglet Pendant la visite, étape 2).</p><p><a class="btn" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a></p>` : `<div class="ajout-piece">
         <input id="np-nom" placeholder="Nom de la pièce (ex. Chambre 3)" aria-label="Nom de la nouvelle pièce">
         <select id="np-type" aria-label="Type de pièce">${TYPES_PIECE.map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join("")}</select>
         <button class="btn sec" data-action="ajout-piece">＋ Ajouter une pièce oubliée</button>
@@ -650,7 +651,7 @@ function ecranMaison(m) {
         </div>
         ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
         ${lignesG ? `<details class="legende-d"><summary>Que veulent dire les étiquettes ?</summary><p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p></details>` : ""}
-      </section>` : `<section class="carte vide-trav"><h2>Budget travaux</h2><p>Pas encore de travaux encodés. Commencez par le questionnaire de visite (onglet <button class="lien-o" data-action="onglet-m" data-o="pieces">Pendant la visite</button>), puis complétez les pièces et la technique (onglet <button class="lien-o" data-action="onglet-m" data-o="travaux">Après la visite</button>).</p></section>`}
+      </section>` : `<section class="carte vide-trav"><h2>Budget travaux</h2><p>Pas encore de travaux encodés. Commencez par la photo du questionnaire de visite (onglet <button class="lien-o" data-action="onglet-m" data-o="pieces">Pendant la visite</button>), puis complétez les pièces et la technique (onglet <button class="lien-o" data-action="onglet-m" data-o="travaux">Après la visite</button>).</p></section>`}
     </details>
     <details class="pj-plus" data-ouvert="pje-${m.id}" ${ouverts.has(`pje-${m.id}`) ? "open" : ""}><summary><span>⚡ Énergie (PEB)</span><b>${m.peb ? `PEB ${esc(m.peb)}` : "à compléter"}</b></summary>
     ${carteEnergie(m, b)}
@@ -1300,7 +1301,7 @@ function ecranPhotos(m) {
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
     <h1>📷 Photos de la visite</h1>
     ${carteVisite}
-    <p class="fin-visite"><button class="btn" data-action="visite-fin">✓ Terminer la visite</button><small class="mu">Ensuite : la photo du questionnaire, dans « Après la visite ».</small></p>
+    <p class="fin-visite"><button class="btn" data-action="visite-fin">✓ Terminer la visite</button><small class="mu">Ensuite : la photo du questionnaire (étape 2 de « Pendant la visite »).</small></p>
     ${P.length ? `<h2 class="sous-titre">Pièces photographiées</h2>` + groupes.map(g => {
       const L = P.filter(p => p.nomPiece === g), pc = pieceDePhoto(m, L[0]);
       return `<section class="carte groupe-photos" ${pc ? `style="${stylePiece(m, pc)}"` : ""}>
@@ -1465,8 +1466,8 @@ const INTRO = {
 /* la méthode, en 4 étapes (page d'intro et accueil de l'essai) */
 const METHODE = `<ol class="essai-etapes methode">
         <li><b>Avant la visite</b><span>ajoutez l'adresse et imprimez le questionnaire</span></li>
-        <li><b>Pendant la visite</b><span>remplissez la feuille au stylo et prenez les photos</span></li>
-        <li><b>Après la visite</b><span>photographiez la feuille : Valou remplit la maison</span></li>
+        <li><b>Pendant la visite</b><span>prenez les photos, remplissez la feuille au stylo, puis photographiez-la : Valou remplit la maison</span></li>
+        <li><b>Après la visite</b><span>complétez les pièces et la technique</span></li>
         <li><b>Projet</b><span>le vrai coût, votre offre et votre financement</span></li>
       </ol>`;
 function ecranIntro() {
@@ -1613,7 +1614,7 @@ function depuisLecture(lu) {
   };
 }
 function ecranQuestionnairePhoto(m) {
-  const nouvelle = m.id === "nouvelle"; // créer une nouvelle maison à partir de la photo
+  const nouvelle = false;
   if (qPhoto.maisonId !== m.id) qPhoto = { maisonId: m.id, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" };
   const Q = qPhoto;
   let corps;
@@ -1766,19 +1767,16 @@ function donneesManquantes(m) {
   return L;
 }
 function blocParcoursVisite(m) {
-  /* onglet « Pendant la visite » : les infos connues, le questionnaire (vert quand sa photo est lue), les photos */
+  /* onglet « Pendant la visite » : 1. les photos de la visite ; 2. la photo du questionnaire, qui devient « les infos connues à valider » */
   const im = infosManquantes(m), nPh = photosDe(m).length;
-  const fait = [!!m.infosOk, nPh > 0 && !!m.visiteFinie];
+  const fait = [nPh > 0 && !!m.visiteFinie, !!m.questLu && !!m.infosOk];
   const courant = fait.findIndex(x => !x);
-  const R0 = m.rappels || {}, nR = RAPPELS_VISITE.filter(([k]) => R0[k]).length, idR = `rappels-${m.id}`, idI = `infos-${m.id}`;
+  const idI = `infos-${m.id}`;
   const champ = (f, t, ph, txt) => `<label>${t}<input ${txt ? `data-ft="${f}" type="text"` : `data-f="${f}" type="number" inputmode="decimal" min="0"`} value="${esc(m[f] ?? "")}" placeholder="${ph}"></label>`;
   const etape = (i, titre, sous, corps) => `<li class="pv-e ${fait[i] ? "ok" : ""} ${i === courant ? "en-cours" : ""}" id="pv-${i + 1}">
       <div class="pv-tete"><span class="pv-n">${fait[i] ? "✓" : i + 1}</span><div><b>${titre}</b><small class="mu">${sous}</small></div></div>
       <div class="pv-corps">${corps}</div></li>`;
-  return `<section class="carte parcours-v">
-    <h2>Pendant la visite</h2>
-    <ol class="pv-liste">
-      ${etape(0, `Les infos connues${icQ((m.depuisPhoto || {}).infos)}`, m.infosOk ? `Validé${im.length ? ` · à compléter plus tard : ${esc(im.join(", "))}` : ""}` : im.length ? `À compléter : ${esc(im.join(", "))}` : "Tout est rempli : validez", `<details class="pv-infos" data-ouvert="${idI}" ${ouverts.has(idI) || !m.infosOk ? "open" : ""}><summary>${im.length ? "Compléter les infos" : "Voir ou modifier"}</summary>
+  const infos = `<details class="pv-infos" data-ouvert="${idI}" ${ouverts.has(idI) || !m.infosOk ? "open" : ""}><summary>${m.infosOk ? "Voir ou modifier" : "Vérifier les infos lues sur la feuille"}</summary>
         <div class="champs pv-grille">
           ${projetDe(m) === "achat" ? champ("prix", "Prix demandé (€)", "ex. 245000") : ""}
           ${champ("commune", "Commune", "ex. Seraing", true)}
@@ -1789,20 +1787,24 @@ function blocParcoursVisite(m) {
           <label>Label PEB<select data-ft="peb"><option value="">Je ne sais pas</option>${LABELS_PEB.map(l => `<option ${m.peb === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
           <label>Chauffage existant<select data-mchf="actuel">${CHAUFFAGE_ACTUEL.map(([v, t]) => `<option value="${v}" ${(m.chauffage || {}).actuel === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></label>
         </div>
-        ${m.infosOk ? `<button class="btn lien" data-action="infos-ok" data-v="0">Modifier</button>` : `<button class="btn" data-action="infos-ok" data-v="1">✓ Valider les infos</button>`}</details>`)}
-      ${etape(1, "Les photos de la visite", nPh ? `${nPh} photo${nPh > 1 ? "s" : ""}, rangées par pièce${m.visiteFinie ? " · visite terminée" : ""}` : "En même temps que le questionnaire, pièce par pièce", `<p>${boutonPhotosMaison(m)}</p>`)}
+        ${m.infosOk ? `<button class="btn lien" data-action="infos-ok" data-v="0">Modifier</button>` : `<button class="btn" data-action="infos-ok" data-v="1">✓ Valider les infos</button>`}</details>
+        <p class="pv-refaire"><a class="btn lien" href="#/maison/${m.id}/questionnaire">📝 Reprendre la photo du questionnaire</a></p>`;
+  const photoQ = `${nPh ? `<p class="pv-rappel">📷 ${nPh} photo${nPh > 1 ? "s" : ""} prise${nPh > 1 ? "s" : ""} : il reste la photo de la feuille du questionnaire.</p>` : ""}
+        <p><a class="btn" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a> ${boutonPartagerQ("btn lien")}</p>`;
+  return `<section class="carte parcours-v">
+    <h2>Pendant la visite</h2>
+    <ol class="pv-liste">
+      ${etape(0, "Les photos de la visite", nPh ? `${nPh} photo${nPh > 1 ? "s" : ""}, rangées par pièce${m.visiteFinie ? " · visite terminée" : ""}` : "Pièce par pièce, en remplissant le questionnaire au stylo", `<p>${boutonPhotosMaison(m)}</p>`)}
+      ${m.questLu
+        ? etape(1, `Les infos connues à valider${icQ((m.depuisPhoto || {}).infos)}`, m.infosOk ? `Validé${im.length ? ` · à compléter plus tard : ${esc(im.join(", "))}` : ""}` : `Lues sur la photo du questionnaire${im.length ? ` · à compléter : ${esc(im.join(", "))}` : " : vérifiez et validez"}`, infos)
+        : etape(1, "La photo du questionnaire", "Photographiez la feuille remplie : Valou lit les infos, les pièces et les travaux", photoQ)}
     </ol>
   </section>`;
 }
 /* onglet « Après la visite » : ce qui manque encore */
 function blocApresVisite(m) {
   const DM = donneesManquantes(m);
-  return `<section class="carte parcours-v q-etape ${m.questLu ? "ok" : "en-cours"}">
-    <div class="pv-tete"><span class="pv-n">${m.questLu ? "✓" : "📝"}</span><div><b>Faire la photo du questionnaire</b><small class="mu">${m.questLu ? "Photo lue et validée : la maison est remplie" : "Photographiez la feuille remplie pendant la visite : Valou remplit les pièces et les travaux"}</small></div></div>
-    ${!m.questLu && photosDe(m).length ? `<p class="pv-rappel">📷 Vous avez pris ${photosDe(m).length} photo${photosDe(m).length > 1 ? "s" : ""} pendant la visite : n'oubliez pas la photo de la feuille du questionnaire.</p>` : ""}
-    <p class="pv-corps"><a class="btn ${m.questLu ? "sec" : ""}" href="#/maison/${m.id}/questionnaire">📝 Photo du questionnaire</a>${m.questLu ? "" : ` ${boutonPartagerQ("btn lien")}`}</p>
-  </section>
-  <section class="carte parcours-v apres-v ${DM.length ? "" : "ok"}">
+  return `<section class="carte parcours-v apres-v ${DM.length ? "" : "ok"}">
     <h2>${DM.length ? `À compléter (${DM.length})` : "✓ Tout est complet"}</h2>
     ${DM.length ? `<ul class="pv-manque">${DM.map(([t, attr, puces]) => puces ? `<li><span class="pv-lien pv-sans">${esc(t)} :</span><span class="pv-puces">${puces}</span></li>` : `<li><${/^href/.test(attr) ? "a" : "button"} class="pv-lien" ${attr}>${esc(t)} ›</${/^href/.test(attr) ? "a" : "button"}></li>`).join("")}</ul>` : `<p class="mu">Voyez le vrai coût dans l'onglet Projet.</p><button class="btn" data-action="onglet-m" data-o="projet">Voir le Projet →</button>`}
   </section>`;
@@ -1989,7 +1991,6 @@ function afficher() {
   else if (md && trouver(md[1])) html = ecranDossier(trouver(md[1]));
   else if (mph && trouver(mph[1])) html = ecranPhotos(trouver(mph[1]));
   else if (mqp && trouver(mqp[1])) html = ecranQuestionnairePhoto(trouver(mqp[1]));
-  else if (h === "/nouvelle-photo") html = ecranQuestionnairePhoto({ id: "nouvelle" });
   else if (mp && trouver(mp[1]) && (trouver(mp[1]).pieces || []).some(p => p.id === mp[2])) html = ecranPiece(trouver(mp[1]), trouver(mp[1]).pieces.find(p => p.id === mp[2]));
   else if (mm && trouver(mm[1])) html = ecranMaison(trouver(mm[1]));
   else html = ecranAccueil();
@@ -1998,6 +1999,7 @@ function afficher() {
   if (document.getElementById("viseur")) ouvrirCamera();
   afficher.dernier = h;
   window.scrollTo(0, meme ? y : 0);
+  if (allerA) { const cible = document.getElementById(allerA); allerA = null; if (cible) cible.scrollIntoView({ block: "start" }); }
   apresAffichage();
   if (/\/contacts\/\w+#devis$/.test(location.hash)) document.querySelector(".devis-recus, .contact-ligne")?.scrollIntoView({ block: "start" });
 }
@@ -2086,17 +2088,9 @@ document.addEventListener("click", e => {
     return;
   }
   if (a === "q-recommencer") { qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: qPhoto.maisonId, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; afficher(); }
-  if (a === "q-appliquer" && qPhoto.maisonId === "nouvelle" && qPhoto.lu) {
-    /* nouvelle maison créée à partir de la photo du questionnaire */
-    const L = qPhoto.lu;
-    const mq = creerMaison({ ...brouillonVide(), projet: parcours, nom: L.nom && L.nom !== "Maison visitée" ? L.nom : "Maison visitée", commune: L.commune || "", prix: L.prix || "", annee: L.annee || "", surface: L.surface || "",
-      etages: L.etages ?? "", facades: L.facades || "", etat: L.etat || "rafraichir", uniqueHabitation: L.uniqueHabitation !== false, peb: L.peb || "", pebConso: L.pebConso || "",
-      chauffageActuel: L.chauffageLu === false ? "gaz" : L.chauffage.actuel });
-    qPhoto.maisonId = mq.id;
-  }
   if (a === "q-appliquer") {
     const mq = trouver(qPhoto.maisonId);
-    if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); mq.questFait = true; mq.questLu = true; sauver(); ongletsM[mq.id] = "travaux"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; location.hash = `#/maison/${mq.id}`; }
+    if (mq && qPhoto.lu) { appliquerQuestionnaire(mq, qPhoto.lu); mq.questFait = true; mq.questLu = true; mq.infosOk = false; sauver(); ongletsM[mq.id] = "pieces"; ouverts.add("infos-" + mq.id); allerA = "pv-2"; qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; location.hash = `#/maison/${mq.id}`; }
   }
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
@@ -2106,7 +2100,7 @@ document.addEventListener("click", e => {
   if (a === "offre-retirer" && m) { m.offre = null; sauver(); afficher(); }
   if (a === "pj-ok" && m) { m.projetOk = { ...(m.projetOk || {}), [el.dataset.k]: el.dataset.v === "1" }; sauver(); afficher(); const nx = document.querySelector(".pj-bloc:not(.ok)"); if (el.dataset.v === "1" && nx) nx.scrollIntoView({ block: "start" }); else document.getElementById("pj-" + el.dataset.k)?.scrollIntoView({ block: "start" }); }
   if (a === "infos-ok" && m) { m.infosOk = el.dataset.v === "1"; if (m.infosOk) ouverts.delete("infos-" + m.id); else ouverts.add("infos-" + m.id); sauver(); afficher(); }
-  if (a === "etape-infos" && m) { ouverts.add("infos-" + m.id); ongletsM[m.id] = "pieces"; afficher(); document.getElementById("pv-1")?.scrollIntoView({ block: "start" }); }
+  if (a === "etape-infos" && m) { ouverts.add("infos-" + m.id); ongletsM[m.id] = "pieces"; afficher(); document.getElementById("pv-2")?.scrollIntoView({ block: "start" }); }
   if (a === "quest-papier" && m) { m.questImprime = true; sauver(); }
   if (a === "essai-reno") { choisirParcours("renovation"); brouillon = null; location.hash = "#/ajouter"; }
   if (a === "gros" && m) { basculerGros(m, el.dataset.g); sauver(); afficher(); }
@@ -2175,7 +2169,7 @@ document.addEventListener("click", e => {
   if (a === "visite-suivante") { visite.saisie = true; afficher(); setTimeout(() => { const i = document.getElementById("visite-nom"); if (i) i.focus(); }, 0); }
   if (a === "visite-annuler") { visite.saisie = false; afficher(); }
   if (a === "declencher" && m) { declencher(m); return; }
-  if (a === "visite-fin" && m) { fermerCamera(); visite = { maisonId: m.id, nom: "", saisie: true }; m.visiteFinie = true; sauver(); ongletsM[m.id] = "travaux"; location.hash = `#/maison/${m.id}`; }
+  if (a === "visite-fin" && m) { fermerCamera(); visite = { maisonId: m.id, nom: "", saisie: true }; m.visiteFinie = true; sauver(); ongletsM[m.id] = "pieces"; allerA = "pv-2"; location.hash = `#/maison/${m.id}`; }
   if (a === "creer-pieces-photos" && m) {
     [...new Set(photosDe(m).map(p => p.nomPiece))].filter(g => !pieceDePhoto(m, { nomPiece: g })).forEach(g => ajouterPieceNommee(m, g));
     appliquerChauffage(m); sauver(); afficher();
