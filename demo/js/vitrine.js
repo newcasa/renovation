@@ -1,9 +1,9 @@
 /* Valou — écrans de présentation : Professionnels, Notre moteur, Feuille de route.
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
-import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611231327";
-import { RACINE, img } from "./chemins.js?v=202611231327";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611231327";
+import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611231336";
+import { RACINE, img } from "./chemins.js?v=202611231336";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611231336";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
 /* une partie du projet : un poste dans une pièce (ou pour toute la maison) */
