@@ -1231,3 +1231,21 @@ label.dd-ligne { justify-content: flex-start; }
 .pj-aides > .carte, .pj-aides section { box-shadow: none; border: 0; padding: 0; margin: 0; }
 .pret-trav > summary.pt-tete { flex-direction: row; gap: 10px; padding: 10px 0; }
 .pret-trav > summary.pt-tete::after { content: none; } .pret-trav > summary.pt-tete { justify-content: flex-start; }
+
+/* documents du dossier pour la banque */
+.docs-ecran { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.doc-l { border: 1px solid var(--bord); border-radius: 12px; padding: 10px 12px; background: #fff; }
+.doc-l.ok { border-color: #bfe0cc; background: #f4faf6; }
+.doc-t { display: flex; align-items: center; gap: 10px; }
+.doc-t b { flex: 1; font-size: 15px; color: var(--bordeaux); }
+.doc-ic { width: 26px; text-align: center; font-weight: 900; color: #2f8f5b; }
+.doc-aj { white-space: nowrap; }
+.doc-f { list-style: none; margin: 8px 0 0 36px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.doc-f li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.doc-f a { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--bordeaux); }
+.imprime-seul { display: none; }
+@media print { .imprime-seul { display: table; } }
+.ic-q { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #eef3fb; border: 1px solid #c8d6ee; color: #3a5a8c; font: 700 11.5px Manrope, sans-serif; letter-spacing: 0; white-space: nowrap; text-transform: none; }
+h1 .ic-q { font-size: 12px; }
+.methode-t { margin: 18px 0 6px; font-size: 17px; text-align: left; }
+.intro-boite .methode { margin-bottom: 18px; }
