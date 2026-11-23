@@ -392,14 +392,14 @@ function travauxPret(m, b, travauxMoy) {
 }
 function blocTravauxPret(m, tp) {
   if (!tp.groupes.length) return "";
-  const n = tp.groupes.filter(x => x.inclus).length;
+  const n = tp.groupes.filter(x => x.inclus).length, id = "pret-" + m.id;
   const ligne = x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.k)}" ${x.inclus ? "checked" : ""}><span>${esc(x.g)} <em class="pt-src ${x.devis ? "devis" : ""}">${x.devis ? "Devis" : "Estimation"}</em></span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`;
   const grps = [...new Set(tp.groupes.map(x => x.grp))];
-  return `<div class="pret-trav">
-    <div class="pt-tete"><b>Travaux inclus dans le prêt</b><small class="mu">${n} sur ${tp.groupes.length}${tp.hors ? ` · ${euros(tp.hors, 100)} payés vous-même` : ""}</small></div>
+  return `<details class="pret-trav" data-ouvert="${id}" ${ouverts.has(id) ? "open" : ""}>
+    <summary class="pt-tete"><span><b>Travaux inclus dans le prêt</b><small class="mu">${n} sur ${tp.groupes.length}${tp.hors ? ` · ${euros(tp.hors, 100)} payés vous-même` : " · touchez pour choisir"}</small></span></summary>
     <p class="mu petit-t">Poste par poste : décochez ce que vous payez vous-même (épargne, plus tard…), ça sort du montant à emprunter.</p>
     ${grps.map(g => `<h4 class="pt-sous">${esc(g)}</h4>${tp.groupes.filter(x => x.grp === g).map(ligne).join("")}`).join("")}
-  </div>`;
+  </details>`;
 }
 function blocFinancerRenovation(m, b, c, sansActions = false) {
   const tp = travauxPret(m, b, c.travaux[1]);
@@ -704,8 +704,8 @@ function ecranMaison(m) {
             <small class="mu">Ces valeurs sont reprises dans le dossier bancaire.</small>
           </div>
         </section>`;
-        })()}
-        ${aides()}`)}
+        })()}`)}
+    ${reno ? "" : aides()}
 
     <section class="carte pj-graph" id="pj-graph">
       <div class="pj-tete"><span class="pv-n">${blocs.length + 1}</span><div><b>📊 Le vrai coût</b><small class="mu">${reno ? "La rénovation" : +m.offre > 0 && +m.offre !== +m.prix ? "Avec votre offre" : "Au prix demandé"} · en rouge : la part financée par la banque</small></div></div>

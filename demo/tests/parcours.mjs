@@ -70,6 +70,8 @@ try {
     /* travaux à inclure ou non dans la demande de prêt */
     const emp = () => page.locator('.ligne:has-text("Montant à emprunter") b').first().innerText();
     const empAvant = await emp();
+    assert.equal(await page.locator(".pret-trav[open]").count(), 0, "la liste du prêt est repliée au départ");
+    await page.locator(".pret-trav > summary").click();
     assert.match(await page.locator(".pret-trav").innerText(), /Poste par poste[\s\S]*Estimation/);
     await page.locator("[data-pret]").first().uncheck();
     assert.notEqual(await emp(), empAvant);

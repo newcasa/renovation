@@ -1223,3 +1223,11 @@ label.dd-ligne { justify-content: flex-start; }
 .pt-src.devis { background: #e3f4ea; color: #1d7a46; }
 .pj-bref .pj-plus { border-top: 1px solid var(--bord); margin-top: 10px; padding-top: 10px; }
 .pj-bref .pj-plus:first-of-type { margin-top: 14px; }
+.pret-trav > summary.pt-tete { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.pret-trav > summary.pt-tete::-webkit-details-marker { display: none; }
+.pret-trav > summary.pt-tete > span { display: flex; flex-direction: column; }
+.pret-trav > summary.pt-tete::after { content: "›"; color: var(--or); font-weight: 900; font-size: 22px; transition: transform .15s; }
+.pret-trav[open] > summary.pt-tete::after { transform: rotate(90deg); }
+.pj-aides > .carte, .pj-aides section { box-shadow: none; border: 0; padding: 0; margin: 0; }
+.pret-trav > summary.pt-tete { flex-direction: row; gap: 10px; padding: 10px 0; }
+.pret-trav > summary.pt-tete::after { content: none; } .pret-trav > summary.pt-tete { justify-content: flex-start; }
