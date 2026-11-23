@@ -62,9 +62,8 @@ try {
     assert.match(await page.locator(".sim-recap").innerText(), /Offre[\s\S]*200\s?000 €[\s\S]*Droits[\s\S]*Notaire[\s\S]*Travaux/i);
     await page.locator(".sim-recap").scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${OUT}/${nom}-0e-offre.png` });
-    /* le graphique compare avec le prix de l'annonce */
-    assert.equal(await page.locator(".cb-duo figure").count(), 2);
-    assert.match(await page.locator(".cb-cmp").innerText(), /Annonce[\s\S]*Offre[\s\S]*Vrai coût[\s\S]*Financé par la banque/i);
+    /* conclusion simple : l'offre comparée au prix de l'annonce */
+    assert.match(await page.locator(".pj-conclu").innerText(), /Avec votre offre de 200\s?000 €[\s\S]*de moins[\s\S]*prix de l'annonce[\s\S]*La banque financerait/);
     await page.locator('[data-action="offre-retirer"]').click();
     await page.locator(".sim-ecart").waitFor({ state: "detached" });
     assert.equal(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
@@ -495,7 +494,7 @@ try {
     await page.locator('.grille .maison:has-text("Ma maison à rénover")').click();
     await page.locator(".vc-mini").waitFor();
     await onglet("projet");
-    assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
+    assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/i);
     assert.doesNotMatch(await page.locator(".vrai-cout").innerText(), /Prix d'achat|Droits|Notaire/);
     assert.equal(await page.locator('.om-i[data-o="achat"]').count(), 0);
     assert.equal(await page.locator('.om-i[data-o="etapes"]').count(), 0, "plus d'étapes");
@@ -552,7 +551,7 @@ try {
     /* rénovation sans travaux : pas de tableaux à 0 €, un rappel à la place */
     await page.locator(".vide-trav").waitFor();
     assert.equal(await page.locator('h2:has-text("Simulation de financement")').count(), 0);
-    assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/);
+    assert.match(await page.locator(".vrai-cout").innerText(), /Le budget de votre rénovation/i);
     /* photo du questionnaire (onglet Après la visite) : Valou remplit la maison (démonstration : questionnaire d'exemple) */
     await onglet("travaux");
     await page.getByText("📝 Photo du questionnaire").click();

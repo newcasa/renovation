@@ -702,34 +702,20 @@ function ecranMaison(m) {
           : [["Travaux payés vous-même", tpP.hors, "#B9C9E4", "hachure"], ["Droits d'enregistrement", x.droits, "#EC8224"], ["Notaire", x.notaire || 0, "#F5B57A"], [nomPrix, x.prix, "#C9D3E2"], [tpP.hors ? "Travaux dans le prêt" : "Travaux", x.travaux[1] - tpP.hors, "#5B7BB0"]];
         const propre = (+fP.apport || 0) + (reno ? 0 : tpP.hors);
         if (!offreOn) return camembert(partsDe(reno ? c : cO, "Prix d'achat"), empruntP, (reno ? c : cO).total[1], propre);
-        /* offre simulée : comparaison avec le prix de l'annonce */
-        const empruntA = Math.max(0, c.total[1] - tpP.hors - (+fP.apport || 0)), mensA = mensualite(empruntA, fP.taux, fP.duree);
-        const ec = (a, o, mieux) => { const d = o - a; return d ? `<td class="${(d < 0) === mieux ? "cb-mieux" : "cb-pire"}">${d < 0 ? "−" : "+"} ${euros(Math.abs(d), 100)}</td>` : "<td>=</td>"; };
-        return `<div class="cb-duo">
-          <figure><figcaption>Au prix de l'annonce</figcaption>${camembert(partsDe(c, "Prix d'achat"), empruntA, c.total[1], propre, true)}</figure>
-          <figure class="cb-o"><figcaption>Avec votre offre</figcaption>${camembert(partsDe(cO, "Votre offre"), empruntP, cO.total[1], propre, true)}</figure>
-        </div>
-        <div class="sim-cmp-cadre"><table class="cb-cmp">
-          <thead><tr><th></th><td>Annonce</td><td class="sim-o">Offre</td><td>Écart</td></tr></thead>
-          <tbody>
-            <tr><th>Prix</th><td>${euros(c.prix)}</td><td>${euros(cO.prix)}</td>${ec(c.prix, cO.prix, true)}</tr>
-            <tr><th>Droits et notaire</th><td>${euros(c.droits + (c.notaire || 0))}</td><td>${euros(cO.droits + (cO.notaire || 0))}</td>${ec(c.droits + (c.notaire || 0), cO.droits + (cO.notaire || 0), true)}</tr>
-            <tr><th>Vrai coût</th><td><b>${euros(c.total[1], 100)}</b></td><td><b>${euros(cO.total[1], 100)}</b></td>${ec(c.total[1], cO.total[1], true)}</tr>
-            <tr class="cb-l-banque"><th>Financé par la banque</th><td>${euros(empruntA, 100)}</td><td>${euros(empruntP, 100)}</td>${ec(empruntA, empruntP, true)}</tr>
-            ${mensP ? `<tr><th>Mensualité</th><td>${euros(mensA)}</td><td>${euros(mensP)}</td>${ec(mensA, mensP, true)}</tr>` : ""}
-          </tbody></table></div>
-        <ul class="cb-leg">${partsDe(cO, "Prix / votre offre").filter(p => p[1] > 0).map(([t, v, col, motif]) => `<li><i style="background:${motif ? "repeating-linear-gradient(45deg,#9FB3D6 0 3px,#DCE4F1 3px 6px)" : col}"></i><span>${esc(t)}</span><b></b></li>`).join("")}
-          <li class="cb-banque"><i></i><span>Contour rouge : la part financée par la banque</span><b></b></li></ul>`;
+        /* offre simulée : même graphique, la comparaison avec le prix de l'annonce est dans la conclusion */
+        return camembert(partsDe(cO, "Votre offre"), empruntP, cO.total[1], propre);
       })()}
-    <section class="carte vrai-cout">
-      <div class="vc-g">
-        <small>${reno ? "Le budget de votre rénovation" : "Le vrai coût de cette maison"}</small>
-        <div class="gros">${euros((reno ? c : cO).total[1], 100)}</div>
-        ${(reno ? c : cO).total[0] !== (reno ? c : cO).total[2] ? `<div class="mu">entre ${fourchette((reno ? c : cO).total)}</div>` : ""}
-        ${c.travaux[1] ? "" : `<p class="sans-trav">⚠️ Travaux pas encore encodés : ce montant ${reno ? "est vide" : "ne compte que le prix, les droits et le notaire"}. Ajoutez les pièces (onglet Après la visite).</p>`}
-        ${reno ? (e => (e ? `<p class="choc">dont <b>${euros(e, 100)}</b> de travaux qui améliorent le PEB</p>` : ""))(travauxEnergie(b).total[1]) : ""}
-        ${!reno && c.prix && c.travaux[1] ? `<p class="choc">soit <b>${euros(cO.total[1] - c.prix, 100)}</b> de plus que le prix affiché <span>(+${c.prix ? Math.round(((cO.total[1] - c.prix) / c.prix) * 100) : 0} %)</span></p>` : ""}
-      </div>
+    <section class="carte vrai-cout pj-conclu">
+      <small>${reno ? "Le budget de votre rénovation" : "En conclusion"}</small>
+      <div class="gros">${euros((reno ? c : cO).total[1], 100)}</div>
+      ${(reno ? c : cO).travaux[1] ? "" : `<p class="sans-trav">⚠️ Travaux pas encore encodés : ce montant ${reno ? "est vide" : "ne compte que le prix, les droits et le notaire"}. Complétez l'onglet Après la visite.</p>`}
+      ${(() => {
+        if (reno) return `<p>La banque financerait <b>${euros(empruntP, 100)}</b>${mensP ? `, soit <b>${euros(mensP)} par mois</b>` : ""}.</p>`;
+        const offreOn = +m.offre > 0 && +m.offre !== +m.prix, d = c.total[1] - cO.total[1];
+        const empruntA = Math.max(0, c.total[1] - tpP.hors - (+fP.apport || 0)), mensA = mensualite(empruntA, fP.taux, fP.duree);
+        return `<p>${offreOn ? `Avec votre offre de <b>${euros(+m.offre)}</b>, la maison vous coûte <b>${euros(Math.abs(d), 100)} ${d >= 0 ? "de moins" : "de plus"}</b> qu'au prix de l'annonce (${euros(c.total[1], 100)}).` : `Au prix de l'annonce, travaux compris, soit <b>${euros(c.total[1] - c.prix, 100)} de plus</b> que le prix affiché.`}</p>
+        <p>La banque financerait <b>${euros(empruntP, 100)}</b>${mensP ? `, soit <b>${euros(mensP)} par mois</b>${offreOn && mensA !== mensP ? ` (${euros(Math.abs(mensA - mensP))} de ${mensA > mensP ? "moins" : "plus"} qu'au prix de l'annonce)` : ""}` : ""}.</p>`;
+      })()}
     </section>
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}

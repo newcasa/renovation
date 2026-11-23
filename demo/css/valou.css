@@ -1216,3 +1216,6 @@ label.dd-ligne { justify-content: flex-start; }
 .cb-cmp th, .cb-cmp td { padding: 6px 3px; }
 .cb-cmp th { width: 28%; }
 @media (max-width: 400px) { .cb-cmp { font-size: 12px; } }
+.pj-conclu small { display: block; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; font-size: 12px; }
+.pj-conclu p { margin: 6px 0 0; font-size: 15.5px; line-height: 1.45; }
+.pj-conclu b { color: var(--bordeaux); }
