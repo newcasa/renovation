@@ -1554,13 +1554,29 @@ const QUESTIONNAIRE_EXEMPLE = {
 };
 let qPhoto = { maisonId: null, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" };
 /* photo réduite (2000 px au plus, JPEG) puis envoyée au serveur Valou, qui la fait lire par Claude ; la clé reste sur le serveur */
+/* photo → JPEG réduit (2000 px) ; plusieurs méthodes, car certains téléphones (photos très grandes, format HEIF) en refusent une */
+const lireBlob = b => new Promise((ok, ko) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(",")[1]); fr.onerror = () => ko(fr.error); fr.readAsDataURL(b); });
+async function imageDe(f) {
+  try { return await createImageBitmap(f, { imageOrientation: "from-image" }); } catch (e) { /* on essaie autrement */ }
+  const u = URL.createObjectURL(f);
+  try { const im = new Image(); im.decoding = "async"; im.src = u; await im.decode(); return im; } finally { setTimeout(() => URL.revokeObjectURL(u), 1000); }
+}
 async function photoEnBase64(f) {
-  const img = await createImageBitmap(f), k = Math.min(1, 2000 / Math.max(img.width, img.height));
-  const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-  const b = await new Promise(r => c.toBlob(r, "image/jpeg", 0.85));
-  const u = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); });
-  return { type: "image/jpeg", data: String(u).split(",")[1] };
+  let img = null;
+  try { img = await imageDe(f); } catch (e) { img = null; }
+  if (img && (img.width || img.naturalWidth)) {
+    const w = img.width || img.naturalWidth, h = img.height || img.naturalHeight, k = Math.min(1, 2000 / Math.max(w, h));
+    const c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    if (img.close) img.close();
+    const b = await new Promise(r => c.toBlob(r, "image/jpeg", 0.85));
+    if (b && b.size) return { type: "image/jpeg", data: await lireBlob(b) };
+  }
+  /* dernier recours : la photo telle quelle, si son format et sa taille passent */
+  if (/^image\/(jpeg|png|webp)$/.test(f.type) && f.size < 3300000) return { type: f.type, data: await lireBlob(f) };
+  throw Object.assign(new Error(/hei[cf]/i.test(f.type + f.name)
+    ? "photo au format HEIF/HEIC non lisible : réglez l'appareil photo en JPEG, ou faites une capture d'écran de la photo"
+    : "la photo n'a pas pu être préparée (trop grande ?) : reprenez-la avec le bouton « Prendre une photo »"), { photo: true });
 }
 async function lireQuestionnaire(fichiers) {
   const cfg = await configServeur();
@@ -1570,7 +1586,15 @@ async function lireQuestionnaire(fichiers) {
   const photos = await Promise.all(fichiers.slice(0, 2).map(photoEnBase64));
   const ctl = new AbortController(), minuterie = setTimeout(() => ctl.abort(), 120000);
   try {
-    const r = await fetch(cfg.url.replace(/\/$/, "") + "/functions/v1/lire-questionnaire", { method: "POST", headers: h, body: JSON.stringify({ photos }), signal: ctl.signal });
+    const envoyer = () => fetch(cfg.url.replace(/\/$/, "") + "/functions/v1/lire-questionnaire", { method: "POST", headers: h, body: JSON.stringify({ photos }), signal: ctl.signal });
+    let r;
+    try { r = await envoyer(); } catch (e) {
+      if (e.name === "AbortError") throw e;
+      try { r = await envoyer(); } catch (e2) { // un second essai si la connexion a sauté
+        if (e2.name === "AbortError") throw e2;
+        throw new Error(navigator.onLine === false ? "pas de connexion internet" : "connexion au service de lecture coupée : vérifiez le réseau et réessayez");
+      }
+    }
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.lu) throw Object.assign(new Error(j.erreur || `service indisponible (${r.status})`), { serveur: true });
     return j.lu;
@@ -1622,7 +1646,7 @@ function ecranQuestionnairePhoto(m) {
   else if (Q.etape === "resultat" && Q.lu) {
     const L = Q.lu, M = L;
     corps = `<section class="carte q-resultat">
-      ${Q.exemple ? `<p class="alerte-mini">Démonstration : la lecture de votre photo n'a pas pu se faire${Q.raison ? ` (${esc(Q.raison)})` : ""}. Ces réponses viennent d'un <b>questionnaire d'exemple</b>.</p>` : `<p class="envoye">✓ Lu sur votre photo. Vérifiez avant de remplir la maison.</p>`}
+      ${Q.exemple ? `<p class="alerte-mini">Démonstration : la lecture de votre photo n'a pas pu se faire${Q.raison ? ` (${esc(Q.raison)})` : ""}. Ces réponses viennent d'un <b>questionnaire d'exemple</b>.</p><p><button class="btn sec" data-action="q-lire">↻ Réessayer la lecture</button></p>` : `<p class="envoye">✓ Lu sur votre photo. Vérifiez avant de remplir la maison.</p>`}
       ${(L.doutes || []).length ? `<p class="alerte-mini">À vérifier : ${L.doutes.map(esc).join(" ; ")}</p>` : ""}
       <h2>Ce que Valou a lu</h2>
       <div class="recap">
@@ -2088,7 +2112,7 @@ document.addEventListener("click", e => {
     lireQuestionnaire(qPhoto.fichiers)
       .then(lu => { if (lu.lisible === false) throw new Error("la photo ne ressemble pas au questionnaire Valou, ou est illisible"); const r = depuisLecture(lu); const mq = maisonDepuisQuestionnaire(r, nouvelId); fin({ ...mq, chauffageLu: r.chauffageLu, gros: r.gros, rappels: r.rappels, doutes: r.doutes }, false); })
       .catch(e => fin(maisonDepuisQuestionnaire(QUESTIONNAIRE_EXEMPLE, nouvelId), true,
-        e && e.serveur ? e.message : e && e.name === "AbortError" ? "la lecture a pris trop de temps" : e && /configuré|ressemble/.test(e.message) ? e.message : "photo illisible ou service de lecture injoignable"));
+        e && e.serveur ? e.message : e && e.name === "AbortError" ? "la lecture a pris trop de temps" : e && (e.photo || /configuré|ressemble|connexion/.test(e.message)) ? e.message : `erreur inattendue : ${(e && e.message) || "inconnue"}`));
     return;
   }
   if (a === "q-recommencer") { qPhoto.photos.forEach(u => URL.revokeObjectURL(u)); qPhoto = { maisonId: qPhoto.maisonId, photos: [], fichiers: [], etape: "photos", lu: null, exemple: false, raison: "" }; afficher(); }
