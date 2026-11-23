@@ -1219,3 +1219,5 @@ label.dd-ligne { justify-content: flex-start; }
 .pj-conclu small { display: block; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; font-size: 12px; }
 .pj-conclu p { margin: 6px 0 0; font-size: 15.5px; line-height: 1.45; }
 .pj-conclu b { color: var(--bordeaux); }
+.pt-src { font-style: normal; font-size: 11.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: #eef1f6; color: var(--mu); margin-left: 4px; white-space: nowrap; }
+.pt-src.devis { background: #e3f4ea; color: #1d7a46; }

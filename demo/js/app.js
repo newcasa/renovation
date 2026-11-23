@@ -379,30 +379,26 @@ function camembert(parts, finance, total, propre, compact) {
   </div>`;
 }
 function travauxPret(m, b, travauxMoy) {
-  /* travaux à inclure ou non dans le prêt : pièce par pièce, puis les travaux hors pièces par groupe (TVA et imprévus au prorata) */
-  const H = new Set((m.fin || {}).horsPret || []), Z = new Map();
+  /* travaux à inclure ou non dans le prêt : poste par poste (TVA et imprévus au prorata) ; « Devis » si un devis est reçu pour son métier */
+  const H = new Set((m.fin || {}).horsPret || []), recus = devisRecus(m);
   let tous = 0, ex = 0;
-  const nomPc = id => ((m.pieces || []).find(p => p.id === id) || {}).nom || "Pièce";
-  b.lignes.forEach(l => {
-    const v = l.fiab && l.total ? l.total[1] : 0;
-    if (!v) return;
-    const k = l.pieceId ? "pc:" + l.pieceId : l.src === "chauffage" ? "g:Chauffage" : "g:" + groupe({ ...(R.postes[l.k] || {}), k: l.k });
-    const z = Z.get(k) || { k, g: l.pieceId ? nomPc(l.pieceId) : k.slice(2), piece: !!l.pieceId, s: 0 };
-    z.s += v; Z.set(k, z); tous += v; if (H.has(k)) ex += v;
+  const L = b.postes.filter(p => p.total[1] > 0).map(p => {
+    const k = "po:" + p.k, mt = METIERS.find(x => x.id !== "general" && x.f(p.k));
+    tous += p.total[1]; if (H.has(k)) ex += p.total[1];
+    return { k, g: p.n, grp: groupe(p), s: p.total[1], devis: !!(mt && recus.some(r => r.metier === mt.id)) };
   });
-  const groupes = [...Z.values()].sort((x, y) => y.piece - x.piece).map(z => ({ ...z, v: tous ? Math.round(travauxMoy * z.s / tous) : 0, inclus: !H.has(z.k) }));
+  const groupes = L.sort((x, y) => GROUPES.indexOf(x.grp) - GROUPES.indexOf(y.grp)).map(z => ({ ...z, v: tous ? Math.round(travauxMoy * z.s / tous) : 0, inclus: !H.has(z.k) }));
   return { groupes, hors: tous ? Math.round(travauxMoy * ex / tous) : 0 };
 }
 function blocTravauxPret(m, tp) {
   if (!tp.groupes.length) return "";
   const n = tp.groupes.filter(x => x.inclus).length;
-  const ligne = x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.k)}" ${x.inclus ? "checked" : ""}><span>${esc(x.g)}</span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`;
-  const P = tp.groupes.filter(x => x.piece), Hp = tp.groupes.filter(x => !x.piece);
+  const ligne = x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.k)}" ${x.inclus ? "checked" : ""}><span>${esc(x.g)} <em class="pt-src ${x.devis ? "devis" : ""}">${x.devis ? "Devis" : "Estimation"}</em></span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`;
+  const grps = [...new Set(tp.groupes.map(x => x.grp))];
   return `<div class="pret-trav">
     <div class="pt-tete"><b>Travaux inclus dans le prêt</b><small class="mu">${n} sur ${tp.groupes.length}${tp.hors ? ` · ${euros(tp.hors, 100)} payés vous-même` : ""}</small></div>
-    <p class="mu petit-t">Décochez ce que vous payez vous-même (épargne, plus tard…) : ça sort du montant à emprunter.</p>
-    ${P.length ? `<h4 class="pt-sous">Pièce par pièce</h4>${P.map(ligne).join("")}` : ""}
-    ${Hp.length ? `<h4 class="pt-sous">Hors pièces</h4>${Hp.map(ligne).join("")}` : ""}
+    <p class="mu petit-t">Poste par poste : décochez ce que vous payez vous-même (épargne, plus tard…), ça sort du montant à emprunter.</p>
+    ${grps.map(g => `<h4 class="pt-sous">${esc(g)}</h4>${tp.groupes.filter(x => x.grp === g).map(ligne).join("")}`).join("")}
   </div>`;
 }
 function blocFinancerRenovation(m, b, c, sansActions = false) {
