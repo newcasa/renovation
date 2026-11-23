@@ -124,7 +124,7 @@ export function maisonDepuisQuestionnaire(r, nouvelId) {
       pOn: !!p.plafond, pT: PLAFONDS.some(x => x[0] === p.plafond) ? p.plafond : "peinture", pMe: !!p.plafond_moi,
       chOn: p.type !== "garage" && nombreOuNull(p.chassis) > 0, chN: nombreOuNull(p.chassis), chT: p.chassis_type === "alu" ? "alu" : "pvc",
       hc: p.chauffage_sol ? "sol" : nombreOuNull(p.radiateurs) > 0 ? "ra" : "", hr: !!p.chauffage_sol || nombreOuNull(p.radiateurs) > 0, hn: nombreOuNull(p.radiateurs),
-      meu: !!(p.cuisine || p.sdb), wi: wc, pg: nombreOuNull(p.garage) ?? (p.type === "garage" ? nombreOuNull(p.chassis) : null),
+      meu: !!(p.cuisine || p.sdb), wi: wc, note: p.remarque || p.note || "", pg: nombreOuNull(p.garage) ?? (p.type === "garage" ? nombreOuNull(p.chassis) : null),
     };
   });
   m.travaux = Object.entries(r.structure || {}).filter(([, q]) => nombreOuNull(q) > 0).map(([k, q]) =>

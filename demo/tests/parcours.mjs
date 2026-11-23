@@ -21,6 +21,7 @@ try {
     const onglet = async o => { // onglets de la fiche maison (dans Projet : on déplie le détail des travaux et le PEB)
       await page.locator(`.om-i[data-o="${o}"]`).click();
       if (o === "projet") { await page.evaluate(() => document.querySelectorAll(".pj-plus").forEach(d => { d.open = true; })); await page.waitForTimeout(50); }
+      if (o === "travaux") { await page.evaluate(() => document.querySelectorAll(".ap-sec").forEach(d => { d.open = true; })); await page.waitForTimeout(50); }
     };
     /* menu : en haut sur ordinateur, barre du bas sur téléphone (« Plus » pour les autres pages) */
     const menu = async h => {
@@ -392,12 +393,12 @@ try {
     /* surface du toit : 9 m × 10 m, 4 pans à 35° → 90 ÷ cos 35° ≈ 110 m² ; « = 110 » reprend la mesure dans la couverture */
     for (const [k, v] of [["larg", "9"], ["prof", "10"]]) { await page.fill(`[data-tdim="${k}"]`, v); await page.locator(`[data-tdim="${k}"]`).dispatchEvent("change"); }
     assert.match(await page.locator(".toit-res:has-text(\"Surface de toiture\")").innerText(), /Surface de toiture\s*≈ 110 m²[\s\S]*Sol des combles[^\n]*\n?\s*≈ 90 m²/);
-    await page.locator('details:has([data-mq="i_cv_1"]) > summary').click();
+    await page.locator('details:not(.ap-sec):has([data-mq="i_cv_1"]) > summary').click();
     await page.locator('.toit-q[data-k="i_cv_1"]').click();
     assert.equal(await page.inputValue('[data-mq="i_cv_1"]'), "110");
     /* surface des façades : 3 façades, rez + 1 → (2 × 9 + 1 × 10) × 6 m = 168 m² */
     assert.match(await page.locator(".toit-res").first().innerText(), /Surface des façades\s*≈ 168 m²/);
-    await page.locator('details:has([data-mq="i_fa_3"]) > summary').click();
+    await page.locator('details:not(.ap-sec):has([data-mq="i_fa_3"]) > summary').click();
     await page.locator('.toit-q[data-k="i_fa_3"]').click();
     assert.equal(await page.inputValue('[data-mq="i_fa_3"]'), "168");
     /* « Qu'est-ce qui est à refaire ? » : Oui remplit les postes avec les mesures, un 2e toucher les retire */
@@ -471,11 +472,11 @@ try {
     assert.match(await page.locator(".carte-piece:has-text(\"Chambre test\")").innerText(), /Murs · Plafond · 2 châssis/);
     /* structure, toiture et équipements : liste fixe, on remplit une quantité */
     await onglet("travaux");
-    await page.locator('details:has([data-mq="i_pi"]) > summary').click();
+    await page.locator('details:not(.ap-sec):has([data-mq="i_pi"]) > summary').click();
     await page.fill('[data-mq="i_pi"]', "4");
     await page.locator('[data-mq="i_pi"]').dispatchEvent("change");
     /* escalier : 16 marches = 1 escalier */
-    await page.locator('details:has([data-mmarches="i_es_1"]) > summary').click();
+    await page.locator('details:not(.ap-sec):has([data-mmarches="i_es_1"]) > summary').click();
     await page.fill('[data-mmarches="i_es_1"]', "16");
     await page.locator('[data-mmarches="i_es_1"]').dispatchEvent("change");
     assert.match(await page.locator('tr:has([data-mmarches="i_es_1"])').innerText(), /€/);
@@ -579,7 +580,7 @@ try {
     assert.equal(await page.locator(".parcours-v .pv-e").count(), 2, "Pendant la visite : infos connues et photos");
     await page.locator('[data-action="infos-ok"][data-v="1"]').click();
     assert.ok(await page.locator("#pv-1.ok").count(), "infos validées");
-    assert.match(await page.locator(".om-i").allInnerTexts().then(t => t.join("|")), /Pendant la visite[\s\S]*Après la visite[\s\S]*Les pros[\s\S]*Projet/);
+    assert.match(await page.locator(".om-i").allInnerTexts().then(t => t.join("|")), /Pendant la visite[\s\S]*Après la visite[\s\S]*Les artisans[\s\S]*Projet/);
     await page.goto(URL + "#/");
     await page.locator('.pc-choix[data-p="achat"]').click(); // retour au parcours « J'achète »
     await page.locator('.grille .maison:has-text("Maison de démonstration A")').waitFor();
