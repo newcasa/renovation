@@ -497,7 +497,7 @@ try {
     await onglet("projet");
     await page.fill('[data-fin="apport"]', "10000");
     await page.locator('[data-fin="apport"]').dispatchEvent("change");
-    assert.match(await page.locator("main").innerText(), /Simulation de financement[\s\S]*Montant à emprunter \(prêt travaux\)/);
+    assert.match(await page.locator("main").innerText(), /Comment financer[\s\S]*Montant à emprunter \(prêt travaux\)/);
     await page.getByText("Dossier pour la banque").click();
     await page.locator(".feuille").waitFor();
     assert.match(await page.locator(".feuille").innerText(), /Rénovation[\s\S]*Le budget de la rénovation[\s\S]*Budget total/);
