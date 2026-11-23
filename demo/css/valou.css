@@ -1136,3 +1136,98 @@ label.dd-ligne { justify-content: flex-start; }
 .apres-v.ok { background: #f4faf6; border-color: #bfe0cc; } .titre-tech { margin: 22px 4px 8px; font-size: 20px; }
 .q-etape.ok { background: #f4faf6; border-color: #bfe0cc; } .q-etape.ok .pv-n { background: #2f8f5b; } .q-etape.en-cours { border: 1.5px solid var(--or); } .q-etape.en-cours .pv-n { background: var(--or); }
 .fin-visite { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin: 4px 0 16px; }
+
+/* Projet en 3 questions */
+.pj-bref h2 { margin-bottom: 8px; }
+.pj-chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+.pj-chiffres div { background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 10px; }
+.pj-chiffres small { display: block; color: var(--mu); font-weight: 700; font-size: 12.5px; }
+.pj-chiffres b { font: 900 19px Outfit, Manrope, sans-serif; color: var(--bordeaux); }
+.pj-chiffres i { font-style: normal; font-size: 13px; color: var(--mu); }
+.pj-bloc { border: 1.5px solid var(--bord); scroll-margin-top: 150px; }
+.pj-bloc.ok { background: #f4faf6; border-color: #bfe0cc; }
+.pj-tete { display: flex; gap: 12px; align-items: center; }
+.pj-tete > div { flex: 1; }
+.pj-tete b { display: block; font-size: 18px; color: var(--bordeaux); }
+.pj-tete small { display: block; margin-top: 2px; }
+.pj-bloc.ok .pv-n { background: #2f8f5b; }
+.pj-bloc:not(.ok) .pv-n { background: var(--or); }
+.pj-corps { margin-top: 12px; }
+.pj-corps > .carte, .pj-corps .fin-page > .carte { box-shadow: none; border: 1px solid var(--bord); margin: 0 0 12px; }
+.pj-valider { margin: 6px 0 0; }
+.pj-plus > summary { display: flex; justify-content: space-between; gap: 10px; cursor: pointer; font-weight: 800; color: var(--bordeaux); list-style: none; }
+.pj-plus > summary::-webkit-details-marker { display: none; }
+.pj-plus > summary b { color: var(--or-fonce); }
+.pj-plus[open] > summary { margin-bottom: 10px; }
+.pj-plus > .carte { box-shadow: none; border: 1px solid var(--bord); }
+.pj-chiffres b { font-size: 16.5px; white-space: nowrap; }
+.pj-chiffres div { padding: 9px 8px; min-width: 0; }
+.pj-tete b { font-size: 16.5px; }
+@media (max-width: 400px) { .pj-chiffres small { font-size: 11.5px; } .pj-chiffres b { font-size: 15px; } }
+
+/* camembert du vrai coût */
+.camembert { display: grid; grid-template-columns: minmax(170px, 220px) 1fr; gap: 14px; align-items: center; margin: 12px 0; }
+.camembert svg { width: 100%; height: auto; }
+.cb-rouge { fill: none; stroke: #D32F2F; stroke-width: 3.5; stroke-linejoin: round; }
+.cb-t1 { font: 700 12px Manrope, sans-serif; fill: var(--mu); }
+.cb-t2 { font: 900 17px Outfit, Manrope, sans-serif; fill: var(--bordeaux); }
+.cb-leg { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; font-size: 14.5px; }
+.cb-leg li { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center; }
+.cb-leg i { width: 14px; height: 14px; border-radius: 4px; }
+.cb-leg b { white-space: nowrap; }
+.cb-leg .cb-banque { border-top: 1px solid var(--bord); padding-top: 7px; color: #B71C1C; font-weight: 700; }
+.cb-leg .cb-banque i { background: none; border: 3px solid #D32F2F; }
+.cb-leg .cb-propre i { background: none; border: 2px dashed var(--mu); }
+@media (max-width: 560px) { .camembert { grid-template-columns: 1fr; } .camembert svg { max-width: 230px; margin: 0 auto; display: block; } }
+.pj-graph .vrai-cout { margin-top: 8px; }
+.offre-l { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.offre-l label { flex: 1; min-width: 160px; }
+.offre-l .btn { margin-bottom: 2px; }
+.pret-trav .pt-tete { display: flex; flex-direction: column; padding: 8px 0 2px; }
+.pret-trav .pt-tete b { color: var(--bordeaux); }
+.pt-sous { margin: 10px 0 2px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--mu); }
+.cb-t2 { font-size: 13.5px; } .cb-t1 { font-size: 11px; }
+.pj-corps > .carte, .pj-corps .fin-page > .carte { padding: 12px 10px; }
+.pj-corps > .carte > h2, .pj-corps .fin-page > .carte > h2:first-child { display: none; }
+.pj-corps .sim-cmp { font-size: 13.5px; }
+.pj-corps .sim-cmp th, .pj-corps .sim-cmp td { padding: 6px 4px; }
+.pj-graph .vrai-cout { background: #fff; color: var(--bordeaux); border: 1px solid var(--bord); box-shadow: none; padding: 12px 14px; }
+.pj-graph .vrai-cout .gros { font-size: 26px; color: var(--bordeaux); }
+.pj-graph .vrai-cout small, .pj-graph .vrai-cout .mu { color: var(--mu); }
+.pj-graph .vrai-cout .choc { color: var(--bordeaux); }
+.pj-graph .vrai-cout .sans-trav { background: #fff6ec; color: var(--bordeaux); }
+
+/* comparaison prix de l'annonce / offre */
+.cb-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 6px; }
+.cb-duo figure { margin: 0; text-align: center; background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 8px 6px; }
+.cb-duo figure.cb-o { border-color: var(--or); background: #fffaf4; }
+.cb-duo figcaption { font-weight: 800; font-size: 13.5px; color: var(--bordeaux); margin-bottom: 4px; }
+.cb-duo svg { width: 100%; max-width: 190px; height: auto; }
+.cb-cmp { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 6px 0 10px; }
+.cb-cmp th, .cb-cmp td { padding: 7px 4px; border-bottom: 1px solid var(--bord); text-align: right; white-space: nowrap; }
+.cb-cmp th { text-align: left; font-weight: 600; white-space: normal; }
+.cb-cmp thead td { font-size: 11.5px; text-transform: uppercase; color: var(--mu); font-weight: 800; }
+.cb-cmp thead td.sim-o { color: var(--or-fonce); }
+.cb-cmp .cb-mieux { color: #1d7a46; font-weight: 800; }
+.cb-cmp .cb-pire { color: #B71C1C; font-weight: 800; }
+.cb-cmp .cb-l-banque th { color: #B71C1C; }
+.cb-leg li b:empty { display: none; }
+.cb-cmp { font-size: 12.5px; table-layout: auto; }
+.cb-cmp th, .cb-cmp td { padding: 6px 3px; }
+.cb-cmp th { width: 28%; }
+@media (max-width: 400px) { .cb-cmp { font-size: 12px; } }
+.pj-conclu small { display: block; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; font-size: 12px; }
+.pj-conclu p { margin: 6px 0 0; font-size: 15.5px; line-height: 1.45; }
+.pj-conclu b { color: var(--bordeaux); }
+.pt-src { font-style: normal; font-size: 11.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: #eef1f6; color: var(--mu); margin-left: 4px; white-space: nowrap; }
+.pt-src.devis { background: #e3f4ea; color: #1d7a46; }
+.pj-bref .pj-plus { border-top: 1px solid var(--bord); margin-top: 10px; padding-top: 10px; }
+.pj-bref .pj-plus:first-of-type { margin-top: 14px; }
+.pret-trav > summary.pt-tete { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.pret-trav > summary.pt-tete::-webkit-details-marker { display: none; }
+.pret-trav > summary.pt-tete > span { display: flex; flex-direction: column; }
+.pret-trav > summary.pt-tete::after { content: "›"; color: var(--or); font-weight: 900; font-size: 22px; transition: transform .15s; }
+.pret-trav[open] > summary.pt-tete::after { transform: rotate(90deg); }
+.pj-aides > .carte, .pj-aides section { box-shadow: none; border: 0; padding: 0; margin: 0; }
+.pret-trav > summary.pt-tete { flex-direction: row; gap: 10px; padding: 10px 0; }
+.pret-trav > summary.pt-tete::after { content: none; } .pret-trav > summary.pt-tete { justify-content: flex-start; }
