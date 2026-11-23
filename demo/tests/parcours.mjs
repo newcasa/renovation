@@ -266,8 +266,13 @@ try {
     await page.locator(".feuille").waitFor();
     /* envoi à la banque : possible tout de suite, sans valider le montant du notaire */
     assert.equal(await page.locator(".verrou-banque").count(), 0);
+    /* documents à joindre : une fiche de paie (photo), gardée sur le téléphone */
+    assert.match(await page.locator(".docs-ecran").innerText(), /Fiches de paie[\s\S]*Certificat PEB/);
+    await page.locator('[data-doc="paie"]').setInputFiles([png]);
+    await page.locator(".doc-l.ok").first().waitFor();
+    assert.match(await page.locator(".doc-l.ok").first().innerText(), /Fiches de paie[\s\S]*photo\.png/);
     await page.locator('[data-action="envoyer-banque"]').click();
-    assert.match(await page.locator("#envoi").innerText(), /envoyé/);
+    assert.match(await page.locator("#envoi").innerText(), /envoyé[\s\S]*1 document/);
     for (const [k, v] of [["apport", "40000"], ["taux", "3.2"], ["duree", "25"]]) {
       await page.fill(`[data-fin="${k}"]`, v);
       await page.locator(`[data-fin="${k}"]`).dispatchEvent("change");

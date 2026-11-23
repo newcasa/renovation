@@ -1,12 +1,13 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences, configServeur } from "./donnees.js?v=202611230921";
-import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611230921";
-import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611230921";
-import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611230921";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611230921";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611230921";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611230921";
-import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611230921";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611231001";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611231001";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611231001";
+import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611231001";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611231001";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611231001";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611231001";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611231001";
+import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611231001";
 
 let R = null;
 let maisons = lireMaisons();
@@ -1128,6 +1129,8 @@ function ecranDossier(m) {
 
       ${blocDevisDossier(m, b, dv)}
 
+      ${blocDocsDossier(m)}
+
       <footer class="f-pied">Estimation indicative établie avec Valou à partir de prix de référence hors TVA (main-d'œuvre : ${esc(R.sources.mo || "")} ; matériaux : ${esc(R.sources.hubo || "")}). Elle ne remplace pas les devis des entrepreneurs ni la simulation du notaire.</footer>
     </article>
   </main>`;
@@ -1156,6 +1159,34 @@ function photosDe(m) {
       .finally(() => { delete photosEnCours[m.id]; afficher(); });
   }
   return photosCache[m.id] || [];
+}
+/* documents du dossier pour la banque (gardés sur l'appareil) */
+const docsCache = {}, docsEnCours = {};
+let docErreur = "";
+function docsDe(m) {
+  if (!docsCache[m.id] && !docsEnCours[m.id] && typeof indexedDB !== "undefined") {
+    docsEnCours[m.id] = true;
+    listerDocs(m.id)
+      .then(L => { docsCache[m.id] = L.map(d => ({ ...d, url: URL.createObjectURL(d.blob) })); })
+      .catch(() => { docsCache[m.id] = []; })
+      .finally(() => { delete docsEnCours[m.id]; afficher(); });
+  }
+  return docsCache[m.id] || [];
+}
+const tailleDoc = o => (o > 1048576 ? `${(o / 1048576).toFixed(1).replace(".", ",")} Mo` : `${Math.max(1, Math.round(o / 1024))} ko`);
+function blocDocsDossier(m) {
+  const D = docsDe(m), types = TYPES_DOCS.filter(t => !t[2] || t[2] === projetDe(m)), n = types.filter(([k]) => D.some(d => d.type === k)).length;
+  return `<h2>5. Les documents à joindre</h2>
+    <div class="no-print docs-ecran">
+      <p class="mu petit-t">Ajoutez une photo ou un PDF pour chaque document : ${n} sur ${types.length} fournis. Les documents restent sur ce téléphone (démonstration : rien n'est envoyé).</p>
+      ${docErreur ? `<p class="alerte-mini">${esc(docErreur)}</p>` : ""}
+      ${types.map(([k, t]) => { const L = D.filter(d => d.type === k);
+        return `<div class="doc-l ${L.length ? "ok" : ""}">
+          <div class="doc-t"><span class="doc-ic">${L.length ? "✓" : "📄"}</span><b>${esc(t)}</b><label class="btn sec petit-btn doc-aj">📎 Ajouter<input type="file" accept="image/*,application/pdf" multiple data-doc="${k}" hidden></label></div>
+          ${L.length ? `<ul class="doc-f">${L.map(d => `<li><a href="${d.url}" target="_blank" rel="noopener">${d.mime === "application/pdf" ? "📕" : "🖼️"} ${esc(d.nom)}</a><small class="mu">${tailleDoc(d.taille)}</small><button class="x" data-action="doc-suppr" data-id="${d.id}" aria-label="Retirer ${esc(d.nom)}">✕</button></li>`).join("")}</ul>` : ""}
+        </div>`; }).join("")}
+    </div>
+    <table class="f-table imprime-seul">${types.map(([k, t]) => { const L = D.filter(d => d.type === k); return `<tr><td>${esc(t)}</td><td class="r">${L.length ? `✓ ${L.length} fichier${L.length > 1 ? "s" : ""}` : `<span class="manque">à fournir</span>`}</td></tr>`; }).join("")}</table>`;
 }
 function rechargerPhotos(m) {
   (photosCache[m.id] || []).forEach(p => URL.revokeObjectURL(p.url));
@@ -1922,7 +1953,8 @@ document.addEventListener("click", e => {
     m.envoi = { date: Date.now(), metiers: ids }; envoiOuvert = null; sauver(); afficher();
   }
   if (a === "envoyer-banque") {
-    document.getElementById("envoi").innerHTML = `<p class="alerte ok">✓ Dossier envoyé à votre banque. <small>(Démonstration : aucun envoi réel.)</small></p>`;
+    const nD = m ? docsDe(m).length : 0;
+    document.getElementById("envoi").innerHTML = `<p class="alerte ok">✓ Dossier envoyé à votre banque${nD ? `, avec ${nD} document${nD > 1 ? "s" : ""}` : ""}. <small>(Démonstration : aucun envoi réel.)</small></p>`;
   }
   if (el.dataset.simN != null) { sim.n = +el.dataset.simN; afficher(); }
   if (a === "pro-ok") {
@@ -1984,6 +2016,7 @@ document.addEventListener("click", e => {
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
   if (a === "toit-q") { const i = document.querySelector(`[data-mq="${el.dataset.k}"]`); if (i) { i.value = el.dataset.q; i.dispatchEvent(new Event("change", { bubbles: true })); } }
+  if (a === "doc-suppr" && m) { supprimerDoc(el.dataset.id).catch(() => {}); const L = docsCache[m.id] || [], d = L.find(x => x.id === el.dataset.id); if (d) URL.revokeObjectURL(d.url); docsCache[m.id] = L.filter(x => x.id !== el.dataset.id); afficher(); }
   if (a === "offre-ok" && m) { const i = document.querySelector("[data-offre-saisie]"), v = i ? +i.value : 0; m.offre = v > 0 ? v : null; sauver(); afficher(); document.querySelector(".sim-cmp")?.scrollIntoView({ block: "center" }); }
   if (a === "offre-retirer" && m) { m.offre = null; sauver(); afficher(); }
   if (a === "pj-ok" && m) { m.projetOk = { ...(m.projetOk || {}), [el.dataset.k]: el.dataset.v === "1" }; sauver(); afficher(); const nx = document.querySelector(".pj-bloc:not(.ok)"); if (el.dataset.v === "1" && nx) nx.scrollIntoView({ block: "start" }); else document.getElementById("pj-" + el.dataset.k)?.scrollIntoView({ block: "start" }); }
@@ -2039,7 +2072,7 @@ document.addEventListener("click", e => {
   if (a === "suppr-ok") {
     const x = trouver(aSupprimer); aSupprimer = null;
     if (x) {
-      supprimerPhotosMaison(x.id).catch(() => {}); delete photosCache[x.id];
+      supprimerPhotosMaison(x.id).catch(() => {}); delete photosCache[x.id]; supprimerDocsMaison(x.id).catch(() => {}); delete docsCache[x.id];
       maisons = maisons.filter(y => y !== x); if (selection) selection = selection.filter(id => id !== x.id); sauver();
       if (location.hash.includes(x.id)) { location.hash = "#/"; return; }
     }
@@ -2092,6 +2125,13 @@ document.addEventListener("change", e => {
     sauver(); afficher(); return;
   }
   /* photo du questionnaire : les pages choisies restent sur l'appareil (aperçu seulement) */
+  if (t.dataset.doc && m) {
+    docErreur = "";
+    const fichiers = [...(t.files || [])], type = t.dataset.doc;
+    Promise.all(fichiers.map(f => ajouterDoc(m.id, type, f).then(d => { (docsCache[m.id] = docsCache[m.id] || []).push({ ...d, url: URL.createObjectURL(d.blob) }); }).catch(e => { docErreur = `${f.name} : ${e.message}`; })))
+      .then(() => afficher());
+    return;
+  }
   if (t.dataset.qphoto != null) { [...(t.files || [])].forEach(f => { qPhoto.photos.push(URL.createObjectURL(f)); qPhoto.fichiers.push(f); }); afficher(); return; }
   /* photos de la visite */
   if (t.dataset.photoInput != null && m) {
