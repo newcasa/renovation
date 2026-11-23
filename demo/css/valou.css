@@ -1221,3 +1221,5 @@ label.dd-ligne { justify-content: flex-start; }
 .pj-conclu b { color: var(--bordeaux); }
 .pt-src { font-style: normal; font-size: 11.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: #eef1f6; color: var(--mu); margin-left: 4px; white-space: nowrap; }
 .pt-src.devis { background: #e3f4ea; color: #1d7a46; }
+.pj-bref .pj-plus { border-top: 1px solid var(--bord); margin-top: 10px; padding-top: 10px; }
+.pj-bref .pj-plus:first-of-type { margin-top: 14px; }

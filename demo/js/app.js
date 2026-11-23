@@ -629,6 +629,24 @@ function ecranMaison(m) {
         ${reno ? "" : `<div><small>dont travaux</small><b>${euros(cO.travaux[1], 100)}</b></div>`}
         <div><small>${mensP ? "Mensualité" : "À emprunter"}</small><b>${mensP ? `${euros(mensP)}<i>/mois</i>` : euros(empruntP, 100)}</b></div>
       </div>
+    <details class="pj-plus" data-ouvert="pjt-${m.id}" ${ouverts.has(`pjt-${m.id}`) ? "open" : ""}><summary><span>🔨 Détail des travaux</span><b>${euros(c.travaux[1], 100)}</b></summary>
+      ${c.travaux[1] ? `      <section class="carte">
+        <h2>Budget travaux</h2>
+        <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
+        <div class="recap">
+          <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
+          <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
+          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
+          ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
+          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
+        </div>
+        ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
+        ${lignesG ? `<details class="legende-d"><summary>Que veulent dire les étiquettes ?</summary><p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p></details>` : ""}
+      </section>` : `<section class="carte vide-trav"><h2>Budget travaux</h2><p>Pas encore de travaux encodés. Commencez par le questionnaire de visite (onglet <button class="lien-o" data-action="onglet-m" data-o="pieces">Pendant la visite</button>), puis complétez les pièces et la technique (onglet <button class="lien-o" data-action="onglet-m" data-o="travaux">Après la visite</button>).</p></section>`}
+    </details>
+    <details class="pj-plus" data-ouvert="pje-${m.id}" ${ouverts.has(`pje-${m.id}`) ? "open" : ""}><summary><span>⚡ Énergie (PEB)</span><b>${m.peb ? `PEB ${esc(m.peb)}` : "à compléter"}</b></summary>
+    ${carteEnergie(m, b)}
+    </details>
     </section>
 
     ${reno ? "" : bloc("offre", "🤝 Combien proposer ?", "Simulez une offre : elle s'affiche à côté du prix demandé", +m.offre > 0 && +m.offre !== +m.prix ? `Offre ${euros(+m.offre)} · total ${euros(cO.total[1], 100)}` : `Au prix demandé · total ${euros(c.total[1], 100)}`, `
@@ -716,24 +734,7 @@ function ecranMaison(m) {
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
       <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
     </section>
-    <details class="carte pj-plus" data-ouvert="pjt-${m.id}" ${ouverts.has(`pjt-${m.id}`) ? "open" : ""}><summary><span>🔨 Détail des travaux</span><b>${euros(c.travaux[1], 100)}</b></summary>
-      ${c.travaux[1] ? `      <section class="carte">
-        <h2>Budget travaux</h2>
-        <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
-        <div class="recap">
-          <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
-          <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
-          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
-          ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
-          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
-        </div>
-        ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
-        ${lignesG ? `<details class="legende-d"><summary>Que veulent dire les étiquettes ?</summary><p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p></details>` : ""}
-      </section>` : `<section class="carte vide-trav"><h2>Budget travaux</h2><p>Pas encore de travaux encodés. Commencez par le questionnaire de visite (onglet <button class="lien-o" data-action="onglet-m" data-o="pieces">Pendant la visite</button>), puis complétez les pièces et la technique (onglet <button class="lien-o" data-action="onglet-m" data-o="travaux">Après la visite</button>).</p></section>`}
-    </details>
-    <details class="carte pj-plus" data-ouvert="pje-${m.id}" ${ouverts.has(`pje-${m.id}`) ? "open" : ""}><summary><span>⚡ Énergie (PEB)</span><b>${m.peb ? `PEB ${esc(m.peb)}` : "à compléter"}</b></summary>
-    ${carteEnergie(m, b)}
-    </details>
+
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a></span>
       <button class="btn lien" data-action="suppr-demande" data-id="${m.id}">🗑 Supprimer cette maison</button>
