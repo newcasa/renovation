@@ -358,22 +358,22 @@ function camembert(parts, finance, total, propre) {
   if (!total || !parts.length) return "";
   const cx = 100, cy = 100, R = 70, ep = 30, C = 2 * Math.PI * R;
   let acc = 0;
-  const segs = parts.map(([t, v, col]) => { const l = (v / total) * C; const x = `<circle r="${R}" cx="${cx}" cy="${cy}" fill="none" stroke="${col}" stroke-width="${ep}" stroke-dasharray="${l.toFixed(2)} ${(C - l).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(t)} : ${euros(v)}</title></circle>`; acc += l; return x; }).join("");
-  const f = Math.min(1, Math.max(0, finance / total)), Ro = R + ep / 2 + 4, Ri = R - ep / 2 - 4;
+  const segs = parts.map(([t, v, col, motif]) => { const l = (v / total) * C; const x = `<circle r="${R}" cx="${cx}" cy="${cy}" fill="none" stroke="${motif ? "url(#cb-hach)" : col}" stroke-width="${ep}" stroke-dasharray="${l.toFixed(2)} ${(C - l).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(t)} : ${euros(v)}</title></circle>`; acc += l; return x; }).join("");
+  const f = Math.min(1, Math.max(0, finance / total)), Ro = R + ep / 2 + 4, Ri = R - ep / 2 - 4, debut = 1 - f; // la part payée vous-même est au début du cercle, la part de la banque à la fin
   const pt = (r, a) => [(cx + r * Math.cos(a)).toFixed(2), (cy + r * Math.sin(a)).toFixed(2)];
   let contour = "";
   if (f >= 0.999) contour = `<circle r="${Ro}" cx="${cx}" cy="${cy}" class="cb-rouge"/><circle r="${Ri}" cx="${cx}" cy="${cy}" class="cb-rouge"/>`;
   else if (f > 0.001) {
-    const a0 = -Math.PI / 2, a1 = a0 + f * 2 * Math.PI, g = f > 0.5 ? 1 : 0;
+    const a0 = -Math.PI / 2 + debut * 2 * Math.PI, a1 = -Math.PI / 2 + 2 * Math.PI, g = f > 0.5 ? 1 : 0;
     const [x0, y0] = pt(Ro, a0), [x1, y1] = pt(Ro, a1), [x2, y2] = pt(Ri, a1), [x3, y3] = pt(Ri, a0);
     contour = `<path class="cb-rouge" d="M${x0} ${y0} A${Ro} ${Ro} 0 ${g} 1 ${x1} ${y1} L${x2} ${y2} A${Ri} ${Ri} 0 ${g} 0 ${x3} ${y3} Z"/>`;
   }
   return `<div class="camembert">
-    <svg viewBox="0 0 200 200" role="img" aria-label="Répartition du vrai coût">${segs}${contour}
+    <svg viewBox="0 0 200 200" role="img" aria-label="Répartition du vrai coût"><defs><pattern id="cb-hach" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#DCE4F1"/><rect width="3" height="6" fill="#9FB3D6"/></pattern></defs>${segs}${contour}
       <text x="100" y="94" text-anchor="middle" class="cb-t1">Total</text><text x="100" y="112" text-anchor="middle" class="cb-t2">${euros(total, 100)}</text></svg>
-    <ul class="cb-leg">${parts.map(([t, v, col]) => `<li><i style="background:${col}"></i><span>${esc(t)}</span><b>${euros(v, 100)}</b></li>`).join("")}
+    <ul class="cb-leg">${parts.map(([t, v, col, motif]) => `<li><i style="background:${motif ? "repeating-linear-gradient(45deg,#9FB3D6 0 3px,#DCE4F1 3px 6px)" : col}"></i><span>${esc(t)}</span><b>${euros(v, 100)}</b></li>`).join("")}
       <li class="cb-banque"><i></i><span>Financé par la banque${f ? ` (${Math.round(f * 100)} %)` : ""}</span><b>${euros(finance, 100)}</b></li>
-      ${propre ? `<li class="cb-propre"><i></i><span>Apport et travaux payés vous-même</span><b>${euros(propre, 100)}</b></li>` : ""}</ul>
+      ${propre ? `<li class="cb-propre"><i></i><span>Payé par vous (apport${parts.some(p => p[3]) ? " et travaux hors prêt" : ""}) : hors du contour</span><b>${euros(propre, 100)}</b></li>` : ""}</ul>
   </div>`;
 }
 function travauxPret(m, b, travauxMoy) {
@@ -695,7 +695,7 @@ function ecranMaison(m) {
       <div class="pj-tete"><span class="pv-n">${blocs.length + 1}</span><div><b>📊 Le vrai coût</b><small class="mu">${reno ? "La rénovation" : +m.offre > 0 && +m.offre !== +m.prix ? "Avec votre offre" : "Au prix demandé"} · en rouge : la part financée par la banque</small></div></div>
       ${camembert(reno
         ? [["Matériaux", b.MAT[1], "#C9D3E2"], ["Main-d'œuvre", b.MO[1], "#EC8224"], ["TVA", b.TVA[1], "#F5B57A"], ["Imprévus et container", b.IM[1] + b.ANN[1], "#5B7BB0"]]
-        : [[+m.offre > 0 ? "Votre offre" : "Prix d'achat", cO.prix, "#C9D3E2"], ["Droits d'enregistrement", cO.droits, "#EC8224"], ["Notaire", cO.notaire || 0, "#F5B57A"], ["Travaux", cO.travaux[1], "#5B7BB0"]],
+        : [["Travaux payés vous-même", tpP.hors, "#B9C9E4", "hachure"], ["Droits d'enregistrement", cO.droits, "#EC8224"], ["Notaire", cO.notaire || 0, "#F5B57A"], [+m.offre > 0 ? "Votre offre" : "Prix d'achat", cO.prix, "#C9D3E2"], [tpP.hors ? "Travaux dans le prêt" : "Travaux", cO.travaux[1] - tpP.hors, "#5B7BB0"]],
         empruntP, (reno ? c : cO).total[1], (+fP.apport || 0) + (reno ? 0 : tpP.hors))}
     <section class="carte vrai-cout">
       <div class="vc-g">
