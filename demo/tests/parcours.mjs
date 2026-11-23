@@ -76,11 +76,13 @@ try {
     await page.locator("[data-pret]").first().check();
     assert.equal(await emp(), empAvant);
     /* Projet : chaque bloc se valide (vert, replié avec son résumé), puis se rouvre avec « Modifier » */
-    await page.locator('#pj-offre [data-action="pj-ok"][data-v="1"]').click();
-    assert.ok(await page.locator("#pj-offre.ok").count());
-    assert.match(await page.locator("#pj-offre").innerText(), /Au prix demandé/);
-    await page.locator('#pj-offre [data-action="pj-ok"][data-v="0"]').click();
-    await page.locator("#pj-offre [data-offre-saisie]").waitFor();
+    assert.equal(await page.locator('#pj-offre [data-action="pj-ok"]').count(), 0, "pas de Valider dans la simulation d'offre");
+    assert.equal(await page.locator('[data-action="offre-ok"]').innerText(), "Simuler");
+    await page.locator('#pj-fin [data-action="pj-ok"][data-v="1"]').click();
+    assert.ok(await page.locator("#pj-fin.ok").count());
+    assert.match(await page.locator("#pj-fin").innerText(), /À emprunter/);
+    await page.locator('#pj-fin [data-action="pj-ok"][data-v="0"]').click();
+    await page.locator('#pj-fin [data-fin="apport"]').waitFor();
     /* Les pros : contacter un courtier */
     await onglet("artisans");
     await page.locator('[data-action="courtier-envoyer"]').first().click();

@@ -618,10 +618,10 @@ function ecranMaison(m) {
       const ok = m.projetOk || {};
       const tpP = travauxPret(m, b, cO.travaux[1]), fP = m.fin || {}, empruntP = Math.max(0, (reno ? c : cO).total[1] - (reno ? 0 : tpP.hors) - (+fP.apport || 0)), mensP = mensualite(empruntP, fP.taux, fP.duree);
       const blocs = reno ? ["fin"] : ["offre", "fin"];
-      const bloc = (id, titre, sous, resume, contenu) => { const n = blocs.indexOf(id) + 1, v = !!ok[id];
+      const bloc = (id, titre, sous, resume, contenu, sansValider) => { const n = blocs.indexOf(id) + 1, v = !sansValider && !!ok[id];
         return `<section class="carte pj-bloc ${v ? "ok" : ""}" id="pj-${id}">
           <div class="pj-tete"><span class="pv-n">${v ? "✓" : n}</span><div><b>${titre}</b><small class="mu">${v ? resume : sous}</small></div>${v ? `<button class="btn lien" data-action="pj-ok" data-k="${id}" data-v="0">Modifier</button>` : ""}</div>
-          ${v ? "" : `<div class="pj-corps">${contenu}<p class="pj-valider"><button class="btn" data-action="pj-ok" data-k="${id}" data-v="1">✓ Valider</button></p></div>`}
+          ${v ? "" : `<div class="pj-corps">${contenu}${sansValider ? "" : `<p class="pj-valider"><button class="btn" data-action="pj-ok" data-k="${id}" data-v="1">✓ Valider</button></p>`}</div>`}
         </section>`; };
       return `
     <section class="carte pj-bref">
@@ -638,7 +638,7 @@ function ecranMaison(m) {
           <h2>Simulation d'achat</h2>
           <div class="champs">
             <div class="ligne"><span>Prix demandé</span><b>${euros(m.prix)}</b></div>
-            <div class="offre-l"><label>Votre offre (€)<input type="number" min="0" step="1000" inputmode="numeric" data-offre-saisie value="${esc(m.offre ?? "")}" placeholder="${esc(m.prix)}"></label><button class="btn petit-btn" data-action="offre-ok">Valider</button>${+m.offre > 0 ? `<button class="btn lien" data-action="offre-retirer">Retirer</button>` : ""}</div>
+            <div class="offre-l"><label>Votre offre (€)<input type="number" min="0" step="1000" inputmode="numeric" data-offre-saisie value="${esc(m.offre ?? "")}" placeholder="${esc(m.prix)}"></label><button class="btn petit-btn" data-action="offre-ok">Simuler</button>${+m.offre > 0 ? `<button class="btn lien" data-action="offre-retirer">Retirer</button>` : ""}</div>
             <label class="cb large"><input type="checkbox" data-f="uniqueHabitation" ${m.uniqueHabitation !== false ? "checked" : ""}> Seule habitation, occupée par moi</label>
           </div>
           ${(() => {
@@ -668,7 +668,7 @@ function ecranMaison(m) {
           <small class="mu">Droits : taux légal wallon. Notaire : calcul d'après le ${esc((cO.notaireCalcul || {}).source || "simulateur notaire.be")}. À confirmer par le notaire. L'acte de crédit a ses propres frais (pas encore comptés).</small>
           <details class="corriger"><summary>Corriger le prix demandé</summary><label>Prix demandé (€)<input type="number" min="0" inputmode="numeric" data-f="prix" value="${esc(m.prix)}"></label></details>
         </section>
-`)}
+`, true)}
     ${bloc("fin", "🏦 Comment financer ?", "Apport, travaux dans le prêt, mensualité et aides", `À emprunter ${euros(empruntP, 100)}${mensP ? ` · ${euros(mensP)} / mois` : ""}`, reno ? (c.travaux[1] ? blocFinancerRenovation(m, b, c, true) : aides()) : `
         ${(() => {
           /* le financement : mêmes valeurs que le dossier pour la banque */
