@@ -18,7 +18,10 @@ const erreurs = [];
 try {
   for (const [nom, vue] of [["ordi", { width: 1280, height: 900 }], ["tel", { width: 390, height: 844 }]]) {
     const page = await navigateur.newPage({ viewport: vue, deviceScaleFactor: 2 });
-    const onglet = o => page.locator(`.om-i[data-o="${o}"]`).click(); // onglets de la fiche maison
+    const onglet = async o => { // onglets de la fiche maison (dans Projet : on déplie le détail des travaux et le PEB)
+      await page.locator(`.om-i[data-o="${o}"]`).click();
+      if (o === "projet") { await page.evaluate(() => document.querySelectorAll(".pj-plus").forEach(d => { d.open = true; })); await page.waitForTimeout(50); }
+    };
     /* menu : en haut sur ordinateur, barre du bas sur téléphone (« Plus » pour les autres pages) */
     const menu = async h => {
       if (nom === "ordi") return page.locator(`.nav-i[href="${h}"]`).click();
@@ -72,6 +75,12 @@ try {
     assert.match(await page.locator(".pret-trav > summary").innerText(), /sur[\s\S]*− /);
     await page.locator("[data-pret]").first().check();
     assert.equal(await emp(), empAvant);
+    /* Projet : chaque bloc se valide (vert, replié avec son résumé), puis se rouvre avec « Modifier » */
+    await page.locator('#pj-cout [data-action="pj-ok"][data-v="1"]').click();
+    assert.ok(await page.locator("#pj-cout.ok").count());
+    assert.match(await page.locator("#pj-cout").innerText(), /au prix demandé/);
+    await page.locator('#pj-cout [data-action="pj-ok"][data-v="0"]').click();
+    await page.locator("#pj-cout .vrai-cout").waitFor();
     /* Les pros : contacter un courtier */
     await onglet("artisans");
     await page.locator('[data-action="courtier-envoyer"]').first().click();

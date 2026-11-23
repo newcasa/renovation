@@ -1136,3 +1136,31 @@ label.dd-ligne { justify-content: flex-start; }
 .apres-v.ok { background: #f4faf6; border-color: #bfe0cc; } .titre-tech { margin: 22px 4px 8px; font-size: 20px; }
 .q-etape.ok { background: #f4faf6; border-color: #bfe0cc; } .q-etape.ok .pv-n { background: #2f8f5b; } .q-etape.en-cours { border: 1.5px solid var(--or); } .q-etape.en-cours .pv-n { background: var(--or); }
 .fin-visite { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin: 4px 0 16px; }
+
+/* Projet en 3 questions */
+.pj-bref h2 { margin-bottom: 8px; }
+.pj-chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+.pj-chiffres div { background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 10px; }
+.pj-chiffres small { display: block; color: var(--mu); font-weight: 700; font-size: 12.5px; }
+.pj-chiffres b { font: 900 19px Outfit, Manrope, sans-serif; color: var(--bordeaux); }
+.pj-chiffres i { font-style: normal; font-size: 13px; color: var(--mu); }
+.pj-bloc { border: 1.5px solid var(--bord); scroll-margin-top: 150px; }
+.pj-bloc.ok { background: #f4faf6; border-color: #bfe0cc; }
+.pj-tete { display: flex; gap: 12px; align-items: center; }
+.pj-tete > div { flex: 1; }
+.pj-tete b { display: block; font-size: 18px; color: var(--bordeaux); }
+.pj-tete small { display: block; margin-top: 2px; }
+.pj-bloc.ok .pv-n { background: #2f8f5b; }
+.pj-bloc:not(.ok) .pv-n { background: var(--or); }
+.pj-corps { margin-top: 12px; }
+.pj-corps > .carte, .pj-corps .fin-page > .carte { box-shadow: none; border: 1px solid var(--bord); margin: 0 0 12px; }
+.pj-valider { margin: 6px 0 0; }
+.pj-plus > summary { display: flex; justify-content: space-between; gap: 10px; cursor: pointer; font-weight: 800; color: var(--bordeaux); list-style: none; }
+.pj-plus > summary::-webkit-details-marker { display: none; }
+.pj-plus > summary b { color: var(--or-fonce); }
+.pj-plus[open] > summary { margin-bottom: 10px; }
+.pj-plus > .carte { box-shadow: none; border: 1px solid var(--bord); }
+.pj-chiffres b { font-size: 16.5px; white-space: nowrap; }
+.pj-chiffres div { padding: 9px 8px; min-width: 0; }
+.pj-tete b { font-size: 16.5px; }
+@media (max-width: 400px) { .pj-chiffres small { font-size: 11.5px; } .pj-chiffres b { font-size: 15px; } }

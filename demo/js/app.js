@@ -368,7 +368,7 @@ function blocTravauxPret(m, tp) {
     ${tp.groupes.map(x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.g)}" ${x.inclus ? "checked" : ""}><span>${esc(x.g)}</span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`).join("")}
   </details>`;
 }
-function blocFinancerRenovation(m, b, c) {
+function blocFinancerRenovation(m, b, c, sansActions = false) {
   const tp = travauxPret(m, b, c.travaux[1]);
   const f = m.fin || {}, apport = +f.apport || 0, emprunt = Math.max(0, c.total[1] - tp.hors - apport), mens = mensualite(emprunt, f.taux, f.duree);
   const ch = (k, t, suf, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-fin="${k}" value="${esc(f[k] ?? "")}" placeholder="${ph}"><i>${suf}</i></span></label>`;
@@ -388,10 +388,10 @@ function blocFinancerRenovation(m, b, c) {
     </section>
     ${aides()}
   </div>
-  <div class="actions">
+  ${sansActions ? "" : `<div class="actions">
     <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a></span>
     <button class="btn lien" data-action="suppr-demande" data-id="${m.id}">🗑 Supprimer cette maison</button>
-  </div>`;
+  </div>`}`;
 }
 /* ---------- envoyer le projet aux artisans (démonstration) ---------- */
 function panneauEnvoi(m, b) {
@@ -515,7 +515,7 @@ function ecranMaison(m) {
       <p class="mu">${[m.commune, m.annee && `construite en ${m.annee}`, txtFacades(m), txtEtages(m), m.toiture && nomToit(m.toiture).toLowerCase().replace(/^/, "toit : "), m.surface && `${nombre(m.surface)} m² habitables`].filter(Boolean).map(esc).join(" · ")}</p>
     </div>
 
-    <button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>${c.travaux[1] ? "" : `<i class="vc-alerte">⚠️ sans les travaux</i> `}voir Projet ›</small></button>
+    ${ongletMaison(m) === "projet" ? "" : `<button class="vc-mini" data-action="onglet-m" data-o="projet"><span>${reno ? "Budget de la rénovation" : "Vrai coût de cette maison"}</span><b>${euros(c.total[1], 100)}</b><small>${c.travaux[1] ? "" : `<i class="vc-alerte">⚠️ sans les travaux</i> `}voir Projet ›</small></button>`}
 
     <nav class="onglets-m" aria-label="Parties de la fiche">${ongletsDe(m).map(([id, t]) => `<button class="om-i ${ongletMaison(m) === id ? "on" : ""}" data-action="onglet-m" data-o="${id}"${ongletMaison(m) === id ? ' aria-current="true"' : ""}>${t}${id === "travaux" && (m.pieces || []).length ? ` <small>${m.pieces.length}</small>` : ""}</button>`).join("")}</nav>
     ${(() => {
@@ -578,7 +578,26 @@ function ecranMaison(m) {
       ${listeNegociants(m, b)}</section>
 
     ${panneauEnvoi(m, b)}`;
-      if (o === "projet") return `
+      if (o === "projet") return (() => {
+      /* Projet en 3 questions : Combien ça coûte ? → Combien proposer ? → Comment financer ? ; chaque bloc se valide */
+      const ok = m.projetOk || {};
+      const tpP = travauxPret(m, b, cO.travaux[1]), fP = m.fin || {}, empruntP = Math.max(0, (reno ? c : cO).total[1] - (reno ? 0 : tpP.hors) - (+fP.apport || 0)), mensP = mensualite(empruntP, fP.taux, fP.duree);
+      const blocs = reno ? ["cout", "fin"] : ["cout", "offre", "fin"];
+      const bloc = (id, titre, sous, resume, contenu) => { const n = blocs.indexOf(id) + 1, v = !!ok[id];
+        return `<section class="carte pj-bloc ${v ? "ok" : ""}" id="pj-${id}">
+          <div class="pj-tete"><span class="pv-n">${v ? "✓" : n}</span><div><b>${titre}</b><small class="mu">${v ? resume : sous}</small></div>${v ? `<button class="btn lien" data-action="pj-ok" data-k="${id}" data-v="0">Modifier</button>` : ""}</div>
+          ${v ? "" : `<div class="pj-corps">${contenu}<p class="pj-valider"><button class="btn" data-action="pj-ok" data-k="${id}" data-v="1">✓ Valider</button></p></div>`}
+        </section>`; };
+      return `
+    <section class="carte pj-bref">
+      <h2>En bref</h2>
+      <div class="pj-chiffres">
+        <div><small>${reno ? "Budget de la rénovation" : "Vrai coût"}</small><b>${euros((reno ? c : cO).total[1], 100)}</b></div>
+        ${reno ? "" : `<div><small>dont travaux</small><b>${euros(cO.travaux[1], 100)}</b></div>`}
+        <div><small>${mensP ? "Mensualité" : "À emprunter"}</small><b>${mensP ? `${euros(mensP)}<i>/mois</i>` : euros(empruntP, 100)}</b></div>
+      </div>
+    </section>
+    ${bloc("cout", reno ? "💶 Combien coûte la rénovation ?" : "💶 Combien ça coûte ?", reno ? "Le budget des travaux, TVA et imprévus compris" : "Prix, droits d'enregistrement, notaire et travaux", `${euros(c.total[1], 100)}${reno ? "" : ` au prix demandé, dont ${euros(c.travaux[1], 100)} de travaux`}`, `
     <section class="carte vrai-cout">
       <div class="vc-g">
         <small>${reno ? "Le budget de votre rénovation" : "Le vrai coût de cette maison"}</small>
@@ -591,25 +610,9 @@ function ecranMaison(m) {
       <div class="vc-d">${barre}</div>
     </section>
 
-    ${carteEnergie(m, b)}
     ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
-      <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
-
-      ${c.travaux[1] ? `      <section class="carte">
-        <h2>Budget travaux</h2>
-        <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
-        <div class="recap">
-          <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
-          <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
-          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
-          ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
-          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
-        </div>
-        ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
-        ${lignesG ? `<details class="legende-d"><summary>Que veulent dire les étiquettes ?</summary><p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p></details>` : ""}
-      </section>` : `<section class="carte vide-trav"><h2>Budget travaux</h2><p>Pas encore de travaux encodés. Commencez par le questionnaire de visite (onglet <button class="lien-o" data-action="onglet-m" data-o="pieces">Pendant la visite</button>), puis complétez les pièces et la technique (onglet <button class="lien-o" data-action="onglet-m" data-o="travaux">Après la visite</button>).</p></section>`}
-
-    ${reno ? (c.travaux[1] ? blocFinancerRenovation(m, b, c) : `<div class="fin-page">${aides()}</div>`) : `<div class="fin-page">
+      <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}`)}
+    ${reno ? "" : bloc("offre", "🤝 Combien proposer ?", "Simulez une offre : elle s'affiche à côté du prix demandé", +m.offre > 0 && +m.offre !== +m.prix ? `Offre ${euros(+m.offre)} · total ${euros(cO.total[1], 100)}` : `Au prix demandé · total ${euros(c.total[1], 100)}`, `
         <section class="carte sim-achat">
           <h2>Simulation d'achat</h2>
           <div class="champs">
@@ -644,6 +647,8 @@ function ecranMaison(m) {
           <small class="mu">Droits : taux légal wallon. Notaire : calcul d'après le ${esc((cO.notaireCalcul || {}).source || "simulateur notaire.be")}. À confirmer par le notaire. L'acte de crédit a ses propres frais (pas encore comptés).</small>
           <details class="corriger"><summary>Corriger le prix demandé</summary><label>Prix demandé (€)<input type="number" min="0" inputmode="numeric" data-f="prix" value="${esc(m.prix)}"></label></details>
         </section>
+`)}
+    ${bloc("fin", "🏦 Comment financer ?", "Apport, travaux dans le prêt, mensualité et aides", `À emprunter ${euros(empruntP, 100)}${mensP ? ` · ${euros(mensP)} / mois` : ""}`, reno ? (c.travaux[1] ? blocFinancerRenovation(m, b, c, true) : aides()) : `
         ${(() => {
           /* le financement : mêmes valeurs que le dossier pour la banque */
           const tp = travauxPret(m, b, cO.travaux[1]);
@@ -663,13 +668,32 @@ function ecranMaison(m) {
           </div>
         </section>`;
         })()}
-        ${aides()}
-    </div>
+        ${aides()}`)}
+
+    <details class="carte pj-plus" data-ouvert="pjt-${m.id}" ${ouverts.has(`pjt-${m.id}`) ? "open" : ""}><summary><span>🔨 Détail des travaux</span><b>${euros(c.travaux[1], 100)}</b></summary>
+      ${c.travaux[1] ? `      <section class="carte">
+        <h2>Budget travaux</h2>
+        <div class="trois"><div><small>Bas</small><b>${euros(b.T[0], 100)}</b></div><div class="moy"><small>Moyen</small><b>${euros(b.T[1], 100)}</b></div><div><small>Haut</small><b>${euros(b.T[2], 100)}</b></div></div>
+        <div class="recap">
+          <div><span>Matériaux (HTVA)</span><b>${euros(b.MAT[1])}</b></div>
+          <div><span>Main-d'œuvre (HTVA)</span><b>${euros(b.MO[1])}</b></div>
+          <div><span>TVA (${b.rate} % artisans, 21 % magasin)</span><b>${euros(b.TVA[1])}</b></div>
+          ${b.ANN[1] ? `<div><span>Container à gravats</span><b>${euros(b.ANN[1])}</b></div>` : ""}
+          <div><span>Imprévus (${b.pi} %)</span><b>${euros(b.IM[1])}</b></div>
+        </div>
+        ${lignesG || `<p class="mu">Aucun travail encodé.</p>`}
+        ${lignesG ? `<details class="legende-d"><summary>Que veulent dire les étiquettes ?</summary><p class="legende-f">${Object.keys(FIABILITE).map(f => `${badge(f)} <small class="mu">${esc(FIABILITE[f].d)}</small>`).join("<br>")}</p></details>` : ""}
+      </section>` : `<section class="carte vide-trav"><h2>Budget travaux</h2><p>Pas encore de travaux encodés. Commencez par le questionnaire de visite (onglet <button class="lien-o" data-action="onglet-m" data-o="pieces">Pendant la visite</button>), puis complétez les pièces et la technique (onglet <button class="lien-o" data-action="onglet-m" data-o="travaux">Après la visite</button>).</p></section>`}
+    </details>
+    <details class="carte pj-plus" data-ouvert="pje-${m.id}" ${ouverts.has(`pje-${m.id}`) ? "open" : ""}><summary><span>⚡ Énergie (PEB)</span><b>${m.peb ? `PEB ${esc(m.peb)}` : "à compléter"}</b></summary>
+    ${carteEnergie(m, b)}
+    </details>
     <div class="actions">
       <span class="actions-g"><a class="btn" href="#/dossier/${m.id}">Dossier pour la banque →</a></span>
       <button class="btn lien" data-action="suppr-demande" data-id="${m.id}">🗑 Supprimer cette maison</button>
     </div>
-`}`;
+`;
+      })();
       return `
     ${blocParcoursVisite(m)}
 
@@ -1910,6 +1934,7 @@ document.addEventListener("click", e => {
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
   if (a === "toit-q") { const i = document.querySelector(`[data-mq="${el.dataset.k}"]`); if (i) { i.value = el.dataset.q; i.dispatchEvent(new Event("change", { bubbles: true })); } }
+  if (a === "pj-ok" && m) { m.projetOk = { ...(m.projetOk || {}), [el.dataset.k]: el.dataset.v === "1" }; sauver(); afficher(); const nx = document.querySelector(".pj-bloc:not(.ok)"); if (el.dataset.v === "1" && nx) nx.scrollIntoView({ block: "start" }); else document.getElementById("pj-" + el.dataset.k)?.scrollIntoView({ block: "start" }); }
   if (a === "infos-ok" && m) { m.infosOk = el.dataset.v === "1"; if (m.infosOk) ouverts.delete("infos-" + m.id); else ouverts.add("infos-" + m.id); sauver(); afficher(); }
   if (a === "etape-infos" && m) { ouverts.add("infos-" + m.id); ongletsM[m.id] = "pieces"; afficher(); document.getElementById("pv-1")?.scrollIntoView({ block: "start" }); }
   if (a === "quest-papier" && m) { m.questImprime = true; sauver(); }
