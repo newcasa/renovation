@@ -280,7 +280,7 @@ function blocDimensions(m) {
   const ch = (k, t, ph) => `<label>${t}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-tdim="${k}" value="${esc(D[k] ?? "")}" placeholder="${ph}"><i>m</i></span></label>`;
   const manque = [!(+D.larg > 0) && "la largeur", !(+D.prof > 0) && "la profondeur", !+m.facades && "le nombre de façades", (m.etages == null || m.etages === "") && "le nombre d'étages"].filter(Boolean);
   return `<section class="carte">
-      <h2>Les dimensions de la maison</h2>
+      <h2>Les dimensions de la maison${icQ((m.depuisPhoto || {}).dims)}</h2>
       <div class="toit-dim">
         ${ch("larg", "Largeur de la façade", "ex. 9")}
         ${ch("prof", "Profondeur de la maison", "ex. 10")}
@@ -319,7 +319,7 @@ function basculerGros(m, g) {
 }
 function blocGrosTravaux(m) {
   return `<section class="carte gros-t">
-      <h2>Qu'est-ce qui est à refaire ?</h2>
+      <h2>Qu'est-ce qui est à refaire ?${icQ((m.depuisPhoto || {}).gros)}</h2>
       <p class="mu petit-t">Touchez ce qui est à prévoir : Valou remplit les postes avec les mesures de la maison. Le détail reste modifiable plus bas.</p>
       ${(m.aCompleter || []).filter(k => !ligneFixe(m, k)).length ? `<p class="alerte-mini">📝 Coché sur le questionnaire, quantité à compléter plus bas : ${m.aCompleter.filter(k => !ligneFixe(m, k)).map(k => esc(R.postes[k] ? R.postes[k].n : k)).join(", ")}.</p>` : ""}
       <div class="gt-liste">${grosTravaux(m).map(([g, ico, t, P, manque]) => {
@@ -510,7 +510,7 @@ function ecranMaison(m) {
   const cartesPieces = (m.pieces || []).map(pc => {
     const L = parPiece(pc.id), t = L.reduce((s, l) => s + (l.fiab ? l.total[1] : 0), 0);
     return `<div class="carte-piece" style="${stylePiece(m, pc)}"><a href="#/maison/${m.id}/piece/${pc.id}">
-        <span class="pc-ico">${iconePiece(pc)}</span><b>${esc(pc.nom)}</b>
+        <span class="pc-ico">${iconePiece(pc)}</span><b>${esc(pc.nom)}${icQ(pc.depuisPhoto)}</b>
         <small class="mu">${pc.sol ? `${String(pc.sol).replace(".", ",")} m²` : "surface à remplir"}</small>
         <small class="pc-res">${esc(resumePiece(pc)) || "Rien de coché : touchez pour choisir les travaux"}</small>
         <span class="pc-bud">${t ? euros(t, 10) : "–"}</span>${(n => (n ? `<small class="pc-photos">📷 ${n}</small>` : ""))(photosDe(m).filter(p => memeNom(p.nomPiece, pc.nom)).length)}</a>
@@ -558,7 +558,7 @@ function ecranMaison(m) {
       if (o === "travaux") return `
     ${blocApresVisite(m)}
     <section class="carte">
-      <h2>Les espaces</h2>
+      <h2>Les espaces${icQ((m.pieces || []).some(pc => pc.depuisPhoto))}</h2>
       <p class="mu">Les pièces remplies par le questionnaire. Ouvrez-les pour compléter le sol, les murs, le plafond, les châssis et le chauffage. Les murs sont calculés automatiquement (sol × ${String(RATIO_MURS).replace(".", ",")}) et le plafond = sol.</p>
       <div class="grille-pieces">${cartesPieces}</div>
       ${!m.questLu && !(m.pieces || []).length ? `<p class="consigne">Les pièces viennent du questionnaire de visite : imprimez-le, remplissez-le pendant la visite, puis photographiez-le (ci-dessus).</p>` : `<div class="ajout-piece">
@@ -579,7 +579,7 @@ function ecranMaison(m) {
     ${blocGrosTravaux(m)}
 
     <section class="carte">
-      <h2>Le chauffage</h2>
+      <h2>Le chauffage${icQ((m.depuisPhoto || {}).chauffage)}</h2>
       ${blocChauffage(m.chauffage, "data-mchf", (m.pieces || []).length > 0)}
       ${chf.notes.map(t => `<p class="mu petit-t">• ${esc(t)}</p>`).join("")}
       ${b.lignes.filter(l => l.src === "chauffage").map(l => `<div class="ligne"><span>${esc(R.postes[l.k].n)} ${l.q > 1 ? `× ${nombre(l.q)}` : ""}</span><b>${l.fiab ? euros(l.total[1], 10) : ""}</b></div>`).join("")}
@@ -836,7 +836,7 @@ function ecranPiece(m, pc) {
   return `${entete("maisons")}
   <main class="etroit piece-ecran" style="${stylePiece(m, pc)}">
     <a href="#/maison/${m.id}" class="retour">← ${esc(m.nom || "La maison")}</a>
-    <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}</h1><p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
+    <div class="titre-piece"><span class="pc-ico grand">${iconePiece(pc)}</span><div><h1>${esc(pc.nom)}${icQ(pc.depuisPhoto)}</h1><p class="mu">Budget de la pièce : <b>${euros(total, 10)}</b> (TVA comprise, hors imprévus)</p></div></div>
     ${total ? "" : `<p class="consigne">👇 Tapez la surface au sol, puis <b>cochez ce qui est à refaire</b> (sol, murs, plafond, châssis…) : le budget de la pièce se calcule tout de suite.</p>`}
     ${corpsPiece(m, pc)}
     <p><a class="btn" href="#/maison/${m.id}">✓ Pièce terminée</a></p>
@@ -1629,7 +1629,11 @@ function ecranQuestionnairePhoto(m) {
   </main>`;
 }
 /* fusionne les réponses lues dans la maison (sans rien effacer d'autre) */
+/* petit badge : ce bloc a été prérempli grâce à la photo du questionnaire */
+const icQ = on => (on ? ` <span class="ic-q" title="Prérempli grâce à la photo du questionnaire">📝 questionnaire</span>` : "");
 function appliquerQuestionnaire(m, L) {
+  const D = L.toitDim || {};
+  m.depuisPhoto = { ...(m.depuisPhoto || {}), infos: true, dims: !!(D.larg || D.prof || L.facades || L.etages != null), chauffage: L.chauffageLu !== false, gros: !!(L.gros || []).length, rappels: !!(L.rappels || []).length };
   for (const k of ["annee", "surface", "peb", "pebConso", "etages", "facades", "commune"]) if ((m[k] == null || m[k] === "" || m[k] === 0) && L[k] != null && L[k] !== "") m[k] = L[k];
   if (!m.prix && L.prix && projetDe(m) === "achat") m.prix = L.prix;
   if (L.toitDim && (L.toitDim.larg || L.toitDim.prof)) m.toitDim = { ...L.toitDim, ...Object.fromEntries(Object.entries(m.toitDim || {}).filter(([, v]) => v)) };
@@ -1639,11 +1643,11 @@ function appliquerQuestionnaire(m, L) {
   m.pieces.forEach((x, i) => { if (x.c == null) x.c = i; });
   L.pieces.forEach(p => {
     const ex = m.pieces.find(x => memeNom(x.nom, p.nom));
-    if (ex) Object.assign(ex, { ...p, id: ex.id, c: ex.c, nom: ex.nom });
+    if (ex) Object.assign(ex, { ...p, id: ex.id, c: ex.c, nom: ex.nom, depuisPhoto: true });
     else {
       const prises = new Set(m.pieces.map(x => x.c % COULEURS.length));
       const c = [...Array(COULEURS.length).keys()].find(i => !prises.has(i)) ?? m.pieces.length % COULEURS.length;
-      m.pieces.push({ ...p, id: nouvelId(), c });
+      m.pieces.push({ ...p, id: nouvelId(), c, depuisPhoto: true });
     }
   });
   m.travaux = m.travaux || [];
@@ -1700,7 +1704,7 @@ function blocParcoursVisite(m) {
   return `<section class="carte parcours-v">
     <h2>Pendant la visite</h2>
     <ol class="pv-liste">
-      ${etape(0, "Les infos connues", m.infosOk ? `Validé${im.length ? ` · à compléter plus tard : ${esc(im.join(", "))}` : ""}` : im.length ? `À compléter : ${esc(im.join(", "))}` : "Tout est rempli : validez", `<details class="pv-infos" data-ouvert="${idI}" ${ouverts.has(idI) || !m.infosOk ? "open" : ""}><summary>${im.length ? "Compléter les infos" : "Voir ou modifier"}</summary>
+      ${etape(0, `Les infos connues${icQ((m.depuisPhoto || {}).infos)}`, m.infosOk ? `Validé${im.length ? ` · à compléter plus tard : ${esc(im.join(", "))}` : ""}` : im.length ? `À compléter : ${esc(im.join(", "))}` : "Tout est rempli : validez", `<details class="pv-infos" data-ouvert="${idI}" ${ouverts.has(idI) || !m.infosOk ? "open" : ""}><summary>${im.length ? "Compléter les infos" : "Voir ou modifier"}</summary>
         <div class="champs pv-grille">
           ${projetDe(m) === "achat" ? champ("prix", "Prix demandé (€)", "ex. 245000") : ""}
           ${champ("commune", "Commune", "ex. Seraing", true)}
