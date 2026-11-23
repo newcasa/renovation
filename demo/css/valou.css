@@ -1282,3 +1282,4 @@ p.pc-note { background: #F4F6FA; padding: 8px 10px; border-radius: 8px; font-siz
 }
 @media print { .q-rappels > div { grid-template-columns: repeat(5, 1fr) !important; } .q-deux { grid-template-columns: 1.15fr 1fr !important; } }
 .pv-e, .ap-sec { scroll-margin-top: 150px; }
+.q-choix { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 4px; } .q-choix .q-prendre { flex: 1 1 200px; justify-content: center; }

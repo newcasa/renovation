@@ -1647,7 +1647,11 @@ function ecranQuestionnairePhoto(m) {
   } else corps = `<section class="carte q-photos">
       <h2>Photographiez la feuille</h2>
       <p class="mu">Posez le questionnaire bien à plat, avec de la lumière, et prenez-le en photo (une seule feuille). Valou lit votre écriture et remplit la maison : l'adresse, les pièces, le sol, les murs, les châssis, le chauffage, les gros travaux et vos remarques.</p>
-      <label class="btn sec q-prendre">📷 ${Q.photos.length ? "Reprendre une photo" : "Prendre la photo"}<input type="file" accept="image/*" capture="environment" multiple data-qphoto hidden></label>
+      <div class="q-choix">
+        <label class="btn ${Q.photos.length ? "sec" : ""} q-prendre">📷 ${Q.photos.length ? "Reprendre une photo" : "Prendre une photo"}<input type="file" accept="image/*" capture="environment" data-qphoto="camera" hidden></label>
+        <label class="btn sec q-prendre">🖼️ Choisir dans la galerie<input type="file" accept="image/*" multiple data-qphoto="galerie" hidden></label>
+      </div>
+      <small class="mu">Déjà photographié ? Choisissez la photo dans la galerie de votre téléphone.</small>
       ${Q.photos.length ? `<div class="galerie mini">${Q.photos.map((u, i) => `<figure class="vignette"><img src="${u}" alt="Photo ${i + 1} du questionnaire"><figcaption><small>Photo ${i + 1}</small></figcaption></figure>`).join("")}</div>` : ""}
       <p><button class="btn" data-action="q-lire" ${Q.photos.length ? "" : "disabled"}>Lire le questionnaire →</button></p>
       <p class="mu petit-t">Pas encore de questionnaire ? <a href="#/questionnaire">📝 Le télécharger et l'imprimer</a> (une page A4).</p>

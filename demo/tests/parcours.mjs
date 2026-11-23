@@ -451,7 +451,7 @@ try {
     assert.equal(await page.locator("#np-nom").count(), 0, "pas d'ajout de pièce avant le questionnaire");
     assert.match(await page.locator(".consigne").innerText(), /viennent du questionnaire/);
     await page.getByText("📝 Photo du questionnaire").click();
-    await page.locator("[data-qphoto]").setInputFiles([png]);
+    await page.locator('[data-qphoto="camera"]').setInputFiles([png]);
     await page.locator('[data-action="q-lire"]').click();
     await page.locator('[data-action="q-appliquer"]').click();
     await onglet("travaux");
@@ -567,7 +567,7 @@ try {
     await onglet("pieces");
     assert.equal(await page.locator(".parcours-v .pv-e").count(), 2, "Pendant la visite : 1 photos, 2 photo du questionnaire");
     await page.locator('#pv-2 a:has-text("📝 Photo du questionnaire")').click();
-    await page.locator("[data-qphoto]").setInputFiles([png, { ...png, name: "page2.png" }]);
+    await page.locator('[data-qphoto="galerie"]').setInputFiles([png, { ...png, name: "page2.png" }]);
     await page.locator(".q-photos .vignette").nth(1).waitFor();
     await page.locator('[data-action="q-lire"]').click();
     await page.locator(".q-resultat").waitFor();
