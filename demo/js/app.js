@@ -353,7 +353,7 @@ function blocToiture(m) {
 }
 /* ---------- travaux inclus ou non dans la demande de prêt (par groupe ; imprévus et TVA au prorata) ---------- */
 /* camembert du vrai coût : une couleur par portion ; contour rouge autour de la part financée par la banque */
-function camembert(parts, finance, total, propre) {
+function camembert(parts, finance, total, propre, compact) {
   parts = parts.filter(p => p[1] > 0);
   if (!total || !parts.length) return "";
   const cx = 100, cy = 100, R = 70, ep = 30, C = 2 * Math.PI * R;
@@ -368,9 +368,11 @@ function camembert(parts, finance, total, propre) {
     const [x0, y0] = pt(Ro, a0), [x1, y1] = pt(Ro, a1), [x2, y2] = pt(Ri, a1), [x3, y3] = pt(Ri, a0);
     contour = `<path class="cb-rouge" d="M${x0} ${y0} A${Ro} ${Ro} 0 ${g} 1 ${x1} ${y1} L${x2} ${y2} A${Ri} ${Ri} 0 ${g} 0 ${x3} ${y3} Z"/>`;
   }
+  const svg = `<svg viewBox="0 0 200 200" role="img" aria-label="Répartition du vrai coût"><defs><pattern id="cb-hach" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#DCE4F1"/><rect width="3" height="6" fill="#9FB3D6"/></pattern></defs>${segs}${contour}
+      <text x="100" y="94" text-anchor="middle" class="cb-t1">Total</text><text x="100" y="112" text-anchor="middle" class="cb-t2">${euros(total, 100)}</text></svg>`;
+  if (compact) return svg;
   return `<div class="camembert">
-    <svg viewBox="0 0 200 200" role="img" aria-label="Répartition du vrai coût"><defs><pattern id="cb-hach" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#DCE4F1"/><rect width="3" height="6" fill="#9FB3D6"/></pattern></defs>${segs}${contour}
-      <text x="100" y="94" text-anchor="middle" class="cb-t1">Total</text><text x="100" y="112" text-anchor="middle" class="cb-t2">${euros(total, 100)}</text></svg>
+    ${svg}
     <ul class="cb-leg">${parts.map(([t, v, col, motif]) => `<li><i style="background:${motif ? "repeating-linear-gradient(45deg,#9FB3D6 0 3px,#DCE4F1 3px 6px)" : col}"></i><span>${esc(t)}</span><b>${euros(v, 100)}</b></li>`).join("")}
       <li class="cb-banque"><i></i><span>Financé par la banque${f ? ` (${Math.round(f * 100)} %)` : ""}</span><b>${euros(finance, 100)}</b></li>
       ${propre ? `<li class="cb-propre"><i></i><span>Payé par vous (apport${parts.some(p => p[3]) ? " et travaux hors prêt" : ""}) : hors du contour</span><b>${euros(propre, 100)}</b></li>` : ""}</ul>
@@ -693,10 +695,32 @@ function ecranMaison(m) {
 
     <section class="carte pj-graph" id="pj-graph">
       <div class="pj-tete"><span class="pv-n">${blocs.length + 1}</span><div><b>📊 Le vrai coût</b><small class="mu">${reno ? "La rénovation" : +m.offre > 0 && +m.offre !== +m.prix ? "Avec votre offre" : "Au prix demandé"} · en rouge : la part financée par la banque</small></div></div>
-      ${camembert(reno
-        ? [["Matériaux", b.MAT[1], "#C9D3E2"], ["Main-d'œuvre", b.MO[1], "#EC8224"], ["TVA", b.TVA[1], "#F5B57A"], ["Imprévus et container", b.IM[1] + b.ANN[1], "#5B7BB0"]]
-        : [["Travaux payés vous-même", tpP.hors, "#B9C9E4", "hachure"], ["Droits d'enregistrement", cO.droits, "#EC8224"], ["Notaire", cO.notaire || 0, "#F5B57A"], [+m.offre > 0 ? "Votre offre" : "Prix d'achat", cO.prix, "#C9D3E2"], [tpP.hors ? "Travaux dans le prêt" : "Travaux", cO.travaux[1] - tpP.hors, "#5B7BB0"]],
-        empruntP, (reno ? c : cO).total[1], (+fP.apport || 0) + (reno ? 0 : tpP.hors))}
+      ${(() => {
+        const offreOn = !reno && +m.offre > 0 && +m.offre !== +m.prix;
+        const partsDe = (x, nomPrix) => reno
+          ? [["Matériaux", b.MAT[1], "#C9D3E2"], ["Main-d'œuvre", b.MO[1], "#EC8224"], ["TVA", b.TVA[1], "#F5B57A"], ["Imprévus et container", b.IM[1] + b.ANN[1], "#5B7BB0"]]
+          : [["Travaux payés vous-même", tpP.hors, "#B9C9E4", "hachure"], ["Droits d'enregistrement", x.droits, "#EC8224"], ["Notaire", x.notaire || 0, "#F5B57A"], [nomPrix, x.prix, "#C9D3E2"], [tpP.hors ? "Travaux dans le prêt" : "Travaux", x.travaux[1] - tpP.hors, "#5B7BB0"]];
+        const propre = (+fP.apport || 0) + (reno ? 0 : tpP.hors);
+        if (!offreOn) return camembert(partsDe(reno ? c : cO, "Prix d'achat"), empruntP, (reno ? c : cO).total[1], propre);
+        /* offre simulée : comparaison avec le prix de l'annonce */
+        const empruntA = Math.max(0, c.total[1] - tpP.hors - (+fP.apport || 0)), mensA = mensualite(empruntA, fP.taux, fP.duree);
+        const ec = (a, o, mieux) => { const d = o - a; return d ? `<td class="${(d < 0) === mieux ? "cb-mieux" : "cb-pire"}">${d < 0 ? "−" : "+"} ${euros(Math.abs(d), 100)}</td>` : "<td>=</td>"; };
+        return `<div class="cb-duo">
+          <figure><figcaption>Au prix de l'annonce</figcaption>${camembert(partsDe(c, "Prix d'achat"), empruntA, c.total[1], propre, true)}</figure>
+          <figure class="cb-o"><figcaption>Avec votre offre</figcaption>${camembert(partsDe(cO, "Votre offre"), empruntP, cO.total[1], propre, true)}</figure>
+        </div>
+        <div class="sim-cmp-cadre"><table class="cb-cmp">
+          <thead><tr><th></th><td>Annonce</td><td class="sim-o">Offre</td><td>Écart</td></tr></thead>
+          <tbody>
+            <tr><th>Prix</th><td>${euros(c.prix)}</td><td>${euros(cO.prix)}</td>${ec(c.prix, cO.prix, true)}</tr>
+            <tr><th>Droits et notaire</th><td>${euros(c.droits + (c.notaire || 0))}</td><td>${euros(cO.droits + (cO.notaire || 0))}</td>${ec(c.droits + (c.notaire || 0), cO.droits + (cO.notaire || 0), true)}</tr>
+            <tr><th>Vrai coût</th><td><b>${euros(c.total[1], 100)}</b></td><td><b>${euros(cO.total[1], 100)}</b></td>${ec(c.total[1], cO.total[1], true)}</tr>
+            <tr class="cb-l-banque"><th>Financé par la banque</th><td>${euros(empruntA, 100)}</td><td>${euros(empruntP, 100)}</td>${ec(empruntA, empruntP, true)}</tr>
+            ${mensP ? `<tr><th>Mensualité</th><td>${euros(mensA)}</td><td>${euros(mensP)}</td>${ec(mensA, mensP, true)}</tr>` : ""}
+          </tbody></table></div>
+        <ul class="cb-leg">${partsDe(cO, "Prix / votre offre").filter(p => p[1] > 0).map(([t, v, col, motif]) => `<li><i style="background:${motif ? "repeating-linear-gradient(45deg,#9FB3D6 0 3px,#DCE4F1 3px 6px)" : col}"></i><span>${esc(t)}</span><b></b></li>`).join("")}
+          <li class="cb-banque"><i></i><span>Contour rouge : la part financée par la banque</span><b></b></li></ul>`;
+      })()}
     <section class="carte vrai-cout">
       <div class="vc-g">
         <small>${reno ? "Le budget de votre rénovation" : "Le vrai coût de cette maison"}</small>

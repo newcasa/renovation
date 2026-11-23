@@ -1196,3 +1196,23 @@ label.dd-ligne { justify-content: flex-start; }
 .pj-graph .vrai-cout small, .pj-graph .vrai-cout .mu { color: var(--mu); }
 .pj-graph .vrai-cout .choc { color: var(--bordeaux); }
 .pj-graph .vrai-cout .sans-trav { background: #fff6ec; color: var(--bordeaux); }
+
+/* comparaison prix de l'annonce / offre */
+.cb-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 6px; }
+.cb-duo figure { margin: 0; text-align: center; background: #fff; border: 1px solid var(--bord); border-radius: 12px; padding: 8px 6px; }
+.cb-duo figure.cb-o { border-color: var(--or); background: #fffaf4; }
+.cb-duo figcaption { font-weight: 800; font-size: 13.5px; color: var(--bordeaux); margin-bottom: 4px; }
+.cb-duo svg { width: 100%; max-width: 190px; height: auto; }
+.cb-cmp { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 6px 0 10px; }
+.cb-cmp th, .cb-cmp td { padding: 7px 4px; border-bottom: 1px solid var(--bord); text-align: right; white-space: nowrap; }
+.cb-cmp th { text-align: left; font-weight: 600; white-space: normal; }
+.cb-cmp thead td { font-size: 11.5px; text-transform: uppercase; color: var(--mu); font-weight: 800; }
+.cb-cmp thead td.sim-o { color: var(--or-fonce); }
+.cb-cmp .cb-mieux { color: #1d7a46; font-weight: 800; }
+.cb-cmp .cb-pire { color: #B71C1C; font-weight: 800; }
+.cb-cmp .cb-l-banque th { color: #B71C1C; }
+.cb-leg li b:empty { display: none; }
+.cb-cmp { font-size: 12.5px; table-layout: auto; }
+.cb-cmp th, .cb-cmp td { padding: 6px 3px; }
+.cb-cmp th { width: 28%; }
+@media (max-width: 400px) { .cb-cmp { font-size: 12px; } }
