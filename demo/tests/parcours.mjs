@@ -64,7 +64,7 @@ try {
     await page.screenshot({ path: `${OUT}/${nom}-0e-offre.png` });
     /* le graphique compare avec le prix de l'annonce */
     assert.equal(await page.locator(".cb-duo figure").count(), 2);
-    assert.match(await page.locator(".cb-cmp").innerText(), /Annonce[\s\S]*Offre[\s\S]*Vrai coût[\s\S]*Financé par la banque/);
+    assert.match(await page.locator(".cb-cmp").innerText(), /Annonce[\s\S]*Offre[\s\S]*Vrai coût[\s\S]*Financé par la banque/i);
     await page.locator('[data-action="offre-retirer"]').click();
     await page.locator(".sim-ecart").waitFor({ state: "detached" });
     assert.equal(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
