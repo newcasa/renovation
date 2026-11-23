@@ -352,21 +352,56 @@ function blocToiture(m) {
     </section>`;
 }
 /* ---------- travaux inclus ou non dans la demande de prêt (par groupe ; imprévus et TVA au prorata) ---------- */
+/* camembert du vrai coût : une couleur par portion ; contour rouge autour de la part financée par la banque */
+function camembert(parts, finance, total, propre) {
+  parts = parts.filter(p => p[1] > 0);
+  if (!total || !parts.length) return "";
+  const cx = 100, cy = 100, R = 70, ep = 30, C = 2 * Math.PI * R;
+  let acc = 0;
+  const segs = parts.map(([t, v, col]) => { const l = (v / total) * C; const x = `<circle r="${R}" cx="${cx}" cy="${cy}" fill="none" stroke="${col}" stroke-width="${ep}" stroke-dasharray="${l.toFixed(2)} ${(C - l).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(t)} : ${euros(v)}</title></circle>`; acc += l; return x; }).join("");
+  const f = Math.min(1, Math.max(0, finance / total)), Ro = R + ep / 2 + 4, Ri = R - ep / 2 - 4;
+  const pt = (r, a) => [(cx + r * Math.cos(a)).toFixed(2), (cy + r * Math.sin(a)).toFixed(2)];
+  let contour = "";
+  if (f >= 0.999) contour = `<circle r="${Ro}" cx="${cx}" cy="${cy}" class="cb-rouge"/><circle r="${Ri}" cx="${cx}" cy="${cy}" class="cb-rouge"/>`;
+  else if (f > 0.001) {
+    const a0 = -Math.PI / 2, a1 = a0 + f * 2 * Math.PI, g = f > 0.5 ? 1 : 0;
+    const [x0, y0] = pt(Ro, a0), [x1, y1] = pt(Ro, a1), [x2, y2] = pt(Ri, a1), [x3, y3] = pt(Ri, a0);
+    contour = `<path class="cb-rouge" d="M${x0} ${y0} A${Ro} ${Ro} 0 ${g} 1 ${x1} ${y1} L${x2} ${y2} A${Ri} ${Ri} 0 ${g} 0 ${x3} ${y3} Z"/>`;
+  }
+  return `<div class="camembert">
+    <svg viewBox="0 0 200 200" role="img" aria-label="Répartition du vrai coût">${segs}${contour}
+      <text x="100" y="94" text-anchor="middle" class="cb-t1">Total</text><text x="100" y="112" text-anchor="middle" class="cb-t2">${euros(total, 100)}</text></svg>
+    <ul class="cb-leg">${parts.map(([t, v, col]) => `<li><i style="background:${col}"></i><span>${esc(t)}</span><b>${euros(v, 100)}</b></li>`).join("")}
+      <li class="cb-banque"><i></i><span>Financé par la banque${f ? ` (${Math.round(f * 100)} %)` : ""}</span><b>${euros(finance, 100)}</b></li>
+      ${propre ? `<li class="cb-propre"><i></i><span>Apport et travaux payés vous-même</span><b>${euros(propre, 100)}</b></li>` : ""}</ul>
+  </div>`;
+}
 function travauxPret(m, b, travauxMoy) {
-  const H = new Set((m.fin || {}).horsPret || []), G = {};
+  /* travaux à inclure ou non dans le prêt : pièce par pièce, puis les travaux hors pièces par groupe (TVA et imprévus au prorata) */
+  const H = new Set((m.fin || {}).horsPret || []), Z = new Map();
   let tous = 0, ex = 0;
-  b.postes.forEach(p => { const g = groupe(p); G[g] = (G[g] || 0) + p.total[1]; tous += p.total[1]; if (H.has(g)) ex += p.total[1]; });
-  const groupes = GROUPES.filter(g => G[g]).map(g => ({ g, v: tous ? Math.round(travauxMoy * G[g] / tous) : 0, inclus: !H.has(g) }));
+  const nomPc = id => ((m.pieces || []).find(p => p.id === id) || {}).nom || "Pièce";
+  b.lignes.forEach(l => {
+    const v = l.fiab && l.total ? l.total[1] : 0;
+    if (!v) return;
+    const k = l.pieceId ? "pc:" + l.pieceId : l.src === "chauffage" ? "g:Chauffage" : "g:" + groupe({ ...(R.postes[l.k] || {}), k: l.k });
+    const z = Z.get(k) || { k, g: l.pieceId ? nomPc(l.pieceId) : k.slice(2), piece: !!l.pieceId, s: 0 };
+    z.s += v; Z.set(k, z); tous += v; if (H.has(k)) ex += v;
+  });
+  const groupes = [...Z.values()].sort((x, y) => y.piece - x.piece).map(z => ({ ...z, v: tous ? Math.round(travauxMoy * z.s / tous) : 0, inclus: !H.has(z.k) }));
   return { groupes, hors: tous ? Math.round(travauxMoy * ex / tous) : 0 };
 }
 function blocTravauxPret(m, tp) {
   if (!tp.groupes.length) return "";
   const n = tp.groupes.filter(x => x.inclus).length;
-  return `<details class="pret-trav" data-ouvert="pret-${m.id}" ${ouverts.has("pret-" + m.id) ? "open" : ""}>
-    <summary><span>Travaux inclus dans le prêt <small class="mu">(${n} sur ${tp.groupes.length})</small></span>${tp.hors ? `<b>− ${euros(tp.hors, 100)}</b>` : ""}</summary>
-    <p class="mu petit-t">Décochez les travaux que vous payez vous-même (épargne, plus tard…) : ils sortent du montant à emprunter.</p>
-    ${tp.groupes.map(x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.g)}" ${x.inclus ? "checked" : ""}><span>${esc(x.g)}</span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`).join("")}
-  </details>`;
+  const ligne = x => `<label class="cb pt-l"><input type="checkbox" data-pret="${esc(x.k)}" ${x.inclus ? "checked" : ""}><span>${esc(x.g)}</span><b class="${x.inclus ? "" : "pt-hors"}">${euros(x.v, 100)}</b></label>`;
+  const P = tp.groupes.filter(x => x.piece), Hp = tp.groupes.filter(x => !x.piece);
+  return `<div class="pret-trav">
+    <div class="pt-tete"><b>Travaux inclus dans le prêt</b><small class="mu">${n} sur ${tp.groupes.length}${tp.hors ? ` · ${euros(tp.hors, 100)} payés vous-même` : ""}</small></div>
+    <p class="mu petit-t">Décochez ce que vous payez vous-même (épargne, plus tard…) : ça sort du montant à emprunter.</p>
+    ${P.length ? `<h4 class="pt-sous">Pièce par pièce</h4>${P.map(ligne).join("")}` : ""}
+    ${Hp.length ? `<h4 class="pt-sous">Hors pièces</h4>${Hp.map(ligne).join("")}` : ""}
+  </div>`;
 }
 function blocFinancerRenovation(m, b, c, sansActions = false) {
   const tp = travauxPret(m, b, c.travaux[1]);
@@ -579,10 +614,10 @@ function ecranMaison(m) {
 
     ${panneauEnvoi(m, b)}`;
       if (o === "projet") return (() => {
-      /* Projet en 3 questions : Combien ça coûte ? → Combien proposer ? → Comment financer ? ; chaque bloc se valide */
+      /* Projet : 1. simulation d'offre → 2. financement (travaux pièce par pièce) → 3. le vrai coût en camembert, contour rouge = part financée par la banque */
       const ok = m.projetOk || {};
       const tpP = travauxPret(m, b, cO.travaux[1]), fP = m.fin || {}, empruntP = Math.max(0, (reno ? c : cO).total[1] - (reno ? 0 : tpP.hors) - (+fP.apport || 0)), mensP = mensualite(empruntP, fP.taux, fP.duree);
-      const blocs = reno ? ["cout", "fin"] : ["cout", "offre", "fin"];
+      const blocs = reno ? ["fin"] : ["offre", "fin"];
       const bloc = (id, titre, sous, resume, contenu) => { const n = blocs.indexOf(id) + 1, v = !!ok[id];
         return `<section class="carte pj-bloc ${v ? "ok" : ""}" id="pj-${id}">
           <div class="pj-tete"><span class="pv-n">${v ? "✓" : n}</span><div><b>${titre}</b><small class="mu">${v ? resume : sous}</small></div>${v ? `<button class="btn lien" data-action="pj-ok" data-k="${id}" data-v="0">Modifier</button>` : ""}</div>
@@ -597,27 +632,13 @@ function ecranMaison(m) {
         <div><small>${mensP ? "Mensualité" : "À emprunter"}</small><b>${mensP ? `${euros(mensP)}<i>/mois</i>` : euros(empruntP, 100)}</b></div>
       </div>
     </section>
-    ${bloc("cout", reno ? "💶 Combien coûte la rénovation ?" : "💶 Combien ça coûte ?", reno ? "Le budget des travaux, TVA et imprévus compris" : "Prix, droits d'enregistrement, notaire et travaux", `${euros(c.total[1], 100)}${reno ? "" : ` au prix demandé, dont ${euros(c.travaux[1], 100)} de travaux`}`, `
-    <section class="carte vrai-cout">
-      <div class="vc-g">
-        <small>${reno ? "Le budget de votre rénovation" : "Le vrai coût de cette maison"}</small>
-        <div class="gros">${euros(c.total[1], 100)}</div>
-        ${c.total[0] !== c.total[2] ? `<div class="mu">entre ${fourchette(c.total)}</div>` : ""}
-        ${c.travaux[1] ? "" : `<p class="sans-trav">⚠️ Travaux pas encore encodés : ce montant ${reno ? "est vide" : "ne compte que le prix, les droits et le notaire"}. Ajoutez les pièces (onglet Après la visite).</p>`}
-        ${reno ? (e => (e ? `<p class="choc">dont <b>${euros(e, 100)}</b> de travaux qui améliorent le PEB</p>` : ""))(travauxEnergie(b).total[1]) : ""}
-        ${!reno && c.prix && c.travaux[1] ? `<p class="choc">soit <b>${euros(surcout, 100)}</b> de plus que le prix affiché <span>(+${pct} %)</span></p>` : ""}
-      </div>
-      <div class="vc-d">${barre}</div>
-    </section>
 
-    ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
-      <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}`)}
     ${reno ? "" : bloc("offre", "🤝 Combien proposer ?", "Simulez une offre : elle s'affiche à côté du prix demandé", +m.offre > 0 && +m.offre !== +m.prix ? `Offre ${euros(+m.offre)} · total ${euros(cO.total[1], 100)}` : `Au prix demandé · total ${euros(c.total[1], 100)}`, `
         <section class="carte sim-achat">
           <h2>Simulation d'achat</h2>
           <div class="champs">
             <div class="ligne"><span>Prix demandé</span><b>${euros(m.prix)}</b></div>
-            <label>Simuler une offre (€)<input type="number" min="0" step="1000" inputmode="numeric" data-f="offre" value="${esc(m.offre ?? "")}" placeholder="${esc(m.prix)}"></label>
+            <div class="offre-l"><label>Votre offre (€)<input type="number" min="0" step="1000" inputmode="numeric" data-offre-saisie value="${esc(m.offre ?? "")}" placeholder="${esc(m.prix)}"></label><button class="btn petit-btn" data-action="offre-ok">Valider</button>${+m.offre > 0 ? `<button class="btn lien" data-action="offre-retirer">Retirer</button>` : ""}</div>
             <label class="cb large"><input type="checkbox" data-f="uniqueHabitation" ${m.uniqueHabitation !== false ? "checked" : ""}> Seule habitation, occupée par moi</label>
           </div>
           ${(() => {
@@ -670,6 +691,25 @@ function ecranMaison(m) {
         })()}
         ${aides()}`)}
 
+    <section class="carte pj-graph" id="pj-graph">
+      <div class="pj-tete"><span class="pv-n">${blocs.length + 1}</span><div><b>📊 Le vrai coût</b><small class="mu">${reno ? "La rénovation" : +m.offre > 0 && +m.offre !== +m.prix ? "Avec votre offre" : "Au prix demandé"} · en rouge : la part financée par la banque</small></div></div>
+      ${camembert(reno
+        ? [["Matériaux", b.MAT[1], "#C9D3E2"], ["Main-d'œuvre", b.MO[1], "#EC8224"], ["TVA", b.TVA[1], "#F5B57A"], ["Imprévus et container", b.IM[1] + b.ANN[1], "#5B7BB0"]]
+        : [[+m.offre > 0 ? "Votre offre" : "Prix d'achat", cO.prix, "#C9D3E2"], ["Droits d'enregistrement", cO.droits, "#EC8224"], ["Notaire", cO.notaire || 0, "#F5B57A"], ["Travaux", cO.travaux[1], "#5B7BB0"]],
+        empruntP, (reno ? c : cO).total[1], (+fP.apport || 0) + (reno ? 0 : tpP.hors))}
+    <section class="carte vrai-cout">
+      <div class="vc-g">
+        <small>${reno ? "Le budget de votre rénovation" : "Le vrai coût de cette maison"}</small>
+        <div class="gros">${euros((reno ? c : cO).total[1], 100)}</div>
+        ${(reno ? c : cO).total[0] !== (reno ? c : cO).total[2] ? `<div class="mu">entre ${fourchette((reno ? c : cO).total)}</div>` : ""}
+        ${c.travaux[1] ? "" : `<p class="sans-trav">⚠️ Travaux pas encore encodés : ce montant ${reno ? "est vide" : "ne compte que le prix, les droits et le notaire"}. Ajoutez les pièces (onglet Après la visite).</p>`}
+        ${reno ? (e => (e ? `<p class="choc">dont <b>${euros(e, 100)}</b> de travaux qui améliorent le PEB</p>` : ""))(travauxEnergie(b).total[1]) : ""}
+        ${!reno && c.prix && c.travaux[1] ? `<p class="choc">soit <b>${euros(cO.total[1] - c.prix, 100)}</b> de plus que le prix affiché <span>(+${c.prix ? Math.round(((cO.total[1] - c.prix) / c.prix) * 100) : 0} %)</span></p>` : ""}
+      </div>
+    </section>
+    ${manques.length ? `<section class="alerte"><b>${manques.length} poste${manques.length > 1 ? "s" : ""} incomplet${manques.length > 1 ? "s" : ""} : un prix manque, il n'est pas compté.</b>
+      <ul>${manques.map(p => `<li>${esc(p.n)} : ${p.manques.map(esc).join(" ; ")}</li>`).join("")}</ul></section>` : ""}
+    </section>
     <details class="carte pj-plus" data-ouvert="pjt-${m.id}" ${ouverts.has(`pjt-${m.id}`) ? "open" : ""}><summary><span>🔨 Détail des travaux</span><b>${euros(c.travaux[1], 100)}</b></summary>
       ${c.travaux[1] ? `      <section class="carte">
         <h2>Budget travaux</h2>
@@ -1742,6 +1782,7 @@ document.addEventListener("click", e => {
 addEventListener("resize", () => tuto && dessinerTuto(false));
 addEventListener("scroll", () => tuto && dessinerTuto(false), { passive: true });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && tuto) fermerTuto(); });
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches && e.target.matches("[data-offre-saisie]")) { e.preventDefault(); document.querySelector('[data-action="offre-ok"]')?.click(); } });
 /* après chaque écran : première visite de la page → didacticiel (pas pendant les tests automatiques) */
 function apresAffichage() {
   const p = pageTuto();
@@ -1934,6 +1975,8 @@ document.addEventListener("click", e => {
   if (a === "parcours") { choisirParcours(el.dataset.p); afficher(); }
   if (a === "tuto") { const p = pageTuto(); if (p) lancerTuto(p); else { const b = document.createElement("div"); b.className = "tuto-rien"; b.textContent = "Pas de didacticiel pour cette page."; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); } }
   if (a === "toit-q") { const i = document.querySelector(`[data-mq="${el.dataset.k}"]`); if (i) { i.value = el.dataset.q; i.dispatchEvent(new Event("change", { bubbles: true })); } }
+  if (a === "offre-ok" && m) { const i = document.querySelector("[data-offre-saisie]"), v = i ? +i.value : 0; m.offre = v > 0 ? v : null; sauver(); afficher(); document.querySelector(".sim-cmp")?.scrollIntoView({ block: "center" }); }
+  if (a === "offre-retirer" && m) { m.offre = null; sauver(); afficher(); }
   if (a === "pj-ok" && m) { m.projetOk = { ...(m.projetOk || {}), [el.dataset.k]: el.dataset.v === "1" }; sauver(); afficher(); const nx = document.querySelector(".pj-bloc:not(.ok)"); if (el.dataset.v === "1" && nx) nx.scrollIntoView({ block: "start" }); else document.getElementById("pj-" + el.dataset.k)?.scrollIntoView({ block: "start" }); }
   if (a === "infos-ok" && m) { m.infosOk = el.dataset.v === "1"; if (m.infosOk) ouverts.delete("infos-" + m.id); else ouverts.add("infos-" + m.id); sauver(); afficher(); }
   if (a === "etape-infos" && m) { ouverts.add("infos-" + m.id); ongletsM[m.id] = "pieces"; afficher(); document.getElementById("pv-1")?.scrollIntoView({ block: "start" }); }

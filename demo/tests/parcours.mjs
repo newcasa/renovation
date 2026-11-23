@@ -51,8 +51,8 @@ try {
 
     /* Projet : simuler une offre → le total (prix + enregistrement + notaire + travaux) suit l'offre */
     const auPrix = await page.locator(".sim-tot td:last-child b").innerText();
-    await page.fill('[data-f="offre"]', "200000");
-    await page.locator('[data-f="offre"]').dispatchEvent("change");
+    await page.fill("[data-offre-saisie]", "200000");
+    await page.locator('[data-action="offre-ok"]').click(); // le petit bouton « Valider » lance la comparaison
     await page.locator(".sim-ecart").waitFor();
     assert.match(await page.locator(".sim-ecart").innerText(), /de moins/);
     assert.notEqual(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
@@ -62,25 +62,25 @@ try {
     assert.match(await page.locator(".sim-recap").innerText(), /Offre[\s\S]*200\s?000 €[\s\S]*Droits[\s\S]*Notaire[\s\S]*Travaux/i);
     await page.locator(".sim-recap").scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${OUT}/${nom}-0e-offre.png` });
-    await page.fill('[data-f="offre"]', "");
-    await page.locator('[data-f="offre"]').dispatchEvent("change");
+    await page.locator('[data-action="offre-retirer"]').click();
     await page.locator(".sim-ecart").waitFor({ state: "detached" });
     assert.equal(await page.locator(".sim-tot td:last-child b").innerText(), auPrix);
     /* travaux à inclure ou non dans la demande de prêt */
     const emp = () => page.locator('.ligne:has-text("Montant à emprunter") b').first().innerText();
     const empAvant = await emp();
-    await page.locator(".pret-trav > summary").click();
+    assert.match(await page.locator(".pret-trav").innerText(), /Pièce par pièce[\s\S]*Hors pièces/i);
     await page.locator("[data-pret]").first().uncheck();
     assert.notEqual(await emp(), empAvant);
-    assert.match(await page.locator(".pret-trav > summary").innerText(), /sur[\s\S]*− /);
+    assert.match(await page.locator(".pret-trav .pt-tete").innerText(), /sur[\s\S]*payés vous-même/);
+    assert.match(await page.locator(".cb-banque").innerText(), /Financé par la banque/); // camembert : contour rouge
     await page.locator("[data-pret]").first().check();
     assert.equal(await emp(), empAvant);
     /* Projet : chaque bloc se valide (vert, replié avec son résumé), puis se rouvre avec « Modifier » */
-    await page.locator('#pj-cout [data-action="pj-ok"][data-v="1"]').click();
-    assert.ok(await page.locator("#pj-cout.ok").count());
-    assert.match(await page.locator("#pj-cout").innerText(), /au prix demandé/);
-    await page.locator('#pj-cout [data-action="pj-ok"][data-v="0"]').click();
-    await page.locator("#pj-cout .vrai-cout").waitFor();
+    await page.locator('#pj-offre [data-action="pj-ok"][data-v="1"]').click();
+    assert.ok(await page.locator("#pj-offre.ok").count());
+    assert.match(await page.locator("#pj-offre").innerText(), /Au prix demandé/);
+    await page.locator('#pj-offre [data-action="pj-ok"][data-v="0"]').click();
+    await page.locator("#pj-offre [data-offre-saisie]").waitFor();
     /* Les pros : contacter un courtier */
     await onglet("artisans");
     await page.locator('[data-action="courtier-envoyer"]').first().click();
@@ -370,7 +370,7 @@ try {
     await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor({ timeout: 8000 });
     const total = await page.locator(".vrai-cout .gros").innerText();
     assert.match(total, /€/);
-    assert.match(await page.locator(".vrai-cout .legende").innerText(), /Prix d'achat\s*245\s?000 €/); // le nom et le prix ont bien été gardés
+    assert.match(await page.locator(".cb-leg").innerText(), /Prix d'achat\s*245\s?000 €/); // le nom et le prix ont bien été gardés
     assert.match(await page.locator("h1").innerText(), /Maison test/);
     assert.match(await page.locator(".titre-maison").innerText(), /3 façades · rez \+ 1/);
     /* type de toiture : on clique sur le schéma */
