@@ -1561,9 +1561,23 @@ async function imageDe(f) {
   const u = URL.createObjectURL(f);
   try { const im = new Image(); im.decoding = "async"; im.src = u; await im.decode(); return im; } finally { setTimeout(() => URL.revokeObjectURL(u), 1000); }
 }
+/* photos HEIF/HEIC (Samsung, iPhone) : le navigateur ne sait pas les lire → conversion en JPEG sur le téléphone, bibliothèque chargée seulement si besoin */
+let heicPret = null;
+function chargerHeic() {
+  if (!heicPret) heicPret = new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = DEMO_DIR + "js/vendor/heic2any.min.js"; sc.onload = () => ok(window.heic2any); sc.onerror = () => { heicPret = null; ko(new Error("convertisseur HEIF non chargé")); }; document.head.appendChild(sc); });
+  return heicPret;
+}
+async function heicEnJpeg(f) {
+  const conv = await chargerHeic();
+  const r = await conv({ blob: f, toType: "image/jpeg", quality: 0.9 });
+  return Array.isArray(r) ? r[0] : r;
+}
 async function photoEnBase64(f) {
   let img = null;
   try { img = await imageDe(f); } catch (e) { img = null; }
+  if (!(img && (img.width || img.naturalWidth))) { // illisible tel quel : peut-être une photo HEIF
+    try { img = await imageDe(await heicEnJpeg(f)); } catch (e) { img = null; }
+  }
   if (img && (img.width || img.naturalWidth)) {
     const w = img.width || img.naturalWidth, h = img.height || img.naturalHeight, k = Math.min(1, 2000 / Math.max(w, h));
     const c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
