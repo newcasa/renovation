@@ -1,13 +1,13 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences, configServeur } from "./donnees.js?v=202611231820";
-import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611231820";
-import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611231820";
-import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611231820";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611231820";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611231820";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611231820";
-import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611231820";
-import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611231820";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611232117";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611232117";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611232117";
+import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611232117";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611232117";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611232117";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611232117";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611232117";
+import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611232117";
 
 let R = null;
 let maisons = lireMaisons();
@@ -1647,7 +1647,11 @@ function ecranQuestionnairePhoto(m) {
   } else corps = `<section class="carte q-photos">
       <h2>Photographiez la feuille</h2>
       <p class="mu">Posez le questionnaire bien à plat, avec de la lumière, et prenez-le en photo (une seule feuille). Valou lit votre écriture et remplit la maison : l'adresse, les pièces, le sol, les murs, les châssis, le chauffage, les gros travaux et vos remarques.</p>
-      <label class="btn sec q-prendre">📷 ${Q.photos.length ? "Reprendre une photo" : "Prendre la photo"}<input type="file" accept="image/*" capture="environment" multiple data-qphoto hidden></label>
+      <div class="q-choix">
+        <label class="btn ${Q.photos.length ? "sec" : ""} q-prendre">📷 ${Q.photos.length ? "Reprendre une photo" : "Prendre une photo"}<input type="file" accept="image/*" capture="environment" data-qphoto="camera" hidden></label>
+        <label class="btn sec q-prendre">🖼️ Choisir dans la galerie<input type="file" accept="image/*" multiple data-qphoto="galerie" hidden></label>
+      </div>
+      <small class="mu">Déjà photographié ? Choisissez la photo dans la galerie de votre téléphone.</small>
       ${Q.photos.length ? `<div class="galerie mini">${Q.photos.map((u, i) => `<figure class="vignette"><img src="${u}" alt="Photo ${i + 1} du questionnaire"><figcaption><small>Photo ${i + 1}</small></figcaption></figure>`).join("")}</div>` : ""}
       <p><button class="btn" data-action="q-lire" ${Q.photos.length ? "" : "disabled"}>Lire le questionnaire →</button></p>
       <p class="mu petit-t">Pas encore de questionnaire ? <a href="#/questionnaire">📝 Le télécharger et l'imprimer</a> (une page A4).</p>
