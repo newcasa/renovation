@@ -1,0 +1,1 @@
+/* heic2any 0.0.4 (licence MIT, https://github.com/alexcorvi/heic2any) : conversion des photos HEIF/HEIC en JPEG, chargé seulement si besoin */
