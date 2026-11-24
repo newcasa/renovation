@@ -135,17 +135,17 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 **À dire :**
 > « Pour le particulier, c'est gratuit. Les professionnels paient un abonnement : la licence Valou Pro à 99 € par mois pour les agences et les courtiers, 39 € pour les artisans, 49 € pour les négociants.
 > On commence à Liège. La Wallonie s'ouvre quand 20 agences et courtiers et 60 artisans paient (seuil A), Bruxelles quand Valou est rentable (seuil B), la Flandre ensuite (seuil C).
-> Avec un commercial de l'immobilier dès le premier mois, le premier mois bénéficiaire est prévu en décembre 2028. Pour cela, nous levons 210 000 €. »
+> Avec un commercial de l'immobilier dès le premier mois, et moi qui garde mon emploi sans me payer jusqu'à ce que Valou soit rentable, le premier mois bénéficiaire est prévu en novembre 2028. Pour cela, nous levons 157 500 €. »
 
 **Les chiffres à avoir en tête** (plan financé, scénario central, montants HTVA) :
 
 | | Année 1 (mai 2027 – avr. 2028) | Année 2 | Année 3 | Année 4 |
 |---|---|---|---|---|
 | Chiffre d'affaires | 24 000 € | 130 900 € | 316 400 € | 552 500 € |
-| Résultat | −151 300 € | −18 900 € | +89 600 € | +49 500 € |
+| Résultat | −115 300 € | +17 100 € | +89 600 € | +49 500 € |
 | Régions | Liège | Wallonie | + Bruxelles | + Flandre |
 
-**Le montage des 210 000 €** : business angels 80 000 €, prêt d'amorçage Noshaq ou Wallonie Entreprendre 60 000 €, prêt bancaire garanti par Wallonie Entreprendre 27 500 €, proches (prêt Coup de pouce) 20 000 €, prime Airbag 12 500 €, chèques-entreprises environ 10 000 €. Trésorerie la plus basse : environ 22 800 € (novembre 2028).
+**Le montage des 157 500 €** : business angels 40 000 €, prêt d'amorçage Noshaq ou Wallonie Entreprendre 60 000 €, prêt bancaire garanti par Wallonie Entreprendre 27 500 €, proches (prêt Coup de pouce) 20 000 €, chèques-entreprises environ 10 000 €. Trésorerie la plus basse : environ 25 200 € (octobre 2028). Le fondateur garde son emploi et ne se paie pas avant le seuil B (avril 2029) ; la prime Airbag viendra quand il passera à titre principal.
 
 *Devant Wallonie Entreprendre :* insister sur l'argent privé déjà réuni (il débloque le prêt public), les clients payants signés, les seuils go / no-go avant chaque dépense, et la garantie sur le prêt bancaire.
 
