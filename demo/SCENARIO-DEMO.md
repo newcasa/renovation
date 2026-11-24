@@ -1,4 +1,4 @@
-# Valou — scénario de la démonstration (7 minutes)
+# Valou — scénario de la démonstration (8 minutes)
 
 À lire avant de présenter. Les chiffres sont ceux des maisons de démonstration **fictives** (A et B).
 Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront : je mettrai ce texte à jour.
@@ -8,12 +8,15 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 ## Avant la réunion (2 minutes)
 
 1. Sur le téléphone ou l'ordinateur de la démo, ouvrir **https://hoono.be/demo/#/presentation**.
-   Tout est remis à zéro (les 2 maisons de démonstration, sans photos ni montants tapés lors d'une démo précédente) et la **page d'intro** s'affiche : logo, phrase d'accroche et bouton « Commencer la démo ». Laissez-la à l'écran pendant que les gens s'installent.
-2. Sur téléphone, le menu est en bas de l'écran (Maisons, Comparer, Contacter, Plus) et la fiche maison est découpée en 4 onglets : Pendant la visite, Après la visite, Les pros, Projet. Au-dessus, un rappel du vrai coût. À la première ouverture de chaque page, un didacticiel en bulles explique l'écran ; le bouton « ❔ » en haut le relance.
-
-   L'onglet Projet regroupe dans l'ordre : le vrai coût, la performance PEB, le budget travaux, la simulation d'achat (taper une offre : le total prix + enregistrement + notaire + travaux suit tout de suite), la simulation de financement, les aides à la rénovation et le dossier pour la banque. Dans Les pros : les artisans, les devis reçus, les négociants et un courtier à contacter pour le prêt.
-3. Ouvrir la page dans **Chrome** (ou Safari sur iPhone) et autoriser la caméra une première fois (écran « 📷 Photos de la visite »).
-4. Garder le téléphone chargé et la luminosité au maximum. Si vous projetez, préférez l'ordinateur et gardez le téléphone pour la photo.
+   Tout est remis à zéro (les 2 maisons de démonstration, sans photos ni montants tapés lors d'une démo précédente) et la **page d'intro** s'affiche : logo, phrase d'accroche, la méthode en 4 étapes et le bouton « Commencer la démo ». Laissez-la à l'écran pendant que les gens s'installent.
+2. La fiche d'une maison a 4 onglets, dans l'ordre de la visite :
+   - **Pendant la visite** : 1. les photos de la visite ; 2. la photo du questionnaire, qui devient « les infos connues à valider » ;
+   - **Après la visite** : ce qui reste à compléter, les pièces, puis « La technique » (repliée) ;
+   - **Les artisans** : choisir les artisans par métier et leur envoyer le projet ;
+   - **Projet** : en bref, la simulation d'offre, le financement, les aides et la conclusion.
+   Au-dessus des onglets, un rappel du vrai coût. Les mots soulignés en pointillé s'expliquent quand on les touche.
+3. Avoir sur soi **un questionnaire imprimé et rempli** (le PDF est sur l'accueil) : c'est le moment fort de la démo.
+4. Ouvrir la page dans **Chrome** (ou Safari sur iPhone) et autoriser la caméra une première fois. Garder le téléphone chargé et la luminosité au maximum. Si vous projetez, préférez l'ordinateur et gardez le téléphone pour les photos.
 
 ---
 
@@ -27,100 +30,137 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 ---
 
-## 2. Le vrai coût d'une maison — 1 min 30 (maison A)
+## 2. Le vrai coût d'une maison — 1 minute (maison A)
 
-**Clic :** la carte « Maison de démonstration A ».
+**Clic :** la carte « Maison de démonstration A », puis l'onglet **Projet**, bloc « En bref ».
 
 **À montrer :**
 - Le grand chiffre : **351 400 €**, pour une maison affichée à 245 000 €, soit **106 400 € de plus (+43 %)**.
-- La barre : prix, droits d'enregistrement (7 350 €), notaire (4 513 €), travaux (94 500 €).
-- « Budget travaux » : bas / moyen / haut, et le badge de fiabilité de chaque poste.
+- Le détail : prix, droits d'enregistrement (7 350 €), notaire (4 513 €), travaux (94 500 €, avec leur fourchette).
+- Le PEB G, et le projet d'obligation de rénovation en Wallonie (pas encore en vigueur).
 
 **À dire :**
-> « Valou calcule tout : les droits d'enregistrement, les frais de notaire, identiques au centime au simulateur officiel de notaire.be, et les travaux, poste par poste.
+> « Valou calcule tout : les droits d'enregistrement, les frais de notaire, identiques au simulateur de notaire.be, et les travaux, poste par poste.
 > Chaque chiffre affiche sa fiabilité : on ne cache pas ce qui est encore une estimation. »
 
 ---
 
-## 3. Pièce par pièce — 1 minute
+## 3. La visite — 1 min 30 (le moment fort sur téléphone)
 
-**Clic :** onglet **Pendant la visite** (cartes en couleur), puis ouvrir **Cuisine**. Ensuite, onglet **Après la visite** et « Structure, toiture et équipements » : une liste de postes par groupe (toiture, électricité, isolation…).
+**Clic :** onglet **Pendant la visite**.
 
-**À montrer :** la surface au sol, les murs calculés automatiquement (sol × 2,7), le plafond (= sol), les cases sol / murs / plafond / châssis / chauffage, et le budget qui change quand on coche ou décoche une case.
+**À montrer :**
+1. « 📷 Photos de la visite » : taper « Salon », appuyer 3 fois sur le bouton rond, « Pièce suivante → », puis « ✓ Terminer la visite ». On revient directement à l'étape 2.
+2. « 📝 Photo du questionnaire » : photographier la feuille remplie (ou la choisir dans la galerie), puis « Lire le questionnaire ». Valou lit l'écriture et remplit la maison : adresse, pièces, sol, murs, châssis, chauffage, gros travaux et remarques.
+3. L'étape devient « Les infos connues à valider » : vérifier, puis « ✓ Valider les infos ».
 
 **À dire :**
-> « On encode la maison comme on la visite : pièce par pièce. L'appli impose les postes, l'utilisateur remplit seulement ce qu'il voit. »
+> « Pendant la visite, l'acheteur remplit une feuille d'une page au stylo et prend ses photos. Après, une photo de la feuille suffit : Valou lit l'écriture et chiffre la maison. »
+
+*Si la lecture échoue* (réseau, photo floue), l'appli le dit et propose « Réessayer la lecture ».
 
 ---
 
-## 4. La visite en direct — 1 minute (le moment fort sur téléphone)
+## 4. Après la visite — 45 secondes
 
-**Clic :** revenir à la maison, onglet **Pendant la visite**, « 📷 Photos de la visite », taper « Salon », « Commencer la visite → ».
+**Clic :** onglet **Après la visite**.
 
-**À montrer :** viser la salle et appuyer 3 fois sur le bouton rond (3 photos, sans validation), puis « Pièce suivante → », taper « Bureau », 1 photo, puis « Terminer la visite ».
+**À montrer :** la liste « À compléter », les pièces avec la remarque lue sur la feuille, puis une pièce : les murs calculés automatiquement (sol × 2,7), le plafond (= sol), les postes imposés. Ouvrir « La technique » : schémas de toiture, dimensions, gros travaux, chauffage.
 
 **À dire :**
-> « Pendant la visite, on photographie pièce par pièce, sans quitter l'appli. Après, chaque photo est rangée avec sa pièce. »
-
-*Mentionner aussi :* le questionnaire papier d'une page à imprimer pour la visite. Dans l'onglet **Pendant la visite**, « 📝 Photo du questionnaire » : on photographie la feuille remplie et Valou remplit la maison (pièces, sol, murs, plafond, châssis, chauffage, structure). **Pour l'instant, c'est une démonstration** : les réponses viennent d'un questionnaire d'exemple ; la lecture de l'écriture arrivera avec un service de lecture d'image.
+> « L'appli impose les postes : l'utilisateur remplit seulement ce qu'il voit. Les travaux cochés mais pas encore chiffrés sont signalés : le chiffre affiché ne trompe jamais. »
 
 ---
 
-## 5. La comparaison — 1 minute (le moment « waouh »)
+## 5. L'offre et le financement — 1 minute
+
+**Clic :** onglet **Projet**.
+
+**À montrer :** taper une offre (200 000 €) et « Simuler » : le vrai coût suit tout de suite. Puis le financement : les travaux à mettre dans le prêt, poste par poste (« devis » ou « estimation »), l'apport, la mensualité. Terminer sur la conclusion.
+
+---
+
+## 6. La comparaison — 45 secondes (le moment « waouh »)
 
 **Clic :** « Comparer » dans le menu.
 
-**À montrer :** la phrase en haut, qui dit que la **maison B** coûte **54 000 € de plus à l'achat** (299 000 € contre 245 000 €), mais revient **environ 26 000 € moins cher au final** (325 500 € contre 351 400 €).
+**À montrer :** la **maison B** coûte **54 000 € de plus à l'achat** (299 000 € contre 245 000 €), mais revient **environ 26 000 € moins cher au final** (325 500 € contre 351 400 €).
 
 **À dire :**
 > « La maison qui paraît la moins chère ne l'est pas forcément. Valou le montre en un coup d'œil. »
 
 ---
 
-## 6. Le dossier pour la banque — 45 secondes
+## 7. Le dossier pour la banque — 30 secondes
 
-**Clic :** revenir à la maison A, onglet **Projet**, « Dossier pour la banque → ».
+**Clic :** maison A, onglet **Projet**, « Dossier pour la banque → ».
 
-**À montrer :**
-- Le dossier complet sur une page : achat, droits, notaire, travaux, PEB et financement.
-- « Envoyer à la banque » fonctionne tout de suite (démonstration, aucun envoi réel). Les frais de notaire sont calculés par l'appli, d'après le simulateur de notaire.be.
-- En option, remplir l'apport (40 000 €), le taux et la durée pour voir la mensualité.
-- Point 4, « Les devis des artisans » : pour chaque métier, les artisans choisis dans « Contacter ». Taper le montant d'un devis : il remplace l'estimation Valou de ce métier dans le coût total et le montant à emprunter.
+**À montrer :** le dossier complet sur une page (achat, droits, notaire, travaux, PEB, financement), les documents à joindre, et « Envoyer à la banque » (démonstration, aucun envoi réel).
 
 **À dire :**
-> « Le particulier arrive chez le courtier avec un dossier complet : achat, notaire, travaux détaillés. Le courtier gagne du temps, la banque est rassurée. »
+> « L'acheteur arrive chez le courtier avec un dossier complet. Le courtier gagne du temps, la banque est rassurée. »
 
 ---
 
-## 7. Pourquoi Valou est difficile à copier — 45 secondes
+## 8. Les professionnels qui paient — 1 minute
+
+**Clic :** « Professionnels » (menu Plus).
+
+**À montrer, dans cet ordre (c'est l'ordre de vente) :**
+1. **Agence** : le rapport « vrai coût, travaux compris » à son logo, joint à l'annonce.
+2. **Courtier** : les dossiers « achat + travaux » prêts pour la banque.
+3. **Artisan** : la demande reçue avec les photos, puis « Proposer une visite », « Envoyer un devis » ou « Pas disponible ».
+4. **Négociant** : sa fiche visible sur les projets de sa zone.
+
+**À dire :**
+> « On vend d'abord aux agences et aux courtiers : ils paient, et chacun nous amène des dizaines d'acheteurs par mois. Ces acheteurs remplissent les carnets des artisans, qui s'abonnent à leur tour. »
+
+---
+
+## 9. Pourquoi Valou est difficile à copier — 30 secondes
 
 **Clic :** « Notre moteur », descendre jusqu'à la carte des prix locaux.
 
 **À montrer :** 60 postes, 31 tarifs de main-d'œuvre, la carte avec les rayons de 5 à 20 km ; passer de 0 à 25 artisans inscrits.
 
 **À dire :**
-> « Les artisans encodent leurs tarifs, gardés confidentiels. Valou calcule le prix moyen autour de chaque chantier, jamais avec moins de 5 artisans.
-> Plus il y a d'artisans, plus les prix sont justes : c'est notre avantage, et il grandit avec le temps. »
+> « Les artisans encodent leurs tarifs, gardés confidentiels. Valou calcule le prix moyen autour de chaque chantier, jamais avec moins de 5 artisans. Plus il y a d'artisans, plus les prix sont justes. »
 
 ---
 
-## 8. Le modèle et la suite — 30 secondes
+## 10. Le modèle, le plan et la demande — 1 minute
 
 **Clic :** « Feuille de route ».
 
 **À dire :**
-> « Pour le particulier, c'est gratuit. Ce sont les professionnels qui paient : les artisans reçoivent des demandes déjà chiffrées dans leur zone, les courtiers des dossiers complets, les agences une fiche “vrai coût” pour leurs annonces.
-> Ensuite, le même outil sert aux propriétaires qui rénovent, puis aux vendeurs. »
+> « Pour le particulier, c'est gratuit. Les professionnels paient un abonnement : la licence Valou Pro à 99 € par mois pour les agences et les courtiers, 39 € pour les artisans, 49 € pour les négociants.
+> On commence à Liège. La Wallonie s'ouvre quand 20 agences et courtiers et 60 artisans paient (seuil A), Bruxelles quand Valou est rentable (seuil B), la Flandre ensuite (seuil C).
+> Avec un commercial de l'immobilier dès le premier mois, le premier mois bénéficiaire est prévu en décembre 2028. Pour cela, nous levons 210 000 €. »
+
+**Les chiffres à avoir en tête** (plan financé, scénario central, montants HTVA) :
+
+| | Année 1 (mai 2027 – avr. 2028) | Année 2 | Année 3 | Année 4 |
+|---|---|---|---|---|
+| Chiffre d'affaires | 24 000 € | 130 900 € | 316 400 € | 552 500 € |
+| Résultat | −151 300 € | −18 900 € | +89 600 € | +49 500 € |
+| Régions | Liège | Wallonie | + Bruxelles | + Flandre |
+
+**Le montage des 210 000 €** : business angels 80 000 €, prêt d'amorçage Noshaq ou Wallonie Entreprendre 60 000 €, prêt bancaire garanti par Wallonie Entreprendre 27 500 €, proches (prêt Coup de pouce) 20 000 €, prime Airbag 12 500 €, chèques-entreprises environ 10 000 €. Trésorerie la plus basse : environ 22 800 € (novembre 2028).
+
+*Devant Wallonie Entreprendre :* insister sur l'argent privé déjà réuni (il débloque le prêt public), les clients payants signés, les seuils go / no-go avant chaque dépense, et la garantie sur le prêt bancaire.
 
 ---
 
 ## Questions probables et réponses courtes
 
-- **« D'où viennent vos prix ? »** Des magasins (prix relevés), des tarifs de main-d'œuvre de référence, et bientôt des tarifs des artisans et de devis réels. La fiabilité de chaque poste est affichée.
-- **« Et au lancement, sans artisans ? »** L'appli est utile seule. Les prix locaux arrivent dès 5 artisans dans une zone (montrer la carte avec 0, puis 25 artisans).
-- **« Comment gagnez-vous de l'argent ? »** Les artisans (demandes chiffrées), puis les courtiers et les agences. Le particulier ne paie pas.
-- **« C'est légal, le partage des tarifs ? »** Les tarifs ne sont jamais montrés aux artisans, seulement des moyennes d'au moins 5 artisans aux particuliers. Le principe sera validé par un avocat (concurrence, RGPD, FSMA pour le crédit).
-- **« Les maisons sont réelles ? »** Non, elles sont fictives pour la démonstration. La prochaine version utilisera une vraie maison avec de vrais devis d'artisans.
+- **« D'où viennent vos prix ? »** Des magasins (prix relevés), des tarifs de main-d'œuvre de référence, puis des tarifs des artisans et de 50 vrais devis la première année. La fiabilité de chaque poste est affichée.
+- **« Qui paie en premier ? »** Les agences et les courtiers, dès le mois 4. Les artisans et les négociants à partir du mois 7, quand les agences apportent déjà des acheteurs.
+- **« Et au lancement, sans artisans ? »** L'appli est utile seule. Les 30 premiers artisans sont « fondateurs » (gratuit jusqu'au mois 6). Les prix locaux arrivent dès 5 artisans dans une zone.
+- **« C'est légal, le partage des tarifs ? »** Les tarifs ne sont jamais montrés aux artisans, seulement des moyennes d'au moins 5 artisans. Le principe sera validé par un avocat (concurrence, RGPD).
+- **« Et les courtiers, la FSMA ? »** La licence est un forfait fixe, jamais liée au crédit accordé. À confirmer par l'avocat.
+- **« L'obligation de rénover ? »** En Wallonie, c'est un projet, pas encore en vigueur. En Flandre, elle existe déjà : c'est un argument fort pour 2030.
+- **« Les maisons sont réelles ? »** Non, elles sont fictives pour la démonstration.
+- **« L'appli est-elle finie ? »** C'est une démo fonctionnelle. Restent à construire : l'envoi réel aux artisans, le paiement en ligne et le rapport au logo de l'agence (environ 20 000 € de développement, prévus dans la levée).
 
 ---
 
@@ -128,7 +168,7 @@ Quand la vraie maison et les vrais devis seront prêts, ces chiffres changeront 
 
 **Avant :** ouvrir `hoono.be/demo/#/presentation`, puis `hoono.be/demo/#/demo-artisan`. Dans la maison A, onglet **Pendant la visite**, prendre 2 ou 3 photos de la cuisine avec « 📷 Photos de la visite » (mode visite, nom « Cuisine »).
 
-1. **La maison visitée** : les pièces en couleur et le vrai coût. Onglet **Les pros** : « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
+1. **La maison visitée** : les pièces en couleur et le vrai coût. Onglet **Les artisans** : « 📨 Envoyer le projet aux artisans », puis « Envoyer ».
    > « Le client a visité, chiffré, photographié. Il vous envoie son projet en un clic. »
 2. **La demande reçue** (« Voir ce que reçoit l'artisan → », dans l'espace artisan, métier « Carreleur ») : chaque nouvelle demande est fermée et ne montre que l'adresse ; un clic sur l'adresse ouvre le détail : les travaux de votre métier, le budget du client et les photos de la cuisine. Trois boutons : « Proposer une visite », « Envoyer un devis », « Pas disponible ».
    > « Vous savez tout de suite si le chantier est pour vous, sans vous déplacer. Le client connaît déjà son budget. »
@@ -152,7 +192,7 @@ Les négociants **n'envoient pas d'offres** : ils sont **vus** des particuliers 
 
 1. **Votre fiche** (Professionnels › « Je suis négociant » › « Ma fiche ») : remplir le nom du négoce, l'adresse, le téléphone, **les types de matériaux vendus (obligatoire : gros œuvre, sanitaire, électricité, carrelage, location d'engins, échafaudages, conteneurs à déchets…)**, les services et les horaires. L'aperçu à droite se met à jour.
    > « Votre fiche apparaît sur les projets des maisons de votre zone. »
-2. **Ce que voit le particulier** (maison A, onglet **Les pros**) : « Négociants de votre région » : votre fiche parmi 6 négociants de la région (Brik'O, Le Comptoir du Sanitaire, Volta Matériel Électrique, Céram'Expo, La Planche d'Or, Loca'Chantier), les plus utiles pour la maison en premier ; les types de matériaux utiles pour les travaux de la maison sont marqués ✓ en vert.
+2. **Ce que voit le particulier** (maison A, onglet **Les artisans**) : « Négociants de votre région » : votre fiche parmi 6 négociants de la région (Brik'O, Le Comptoir du Sanitaire, Volta Matériel Électrique, Céram'Expo, La Planche d'Or, Loca'Chantier), les plus utiles pour la maison en premier ; les types de matériaux utiles pour les travaux de la maison sont marqués ✓ en vert.
    > « Le particulier, ou son artisan, sait où acheter ses matériaux et quand vous êtes ouvert. Il vient chez vous ou vous appelle. »
 3. **Vos prix (facultatif)** (onglet « Mes prix ») : taper un ou deux prix.
    > « Si vous le souhaitez, vos prix servent aux budgets des chantiers de votre zone. »
@@ -223,9 +263,9 @@ Le lien à envoyer aux testeurs particuliers est `hoono.be/demo/particulier/`.
 
 **À montrer :**
 1. Le bandeau : **le budget de la rénovation**, sans prix d'achat, droits ni notaire, avec la part des travaux qui améliorent le PEB.
-2. Onglets **Pièces** et **Travaux** : exactement comme pour l'achat.
+2. Onglets **Pendant la visite** et **Après la visite** : exactement comme pour l'achat.
 3. Onglet **Projet** : la simulation de financement (prêt travaux), puis les aides (Rénopack) (épargne, montant à emprunter, mensualité). « Dossier pour la banque » : version rénovation.
-4. Onglet **Les pros** : « 👷 Choisir les artisans » ouvre « Contacter » ; juste à côté, « 📩 Devis reçus » montre les devis envoyés par les artisans : pour chaque métier, le projet propre à ce métier et jusqu'à 3 artisans à qui l'envoyer.
+4. Onglet **Les artisans** : « 👷 Choisir les artisans » ouvre « Contacter » ; juste à côté, « 📩 Devis reçus » montre les devis envoyés par les artisans : pour chaque métier, le projet propre à ce métier et jusqu'à 3 artisans à qui l'envoyer.
 
 **À dire :**
 > « Valou ne sert pas qu'à acheter. Le propriétaire qui rénove voit son budget, trouve les aides et envoie à chaque artisan le projet de son métier. »

@@ -32,10 +32,10 @@ export function ecranPro(ctx, onglet, metier) {
       av: ["Des projets déjà chiffrés, avec les photos des pièces", "Un client qui connaît son budget : moins de devis refusés", "Vous choisissez : visite, devis ou pas disponible", "Vos tarifs restent confidentiels"] },
     { id: "negociant", t: "Je suis négociant", ico: "🧱", d: "Être vu des particuliers et des artisans de votre zone : vos matériaux, services, coordonnées et horaires.", tabs: [["negociant", "Ma fiche"], ["negprix", "Mes prix"]], demo: "#/demo-negociant",
       av: ["Visible sur les projets des maisons de votre zone", "Vos types de matériaux, services, coordonnées et horaires mis en avant", "Des clients avec un chantier déjà chiffré", "Aucune offre à envoyer : les clients viennent à vous"] },
-    { id: "courtier", t: "Je suis courtier ou banque", ico: "🏦", d: "Recevoir des dossiers de crédit complets : achat, notaire et travaux.", tabs: [["courtier", "Dossiers reçus"]],
+    { id: "courtier", t: "Je suis courtier ou banque", ico: "🏦", d: "Recevoir des dossiers de crédit complets : achat, notaire et travaux (licence Valou Pro, forfait fixe).", tabs: [["courtier", "Dossiers reçus"]],
       av: ["Un dossier complet : achat, notaire, travaux poste par poste", "Moins de temps à reconstituer le budget du client", "Le PEB et les travaux énergétiques déjà identifiés"] },
-    { id: "agence", t: "Je suis une agence", ico: "🏠", d: "Publier vos annonces librement, avec l'estimation des travaux en option.", tabs: [["agence", "Mon annonce"]],
-      av: ["Vos annonces, rédigées librement", "L'estimation des travaux en option, pour rassurer les acheteurs", "Des acheteurs qui osent visiter les maisons à rénover"] },
+    { id: "agence", t: "Je suis une agence", ico: "🏠", d: "Le rapport « vrai coût, travaux compris » à votre logo, pour vos annonces et vos acheteurs.", tabs: [["agence", "Mon annonce"]],
+      av: ["Le vrai coût, travaux compris, à votre logo (licence Valou Pro)", "À joindre à vos annonces et à remettre aux acheteurs", "Des acheteurs qui osent visiter les maisons à rénover"] },
   ];
   if (!onglet) {
     return `${entete("pro")}<main><h1>Côté professionnels</h1>${simule}
@@ -189,14 +189,14 @@ export function ecranPro(ctx, onglet, metier) {
 
   if (onglet === "agence") {
     const A = ctx.annonce || {}, x = L[0];
-    corps = `<div class="pro-intro"><h2>Vos annonces, comme vous le voulez</h2>
-      <p class="mu">L'agence écrit librement son annonce. Rien n'est obligatoire sur les travaux. Si elle le souhaite, elle peut ajouter l'estimation Valou des travaux.</p></div>
+    corps = `<div class="pro-intro"><h2>Le vrai coût, à votre logo</h2>
+      <p class="mu">L'agence garde son annonce telle qu'elle l'écrit. Avec la licence Valou Pro, elle y joint le rapport « vrai coût, travaux compris » à son logo, et le remet aux acheteurs qui visitent.</p></div>
       <div class="deux">
         <section class="carte"><h2>Mon annonce</h2><div class="champs">
           <label>Titre<input data-annonce="titre" value="${esc(A.titre ?? "")}" placeholder="ex. Maison 3 façades avec jardin"></label>
           <label>Prix demandé (€)<input type="number" min="0" data-annonce="prix" value="${esc(A.prix ?? "")}" placeholder="ex. 245000"></label>
           <label class="large">Texte de l'annonce<textarea data-annonce="texte" rows="6" placeholder="Décrivez le bien comme vous le souhaitez.">${esc(A.texte || "")}</textarea></label>
-          <label class="cb large"><input type="checkbox" data-annonce="valou" ${A.valou ? "checked" : ""}> Ajouter l'estimation Valou des travaux (facultatif)</label>
+          <label class="cb large"><input type="checkbox" data-annonce="valou" ${A.valou ? "checked" : ""}> Joindre le rapport « vrai coût, travaux compris » (Valou Pro)</label>
         </div></section>
         <section><h2 class="petit-titre">Aperçu de l'annonce</h2>
           <article class="carte annonce seule">
@@ -204,7 +204,7 @@ export function ecranPro(ctx, onglet, metier) {
             <div class="a-corps"><h3>${esc(A.titre || "Titre de l'annonce")}</h3>
               ${A.prix ? `<div class="a-prix">${euros(+A.prix)}</div>` : ""}
               ${A.texte ? `<p class="a-texte">${esc(A.texte)}</p>` : `<p class="mu">Votre texte apparaîtra ici.</p>`}
-              ${A.valou && x ? `<div class="a-valou"><img src="${img("favicon-valou-48.png")}" alt=""><div><small>Estimation Valou des travaux (${esc(x.m.nom)})</small><b>${euros(x.b.T[0], 1000)} – ${euros(x.b.T[2], 1000)}</b></div></div>` : ""}
+              ${A.valou && x ? `<div class="a-valou"><img src="${img("favicon-valou-48.png")}" alt=""><div><small>Vrai coût, travaux compris · rapport Valou au logo de l'agence (${esc(x.m.nom)})</small><b>${x.c ? euros(x.c.total[1], 100) : ""}</b><small>dont travaux ${euros(x.b.T[0], 1000)} – ${euros(x.b.T[2], 1000)}</small></div></div>` : ""}
             </div>
           </article></section>
       </div>`;
@@ -406,22 +406,24 @@ export function ecranMoteur(ctx) {
 export function ecranFeuille(ctx) {
   const { entete } = ctx;
   const phases = [
-    { t: "Aujourd'hui", s: "Prototype : j'achète", on: true, l: ["Le vrai coût d'une maison : achat, notaire et travaux", "Pièces avec leurs postes imposés, budget bas / moyen / haut et fiabilité", "Visite : photos en rafale par pièce, questionnaire papier", "Comparaison de plusieurs maisons", "Dossier pour la banque, verrouillé jusqu'au montant du notaire", "Tableau de bord des prix de référence"] },
-    { t: "Étape 1", s: "Lancement en Wallonie", l: ["Profil « Je rénove ma maison » : le même outil pour les propriétaires", "Comptes et synchronisation entre appareils (photos comprises)", "Tarifs confidentiels des artisans : prix moyens à 5, 10, 15 et 20 km du chantier", "Devis réels pour fiabiliser les prix"] },
-    { t: "Étape 2", s: "Mise en relation", l: ["Envoi du projet chiffré aux artisans de la zone", "Réponses et devis dans l'appli", "Dossier de crédit transmis au courtier", "Suivi du chantier : budget prévu et dépenses réelles", "Lecture automatique du questionnaire photographié"] },
-    { t: "Étape 3", s: "Tout l'immobilier", l: ["Profil « Je vends » : fiche « travaux à prévoir » jointe à l'annonce", "Agences : vrai coût affiché sur les annonces", "Estimation du prix de vente, avec une source de données fiable", "Bruxelles et Flandre, en néerlandais et en anglais"] },
+    { t: "Aujourd'hui", s: "Démo fonctionnelle", on: true, l: ["Le vrai coût d'une maison : prix, droits, notaire et travaux", "Visite : photos par pièce, questionnaire papier lu automatiquement", "Pièces avec postes imposés, budget bas / moyen / haut et fiabilité", "Offre, financement et dossier pour la banque", "Comparaison de plusieurs maisons, PEB et aides", "Démos artisan, négociant, courtier et agence"] },
+    { t: "2027", s: "Liège d'abord", l: ["Vendre avant de construire : 10 agences et courtiers signés", "Pilote à Liège et 20 km autour", "Envoi réel aux artisans, paiement en ligne", "Rapport « vrai coût » au logo de l'agence", "50 vrais devis pour recaler les prix", "Seuil A : 20 agences et courtiers, 60 artisans payants"] },
+    { t: "2028", s: "Toute la Wallonie", l: ["Ouverture après le seuil A", "Mises en avant (boost) pour artisans et négociants", "Suivi de chantier", "Seuil B : rentable, 15 000 € de chiffre d'affaires par mois"] },
+    { t: "2029", s: "Bruxelles", l: ["Ouverture après le seuil B", "Mode appartements, droits et primes bruxellois", "Commercial bilingue", "Seuil C : 25 agences à Bruxelles, 30 000 € par mois"] },
+    { t: "2030", s: "Flandre", l: ["Ouverture après le seuil C", "Appli en néerlandais, règles flamandes", "Obligation flamande de rénover : un argument fort", "Anvers et Gand d'abord"] },
   ];
   const revenus = [
-    ["Particuliers", "Gratuit : c'est ce qui fait venir les utilisateurs (acheteurs et propriétaires)"],
-    ["Artisans", "Demandes de projets déjà chiffrés dans leur zone : à la demande ou par abonnement ; priorité pour ceux qui partagent leurs tarifs"],
-    ["Courtiers et banques", "Accès aux dossiers de crédit complets (achat + travaux) ; forme à valider juridiquement (FSMA)"],
-    ["Agences", "Fiche « vrai coût, travaux compris » sur les annonces de maisons à rénover"],
+    ["Particuliers", "Gratuit, toujours : acheteurs et propriétaires qui rénovent"],
+    ["Agences et courtiers (dès le mois 4)", "Licence « Valou Pro » : 99 € / mois (89 € avec engagement de 12 mois). Agence : rapport « vrai coût, travaux compris » à son logo. Courtier : dossiers achat + travaux, forfait fixe, jamais lié au crédit accordé"],
+    ["Artisans (dès le mois 7)", "39 € / mois, demandes chiffrées illimitées dans sa zone ; 30 artisans fondateurs : gratuit jusqu'au mois 6, puis 27 € / mois s'ils partagent leurs tarifs ; ou 12 € par demande acceptée"],
+    ["Négociants (dès le mois 7)", "49 € / mois : fiche visible sur les projets de sa zone"],
+    ["Mises en avant (dès le mois 9)", "9 à 129 € pour 7 ou 15 jours, 3 places par zone"],
   ];
   return `${entete("feuille")}<main>
     <h1>Feuille de route</h1>
-    <p class="mu intro">Commencer par un besoin précis — l'acheteur qui veut savoir ce que va coûter une maison à rénover — puis ouvrir Valou à tous les métiers de l'immobilier.</p>
+    <p class="mu intro">Commencer à Liège en vendant d'abord aux agences et aux courtiers, qui paient et apportent les acheteurs, puis aux artisans et aux négociants. Chaque nouvelle région s'ouvre quand un seuil chiffré est atteint, pas à une date fixe.</p>
     <ol class="phases">${phases.map(p => `<li class="carte phase ${p.on ? "on" : ""}"><small>${esc(p.t)}</small><h2>${esc(p.s)}</h2><ul>${p.l.map(x => `<li>${esc(x)}</li>`).join("")}</ul></li>`).join("")}</ol>
-    <section class="carte"><h2>Modèle économique envisagé</h2><p class="mu">Pistes à valider avec les premiers partenaires.</p>
+    <section class="carte"><h2>Modèle économique</h2><p class="mu">Prix hors TVA, à valider avec les premiers clients.</p>
       <div class="revenus">${revenus.map(([t, x]) => `<div><b>${esc(t)}</b><p class="mu">${esc(x)}</p></div>`).join("")}</div>
     </section>
   </main>`;
