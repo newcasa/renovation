@@ -411,10 +411,10 @@ export function travauxChauffage(ch, surface) {
    on signale l'obligation annoncée, et on isole les travaux qui améliorent la performance énergétique. */
 export const LABELS_PEB = ["A++", "A+", "A", "B", "C", "D", "E", "F", "G"];
 export const COULEURS_PEB = { "A++": "#00843D", "A+": "#1E9B3E", A: "#4CB848", B: "#B5D334", C: "#FFDD00", D: "#FBB900", E: "#F07D00", F: "#E2401C", G: "#C8102E" };
-/* obligation annoncée (statut à confirmer) : achat à partir de 2028 d'un logement E, F ou G → label D dans les 5 ans */
+/* projet d'obligation (pas encore en vigueur en Wallonie) : achat à partir de 2028 d'un logement E, F ou G → label D dans les 5 ans */
 export const OBLIGATION_PEB = {
   labels: ["E", "F", "G"], cible: "D", delaiAns: 5, aPartirDe: 2028,
-  statut: "Annoncée par la Région wallonne, statut juridique à confirmer (projet selon certaines sources). À vérifier auprès du SPW Énergie ou de votre notaire.",
+  statut: "Projet de la Région wallonne, pas encore en vigueur (à suivre). Date et délai à vérifier auprès du SPW Énergie ou de votre notaire.",
 };
 export const concerneParObligation = label => OBLIGATION_PEB.labels.includes(label);
 /* travaux qui améliorent la performance énergétique */

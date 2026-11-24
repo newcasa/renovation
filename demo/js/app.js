@@ -1,13 +1,13 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences, configServeur } from "./donnees.js?v=202611232136";
-import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611232136";
-import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611232136";
-import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611232136";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611232136";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611232136";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611232136";
-import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611232136";
-import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611232136";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611241758";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611241758";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611241758";
+import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611241758";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611241758";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611241758";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611241758";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611241758";
+import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611241758";
 
 let R = null;
 let maisons = lireMaisons();
@@ -453,7 +453,7 @@ function carteEnergie(m, b) {
       <label>Consommation (kWh/m²/an)<input type="number" min="0" inputmode="numeric" data-peb="pebConso" value="${esc(m.pebConso ?? "")}" placeholder="sur le certificat"></label>
     </div>
     ${!m.peb ? `<p class="mu petit-t">Le certificat PEB est obligatoire dans les annonces de vente en Wallonie : demandez-le à l'agence ou au vendeur.</p>` : ""}
-    ${oblig ? `<div class="alerte peb-alerte"><b>⚠️ Obligation de rénovation annoncée</b>
+    ${oblig ? `<div class="alerte peb-alerte"><b>⚠️ Projet d'obligation de rénovation (pas encore en vigueur)</b>
       <p>Pour un logement classé ${OBLIGATION_PEB.labels.join(", ")} acheté à partir de ${OBLIGATION_PEB.aPartirDe}, l'acheteur devrait atteindre au moins le label <b>${OBLIGATION_PEB.cible}</b> dans les <b>${OBLIGATION_PEB.delaiAns} ans</b> après l'acte.</p>
       <small>${esc(OBLIGATION_PEB.statut)}</small></div>` : ""}
     <h3>Travaux de cette maison qui améliorent le PEB</h3>
@@ -637,7 +637,7 @@ function ecranMaison(m) {
         <div><small>${mensA ? "Mensualité" : "À emprunter"}</small><b>${mensA ? `${euros(mensA)}<i>/mois</i>` : euros(empA, 100)}</b></div>`; })()}
       </div>
       ${alerteNonChiffres(m)}
-      ${!reno && concerneParObligation(m.peb) ? `<p class="nc-alerte peb-alerte">⚡ PEB ${esc(m.peb)} : obligation de rénovation annoncée, atteindre le label ${OBLIGATION_PEB.cible} dans les ${OBLIGATION_PEB.delaiAns} ans (à confirmer). Aide possible : ${lx("Rénopack")}.</p>` : ""}
+      ${!reno && concerneParObligation(m.peb) ? `<p class="nc-alerte peb-alerte">⚡ PEB ${esc(m.peb)} : projet d'obligation de rénovation (pas encore en vigueur) : atteindre le label ${OBLIGATION_PEB.cible} dans les ${OBLIGATION_PEB.delaiAns} ans. Aide possible : ${lx("Rénopack")}.</p>` : ""}
     <details class="pj-plus" data-ouvert="pjt-${m.id}" ${ouverts.has(`pjt-${m.id}`) ? "open" : ""}><summary><span>🔨 Détail des travaux</span><b>${euros(c.travaux[1], 100)}</b></summary>
       ${c.travaux[1] ? `      <section class="carte">
         <h2>Budget travaux</h2>
@@ -983,7 +983,7 @@ function ecranComparer() {
       ${L.some(x => x.cO) ? ligne("Vrai coût avec l'offre", x => (x.cO ? `<b>${euros(x.cO.total[1], 100)}</b>` : `<span class="mu">–</span>`)) : ""}
       ${ligne("Mensualité", x => (x.mens ? `${euros(x.mens)} / mois` : `<span class="mu">à simuler (onglet Projet)</span>`))}
       ${ligne("Écart avec le prix affiché", x => `+${euros(x.c.total[1] - x.c.prix, 100)} <small class="mu">(+${x.c.prix ? Math.round(((x.c.total[1] - x.c.prix) / x.c.prix) * 100) : 0} %)</small>`)}
-      ${ligne("Label PEB", x => (x.m.peb ? pebBadge(x.m.peb) + (concerneParObligation(x.m.peb) ? ` <small class="mu">obligation annoncée : label ${OBLIGATION_PEB.cible} en ${OBLIGATION_PEB.delaiAns} ans</small>` : "") : `<span class="mu">inconnu</span>`))}
+      ${ligne("Label PEB", x => (x.m.peb ? pebBadge(x.m.peb) + (concerneParObligation(x.m.peb) ? ` <small class="mu">projet d'obligation : label ${OBLIGATION_PEB.cible} en ${OBLIGATION_PEB.delaiAns} ans</small>` : "") : `<span class="mu">inconnu</span>`))}
       ${ligne("Travaux énergétiques (moyen)", x => euros(travauxEnergie(x.b).total[1], 100))}
       ${ligne("Toiture", x => esc(nomToit(x.m.toiture) || "–"))}
       ${ligne("Façades", x => (+x.m.facades ? `${x.m.facades} façades` : "–"))}

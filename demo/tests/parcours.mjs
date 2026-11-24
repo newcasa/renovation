@@ -47,7 +47,7 @@ try {
     await page.getByText("Maison de démonstration").first().click();
     await onglet("projet"); await page.locator(".vrai-cout .gros").waitFor();
     /* PEB : maison A classée G → obligation annoncée et travaux énergétiques chiffrés */
-    assert.match(await page.locator(".energie").innerText(), /PEB G[\s\S]*Obligation de rénovation annoncée[\s\S]*label D[\s\S]*Total des travaux énergétiques/);
+    assert.match(await page.locator(".energie").innerText(), /PEB G[\s\S]*Projet d'obligation de rénovation[\s\S]*label D[\s\S]*Total des travaux énergétiques/);
     await page.screenshot({ path: `${OUT}/${nom}-0-demo.png` });
     await page.screenshot({ path: `${OUT}/${nom}-0-demo-complet.png`, fullPage: nom === "ordi" });
 
