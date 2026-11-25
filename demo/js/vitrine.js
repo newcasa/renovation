@@ -1,9 +1,9 @@
 /* Valou — écrans de présentation : Professionnels, Notre moteur, Feuille de route.
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
-import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611242157";
-import { RACINE, img } from "./chemins.js?v=202611242157";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611242157";
+import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611250536";
+import { RACINE, img } from "./chemins.js?v=202611250536";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611250536";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
 /* une partie du projet : un poste dans une pièce (ou pour toute la maison) */
@@ -11,6 +11,7 @@ export const cleLigne = l => `${l.k}|${l.pieceId || "maison"}`;
 
 export const METIERS = [
   { id: "general", t: "Entreprise générale", f: () => true },
+  { id: "macon", t: "Maçon", f: k => /^i_(mb|mp|da|dem|dr)$/.test(k) },
   { id: "carreleur", t: "Carreleur", f: k => /^(sol|mur)_carrelage$/.test(k) },
   { id: "peintre", t: "Peintre et plafonneur", f: k => /^(mur_peinture|mur_plafonnage|pl|i_cg)$/.test(k) },
   { id: "electricien", t: "Électricien", f: k => /^i_(re|co|mc)$/.test(k) },
@@ -18,6 +19,36 @@ export const METIERS = [
   { id: "menuisier", t: "Menuisier", f: k => /^(i_(ch|ca|bv|pe|pi|pg|vo)|sol_parquet|meu_cuisine)$/.test(k) },
   { id: "couvreur", t: "Couvreur", f: k => /^i_(dp|st|cv_\d|cp_\d|zi|no|vx_\d|to_\d)$/.test(k) },
 ];
+
+/* ---------- chantiers types : l'artisan chiffre au forfait des chantiers définis par Valou, toujours les mêmes ;
+   deux tailles du même travail donnent son fixe (déplacement, installation) et son prix par m² ---------- */
+export const CHANTIERS_TYPES = {
+  macon: [
+    { id: "mac_mur", k: "i_mb", u: "m²", q: [10, 30], t: "Monter un mur intérieur en blocs béton de 14 cm",
+      d: "Hauteur 2,50 m, maison habitée, accès facile. Main-d'œuvre seule : blocs et mortier fournis par le client. Enduit et évacuation non compris." },
+    { id: "mac_dem", k: "i_dem", u: "m²", q: [15, 40], t: "Démolir des cloisons intérieures non porteuses",
+      d: "Cloisons en briques de 10 cm, avec évacuation des gravats vers le container. Container non compris." },
+    { id: "mac_baie", k: "i_mp", u: "forfait", q: [1], t: "Ouvrir une baie de 2 m de large dans un mur porteur",
+      d: "Mur en briques de 30 cm. Étançonnement, linteau acier ou béton et finitions brutes compris. Étude de stabilité non comprise." },
+  ],
+  electricien: [
+    { id: "ele_re", k: "i_re", u: "m²", q: [80, 150], t: "Refaire toute l'installation électrique d'une maison",
+      d: "Surface habitable indiquée, maison vidée. Fourniture comprise, prises et points lumineux standards, contrôle de conformité compris. Tableau non compris." },
+    { id: "ele_co", k: "i_co", u: "forfait", q: [1], t: "Remplacer le tableau électrique",
+      d: "Maison unifamiliale, 1 tableau avec différentiels et disjoncteurs. Fourniture et raccordement compris." },
+  ],
+};
+/* prix d'un artisan à partir de ses réponses : 2 tailles → fixe + prix par unité ; 1 taille → forfait */
+export function prixChantierType(c, v = []) {
+  const [a, b] = v.map(x => (x === null || x === "" || x === undefined ? null : +x));
+  if (c.q.length === 1) return a > 0 ? { forfait: a } : null;
+  if (!(a > 0) || !(b > 0)) return null;
+  const [q1, q2] = c.q, unit = (b - a) / (q2 - q1);
+  if (!(unit > 0)) return { err: "Le grand chantier doit coûter plus cher que le petit : vérifiez vos deux prix." };
+  const fixe = a - q1 * unit;
+  if (fixe < 0) return { unit: Math.round(b / q2), fixe: 0, note: "Vos deux prix donnent un fixe négatif : Valou garde le prix par m² du grand chantier." };
+  return { unit: Math.round(unit), fixe: Math.round(fixe) };
+}
 
 const qte = (Q, u) => `${nombre(Q)} ${Q > 1 && (u === "pièce" || u === "escalier") ? u + "s" : u}`;
 const badge = f => (f ? `<span class="badge b-${f}" title="${esc(FIABILITE[f].d)}">${esc(FIABILITE[f].t)}</span>` : "");
@@ -116,7 +147,22 @@ export function ecranPro(ctx, onglet, metier) {
         </ul>
       </div>
       <label class="metier">Votre métier<select data-metier>${METIERS.filter(x => x.id !== "general").map(x => `<option value="${x.id}" ${x.id === M.id ? "selected" : ""}>${esc(x.t)}</option>`).join("")}</select></label>
-      <section class="carte"><table class="d-lots tarifs">
+      ${(() => { const CT = CHANTIERS_TYPES[M.id]; if (!CT) return ""; const mode = (T.mode || {})[M.id] || "types";
+        return `<div class="ct-choix"><span class="lbl">Comment donnez-vous vos prix ?</span><div class="seg">
+          <button type="button" data-action="tarif-mode" data-mode="types" data-m="${M.id}" class="${mode === "types" ? "on" : ""}">Au forfait : je chiffre des chantiers types</button>
+          <button type="button" data-action="tarif-mode" data-mode="m2" data-m="${M.id}" class="${mode === "m2" ? "on" : ""}">Au m² ou à la pièce</button></div></div>
+        ${mode === "types" ? `<section class="carte chantiers-types"><h2>Vos prix sur des chantiers types</h2>
+          <p class="mu">Les mêmes chantiers pour tous les ${esc(M.t.toLowerCase())}s : chiffrez-les comme pour un client, au forfait, hors TVA. Valou en déduit votre prix ; pour un même travail en deux tailles, il calcule votre fixe (déplacement, installation) et votre prix au m².</p>
+          ${CT.map(c => { const v = (T.ct || {})[c.id] || [], r = prixChantierType(c, v);
+            return `<article class="ct-carte"><h3>${esc(c.t)}</h3><p class="mu petit-t">${esc(c.d)}</p>
+              <div class="ct-q">${c.q.map((q, i) => `<label>${c.u === "forfait" ? "Votre forfait" : `${q} ${c.u}`}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-ct="${c.id}" data-ct-i="${i}" value="${esc(v[i] ?? "")}" aria-label="Votre prix pour ${esc(c.t)}${c.u === "forfait" ? "" : `, ${q} ${c.u}`}"><i>€ HTVA</i></span></label>`).join("")}</div>
+              ${!r ? `<p class="mu petit-t">${c.q.length > 1 ? "Remplissez les deux tailles pour obtenir votre prix." : ""}</p>` : r.err ? `<p class="alerte-mini">⚠️ ${esc(r.err)}</p>` : `<p class="ct-res">${r.forfait != null ? `Votre forfait : <b>${euros(r.forfait)}</b>` : `Votre prix : <b>${euros(r.unit)} / ${esc(c.u)}</b> + <b>${euros(r.fixe)}</b> de mise en route par chantier`}</p>${r.note ? `<p class="mu petit-t">${esc(r.note)}</p>` : ""}`}
+              <label class="cb petit-t"><input type="checkbox" data-ct-non="${c.id}" ${((T.ctNon || {})[c.id]) ? "checked" : ""}> Je ne fais pas ce type de travail</label>
+            </article>`; }).join("")}
+          <label class="cb"><input type="checkbox" data-tarif-ok ${T.ok ? "checked" : ""}> J'accepte que mes tarifs servent uniquement au calcul de prix moyens anonymes, selon les règles ci-dessus.</label>
+          ${T.ok && CT.some(c => { const r = prixChantierType(c, (T.ct || {})[c.id]); return r && !r.err; }) ? `<p class="d-act ok">✓ Tarifs enregistrés. Ils sont repris dans la simulation de « Notre moteur ».</p>` : `<p class="mu">Démonstration : vos tarifs restent sur cet appareil.</p>`}
+        </section>` : ""}`; })()}
+      ${CHANTIERS_TYPES[M.id] && ((T.mode || {})[M.id] || "types") === "types" ? "" : `<section class="carte"><table class="d-lots tarifs">
         <thead><tr><th>Poste</th><th>Votre prix (HTVA)</th></tr></thead>
         <tbody>${postes.map(p => {
           const u = unitePoste(p.u, p.k);
@@ -124,7 +170,7 @@ export function ecranPro(ctx, onglet, metier) {
         }).join("")}</tbody></table>
         <label class="cb"><input type="checkbox" data-tarif-ok ${T.ok ? "checked" : ""}> J'accepte que mes tarifs servent uniquement au calcul de prix moyens anonymes, selon les règles ci-dessus.</label>
         ${T.ok && Object.values(T.p).some(v => v > 0) ? `<p class="d-act ok">✓ Tarifs enregistrés. Ils sont repris dans la simulation de « Notre moteur ».</p>` : `<p class="mu">Démonstration : vos tarifs restent sur cet appareil.</p>`}
-      </section>`;
+      </section>`}`;
   }
 
   if (onglet === "negociant") {
@@ -222,6 +268,11 @@ export const ARTISANS = {
     AR("Bâtir Ensemble", "Liège", 7, "Rénovations lourdes de maisons anciennes, avec un seul interlocuteur du début à la fin.", ["Maisons anciennes", "Extensions", "Démolition", "Planning de chantier"], "04 000 01 02"),
     AR("Maison Neuve Rénovation", "Ans", 14, "Petite équipe polyvalente pour rafraîchir une maison avant d'emménager.", ["Rafraîchissement", "Petits travaux", "Cuisine et salle de bain"], "04 000 01 03", { tarifs: false }),
   ],
+  macon: [
+    AR("Maçonnerie Mosane", "Seraing", 4, "Gros œuvre et transformations : murs porteurs, ouvertures, dalles et démolition.", ["Ouvertures de murs porteurs", "Murs en blocs", "Dalles et chapes", "Démolition"], "04 000 08 01"),
+    AR("Les Bâtisseurs d'Ans", "Ans", 12, "Petite équipe de maçons pour les rénovations de maisons anciennes.", ["Maisons anciennes", "Briques et blocs", "Linteaux", "Drainage"], "04 000 08 02"),
+    AR("Solide & Fils", "Liège", 7, "Maçonnerie traditionnelle depuis trois générations, devis au forfait.", ["Maçonnerie traditionnelle", "Rejointoyage", "Murs de jardin", "Fondations"], "04 000 08 03", { tarifs: false }),
+  ],
   carreleur: [
     AR("Atelier du Carreau", "Seraing", 3, "Carrelage de sols et de murs, grands formats et salles de bain.", ["Grand format 120×60", "Salles de bain", "Douches à l'italienne", "Faïence murale"], "04 000 02 01"),
     AR("Pose Nette", "Grâce-Hollogne", 9, "Pose soignée, joints réguliers, chantier propre et rangé chaque soir.", ["Carrelage de sol", "Plinthes", "Terrasses", "Ragréage"], "04 000 02 02"),
@@ -267,7 +318,7 @@ document.addEventListener("toggle", e => {
 
 /* ---------- types de matériaux vendus par un négociant (à cocher, obligatoire) ---------- */
 export const RAYONS_NEG = [
-  ["gros", "🧱", "Gros œuvre (blocs, briques, ciment, béton)", ["general"]],
+  ["gros", "🧱", "Gros œuvre (blocs, briques, ciment, béton)", ["general", "macon"]],
   ["toiture", "🏠", "Toiture et zinguerie", ["couvreur"]],
   ["isolation", "🧤", "Isolation", ["couvreur", "general"]],
   ["bois", "🪵", "Bois et panneaux", ["menuisier"]],
@@ -280,9 +331,9 @@ export const RAYONS_NEG = [
   ["cuisine", "🍳", "Cuisines", ["menuisier"]],
   ["exterieur", "🌳", "Extérieurs et aménagements", ["general"]],
   ["outillage", "🔧", "Outillage et petit matériel", []],
-  ["engins", "🚜", "Location d'engins (mini-pelle, chargeuse…)", ["general"]],
+  ["engins", "🚜", "Location d'engins (mini-pelle, chargeuse…)", ["general", "macon"]],
   ["echafaudage", "🏗️", "Location d'échafaudages", ["couvreur", "general"]],
-  ["conteneur", "🗑️", "Conteneurs à déchets", ["general"]],
+  ["conteneur", "🗑️", "Conteneurs à déchets", ["general", "macon"]],
 ];
 
 /* ---------- fiche publique d'un négociant ---------- */

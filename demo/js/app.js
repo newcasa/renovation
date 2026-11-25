@@ -1,13 +1,13 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences, configServeur } from "./donnees.js?v=202611242157";
-import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611242157";
-import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611242157";
-import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611242157";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611242157";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne } from "./vitrine.js?v=202611242157";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611242157";
-import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611242157";
-import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611242157";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611250536";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611250536";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611250536";
+import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611250536";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611250536";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne, CHANTIERS_TYPES, prixChantierType } from "./vitrine.js?v=202611250536";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611250536";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611250536";
+import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611250536";
 
 let R = null;
 let maisons = lireMaisons();
@@ -1983,7 +1983,7 @@ function ecranArtisan(id) {
   return `${entete("contacts")}<main class="etroit">
     ${retour}
     <article class="carte profil-art">
-      <div class="pa-tete"><span class="pa-ico">${{ carreleur: "◼️", peintre: "🎨", electricien: "💡", chauffagiste: "🔥", menuisier: "🪚", couvreur: "🏠" }[a.metier] || "🔨"}</span>
+      <div class="pa-tete"><span class="pa-ico">${{ macon: "🧱", carreleur: "◼️", peintre: "🎨", electricien: "💡", chauffagiste: "🔥", menuisier: "🪚", couvreur: "🏠" }[a.metier] || "🔨"}</span>
         <div><h1>${esc(a.nom)}</h1><p class="mu">${esc(x ? x.t : "Entreprise générale")} · ${esc(a.lieu)}, à ${a.km} km</p><span class="badge b-exemple">Exemple fictif</span>${a.tarifs ? ` <span class="badge b-reference">Tarifs partagés avec Valou</span>` : ""}</div></div>
       <p>${esc(a.desc)}</p>
       <h2>Spécialités</h2>
@@ -2155,6 +2155,7 @@ document.addEventListener("click", e => {
       mq.devisChoisi = { ...(mq.devisChoisi || {}), [r.metier]: r.artisanId }; sauver(); afficher();
     }
   }
+  if (a === "tarif-mode") { tarifs.mode = { ...(tarifs.mode || {}), [el.dataset.m]: el.dataset.mode }; sauverTarifs(); afficher(); return; }
   if (a === "onglet-m" && m) {
     ongletsM[m.id] = el.dataset.o;
     if (el.dataset.ouvrir) { ouverts.add(el.dataset.ouvrir); document.querySelectorAll(`details[data-ouvert="${el.dataset.ouvrir}"]`).forEach(d => { d.open = true; }); } // lien vers une partie repliée : on l'ouvre
@@ -2283,6 +2284,24 @@ document.addEventListener("change", e => {
   if (t.dataset.simK != null) { sim.k = t.value; afficher(); return; }
   if (t.dataset.tarif) { tarifs.p[t.dataset.tarif] = t.value === "" ? null : +t.value; sauverTarifs(); afficher(); return; }
   if (t.dataset.tarifOk != null) { tarifs.ok = t.checked; sauverTarifs(); afficher(); return; }
+  if (t.dataset.ct) { /* chantier type : on garde les réponses et on en déduit le prix repris par le moteur */
+    const c = Object.values(CHANTIERS_TYPES).flat().find(x => x.id === t.dataset.ct);
+    if (c) {
+      const v = [...((tarifs.ct || {})[c.id] || [])]; v[+t.dataset.ctI] = t.value === "" ? null : +t.value;
+      tarifs.ct = { ...(tarifs.ct || {}), [c.id]: v };
+      const r = prixChantierType(c, v);
+      tarifs.p[c.k] = r && !r.err ? (r.forfait ?? r.unit) : null;
+      tarifs.fixe = { ...(tarifs.fixe || {}), [c.k]: r && !r.err && r.fixe != null ? r.fixe : null };
+      sauverTarifs(); afficher();
+    }
+    return;
+  }
+  if (t.dataset.ctNon) {
+    tarifs.ctNon = { ...(tarifs.ctNon || {}), [t.dataset.ctNon]: t.checked };
+    const c = Object.values(CHANTIERS_TYPES).flat().find(x => x.id === t.dataset.ctNon);
+    if (c && t.checked) { tarifs.p[c.k] = null; tarifs.ct = { ...(tarifs.ct || {}), [c.id]: [] }; } // pas ce travail : pas de prix
+    sauverTarifs(); afficher(); return;
+  }
   /* comparer */
   if (t.dataset.comp) {
     const id = t.dataset.comp;
