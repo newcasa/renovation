@@ -1,9 +1,9 @@
 /* Valou — questionnaire de visite à imprimer et à remplir à la main.
    Mêmes rubriques que l'appli : la maison, le chauffage, les pièces (postes imposés), structure / toiture / équipements.
    maisonDepuisQuestionnaire() transforme les réponses (lues sur la photo) en maison Valou. */
-import { TYPES_PIECE, PLAFONDS, WC, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE } from "./moteur.js?v=202611242157";
-import { img, DEMO_DIR } from "./chemins.js?v=202611242157";
-import { esc } from "./format.js?v=202611242157";
+import { TYPES_PIECE, PLAFONDS, WC, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE } from "./moteur.js?v=202611250536";
+import { img, DEMO_DIR } from "./chemins.js?v=202611250536";
+import { esc } from "./format.js?v=202611250536";
 
 /* pièces pré-imprimées : celles qui peuvent composer une grande maison (+ 2 lignes libres) */
 export const PIECES_QUESTIONNAIRE = [
