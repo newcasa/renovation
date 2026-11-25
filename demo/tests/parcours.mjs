@@ -332,6 +332,18 @@ try {
     await page.check("[data-tarif-ok]");
     await page.locator(".tarifs ~ .d-act.ok").waitFor();
     await page.screenshot({ path: `${OUT}/${nom}-8-tarifs.png`, fullPage: nom === "ordi" });
+    /* maçon : chantiers types au forfait → fixe + prix au m² (10 m² à 700 €, 30 m² à 1 500 € → 40 €/m² + 300 €) */
+    await page.selectOption("[data-metier]", "macon");
+    await page.locator(".chantiers-types").waitFor();
+    await page.fill('[data-ct="mac_mur"][data-ct-i="0"]', "700");
+    await page.locator('[data-ct="mac_mur"][data-ct-i="0"]').dispatchEvent("change");
+    await page.fill('[data-ct="mac_mur"][data-ct-i="1"]', "1500");
+    await page.locator('[data-ct="mac_mur"][data-ct-i="1"]').dispatchEvent("change");
+    assert.match(await page.locator(".ct-carte").first().innerText(), /40\s?€ \/ m²[\s\S]*300\s?€ de mise en route/);
+    await page.locator('[data-action="tarif-mode"][data-mode="m2"]').click();
+    assert.equal(await page.locator('[data-tarif="i_mb"]').inputValue(), "40", "le prix au m² calculé est repris");
+    await page.locator('[data-action="tarif-mode"][data-mode="types"]').click();
+    await page.locator(".chantiers-types").screenshot({ path: `${OUT}/${nom}-8b-chantiers-types.png` });
 
     await menu("#/moteur");
     await page.locator(".stats").waitFor();
