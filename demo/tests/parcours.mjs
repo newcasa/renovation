@@ -327,6 +327,8 @@ try {
     /* l'artisan encode ses tarifs (confidentiels) */
     await page.goto(URL + "#/pro/tarifs");
     await page.locator(".confidentiel").waitFor();
+    assert.ok(await page.locator(".chantiers-types").count(), "carreleur : chantiers types proposés par défaut");
+    await page.locator('[data-action="tarif-mode"][data-mode="m2"]').click();
     await page.fill('[data-tarif="sol_carrelage"]', "48");
     await page.locator('[data-tarif="sol_carrelage"]').dispatchEvent("change");
     await page.check("[data-tarif-ok]");
