@@ -1,0 +1,32 @@
+{
+  "id": "valou-particulier",
+  "name": "Valou — version d'essai",
+  "short_name": "Particuliers",
+  "description": "Le vrai coût de la maison que vous visitez.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#022250",
+  "lang": "fr-BE",
+  "icons": [
+    {
+      "src": "../img/tuile-particulier-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../img/tuile-particulier-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../img/tuile-particulier-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
