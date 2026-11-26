@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vos tarifs pour Valou</title>
+<meta name="description" content="Formulaire pour les artisans : vos prix sur des chantiers types, envoyés à Valou par WhatsApp.">
+<meta name="theme-color" content="#F2F5F9">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../img/favicon-valou-48.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@700;800;900&display=swap">
+<style>
+:root { --b: #022250; --b2: #1F4A8A; --or: #EC8224; --or-f: #B35A0E; --creme: #F2F5F9; --carte: #FFFFFF; --bord: #DCE3ED; --mu: #56657D; --vert: #2E7D5B; --rouge: #B3261E; --wa: #1FA855; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--creme); }
+body { margin: 0; min-height: 100vh; background: linear-gradient(to top right, #DDEBFA 0%, #EEF1F2 50%, #F6EAD8 100%) fixed; color: var(--b); font: 16px/1.5 Manrope, system-ui, sans-serif; }
+main { max-width: 640px; margin: 0 auto; padding: 16px 16px 120px; }
+h1, h2 { font-family: Outfit, Manrope, sans-serif; font-weight: 900; line-height: 1.15; letter-spacing: -.01em; }
+h1 { font-size: 28px; margin: 12px 0 6px; }
+h2 { font-size: 20px; margin: 0 0 10px; }
+h3 { font-size: 16px; margin: 0 0 4px; line-height: 1.3; }
+.logo { height: 34px; display: block; }
+.mu { color: var(--mu); }
+.petit { font-size: 13.5px; }
+.carte { background: var(--carte); border: 1px solid var(--bord); border-radius: 16px; padding: 16px; margin: 14px 0; box-shadow: 0 4px 14px rgba(2, 34, 80, .06); }
+.conf { background: #F4F8FD; }
+.conf ul { margin: 6px 0 0; padding-left: 20px; }
+.conf li { margin: 4px 0; }
+.etape { display: inline-block; background: var(--b); color: #fff; border-radius: 999px; width: 26px; height: 26px; text-align: center; line-height: 26px; font-weight: 800; font-size: 14px; margin-right: 6px; }
+label.champ { display: block; margin: 10px 0; font-weight: 700; font-size: 14.5px; }
+label.champ small { font-weight: 500; color: var(--mu); }
+input[type=text], input[type=tel], input[type=email], input[type=number], select, textarea { display: block; width: 100%; margin-top: 4px; padding: 12px; font: inherit; font-weight: 500; color: var(--b); background: #fff; border: 1.5px solid var(--bord); border-radius: 12px; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outline-offset: 1px; border-color: var(--or); }
+.ct { border-top: 1px solid var(--bord); padding: 14px 0 4px; }
+.ct:first-of-type { border-top: 0; padding-top: 4px; }
+.ct.non h3, .ct.non .d { opacity: .45; }
+.ct .d { font-size: 13.5px; color: var(--mu); margin: 0 0 8px; }
+.num { font-family: Outfit, sans-serif; font-weight: 800; color: var(--or-f); margin-right: 4px; }
+.prix { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.prix.un { grid-template-columns: 1fr; }
+.prix label { font-size: 13.5px; font-weight: 700; }
+.saisie { position: relative; display: block; }
+.saisie input { padding-right: 70px; }
+.saisie i { position: absolute; right: 12px; top: 50%; transform: translateY(-40%); font-style: normal; font-size: 12.5px; color: var(--mu); pointer-events: none; }
+.res { margin: 8px 0 0; font-size: 14px; background: #EEF6F1; color: var(--vert); padding: 8px 10px; border-radius: 10px; }
+.err { margin: 8px 0 0; font-size: 14px; background: #FBEDEC; color: var(--rouge); padding: 8px 10px; border-radius: 10px; }
+.cb { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0; font-size: 14.5px; cursor: pointer; }
+.cb input { width: 22px; height: 22px; flex: none; margin: 0; accent-color: var(--b); }
+.pied { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .92); backdrop-filter: blur(8px); border-top: 1px solid var(--bord); }
+.pied-in { max-width: 640px; margin: 0 auto; }
+.btn { display: block; width: 100%; padding: 15px; border: 0; border-radius: 14px; background: var(--wa); color: #fff; font: 800 17px Manrope, sans-serif; cursor: pointer; }
+.btn:disabled { background: #A9B8D0; cursor: not-allowed; }
+.manque { margin: 0 0 8px; font-size: 13.5px; color: var(--rouge); text-align: center; }
+.compte { margin: 0 0 8px; font-size: 13.5px; text-align: center; color: var(--mu); }
+.merci { display: none; }
+.merci.on { display: block; background: #EEF6F1; border-color: #BFDCCB; }
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="../img/logo-valou.png" alt="Valou">
+  <h1>Vos tarifs pour Valou</h1>
+  <p class="mu">5 minutes, sur votre téléphone. Vous chiffrez quelques chantiers types de votre métier, comme pour un client, puis vous les envoyez par WhatsApp.</p>
+
+  <section class="carte conf">
+    <b>🔒 Vos prix restent confidentiels</b>
+    <ul class="petit">
+      <li>Ils ne sont <b>jamais montrés</b>, ni aux clients, ni aux autres artisans.</li>
+      <li>Ils servent uniquement à calculer une moyenne, <b>jamais avec moins de 5 artisans</b> : impossible de retrouver votre prix.</li>
+      <li>Vous pouvez les modifier ou les retirer quand vous voulez.</li>
+    </ul>
+  </section>
+
+  <section class="carte">
+    <h2><span class="etape">1</span>Vous</h2>
+    <label class="champ">Votre nom<input type="text" id="nom" autocomplete="name" required></label>
+    <label class="champ">Entreprise <small>(si différente)</small><input type="text" id="entreprise" autocomplete="organization"></label>
+    <label class="champ">Commune où vous êtes basé<input type="text" id="commune" autocomplete="address-level2" placeholder="ex. Seraing"></label>
+    <label class="champ">Téléphone<input type="tel" id="tel" autocomplete="tel" inputmode="tel"></label>
+    <label class="champ">E-mail <small>(facultatif)</small><input type="email" id="email" autocomplete="email"></label>
+    <label class="champ">Numéro de TVA <small>(facultatif)</small><input type="text" id="tva" placeholder="BE 0..."></label>
+  </section>
+
+  <section class="carte">
+    <h2><span class="etape">2</span>Votre métier</h2>
+    <select id="metier" aria-label="Votre métier"></select>
+  </section>
+
+  <section class="carte">
+    <h2><span class="etape">3</span>Vos prix</h2>
+    <p class="mu petit">Prix <b>hors TVA</b>, au forfait, comme sur un devis. Pour un même travail en deux tailles, Valou calcule votre prix au m² (ou au mètre, à la pièce) et votre fixe de mise en route. Laissez vide ou cochez « Je ne fais pas » ce qui ne vous concerne pas.</p>
+    <div id="chantiers"></div>
+  </section>
+
+  <section class="carte">
+    <h2><span class="etape">4</span>Un commentaire ?</h2>
+    <label class="champ"><small>Facultatif : zone où vous travaillez, délais, ce qui change vos prix…</small><textarea id="remarque" rows="3"></textarea></label>
+    <label class="cb"><input type="checkbox" id="accord"> <span>J'accepte que mes tarifs servent uniquement au calcul de prix moyens anonymes, selon les règles ci-dessus.</span></label>
+  </section>
+
+  <section class="carte merci" id="merci">
+    <b>✓ Merci !</b>
+    <p class="petit">WhatsApp s'est ouvert avec vos prix déjà écrits : il ne vous reste qu'à appuyer sur la flèche d'envoi. Vos réponses restent aussi sur ce téléphone si vous voulez les corriger plus tard.</p>
+  </section>
+</main>
+
+<div class="pied"><div class="pied-in">
+  <p class="compte" id="compte"></p>
+  <p class="manque" id="manque"></p>
+  <button class="btn" id="envoyer" type="button">Envoyer par WhatsApp</button>
+</div></div>
+
+<script type="module">
+import { METIERS, CHANTIERS_TYPES, prixChantierType } from "../js/vitrine.js?v=202611250558";
+
+/* Numéro WhatsApp de Valou qui reçoit les tarifs (format international sans +, ex. 32470123456).
+   Vide : WhatsApp demande à l'artisan à qui envoyer le message. */
+const NUMERO_WHATSAPP = "";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const fmt = n => new Intl.NumberFormat("fr-BE", { maximumFractionDigits: 0 }).format(n);
+const unite = (q, u) => `${fmt(q)} ${q > 1 && u === "pièce" ? "pièces" : u}`;
+const LISTE = METIERS.filter(m => CHANTIERS_TYPES[m.id]);
+const CLE = "valou_formulaire_tarifs";
+const COORD = ["nom", "entreprise", "commune", "tel", "email", "tva", "remarque"];
+
+/* brouillon gardé sur le téléphone de l'artisan */
+let S = (() => { try { return JSON.parse(localStorage.getItem(CLE)) || {}; } catch (e) { return {}; } })();
+S.prix = S.prix || {}; S.non = S.non || {};
+const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(S)); } catch (e) {} };
+
+/* métier : celui du lien (?metier=carreleur), sinon le dernier choisi */
+const demande = new URLSearchParams(location.search).get("metier");
+if (LISTE.some(m => m.id === demande)) S.metier = demande;
+if (!LISTE.some(m => m.id === S.metier)) S.metier = LISTE[0].id;
+$("metier").innerHTML = LISTE.map(m => `<option value="${m.id}">${esc(m.t)}</option>`).join("");
+$("metier").value = S.metier;
+
+COORD.forEach(k => { $(k).value = S[k] || ""; $(k).addEventListener("input", () => { S[k] = $(k).value; sauver(); maj(); }); });
+$("accord").checked = !!S.accord;
+$("accord").addEventListener("change", () => { S.accord = $("accord").checked; sauver(); maj(); });
+$("metier").addEventListener("change", () => { S.metier = $("metier").value; sauver(); dessiner(); });
+
+const resultat = c => {
+  if (S.non[c.id]) return null;
+  return prixChantierType(c, S.prix[c.id] || []);
+};
+const texteResultat = (c, r) => r.forfait != null ? `${fmt(r.forfait)} € HTVA` : `${fmt(r.unit)} € / ${c.u} + ${fmt(r.fixe)} € de mise en route`;
+
+function dessiner() {
+  const CT = CHANTIERS_TYPES[S.metier];
+  $("chantiers").innerHTML = CT.map((c, n) => {
+    const v = S.prix[c.id] || [], non = !!S.non[c.id];
+    return `<div class="ct ${non ? "non" : ""}" data-c="${c.id}">
+      <h3><span class="num">${n + 1}.</span>${esc(c.t)}</h3>
+      <p class="d">${esc(c.d)}</p>
+      <div class="prix ${c.q.length === 1 ? "un" : ""}">${c.q.map((q, i) => `<label>${c.u === "forfait" ? "Votre forfait" : "Pour " + unite(q, c.u)}
+        <span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-i="${i}" value="${esc(v[i] ?? "")}" ${non ? "disabled" : ""} aria-label="${esc(c.t)}, ${c.u === "forfait" ? "forfait" : unite(q, c.u)}"><i>€ HTVA</i></span></label>`).join("")}</div>
+      <div class="r"></div>
+      <label class="cb petit"><input type="checkbox" data-non ${non ? "checked" : ""}> Je ne fais pas ce travail</label>
+    </div>`;
+  }).join("");
+  CT.forEach(c => majCarte(c));
+  maj();
+}
+function majCarte(c) {
+  const el = document.querySelector(`[data-c="${c.id}"] .r`), r = resultat(c);
+  el.innerHTML = !r ? (c.q.length > 1 && !S.non[c.id] && (S.prix[c.id] || []).some(x => x) ? `<p class="mu petit">Remplissez les deux tailles.</p>` : "")
+    : r.err ? `<p class="err">⚠️ ${esc(r.err)}</p>` : `<p class="res">Votre prix : <b>${esc(texteResultat(c, r))}</b></p>`;
+}
+$("chantiers").addEventListener("input", e => {
+  const box = e.target.closest("[data-c]"); if (!box || e.target.dataset.i == null) return;
+  const id = box.dataset.c, c = CHANTIERS_TYPES[S.metier].find(x => x.id === id);
+  const v = S.prix[id] || []; v[+e.target.dataset.i] = e.target.value; S.prix[id] = v; sauver(); majCarte(c); maj();
+});
+$("chantiers").addEventListener("change", e => {
+  if (!("non" in e.target.dataset)) return;
+  const id = e.target.closest("[data-c]").dataset.c; S.non[id] = e.target.checked; sauver(); dessiner();
+});
+
+/* ce qui manque avant de pouvoir envoyer */
+function manques() {
+  const CT = CHANTIERS_TYPES[S.metier], L = [];
+  if (!(S.nom || "").trim()) L.push("votre nom");
+  if (!(S.tel || "").trim()) L.push("votre téléphone");
+  if (!CT.some(c => { const r = resultat(c); return r && !r.err; })) L.push("au moins un prix");
+  if (CT.some(c => { const r = resultat(c); return r && r.err; })) L.push("corriger un prix");
+  if (!S.accord) L.push("cocher l'accord");
+  return L;
+}
+function maj() {
+  const CT = CHANTIERS_TYPES[S.metier], faits = CT.filter(c => { const r = resultat(c); return (r && !r.err) || S.non[c.id]; }).length;
+  $("compte").textContent = `${faits} chantier${faits > 1 ? "s" : ""} sur ${CT.length} rempli${faits > 1 ? "s" : ""}`;
+  const L = manques();
+  $("manque").textContent = L.length ? "Il manque : " + L.join(", ") + "." : "";
+  $("envoyer").disabled = L.length > 0;
+}
+
+/* le message WhatsApp : lisible par Thomas, avec les prix bruts pour pouvoir les recopier */
+function message() {
+  const M = LISTE.find(m => m.id === S.metier), CT = CHANTIERS_TYPES[S.metier];
+  const d = new Date().toLocaleDateString("fr-BE");
+  const lignes = [`*Tarifs Valou — ${M.t}*`, `${d}`, "",
+    `Nom : ${S.nom.trim()}`,
+    S.entreprise && S.entreprise.trim() ? `Entreprise : ${S.entreprise.trim()}` : null,
+    S.commune && S.commune.trim() ? `Commune : ${S.commune.trim()}` : null,
+    `Tél : ${S.tel.trim()}`,
+    S.email && S.email.trim() ? `E-mail : ${S.email.trim()}` : null,
+    S.tva && S.tva.trim() ? `TVA : ${S.tva.trim()}` : null,
+    "", "*Prix hors TVA*"];
+  CT.forEach((c, n) => {
+    const r = resultat(c), v = S.prix[c.id] || [];
+    if (S.non[c.id]) { lignes.push(`${n + 1}. ${c.t} : ne fait pas`); return; }
+    if (!r || r.err) { lignes.push(`${n + 1}. ${c.t} : —`); return; }
+    if (r.forfait != null) { lignes.push(`${n + 1}. ${c.t} : ${fmt(r.forfait)} €`); return; }
+    lignes.push(`${n + 1}. ${c.t} : ${unite(c.q[0], c.u)} = ${fmt(+v[0])} € · ${unite(c.q[1], c.u)} = ${fmt(+v[1])} € → ${texteResultat(c, r)}`);
+  });
+  if (S.remarque && S.remarque.trim()) lignes.push("", `Commentaire : ${S.remarque.trim()}`);
+  lignes.push("", "✓ Accord : tarifs utilisés uniquement pour des moyennes anonymes (5 artisans minimum).");
+  return lignes.filter(x => x !== null).join("\n");
+}
+$("envoyer").addEventListener("click", () => {
+  if (manques().length) return;
+  const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message())}`;
+  $("merci").classList.add("on");
+  window.open(url, "_blank") || (location.href = url);
+});
+
+dessiner();
+</script>
+</body>
+</html>
