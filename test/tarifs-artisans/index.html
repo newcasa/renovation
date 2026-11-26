@@ -95,8 +95,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
   </section>
 
   <section class="carte">
-    <h2><span class="etape">4</span>Un commentaire ?</h2>
-    <label class="champ"><small>Facultatif : zone où vous travaillez, délais, ce qui change vos prix…</small><textarea id="remarque" rows="3"></textarea></label>
+    <h2><span class="etape">4</span>Une question</h2>
+    <label class="champ">Quelle est la raison principale qui vous fait choisir de faire un prix au m² ou au forfait ?<textarea id="raison" rows="3" placeholder="ex. Au m² pour les grandes surfaces, au forfait pour les petits chantiers à cause du déplacement."></textarea></label>
+    <label class="champ">Un commentaire ? <small>(facultatif)</small>    <small>Zone où vous travaillez, délais, ce qui change vos prix…</small><textarea id="remarque" rows="3"></textarea></label>
     <label class="cb"><input type="checkbox" id="accord"> <span>J'accepte que mes tarifs servent uniquement au calcul de prix moyens anonymes, selon les règles ci-dessus.</span></label>
   </section>
 
@@ -117,7 +118,7 @@ import { METIERS, CHANTIERS_TYPES, prixChantierType } from "../js/vitrine.js?v=2
 
 /* Numéro WhatsApp de Valou qui reçoit les tarifs (format international sans +, ex. 32470123456).
    Vide : WhatsApp demande à l'artisan à qui envoyer le message. */
-const NUMERO_WHATSAPP = "";
+const NUMERO_WHATSAPP = "32499456072";
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -125,7 +126,7 @@ const fmt = n => new Intl.NumberFormat("fr-BE", { maximumFractionDigits: 0 }).fo
 const unite = (q, u) => `${fmt(q)} ${q > 1 && u === "pièce" ? "pièces" : u}`;
 const LISTE = METIERS.filter(m => CHANTIERS_TYPES[m.id]);
 const CLE = "valou_formulaire_tarifs";
-const COORD = ["nom", "entreprise", "commune", "tel", "email", "tva", "remarque"];
+const COORD = ["nom", "entreprise", "commune", "tel", "email", "tva", "raison", "remarque"];
 
 /* brouillon gardé sur le téléphone de l'artisan */
 let S = (() => { try { return JSON.parse(localStorage.getItem(CLE)) || {}; } catch (e) { return {}; } })();
@@ -218,6 +219,7 @@ function message() {
     if (r.forfait != null) { lignes.push(`${n + 1}. ${c.t} : ${fmt(r.forfait)} €`); return; }
     lignes.push(`${n + 1}. ${c.t} : ${unite(c.q[0], c.u)} = ${fmt(+v[0])} € · ${unite(c.q[1], c.u)} = ${fmt(+v[1])} € → ${texteResultat(c, r)}`);
   });
+  if (S.raison && S.raison.trim()) lignes.push("", `*Prix au m² ou au forfait, pourquoi ?* ${S.raison.trim()}`);
   if (S.remarque && S.remarque.trim()) lignes.push("", `Commentaire : ${S.remarque.trim()}`);
   lignes.push("", "✓ Accord : tarifs utilisés uniquement pour des moyennes anonymes (5 artisans minimum).");
   return lignes.filter(x => x !== null).join("\n");
