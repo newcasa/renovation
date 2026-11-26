@@ -1,9 +1,12 @@
 {
-  "source": "Prix d'un artisan peintre partenaire (formulaire de tarifs Valou), novembre 2026, main-d'œuvre seule, hors TVA, chantier à 5 km",
-  "note": "Version de démonstration : ces prix remplacent la grille de référence pour les postes ci-dessous. b = son prix au forfait (chantiers types), h = son prix au m² annoncé, m = la moyenne des deux.",
+  "source": "Prix d'artisans partenaires (formulaire de tarifs Valou), novembre 2026, main-d'œuvre hors TVA, chantier à 5 km",
+  "note": "Version de démonstration : ces prix remplacent la grille de référence pour les postes ci-dessous. Peintre : b = son prix au forfait, h = son prix au m² annoncé, m = la moyenne. Maçon : ses prix comprenaient les matériaux ; la main-d'œuvre est estimée en retirant les matériaux de la grille Valou (mur et démolition : un seul prix, donc b = m = h ; baie : 2 500 € moins 500 à 1 300 € de matériaux).",
   "mos": [
     { "id": "M16", "n": "Peinture murs intérieurs", "b": 12.5, "m": 13.75, "h": 15, "u": "€/m²", "e": 0 },
-    { "id": "M16P", "n": "Peinture plafonds", "b": 15, "m": 17.5, "h": 20, "u": "€/m²", "e": 0 }
+    { "id": "M16P", "n": "Peinture plafonds", "b": 15, "m": 17.5, "h": 20, "u": "€/m²", "e": 0 },
+    { "id": "M01", "n": "Démolition de cloisons + évacuation", "b": 20, "m": 20, "h": 20, "u": "€/m²", "e": 0 },
+    { "id": "M03", "n": "Maçonnerie blocs 14 cm", "b": 33, "m": 33, "h": 33, "u": "€/m² de mur", "e": 0 },
+    { "id": "MP1", "n": "Ouverture d'une baie dans un mur porteur", "b": 1200, "m": 1600, "h": 2000, "u": "€/unité", "e": 0 }
   ],
-  "postes": { "pl_peinture": { "mo": "M16P" } }
+  "postes": { "pl_peinture": { "mo": "M16P" }, "i_mp": { "mo": "MP1" } }
 }
