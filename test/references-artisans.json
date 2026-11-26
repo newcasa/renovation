@@ -1,0 +1,9 @@
+{
+  "source": "Prix d'un artisan peintre partenaire (formulaire de tarifs Valou), novembre 2026, main-d'œuvre seule, hors TVA, chantier à 5 km",
+  "note": "Version de démonstration : ces prix remplacent la grille de référence pour les postes ci-dessous. b = son prix au forfait (chantiers types), h = son prix au m² annoncé, m = la moyenne des deux.",
+  "mos": [
+    { "id": "M16", "n": "Peinture murs intérieurs", "b": 12.5, "m": 13.75, "h": 15, "u": "€/m²", "e": 0 },
+    { "id": "M16P", "n": "Peinture plafonds", "b": 15, "m": 17.5, "h": 20, "u": "€/m²", "e": 0 }
+  ],
+  "postes": { "pl_peinture": { "mo": "M16P" } }
+}
