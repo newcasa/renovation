@@ -95,6 +95,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
       <label class="cb choix"><input type="radio" name="mode" value="forfait"> <span><b>Au forfait</b></span></label>
       <label class="cb choix"><input type="radio" name="mode" value="depend"> <span><b>Ça dépend</b><small class="mu"> (les deux)</small></span></label>
     </div>
+    <h3 style="margin-top:18px">Vos prix comprennent-ils les matériaux ?</h3>
+    <div id="mats">
+      <label class="cb choix"><input type="radio" name="mat" value="non"> <span><b>Non</b><small class="mu"> : main-d'œuvre seule, comme demandé</small></span></label>
+      <label class="cb choix"><input type="radio" name="mat" value="oui"> <span><b>Oui</b><small class="mu"> : matériaux compris</small></span></label>
+      <label class="cb choix"><input type="radio" name="mat" value="certains"> <span><b>Pour certains travaux</b></span></label>
+    </div>
+    <label class="champ" id="matqBox" hidden>Lesquels ?<input type="text" id="matq" placeholder="ex. la dalle et le drainage"></label>
   </section>
 
   <div id="consignes"></div>
@@ -168,6 +175,11 @@ COORD.forEach(k => { $(k).value = S[k] || ""; $(k).addEventListener("input", () 
 $("accord").checked = !!S.accord;
 $("accord").addEventListener("change", () => { S.accord = $("accord").checked; sauver(); maj(); });
 $("metier").addEventListener("change", () => { S.metier = $("metier").value; sauver(); dessiner(); });
+const MATS = { non: "non, main-d'œuvre seule", oui: "OUI, matériaux compris", certains: "pour certains travaux" };
+const majMat = () => { $("matqBox").hidden = S.mat !== "certains"; };
+document.querySelectorAll("[name=mat]").forEach(r => { r.checked = r.value === S.mat; r.addEventListener("change", () => { S.mat = r.value; sauver(); majMat(); maj(); }); });
+$("matq").value = S.matq || ""; $("matq").addEventListener("input", () => { S.matq = $("matq").value; sauver(); });
+majMat();
 document.querySelectorAll("[name=mode]").forEach(r => { r.checked = r.value === S.mode; r.addEventListener("change", () => { S.mode = r.value; sauver(); dessiner(); }); });
 $("postes").addEventListener("input", e => { const k = e.target.dataset.m2; if (!k) return; S.m2[k] = e.target.value; sauver(); maj(); });
 const m2Remplis = () => postesM2().filter(p => +S.m2[p.k] > 0);
@@ -223,6 +235,7 @@ $("chantiers").addEventListener("change", e => {
 function manques() {
   const CT = CHANTIERS_TYPES[S.metier], L = [];
   if (!S.mode) L.push("choisir comment vous donnez vos tarifs");
+  if (!S.mat) L.push("dire si vos prix comprennent les matériaux");
   else {
     const okF = voitForfait() && CT.some(c => { const r = resultat(c); return r && !r.err; }), okM = voitM2() && m2Remplis().length > 0;
     if (!okF && !okM) L.push("au moins un prix");
@@ -247,7 +260,8 @@ function message() {
   const M = LISTE.find(m => m.id === S.metier), CT = CHANTIERS_TYPES[S.metier];
   const d = new Date().toLocaleDateString("fr-BE");
   const lignes = [`*Tarifs Valou — ${M.t}*`, `${d}`,
-    "", `Façon de donner ses prix : *${MODES[S.mode]}*`, `Base : chantier à ${DISTANCE_CHANTIER} km du dépôt, déplacement compris, aucune fourniture comprise`];
+    "", `Façon de donner ses prix : *${MODES[S.mode]}*`, `Base : chantier à ${DISTANCE_CHANTIER} km du dépôt, déplacement compris`,
+    `Matériaux compris : *${MATS[S.mat]}*${S.mat === "certains" && (S.matq || "").trim() ? ` (${S.matq.trim()})` : ""}`];
   if (voitM2()) {
     lignes.push("", "*Prix au m², au mètre ou à la pièce (hors TVA)*");
     postesM2().forEach(p => lignes.push(`- ${p.n} : ${+S.m2[p.k] > 0 ? fmt(+S.m2[p.k]) + " € / " + p.u : "—"}`));
