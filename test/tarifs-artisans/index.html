@@ -55,6 +55,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
 .manque { margin: 0 0 8px; font-size: 13.5px; color: var(--rouge); text-align: center; }
 .compte { margin: 0 0 8px; font-size: 13.5px; text-align: center; color: var(--mu); }
 .merci { display: none; }
+.choix { padding: 12px; border: 1.5px solid var(--bord); border-radius: 12px; margin: 8px 0; align-items: center; }
+.choix:has(input:checked) { border-color: var(--b); background: #F4F8FD; }
+.poste { display: grid; grid-template-columns: 1fr 150px; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--bord); }
+.poste:first-child { border-top: 0; }
+.poste span.n { font-weight: 700; font-size: 14.5px; }
+.poste input { margin-top: 0; }
+#blocForfait.suite h2 .etape { visibility: hidden; }
 .merci.on { display: block; background: #EEF6F1; border-color: #BFDCCB; }
 </style>
 </head>
@@ -74,30 +81,35 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
   </section>
 
   <section class="carte">
-    <h2><span class="etape">1</span>Vous</h2>
-    <label class="champ">Votre nom<input type="text" id="nom" autocomplete="name" required></label>
-    <label class="champ">Entreprise <small>(si différente)</small><input type="text" id="entreprise" autocomplete="organization"></label>
-    <label class="champ">Commune où vous êtes basé<input type="text" id="commune" autocomplete="address-level2" placeholder="ex. Seraing"></label>
-    <label class="champ">Téléphone<input type="tel" id="tel" autocomplete="tel" inputmode="tel"></label>
-    <label class="champ">E-mail <small>(facultatif)</small><input type="email" id="email" autocomplete="email"></label>
-    <label class="champ">Numéro de TVA <small>(facultatif)</small><input type="text" id="tva" placeholder="BE 0..."></label>
-  </section>
-
-  <section class="carte">
-    <h2><span class="etape">2</span>Votre métier</h2>
+    <h2><span class="etape">1</span>Votre métier</h2>
     <select id="metier" aria-label="Votre métier"></select>
   </section>
 
   <section class="carte">
-    <h2><span class="etape">3</span>Vos prix</h2>
-    <p class="mu petit">Prix <b>hors TVA</b>, au forfait, comme sur un devis. Pour un même travail en deux tailles, Valou calcule votre prix au m² (ou au mètre, à la pièce) et votre fixe de mise en route. Laissez vide ou cochez « Je ne fais pas » ce qui ne vous concerne pas.</p>
+    <h2><span class="etape">2</span>De quelle façon donnez-vous vos tarifs ?</h2>
+    <div id="modes">
+      <label class="cb choix"><input type="radio" name="mode" value="m2"> <span><b>Au m²</b><small class="mu"> (ou au mètre, à la pièce)</small></span></label>
+      <label class="cb choix"><input type="radio" name="mode" value="forfait"> <span><b>Au forfait</b></span></label>
+      <label class="cb choix"><input type="radio" name="mode" value="depend"> <span><b>Ça dépend</b><small class="mu"> (les deux)</small></span></label>
+    </div>
+  </section>
+
+  <section class="carte" id="blocM2" hidden>
+    <h2><span class="etape">3</span><span class="t4">Vos prix au m²</span></h2>
+    <p class="mu petit">Votre prix <b>hors TVA</b> pour la main-d'œuvre, au m², au mètre ou à la pièce. Laissez vide ce que vous ne faites pas.</p>
+    <div id="postes"><p class="mu petit">Chargement…</p></div>
+  </section>
+
+  <section class="carte" id="blocForfait" hidden>
+    <h2><span class="etape">3</span><span class="t4">Vos prix au forfait</span></h2>
+    <p class="mu petit">Des chantiers types, les mêmes pour tous les artisans de votre métier : chiffrez-les <b>hors TVA</b>, au forfait, comme sur un devis. Pour un même travail en deux tailles, Valou calcule votre prix au m² (ou au mètre, à la pièce) et votre fixe de mise en route. Laissez vide ou cochez « Je ne fais pas » ce qui ne vous concerne pas.</p>
     <div id="chantiers"></div>
   </section>
 
   <section class="carte">
     <h2><span class="etape">4</span>Une question</h2>
     <label class="champ">Quelle est la raison principale qui vous fait choisir de faire un prix au m² ou au forfait ?<textarea id="raison" rows="3" placeholder="ex. Au m² pour les grandes surfaces, au forfait pour les petits chantiers à cause du déplacement."></textarea></label>
-    <label class="champ">Un commentaire ? <small>(facultatif)</small>    <small>Zone où vous travaillez, délais, ce qui change vos prix…</small><textarea id="remarque" rows="3"></textarea></label>
+    <label class="champ">Un commentaire ? <small>(facultatif)</small><br><small>Zone où vous travaillez, délais, ce qui change vos prix…</small><textarea id="remarque" rows="3"></textarea></label>
     <label class="cb"><input type="checkbox" id="accord"> <span>J'accepte que mes tarifs servent uniquement au calcul de prix moyens anonymes, selon les règles ci-dessus.</span></label>
   </section>
 
@@ -115,6 +127,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
 
 <script type="module">
 import { METIERS, CHANTIERS_TYPES, prixChantierType } from "../js/vitrine.js?v=202611250558";
+import { chargerReferences } from "../js/donnees.js?v=202611250558";
+import { unitePoste } from "../js/moteur.js?v=202611250558";
 
 /* Numéro WhatsApp de Valou qui reçoit les tarifs (format international sans +, ex. 32470123456).
    Vide : WhatsApp demande à l'artisan à qui envoyer le message. */
@@ -126,11 +140,16 @@ const fmt = n => new Intl.NumberFormat("fr-BE", { maximumFractionDigits: 0 }).fo
 const unite = (q, u) => `${fmt(q)} ${q > 1 && u === "pièce" ? "pièces" : u}`;
 const LISTE = METIERS.filter(m => CHANTIERS_TYPES[m.id]);
 const CLE = "valou_formulaire_tarifs";
-const COORD = ["nom", "entreprise", "commune", "tel", "email", "tva", "raison", "remarque"];
+const COORD = ["raison", "remarque"];
 
 /* brouillon gardé sur le téléphone de l'artisan */
 let S = (() => { try { return JSON.parse(localStorage.getItem(CLE)) || {}; } catch (e) { return {}; } })();
-S.prix = S.prix || {}; S.non = S.non || {};
+S.prix = S.prix || {}; S.non = S.non || {}; S.m2 = S.m2 || {};
+const MODES = { m2: "Au m² (ou au mètre, à la pièce)", forfait: "Au forfait", depend: "Ça dépend (les deux)" };
+const voitM2 = () => S.mode === "m2" || S.mode === "depend", voitForfait = () => S.mode === "forfait" || S.mode === "depend";
+/* postes au m² : les mêmes que l'onglet « Mes tarifs » de l'appli (mode « Au m² ou à la pièce ») */
+let REF = null, refErreur = false;
+const postesM2 = () => (REF ? REF.liste.filter(p => p.mo && LISTE.find(m => m.id === S.metier).f(p.k)).map(p => ({ k: p.k, n: p.n, u: unitePoste(p.u, p.k) })) : []);
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(S)); } catch (e) {} };
 
 /* métier : celui du lien (?metier=carreleur), sinon le dernier choisi */
@@ -144,6 +163,9 @@ COORD.forEach(k => { $(k).value = S[k] || ""; $(k).addEventListener("input", () 
 $("accord").checked = !!S.accord;
 $("accord").addEventListener("change", () => { S.accord = $("accord").checked; sauver(); maj(); });
 $("metier").addEventListener("change", () => { S.metier = $("metier").value; sauver(); dessiner(); });
+document.querySelectorAll("[name=mode]").forEach(r => { r.checked = r.value === S.mode; r.addEventListener("change", () => { S.mode = r.value; sauver(); dessiner(); }); });
+$("postes").addEventListener("input", e => { const k = e.target.dataset.m2; if (!k) return; S.m2[k] = e.target.value; sauver(); maj(); });
+const m2Remplis = () => postesM2().filter(p => +S.m2[p.k] > 0);
 
 const resultat = c => {
   if (S.non[c.id]) return null;
@@ -151,7 +173,17 @@ const resultat = c => {
 };
 const texteResultat = (c, r) => r.forfait != null ? `${fmt(r.forfait)} € HTVA` : `${fmt(r.unit)} € / ${c.u} + ${fmt(r.fixe)} € de mise en route`;
 
+function dessinerM2() {
+  const P = postesM2();
+  $("postes").innerHTML = refErreur ? `<p class="err">Impossible de charger la liste des travaux. Vérifiez votre connexion et rechargez la page.</p>`
+    : !REF ? `<p class="mu petit">Chargement…</p>`
+    : P.length ? P.map(p => `<label class="poste"><span class="n">${esc(p.n)}</span><span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-m2="${p.k}" value="${esc(S.m2[p.k] ?? "")}" aria-label="Votre prix pour ${esc(p.n)}, par ${esc(p.u)}"><i>€ / ${esc(p.u)}</i></span></label>`).join("")
+    : `<p class="mu petit">Pas de prix au m² pour ce métier : utilisez le forfait.</p>`;
+}
 function dessiner() {
+  $("blocM2").hidden = !voitM2(); $("blocForfait").hidden = !voitForfait();
+  $("blocForfait").classList.toggle("suite", voitM2());
+  dessinerM2();
   const CT = CHANTIERS_TYPES[S.metier];
   $("chantiers").innerHTML = CT.map((c, n) => {
     const v = S.prix[c.id] || [], non = !!S.non[c.id];
@@ -185,16 +217,21 @@ $("chantiers").addEventListener("change", e => {
 /* ce qui manque avant de pouvoir envoyer */
 function manques() {
   const CT = CHANTIERS_TYPES[S.metier], L = [];
-  if (!(S.nom || "").trim()) L.push("votre nom");
-  if (!(S.tel || "").trim()) L.push("votre téléphone");
-  if (!CT.some(c => { const r = resultat(c); return r && !r.err; })) L.push("au moins un prix");
-  if (CT.some(c => { const r = resultat(c); return r && r.err; })) L.push("corriger un prix");
+  if (!S.mode) L.push("choisir comment vous donnez vos tarifs");
+  else {
+    const okF = voitForfait() && CT.some(c => { const r = resultat(c); return r && !r.err; }), okM = voitM2() && m2Remplis().length > 0;
+    if (!okF && !okM) L.push("au moins un prix");
+    if (voitForfait() && CT.some(c => { const r = resultat(c); return r && r.err; })) L.push("corriger un prix");
+  }
   if (!S.accord) L.push("cocher l'accord");
   return L;
 }
 function maj() {
-  const CT = CHANTIERS_TYPES[S.metier], faits = CT.filter(c => { const r = resultat(c); return (r && !r.err) || S.non[c.id]; }).length;
-  $("compte").textContent = `${faits} chantier${faits > 1 ? "s" : ""} sur ${CT.length} rempli${faits > 1 ? "s" : ""}`;
+  const CT = CHANTIERS_TYPES[S.metier], faits = CT.filter(c => { const r = resultat(c); return (r && !r.err) || S.non[c.id]; }).length, nM = m2Remplis().length, nP = postesM2().length;
+  const t = [];
+  if (voitM2() && REF) t.push(`${nM} prix au m² sur ${nP}`);
+  if (voitForfait()) t.push(`${faits} chantier${faits > 1 ? "s" : ""} type${faits > 1 ? "s" : ""} sur ${CT.length}`);
+  $("compte").textContent = t.join(" · ");
   const L = manques();
   $("manque").textContent = L.length ? "Il manque : " + L.join(", ") + "." : "";
   $("envoyer").disabled = L.length > 0;
@@ -204,15 +241,14 @@ function maj() {
 function message() {
   const M = LISTE.find(m => m.id === S.metier), CT = CHANTIERS_TYPES[S.metier];
   const d = new Date().toLocaleDateString("fr-BE");
-  const lignes = [`*Tarifs Valou — ${M.t}*`, `${d}`, "",
-    `Nom : ${S.nom.trim()}`,
-    S.entreprise && S.entreprise.trim() ? `Entreprise : ${S.entreprise.trim()}` : null,
-    S.commune && S.commune.trim() ? `Commune : ${S.commune.trim()}` : null,
-    `Tél : ${S.tel.trim()}`,
-    S.email && S.email.trim() ? `E-mail : ${S.email.trim()}` : null,
-    S.tva && S.tva.trim() ? `TVA : ${S.tva.trim()}` : null,
-    "", "*Prix hors TVA*"];
-  CT.forEach((c, n) => {
+  const lignes = [`*Tarifs Valou — ${M.t}*`, `${d}`,
+    "", `Façon de donner ses prix : *${MODES[S.mode]}*`];
+  if (voitM2()) {
+    lignes.push("", "*Prix au m², au mètre ou à la pièce (hors TVA)*");
+    postesM2().forEach(p => lignes.push(`- ${p.n} : ${+S.m2[p.k] > 0 ? fmt(+S.m2[p.k]) + " € / " + p.u : "—"}`));
+  }
+  if (voitForfait()) lignes.push("", "*Chantiers types au forfait (hors TVA)*");
+  if (voitForfait()) CT.forEach((c, n) => {
     const r = resultat(c), v = S.prix[c.id] || [];
     if (S.non[c.id]) { lignes.push(`${n + 1}. ${c.t} : ne fait pas`); return; }
     if (!r || r.err) { lignes.push(`${n + 1}. ${c.t} : —`); return; }
@@ -232,6 +268,7 @@ $("envoyer").addEventListener("click", () => {
 });
 
 dessiner();
+chargerReferences().then(r => { REF = r; }).catch(() => { refErreur = true; }).finally(() => dessiner());
 </script>
 </body>
 </html>
