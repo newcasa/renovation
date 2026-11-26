@@ -131,9 +131,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
 </div></div>
 
 <script type="module">
-import { METIERS, CHANTIERS_TYPES, prixChantierType, DISTANCE_CHANTIER, blocConsignes } from "../js/vitrine.js?v=202611260136";
-import { chargerReferences } from "../js/donnees.js?v=202611260136";
-import { unitePoste } from "../js/moteur.js?v=202611260136";
+import { METIERS, CHANTIERS_TYPES, prixChantierType, DISTANCE_CHANTIER, blocConsignes } from "../js/vitrine.js?v=202611260344";
+import { chargerReferences } from "../js/donnees.js?v=202611260344";
+import { unitePoste } from "../js/moteur.js?v=202611260344";
 
 /* Numéro WhatsApp de Valou qui reçoit les tarifs (format international sans +, ex. 32470123456).
    Vide : WhatsApp demande à l'artisan à qui envoyer le message. */
@@ -141,7 +141,7 @@ const NUMERO_WHATSAPP = "32499456072";
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-const fmt = n => new Intl.NumberFormat("fr-BE", { maximumFractionDigits: 0 }).format(n);
+const fmt = n => new Intl.NumberFormat("fr-BE", { maximumFractionDigits: 2 }).format(n);
 const unite = (q, u) => `${fmt(q)} ${q > 1 && u === "pièce" ? "pièces" : u}`;
 const LISTE = METIERS.filter(m => CHANTIERS_TYPES[m.id]);
 const CLE = "valou_formulaire_tarifs";

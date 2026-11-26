@@ -1,9 +1,9 @@
 /* Valou — écrans de présentation : Professionnels, Notre moteur, Feuille de route.
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
-import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611260136";
-import { RACINE, img } from "./chemins.js?v=202611260136";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611260136";
+import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611260344";
+import { RACINE, img } from "./chemins.js?v=202611260344";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611260344";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
 /* une partie du projet : un poste dans une pièce (ou pour toute la maison) */
@@ -170,8 +170,9 @@ export function prixChantierType(c, v = []) {
   const [q1, q2] = c.q, unit = (b - a) / (q2 - q1);
   if (!(unit > 0)) return { err: "Le grand chantier doit coûter plus cher que le petit : vérifiez vos deux prix." };
   const fixe = a - q1 * unit;
-  if (fixe < 0) return { unit: Math.round(b / q2), fixe: 0, note: "Vos deux prix donnent un fixe négatif : Valou garde le prix par m² du grand chantier." };
-  return { unit: Math.round(unit), fixe: Math.round(fixe) };
+  const r2 = x => Math.round(x * 100) / 100; // au centime : 12,50 €/m² ne devient pas 13 €
+  if (fixe < 0) return { unit: r2(b / q2), fixe: 0, note: "Vos deux prix donnent un fixe négatif : Valou garde le prix par m² du grand chantier." };
+  return { unit: r2(unit), fixe: Math.round(fixe) };
 }
 
 const qte = (Q, u) => `${nombre(Q)} ${Q > 1 && (u === "pièce" || u === "escalier") ? u + "s" : u}`;
@@ -281,7 +282,7 @@ export function ecranPro(ctx, onglet, metier) {
           ${CT.map(c => { const v = (T.ct || {})[c.id] || [], r = prixChantierType(c, v);
             return `<article class="ct-carte"><h3>${esc(c.t)}</h3><p class="mu petit-t">${esc(c.d)}</p>
               <div class="ct-q">${c.q.map((q, i) => `<label>${c.u === "forfait" ? "Votre forfait" : qte(q, c.u)}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-ct="${c.id}" data-ct-i="${i}" value="${esc(v[i] ?? "")}" aria-label="Votre prix pour ${esc(c.t)}${c.u === "forfait" ? "" : `, ${q} ${c.u}`}"><i>€ HTVA</i></span></label>`).join("")}</div>
-              ${!r ? `<p class="mu petit-t">${c.q.length > 1 ? "Remplissez les deux tailles pour obtenir votre prix." : ""}</p>` : r.err ? `<p class="alerte-mini">⚠️ ${esc(r.err)}</p>` : `<p class="ct-res">${r.forfait != null ? `Votre forfait : <b>${euros(r.forfait)}</b>` : `Votre prix : <b>${euros(r.unit)} / ${esc(c.u)}</b> + <b>${euros(r.fixe)}</b> de mise en route par chantier`}</p>${r.note ? `<p class="mu petit-t">${esc(r.note)}</p>` : ""}`}
+              ${!r ? `<p class="mu petit-t">${c.q.length > 1 ? "Remplissez les deux tailles pour obtenir votre prix." : ""}</p>` : r.err ? `<p class="alerte-mini">⚠️ ${esc(r.err)}</p>` : `<p class="ct-res">${r.forfait != null ? `Votre forfait : <b>${euros(r.forfait)}</b>` : `Votre prix : <b>${Number.isInteger(r.unit) ? euros(r.unit) : euros2(r.unit)} / ${esc(c.u)}</b> + <b>${euros(r.fixe)}</b> de mise en route par chantier`}</p>${r.note ? `<p class="mu petit-t">${esc(r.note)}</p>` : ""}`}
               <label class="cb petit-t"><input type="checkbox" data-ct-non="${c.id}" ${((T.ctNon || {})[c.id]) ? "checked" : ""}> Je ne fais pas ce type de travail</label>
             </article>`; }).join("")}
           <label class="cb"><input type="checkbox" data-tarif-ok ${T.ok ? "checked" : ""}> J'accepte que mes tarifs servent uniquement au calcul de prix moyens anonymes, selon les règles ci-dessus.</label>
