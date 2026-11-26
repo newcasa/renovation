@@ -1,9 +1,9 @@
 /* Valou — écrans de présentation : Professionnels, Notre moteur, Feuille de route.
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
-import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611250558";
-import { RACINE, img } from "./chemins.js?v=202611250558";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611250558";
+import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611260128";
+import { RACINE, img } from "./chemins.js?v=202611260128";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611260128";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
 /* une partie du projet : un poste dans une pièce (ou pour toute la maison) */
@@ -13,7 +13,8 @@ export const METIERS = [
   { id: "general", t: "Entreprise générale", f: () => true },
   { id: "macon", t: "Maçon", f: k => /^i_(mb|mp|da|dem|dr)$/.test(k) },
   { id: "carreleur", t: "Carreleur", f: k => /^(sol|mur)_carrelage$/.test(k) },
-  { id: "peintre", t: "Peintre et plafonneur", f: k => /^(mur_peinture|mur_plafonnage|pl|i_cg)$/.test(k) },
+  { id: "peintre", t: "Peintre", f: k => /^(mur_peinture|pl_peinture|i_es_1)$/.test(k) },
+  { id: "plafonneur", t: "Plafonneur", f: k => /^(mur_plafonnage|pl_plafonnage|pl|i_cg)$/.test(k) },
   { id: "electricien", t: "Électricien", f: k => /^i_(re|co|mc)$/.test(k) },
   { id: "chauffagiste", t: "Chauffagiste et sanitaire", f: k => /^(i_(cha|pac|rad|chs|pl)|meu_sdb|wc_.+)$/.test(k) },
   { id: "menuisier", t: "Menuisier", f: k => /^(i_(ch|ca|bv|pe|pi|pg|vo)|sol_parquet|meu_cuisine)$/.test(k) },
@@ -42,10 +43,22 @@ export const CHANTIERS_TYPES = {
       d: "Sur murs plans et secs, joints et profilés d'angle compris. Main-d'œuvre seule : matériaux fournis par le client." },
   ],
   peintre: [
-    { id: "pei_plaf", k: "mur_plafonnage", u: "m²", q: [30, 80], t: "Plafonner des murs",
-      d: "Enduit plâtre d'environ 1 cm sur maçonnerie, cornières d'angle comprises. Main-d'œuvre seule : matériaux fournis par le client." },
     { id: "pei_peint", k: "mur_peinture", u: "m²", q: [40, 120], t: "Peindre des murs intérieurs",
       d: "Murs déjà plafonnés et secs : 1 couche de fond et 2 couches de finition, protections comprises. Main-d'œuvre seule : matériaux fournis par le client." },
+    { id: "pei_plafp", k: "pl_peinture", u: "m²", q: [15, 40], t: "Peindre des plafonds",
+      d: "Plafonds déjà plafonnés et secs : 1 couche de fond et 2 couches de finition, protections comprises. Main-d'œuvre seule : matériaux fournis par le client." },
+    { id: "pei_enduit", k: "mur_enduit", u: "m²", q: [30, 80], t: "Enduire des murs avant peinture",
+      d: "Enduit de lissage en 2 passes et ponçage, sur murs plafonnés ou plaques de plâtre, prêts à peindre. Main-d'œuvre seule : matériaux fournis par le client." },
+    { id: "pei_esc", k: "i_es_1", u: "forfait", q: [1], t: "Décaper et peindre un escalier en bois",
+      d: "Escalier droit d'environ 14 marches avec contremarches et rampe : décapage, ponçage, 1 couche de fond et 2 couches de finition. Main-d'œuvre seule : matériaux fournis par le client." },
+    { id: "pei_portes", k: "pei_portes", u: "pièce", q: [1, 6], t: "Peindre des portes intérieures",
+      d: "Porte et chambranle, 2 faces : ponçage, 1 couche de fond et 2 couches de finition. Main-d'œuvre seule : matériaux fournis par le client." },
+  ],
+  plafonneur: [
+    { id: "pei_plaf", k: "mur_plafonnage", u: "m²", q: [30, 80], t: "Plafonner des murs",
+      d: "Enduit plâtre d'environ 1 cm sur maçonnerie, cornières d'angle comprises. Main-d'œuvre seule : matériaux fournis par le client." },
+    { id: "pla_plaf", k: "pl_plafonnage", u: "m²", q: [10, 30], t: "Plafonner un plafond",
+      d: "Enduit plâtre sur plafond en béton ou hourdis, surface plane. Main-d'œuvre seule : matériaux fournis par le client." },
     { id: "pei_pl", k: "pl", u: "m²", q: [15, 50], t: "Poser un plafond en plaques de plâtre",
       d: "Sur ossature métallique, joints et enduit de finition compris. Main-d'œuvre seule : matériaux fournis par le client." },
     { id: "pei_cg", k: "i_cg", u: "m²", q: [10, 30], t: "Monter une cloison en plaques de plâtre (2 faces)",
@@ -379,9 +392,14 @@ export const ARTISANS = {
     AR("Mosaïque Liégeoise", "Liège", 7, "Carreaux de ciment, mosaïques et pierre naturelle pour les maisons de caractère.", ["Carreaux de ciment", "Mosaïque", "Pierre naturelle", "Restauration"], "04 000 02 03", { tarifs: false }),
   ],
   peintre: [
-    AR("Pinceau Clair", "Liège", 7, "Peinture intérieure et plafonnage, finitions lisses et teintes sur mesure.", ["Peinture intérieure", "Plafonnage", "Enduits lissés", "Conseil couleurs"], "04 000 03 01"),
+    AR("Pinceau Clair", "Liège", 7, "Peinture intérieure, finitions lisses et teintes sur mesure.", ["Peinture intérieure", "Enduits lissés", "Escaliers", "Conseil couleurs"], "04 000 03 01"),
     AR("Teinte Juste", "Flémalle", 11, "Peinture et papier peint, protection complète des sols et des meubles.", ["Peinture", "Papier peint", "Boiseries", "Plafonds"], "04 000 03 02"),
-    AR("Atelier Blanc Mat", "Seraing", 3, "Plaques de plâtre, cloisons et peinture pour les rénovations rapides.", ["Plaques de plâtre", "Cloisons", "Faux plafonds", "Peinture"], "04 000 03 03", { tarifs: false }),
+    AR("Couleur Meuse", "Seraing", 3, "Rafraîchissement de maisons avant emménagement : murs, plafonds, portes.", ["Murs et plafonds", "Portes", "Décapage", "Peinture"], "04 000 03 03", { tarifs: false }),
+  ],
+  plafonneur: [
+    AR("Atelier Blanc Mat", "Seraing", 3, "Plaques de plâtre, cloisons et faux plafonds pour les rénovations rapides.", ["Plaques de plâtre", "Cloisons", "Faux plafonds"], "04 000 09 01"),
+    AR("Plâtre & Lisse", "Liège", 7, "Plafonnage traditionnel des murs et plafonds, finition prête à peindre.", ["Plafonnage", "Cornières", "Plafonds", "Enduits"], "04 000 09 02"),
+    AR("Gyps'Ans", "Ans", 14, "Petite équipe de plafonneurs pour maisons anciennes.", ["Maisons anciennes", "Plafonnage", "Cloisons"], "04 000 09 03", { tarifs: false }),
   ],
   electricien: [
     AR("Fil Rouge Électricité", "Grâce-Hollogne", 9, "Électricité complète, mise en conformité et contrôle par un organisme agréé.", ["Installation complète", "Mise en conformité", "Tableau électrique", "Domotique"], "04 000 04 01"),
@@ -427,7 +445,7 @@ export const RAYONS_NEG = [
   ["sanitaire", "🚿", "Sanitaire et plomberie", ["chauffagiste"]],
   ["chauffage", "🔥", "Chauffage", ["chauffagiste"]],
   ["electricite", "💡", "Électricité et éclairage", ["electricien"]],
-  ["peinture", "🎨", "Peinture et plâtre", ["peintre"]],
+  ["peinture", "🎨", "Peinture et plâtre", ["peintre", "plafonneur"]],
   ["cuisine", "🍳", "Cuisines", ["menuisier"]],
   ["exterieur", "🌳", "Extérieurs et aménagements", ["general"]],
   ["outillage", "🔧", "Outillage et petit matériel", []],
