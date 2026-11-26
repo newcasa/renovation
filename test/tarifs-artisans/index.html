@@ -55,6 +55,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
 .manque { margin: 0 0 8px; font-size: 13.5px; color: var(--rouge); text-align: center; }
 .compte { margin: 0 0 8px; font-size: 13.5px; text-align: center; color: var(--mu); }
 .merci { display: none; }
+.km { background: #FFF4E8; border: 1px solid #F6D3B0; border-radius: 10px; padding: 8px 10px; font-size: 14px; margin: 0 0 10px; }
 .choix { padding: 12px; border: 1.5px solid var(--bord); border-radius: 12px; margin: 8px 0; align-items: center; }
 .choix:has(input:checked) { border-color: var(--b); background: #F4F8FD; }
 .poste { display: grid; grid-template-columns: 1fr 150px; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--bord); }
@@ -97,12 +98,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
   <section class="carte" id="blocM2" hidden>
     <h2><span class="etape">3</span><span class="t4">Vos prix au m²</span></h2>
     <p class="mu petit">Votre prix <b>hors TVA</b> pour la main-d'œuvre, au m², au mètre ou à la pièce. Laissez vide ce que vous ne faites pas.</p>
+    <p class="km">📍 Pour un chantier à <b class="dist"></b> de votre dépôt, déplacement compris.</p>
     <div id="postes"><p class="mu petit">Chargement…</p></div>
   </section>
 
   <section class="carte" id="blocForfait" hidden>
     <h2><span class="etape">3</span><span class="t4">Vos prix au forfait</span></h2>
     <p class="mu petit">Des chantiers types, les mêmes pour tous les artisans de votre métier : chiffrez-les <b>hors TVA</b>, au forfait, comme sur un devis. Pour un même travail en deux tailles, Valou calcule votre prix au m² (ou au mètre, à la pièce) et votre fixe de mise en route. Laissez vide ou cochez « Je ne fais pas » ce qui ne vous concerne pas.</p>
+    <p class="km">📍 Tous les chantiers sont à <b class="dist"></b> de votre dépôt : comptez votre déplacement pour cette distance.</p>
     <div id="chantiers"></div>
   </section>
 
@@ -126,9 +129,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--or); outlin
 </div></div>
 
 <script type="module">
-import { METIERS, CHANTIERS_TYPES, prixChantierType } from "../js/vitrine.js?v=202611260128";
-import { chargerReferences } from "../js/donnees.js?v=202611260128";
-import { unitePoste } from "../js/moteur.js?v=202611260128";
+import { METIERS, CHANTIERS_TYPES, prixChantierType, DISTANCE_CHANTIER } from "../js/vitrine.js?v=202611260132";
+import { chargerReferences } from "../js/donnees.js?v=202611260132";
+import { unitePoste } from "../js/moteur.js?v=202611260132";
 
 /* Numéro WhatsApp de Valou qui reçoit les tarifs (format international sans +, ex. 32470123456).
    Vide : WhatsApp demande à l'artisan à qui envoyer le message. */
@@ -242,7 +245,7 @@ function message() {
   const M = LISTE.find(m => m.id === S.metier), CT = CHANTIERS_TYPES[S.metier];
   const d = new Date().toLocaleDateString("fr-BE");
   const lignes = [`*Tarifs Valou — ${M.t}*`, `${d}`,
-    "", `Façon de donner ses prix : *${MODES[S.mode]}*`];
+    "", `Façon de donner ses prix : *${MODES[S.mode]}*`, `Base : chantier à ${DISTANCE_CHANTIER} km du dépôt, déplacement compris`];
   if (voitM2()) {
     lignes.push("", "*Prix au m², au mètre ou à la pièce (hors TVA)*");
     postesM2().forEach(p => lignes.push(`- ${p.n} : ${+S.m2[p.k] > 0 ? fmt(+S.m2[p.k]) + " € / " + p.u : "—"}`));
@@ -267,6 +270,7 @@ $("envoyer").addEventListener("click", () => {
   window.open(url, "_blank") || (location.href = url);
 });
 
+document.querySelectorAll(".dist").forEach(b => (b.textContent = DISTANCE_CHANTIER + " km"));
 dessiner();
 chargerReferences().then(r => { REF = r; }).catch(() => { refErreur = true; }).finally(() => dessiner());
 </script>

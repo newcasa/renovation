@@ -1,9 +1,9 @@
 /* Valou — écrans de présentation : Professionnels, Notre moteur, Feuille de route.
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
-import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611260128";
-import { RACINE, img } from "./chemins.js?v=202611260128";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611260128";
+import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611260132";
+import { RACINE, img } from "./chemins.js?v=202611260132";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611260132";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
 /* une partie du projet : un poste dans une pièce (ou pour toute la maison) */
@@ -23,6 +23,8 @@ export const METIERS = [
 
 /* ---------- chantiers types : l'artisan chiffre au forfait des chantiers définis par Valou, toujours les mêmes ;
    deux tailles du même travail donnent son fixe (déplacement, installation) et son prix par m² ---------- */
+/* distance fixe pour tous les chantiers types : tous les artisans chiffrent sur la même base, ce qui permet d'en déduire le déplacement */
+export const DISTANCE_CHANTIER = 5;
 export const CHANTIERS_TYPES = {
   macon: [
     { id: "mac_mur", k: "i_mb", u: "m²", q: [10, 30], t: "Monter un mur intérieur en blocs béton de 14 cm",
@@ -265,6 +267,7 @@ export function ecranPro(ctx, onglet, metier) {
           <button type="button" data-action="tarif-mode" data-mode="types" data-m="${M.id}" class="${mode === "types" ? "on" : ""}">Au forfait : je chiffre des chantiers types</button>
           <button type="button" data-action="tarif-mode" data-mode="m2" data-m="${M.id}" class="${mode === "m2" ? "on" : ""}">Au m² ou à la pièce</button></div></div>
         ${mode === "types" ? `<section class="carte chantiers-types"><h2>Vos prix sur des chantiers types</h2>
+          <p class="d-act">📍 Tous les chantiers sont à <b>${DISTANCE_CHANTIER} km</b> de votre dépôt : comptez votre déplacement pour cette distance.</p>
           <p class="mu">Les mêmes chantiers pour tous les artisans de votre métier : chiffrez-les comme pour un client, au forfait, hors TVA. Valou en déduit votre prix ; pour un même travail en deux tailles, il calcule votre fixe (déplacement, installation) et votre prix au m², au mètre ou à la pièce. Laissez vide ce que vous ne faites pas.</p>
           ${CT.map(c => { const v = (T.ct || {})[c.id] || [], r = prixChantierType(c, v);
             return `<article class="ct-carte"><h3>${esc(c.t)}</h3><p class="mu petit-t">${esc(c.d)}</p>

@@ -1,7 +1,7 @@
 /* Chargement des références : les mêmes fichiers que l'appli Valou (à la racine du site),
    puis les prix publiés depuis le tableau de bord des calculs (Supabase, lecture publique). */
-import { RACINE } from "./chemins.js?v=202611260128";
-import { indexer } from "./moteur.js?v=202611260128";
+import { RACINE } from "./chemins.js?v=202611260132";
+import { indexer } from "./moteur.js?v=202611260132";
 
 const json = u => fetch(u, { cache: "no-cache" }).then(r => (r.ok ? r.json() : Promise.reject(new Error(u))));
 
