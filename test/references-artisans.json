@@ -1,6 +1,6 @@
 {
   "source": "Prix d'artisans partenaires (formulaire de tarifs Valou), novembre 2026, main-d'œuvre hors TVA, chantier à 5 km",
-  "note": "Version de démonstration : ces prix remplacent la grille de référence pour les postes ci-dessous. Peintre : b = son prix au forfait, h = son prix au m² annoncé, m = la moyenne. Maçon : ses prix comprenaient les matériaux ; la main-d'œuvre est estimée en retirant les matériaux de la grille Valou (mur et démolition : un seul prix, donc b = m = h ; baie : 2 500 € moins 500 à 1 300 € de matériaux). Plafonnage des murs : 12 à 16 €/m² de main-d'œuvre, donné par Thomas (novembre 2026).",
+  "note": "Version de démonstration : ces prix remplacent la grille de référence pour les postes ci-dessous. Peintre : b = son prix au forfait, h = son prix au m² annoncé, m = la moyenne. Maçon : ses prix comprenaient les matériaux ; la main-d'œuvre est estimée en retirant les matériaux de la grille Valou (mur et démolition : un seul prix, donc b = m = h ; baie : 2 500 € moins 500 à 1 300 € de matériaux). Plafonnage des murs : 12 à 16 €/m² de main-d'œuvre, donné par Thomas (novembre 2026). Plafonnage des plafonds : 15 à 20 €/m² (Thomas, novembre 2026).",
   "mos": [
     {
       "id": "M16",
@@ -53,6 +53,15 @@
       "b": 12,
       "m": 14,
       "h": 16,
+      "u": "€/m²",
+      "e": 0
+    },
+    {
+      "id": "M13",
+      "n": "Plafonnage plafond",
+      "b": 15,
+      "m": 17.5,
+      "h": 20,
       "u": "€/m²",
       "e": 0
     }
