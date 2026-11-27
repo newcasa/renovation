@@ -1,0 +1,111 @@
+{
+  "source": "Prix d'artisans partenaires (formulaire de tarifs Valou), novembre 2026, main-d'œuvre hors TVA, chantier à 5 km",
+  "note": "Version de démonstration : ces prix remplacent la grille de référence pour les postes ci-dessous. Peintre : b = son prix au forfait, h = son prix au m² annoncé, m = la moyenne. Maçon : ses prix comprenaient les matériaux ; la main-d'œuvre est estimée en retirant les matériaux de la grille Valou (mur et démolition : un seul prix, donc b = m = h ; baie : 2 500 € moins 500 à 1 300 € de matériaux). Plafonnage des murs : 12 à 16 €/m² de main-d'œuvre, donné par Thomas (novembre 2026). Plafonnage des plafonds : 15 à 20 €/m² (Thomas, novembre 2026). Correction : la consommation de plâtre était comptée en sacs au lieu de kg (25 fois trop) ; elle est ramenée à 0,04 sac par m² et par mm.",
+  "mos": [
+    {
+      "id": "M16",
+      "n": "Peinture murs intérieurs",
+      "b": 12.5,
+      "m": 13.75,
+      "h": 15,
+      "u": "€/m²",
+      "e": 0
+    },
+    {
+      "id": "M16P",
+      "n": "Peinture plafonds",
+      "b": 15,
+      "m": 17.5,
+      "h": 20,
+      "u": "€/m²",
+      "e": 0
+    },
+    {
+      "id": "M01",
+      "n": "Démolition de cloisons + évacuation",
+      "b": 20,
+      "m": 20,
+      "h": 20,
+      "u": "€/m²",
+      "e": 0
+    },
+    {
+      "id": "M03",
+      "n": "Maçonnerie blocs 14 cm",
+      "b": 33,
+      "m": 33,
+      "h": 33,
+      "u": "€/m² de mur",
+      "e": 0
+    },
+    {
+      "id": "MP1",
+      "n": "Ouverture d'une baie dans un mur porteur",
+      "b": 1200,
+      "m": 1600,
+      "h": 2000,
+      "u": "€/unité",
+      "e": 0
+    },
+    {
+      "id": "M12",
+      "n": "Plafonnage mur",
+      "b": 12,
+      "m": 14,
+      "h": 16,
+      "u": "€/m²",
+      "e": 0
+    },
+    {
+      "id": "M13",
+      "n": "Plafonnage plafond",
+      "b": 15,
+      "m": 17.5,
+      "h": 20,
+      "u": "€/m²",
+      "e": 0
+    }
+  ],
+  "postes": {
+    "pl_peinture": {
+      "mo": "M16P"
+    },
+    "i_mp": {
+      "mo": "MP1"
+    },
+    "mur_plafonnage": {
+      "c": [
+        {
+          "n": "Plâtre (indicatif : 1 kg/m² par mm, sac de 25 kg)",
+          "r": "R13",
+          "u": "sac",
+          "pe": 0,
+          "p0": 10.74,
+          "p1": 10.74,
+          "src": "Hubo R13",
+          "mode": "ep",
+          "d": 0.04,
+          "e0": 8,
+          "e1": 12
+        }
+      ]
+    },
+    "pl_plafonnage": {
+      "c": [
+        {
+          "n": "Plâtre (indicatif : 1 kg/m² par mm, sac de 25 kg)",
+          "r": "R13",
+          "u": "sac",
+          "pe": 0,
+          "p0": 10.74,
+          "p1": 10.74,
+          "src": "Hubo R13",
+          "mode": "ep",
+          "d": 0.04,
+          "e0": 8,
+          "e1": 12
+        }
+      ]
+    }
+  }
+}

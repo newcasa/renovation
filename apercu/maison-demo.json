@@ -1,0 +1,359 @@
+{
+ "version": 10,
+ "note": "Maisons FICTIVES pour la démonstration. À remplacer par de vraies maisons (mêmes champs). Seules les caractéristiques et les quantités sont ici : tous les prix viennent des références Valou.",
+ "maisons": [
+  {
+   "nom": "Rue des Vignes 14",
+   "commune": "Seraing",
+   "description": "Maison 3 façades de 1965, 3 chambres, jardin. Dans son jus : cuisine et salle de bain d'origine, chauffage au mazout à remplacer, simple vitrage, toiture non isolée.",
+   "prix": 245000,
+   "annee": 1965,
+   "surface": 125,
+   "facades": 3,
+   "etages": 1,
+   "questLu": true,
+   "etat": "renover",
+   "uniqueHabitation": true,
+   "fraisNotaire": null,
+   "rep": {
+    "etat": "oui",
+    "pose": "droite",
+    "anc": "non",
+    "fen": "depose",
+    "cont": "oui"
+   },
+   "travaux": [
+    {
+     "piece": "Toute la maison",
+     "k": "i_dem",
+     "q": 18
+    },
+    {
+     "piece": "Toute la maison",
+     "k": "i_re",
+     "q": 125
+    },
+    {
+     "piece": "Toute la maison",
+     "k": "i_co",
+     "q": 1
+    },
+    {
+     "piece": "Toute la maison",
+     "k": "i_pe",
+     "q": 1
+    },
+    {
+     "piece": "Toute la maison",
+     "k": "i_pi",
+     "q": 6
+    },
+    {
+     "piece": "Toute la maison",
+     "k": "i_to_1",
+     "q": 70
+    },
+    {
+     "piece": "Toute la maison",
+     "k": "i_zi",
+     "q": 18
+    }
+   ],
+   "pieces": [
+    {
+     "id": "sejour",
+     "nom": "Séjour",
+     "type": "standard",
+     "sol": 32,
+     "sOn": true,
+     "sT": "carrelage",
+     "chOn": true,
+     "chN": 3,
+     "hc": "ra",
+     "hr": true,
+     "hn": 2,
+     "mpe": true,
+     "pOn": true,
+     "pT": "peinture"
+    },
+    {
+     "id": "cuisine",
+     "nom": "Cuisine",
+     "type": "cuisine",
+     "sol": 12,
+     "meu": true,
+     "sOn": true,
+     "sT": "carrelage",
+     "chOn": true,
+     "chN": 1,
+     "hc": "ra",
+     "hr": true,
+     "hn": 1,
+     "mpe": true,
+     "pOn": true,
+     "pT": "peinture"
+    },
+    {
+     "id": "sdb",
+     "nom": "Salle de bain",
+     "type": "sdb",
+     "sol": 6,
+     "meu": true,
+     "sOn": true,
+     "sT": "carrelage",
+     "mca": true,
+     "mcaM2": 20,
+     "pOn": true,
+     "pT": "peinture",
+     "chOn": true,
+     "chN": 1,
+     "hc": "ra",
+     "hr": true,
+     "hn": 1
+    },
+    {
+     "id": "wc",
+     "nom": "WC",
+     "type": "wc",
+     "sol": 2,
+     "wi": [
+      "sp"
+     ]
+    },
+    {
+     "id": "hall",
+     "nom": "Hall et escalier",
+     "type": "standard",
+     "sol": 18,
+     "mpe": true,
+     "chOn": true,
+     "chN": 1,
+     "hc": "ra",
+     "hr": true,
+     "hn": 1
+    },
+    {
+     "id": "ch1",
+     "nom": "Chambre 1",
+     "type": "standard",
+     "sol": 15,
+     "sOn": true,
+     "sT": "parquet",
+     "mpe": true,
+     "mMe": true,
+     "pOn": true,
+     "pT": "peinture",
+     "pMe": true,
+     "chOn": true,
+     "chN": 1,
+     "hc": "ra",
+     "hr": true,
+     "hn": 1
+    },
+    {
+     "id": "ch2",
+     "nom": "Chambre 2",
+     "type": "standard",
+     "sol": 12,
+     "sOn": true,
+     "sT": "parquet",
+     "mpe": true,
+     "mMe": true,
+     "pOn": true,
+     "pT": "peinture",
+     "pMe": true,
+     "chOn": true,
+     "chN": 1,
+     "hc": "ra",
+     "hr": true,
+     "hn": 1
+    },
+    {
+     "id": "ch3",
+     "nom": "Chambre 3",
+     "type": "standard",
+     "sol": 10,
+     "sOn": true,
+     "sT": "parquet",
+     "mpe": true,
+     "mMe": true,
+     "pOn": true,
+     "pT": "peinture",
+     "pMe": true,
+     "chOn": true,
+     "chN": 1,
+     "hc": "ra",
+     "hr": true,
+     "hn": 1
+    }
+   ],
+   "chauffage": {
+    "actuel": "mazout",
+    "souhaite": "gaz"
+   },
+   "peb": "G"
+  },
+  {
+   "nom": "Rue de la Station 52",
+   "commune": "Grâce-Hollogne",
+   "description": "Maison 4 façades de 1998, 3 chambres, bien entretenue : châssis double vitrage, chaudière récente, cuisine en bon état. Plus chère à l'achat, peu de travaux.",
+   "prix": 299000,
+   "annee": 1998,
+   "surface": 135,
+   "facades": 4,
+   "etages": 1,
+   "questLu": true,
+   "etat": "bon",
+   "uniqueHabitation": true,
+   "fraisNotaire": null,
+   "rep": {
+    "etat": "non",
+    "pose": "droite",
+    "anc": "non",
+    "cont": "non"
+   },
+   "travaux": [
+    {
+     "piece": "Toute la maison",
+     "k": "i_to_0",
+     "q": 65
+    }
+   ],
+   "pieces": [
+    {
+     "id": "sejour",
+     "nom": "Séjour et cuisine",
+     "type": "standard",
+     "sol": 45,
+     "mpe": true,
+     "pOn": true,
+     "pT": "peinture",
+     "hc": "ra"
+    },
+    {
+     "id": "hall",
+     "nom": "Hall et escalier",
+     "type": "standard",
+     "sol": 15,
+     "mpe": true,
+     "hc": "ra"
+    },
+    {
+     "id": "chambres",
+     "nom": "Chambres",
+     "type": "standard",
+     "sol": 40,
+     "sOn": true,
+     "sT": "parquet",
+     "mpe": true,
+     "mMe": true,
+     "hc": "ra"
+    },
+    {
+     "id": "wc",
+     "nom": "WC",
+     "type": "wc",
+     "sol": 2,
+     "wi": [
+      "mb"
+     ]
+    }
+   ],
+   "chauffage": {
+    "actuel": "gaz",
+    "souhaite": "garder"
+   },
+   "peb": "C"
+  },
+  {
+   "nom": "Ma maison, rue du Pont 8",
+   "projet": "renovation",
+   "commune": "Liège",
+   "description": "Maison mitoyenne de 1958 où vivent les propriétaires. Ils veulent refaire la cuisine et la salle de bain, isoler la toiture et remplacer la vieille chaudière au gaz par une pompe à chaleur.",
+   "prix": 0,
+   "annee": 1958,
+   "surface": 110,
+   "facades": 2,
+   "etages": 1,
+   "questLu": true,
+   "etat": "rafraichir",
+   "uniqueHabitation": true,
+   "fraisNotaire": null,
+   "peb": "F",
+   "rep": {
+    "etat": "non",
+    "pose": "droite",
+    "anc": "non",
+    "fen": "depose",
+    "cont": "oui"
+   },
+   "travaux": [
+    {
+     "piece": "Toute la maison",
+     "k": "i_to_1",
+     "q": 55
+    },
+    {
+     "piece": "Toute la maison",
+     "k": "i_zi",
+     "q": 14
+    },
+    {
+     "piece": "Toute la maison",
+     "k": "i_co",
+     "q": 1
+    }
+   ],
+   "pieces": [
+    {
+     "id": "cuisine",
+     "nom": "Cuisine",
+     "type": "cuisine",
+     "sol": 14,
+     "meu": true,
+     "sOn": true,
+     "sT": "carrelage",
+     "mpe": true,
+     "pOn": true,
+     "pT": "peinture"
+    },
+    {
+     "id": "sdb",
+     "nom": "Salle de bain",
+     "type": "sdb",
+     "sol": 7,
+     "meu": true,
+     "sOn": true,
+     "sT": "carrelage",
+     "mca": true,
+     "mcaM2": 22,
+     "pOn": true,
+     "pT": "peinture"
+    },
+    {
+     "id": "sejour",
+     "nom": "Séjour",
+     "type": "standard",
+     "sol": 30,
+     "mpe": true,
+     "mMe": true
+    },
+    {
+     "id": "ch1",
+     "nom": "Chambre 1",
+     "type": "standard",
+     "sol": 13,
+     "mpe": true,
+     "mMe": true,
+     "chOn": true,
+     "chN": 1
+    }
+   ],
+   "chauffage": {
+    "actuel": "gaz",
+    "souhaite": "pac",
+    "emetteurs": "garder"
+   }
+  }
+ ]
+}
