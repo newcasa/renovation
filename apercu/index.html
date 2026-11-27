@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Valou — le vrai prix d'une maison, travaux compris</title>
+<meta name="description" content="Annonces immobilières avec le vrai coût : prix, frais d'achat, notaire et travaux. Artisans, négociants et financement au même endroit.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#022250">
+<link rel="icon" type="image/png" href="../demo/img/favicon-valou-48.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap">
+<style>
+:root{--nuit:#022250;--nuit2:#1F4A8A;--nuit3:#A9B8D0;--or:#EC8224;--or2:#B35A0E;--or-l:#FFF1E4;--fond:#F4F6FA;--carte:#fff;--bord:#DFE5EE;--mu:#5B6A82;--vert:#1F8A5B;--vert-l:#E6F5EE;--rouge:#C2412D;--ombre:0 6px 22px rgba(2,34,80,.08)}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--fond);color:var(--nuit);font:15.5px/1.55 Manrope,system-ui,sans-serif}
+h1,h2,h3,.ttl{font-family:Outfit,Manrope,sans-serif;letter-spacing:-.01em;line-height:1.15}
+h1{font-weight:900;font-size:clamp(30px,4.6vw,52px);margin:0 0 12px}h2{font-weight:800;font-size:clamp(22px,2.6vw,30px);margin:0 0 14px}h3{font-weight:800;font-size:18px;margin:0 0 8px}
+a{color:inherit}.mu{color:var(--mu)}.sm{font-size:13.5px}.r{text-align:right}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+button{font:inherit;color:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 18px;font:700 15px Manrope,sans-serif;cursor:pointer;text-decoration:none;background:var(--or);color:#fff;min-height:44px;white-space:nowrap}
+.btn:hover{filter:brightness(1.05)}.btn.nuit{background:var(--nuit)}.btn.ghost{background:transparent;color:var(--nuit);box-shadow:inset 0 0 0 1.5px var(--bord)}.btn.ghost:hover{box-shadow:inset 0 0 0 1.5px var(--nuit3)}.btn.sm{padding:8px 12px;min-height:36px;font-size:14px}.btn.w{width:100%}
+.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+/* en-tête */
+header.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--bord)}
+.top .wrap{display:flex;align-items:center;gap:20px;height:66px}
+.logo img{height:30px;display:block}
+.nav{display:flex;gap:4px;flex:1}.nav a{padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14.5px;color:var(--mu)}.nav a.on,.nav a:hover{color:var(--nuit);background:var(--fond)}
+.top .act{display:flex;gap:8px;align-items:center}
+.burger{display:none;background:none;border:0;font-size:24px;cursor:pointer;padding:6px}
+@media(max-width:900px){.nav{display:none;position:absolute;top:66px;left:0;right:0;background:#fff;flex-direction:column;padding:10px 16px;border-bottom:1px solid var(--bord)}.nav.open{display:flex}.burger{display:block}.top .act .btn.ghost{display:none}}
+/* accueil */
+.hero{background:linear-gradient(135deg,#022250 0%,#0B3570 60%,#1F4A8A 100%);color:#fff;padding:56px 0 90px;position:relative;overflow:hidden}
+.hero p.lead{font-size:18px;color:#D3DDEC;max-width:640px;margin:0 0 26px}
+.hero h1 b{color:var(--or)}
+.search{background:#fff;border-radius:18px;padding:10px;display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:8px;box-shadow:0 18px 40px rgba(0,0,0,.25);max-width:900px}
+.search label{display:flex;flex-direction:column;padding:6px 12px;color:var(--mu);font-size:12px;font-weight:700;border-right:1px solid var(--bord)}
+.search input,.search select{border:0;font:600 15.5px Manrope,sans-serif;color:var(--nuit);padding:4px 0;background:transparent;min-width:0}
+.search input:focus,.search select:focus{outline:none}
+.search label{min-width:0}.search input,.search select{width:100%}
+@media(max-width:760px){.search{grid-template-columns:1fr}.search label{border-right:0;border-bottom:1px solid var(--bord)}}
+.heroart{position:absolute;right:max(20px,calc((100% - 1200px) / 2 + 20px));top:46px;width:340px;border-radius:22px;box-shadow:0 18px 40px rgba(0,0,0,.3);pointer-events:none}
+@media(max-width:1320px){.heroart{display:none}}
+@media(min-width:1321px){.search{max-width:760px}.hero p.lead{max-width:600px}}
+.hero .wrap{position:relative;z-index:1}
+.trust{display:flex;gap:6px 22px;flex-wrap:wrap;margin-top:22px;color:#D3DDEC;font-size:14px}.trust span::before{content:"✓ ";color:var(--or);font-weight:800}
+.sec{padding:34px 0}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-50px 0 18px;position:relative;z-index:2}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{border:1.5px solid var(--bord);background:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:14px;cursor:pointer}.chip.on{background:var(--nuit);color:#fff;border-color:var(--nuit)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{background:var(--carte);border-radius:18px;overflow:hidden;box-shadow:var(--ombre);border:1px solid var(--bord);text-decoration:none;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s;position:relative}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(2,34,80,.13)}
+.card.boost{border:2px solid var(--or);background:linear-gradient(#fff,#fff) padding-box}
+.card .ph{position:relative;aspect-ratio:4/3;background:#DDE6F1}.card .ph svg{width:100%;height:100%;display:block}
+.tag{position:absolute;top:10px;left:10px;background:#fff;color:var(--nuit);border-radius:8px;padding:4px 9px;font-weight:800;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.tag.or{background:var(--or);color:#fff}
+.save{position:absolute;top:8px;right:8px;width:38px;height:38px;border-radius:50%;border:0;background:#fff;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.peb{display:inline-grid;place-items:center;min-width:26px;height:22px;padding:0 6px;border-radius:5px;font:800 12px Outfit,sans-serif;color:#fff}
+.card .bd{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.prix{font:900 24px Outfit,sans-serif}.loc{font-weight:700}.facts{display:flex;gap:12px;color:var(--mu);font-size:13.5px;flex-wrap:wrap}
+.vrai{margin-top:auto;background:var(--or-l);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.vrai b{font:900 19px Outfit,sans-serif;color:var(--or2)}.vrai small{color:var(--or2);font-weight:700}
+.ag{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mu)}.agl{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font:800 11px Outfit,sans-serif;flex:none}
+/* fiche */
+.crumb{font-size:13.5px;color:var(--mu);margin:18px 0 10px}.crumb a{text-decoration:none;font-weight:700}
+.fiche{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);gap:22px;align-items:start}
+@media(max-width:980px){.fiche{grid-template-columns:1fr}}
+.gal{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:8px;border-radius:18px;overflow:hidden;aspect-ratio:16/9}
+.gal>div{background:#DDE6F1;position:relative}.gal>div:first-child{grid-row:1/3}.gal svg{width:100%;height:100%;display:block}
+.box{background:#fff;border-radius:18px;border:1px solid var(--bord);box-shadow:var(--ombre);padding:20px;margin-bottom:18px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}.kv div{background:var(--fond);border-radius:12px;padding:10px 12px}.kv small{display:block;color:var(--mu);font-weight:700;font-size:12px}.kv b{font:800 17px Outfit,sans-serif}
+.sticky{position:sticky;top:84px}
+.cout .big{font:900 40px Outfit,sans-serif;color:var(--nuit);line-height:1}.cout .delta{display:inline-block;background:var(--or);color:#fff;border-radius:8px;padding:3px 9px;font-weight:800;font-size:14px;margin-left:6px;vertical-align:middle}
+.stack{display:flex;height:16px;border-radius:999px;overflow:hidden;margin:14px 0 10px}.stack i{display:block}
+.lines{width:100%;border-collapse:collapse;font-size:14.5px}.lines td{padding:7px 0;border-bottom:1px solid var(--bord)}.lines tr:last-child td{border:0;font-weight:800}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:0}
+.tgl{display:flex;background:var(--fond);border-radius:10px;padding:3px;gap:3px;margin:10px 0}.tgl button{flex:1;border:0;background:none;padding:7px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;color:var(--mu)}.tgl button.on{background:#fff;color:var(--nuit);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.trav{width:100%;border-collapse:collapse}.trav td{padding:9px 0;border-bottom:1px solid var(--bord);font-size:14.5px}.trav .bar2{height:6px;border-radius:9px;background:var(--fond);overflow:hidden;width:110px;display:inline-block;vertical-align:middle;margin-right:8px}.trav .bar2 i{display:block;height:100%;background:var(--nuit2)}
+.range{width:100%;accent-color:var(--or)}
+.agcard{display:flex;gap:12px;align-items:center}.agcard .agl{width:48px;height:48px;border-radius:12px;font-size:16px}
+.pill{display:inline-block;background:var(--vert-l);color:var(--vert);border-radius:999px;padding:3px 10px;font-weight:800;font-size:12.5px}
+.pill.or{background:var(--or-l);color:var(--or2)}.pill.nuit{background:#E8EEF7;color:var(--nuit)}
+/* comparer */
+.cmp{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--ombre)}.cmp th,.cmp td{padding:12px 14px;border-bottom:1px solid var(--bord);text-align:left;vertical-align:top}.cmp th{background:var(--fond);font-size:13px;color:var(--mu)}.cmp td.best{background:var(--vert-l);font-weight:800}
+.tw{overflow-x:auto}
+/* pros */
+.pro-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.pro-card{background:#fff;border-radius:18px;border:1px solid var(--bord);padding:22px;box-shadow:var(--ombre);display:flex;flex-direction:column;gap:10px}
+.pro-card .ico{font-size:32px}
+.dash{display:grid;grid-template-columns:230px minmax(0,1fr);gap:20px;align-items:start}@media(max-width:860px){.dash{grid-template-columns:1fr}}
+.side{background:var(--nuit);color:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px}.side a{color:#D3DDEC;text-decoration:none;padding:9px 12px;border-radius:10px;font-weight:700}.side a.on,.side a:hover{background:rgba(255,255,255,.1);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:18px}.kpi{background:#fff;border-radius:16px;border:1px solid var(--bord);padding:16px}.kpi b{display:block;font:900 28px Outfit,sans-serif}.kpi small{color:var(--mu);font-weight:700}.kpi .up{color:var(--vert);font-weight:800;font-size:13px}
+.tbl{width:100%;border-collapse:collapse;font-size:14.5px}.tbl th{font-size:12.5px;color:var(--mu);text-align:left;padding:8px 10px;border-bottom:1px solid var(--bord)}.tbl td{padding:10px;border-bottom:1px solid var(--bord);vertical-align:middle}
+.spark{display:flex;align-items:flex-end;gap:4px;height:90px}.spark i{flex:1;background:linear-gradient(var(--nuit2),var(--nuit));border-radius:4px 4px 0 0}
+/* tarifs */
+.plans{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}.plan{background:#fff;border-radius:18px;border:1px solid var(--bord);padding:22px;display:flex;flex-direction:column;gap:10px}.plan.hl{border:2px solid var(--or)}.plan .p{font:900 34px Outfit,sans-serif}.plan ul{margin:0;padding-left:18px;color:var(--mu)}.plan li{margin:4px 0}
+/* formulaire */
+.form{display:grid;gap:12px}.form label{display:flex;flex-direction:column;gap:5px;font-weight:700;font-size:14px}.form input,.form select,.form textarea{font:500 15.5px Manrope,sans-serif;padding:12px;border-radius:12px;border:1.5px solid var(--bord);color:var(--nuit);background:#fff}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.two{grid-template-columns:1fr}}
+.prolist label{flex-direction:row;align-items:center;gap:12px;border:1.5px solid var(--bord);border-radius:14px;padding:12px;font-weight:600;cursor:pointer}.prolist input{width:20px;height:20px;accent-color:var(--or)}
+.ok{background:var(--vert-l);border-radius:16px;padding:18px;color:var(--vert);font-weight:700}
+/* pied */
+footer{background:var(--nuit);color:#B9C6DA;margin-top:40px;padding:36px 0 26px;font-size:14px}footer .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:20px}footer b{color:#fff;display:block;margin-bottom:8px}footer a{display:block;color:#B9C6DA;text-decoration:none;padding:3px 0}footer a:hover{color:#fff}
+.apercu{margin-top:26px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:12.5px;color:#8FA0BA}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--nuit);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;opacity:0;transition:.25s;z-index:50;pointer-events:none}.toast.on{opacity:1;transform:translateX(-50%)}
+.empty{background:#fff;border:1.5px dashed var(--bord);border-radius:18px;padding:30px;text-align:center;color:var(--mu)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+ <a class="logo" href="#/" aria-label="Valou, accueil"><img src="../demo/img/logo-valou.png" alt="Valou"></a>
+ <nav class="nav" id="nav">
+  <a href="#/" data-r="">Acheter</a><a href="#/vendre" data-r="vendre">Vendre</a><a href="#/renover" data-r="renover">Rénover</a><a href="#/mes-biens" data-r="mes-biens">Mon projet</a><a href="#/pros" data-r="pros">Professionnels</a><a href="#/tarifs" data-r="tarifs">Tarifs</a>
+ </nav>
+ <div class="act"><a class="btn ghost sm" href="#/connexion">Se connecter</a><a class="btn sm" href="#/pro/agence">Espace pro</a><button class="burger" id="burger" aria-label="Menu">☰</button></div>
+</div></header>
+<div id="app"></div>
+<footer><div class="wrap">
+ <div class="cols">
+  <div><img src="../demo/img/logo-valou.png" alt="Valou" style="height:26px;filter:brightness(0) invert(1);margin-bottom:10px"><p style="margin:0">Le vrai prix d'une maison, travaux compris. Province de Liège.</p></div>
+  <div><b>Particuliers</b><a href="#/">Acheter</a><a href="#/vendre">Faire estimer mon bien</a><a href="#/renover">Rénover ma maison</a><a href="#/mes-biens">Mon projet</a></div>
+  <div><b>Professionnels</b><a href="#/pro/agence">Agences</a><a href="#/pro/artisan">Artisans</a><a href="#/pro/negociant">Négociants</a><a href="#/tarifs">Tarifs</a></div>
+  <div><b>Valou</b><a href="#/pros">Devenir partenaire</a><a href="#/tarifs">Conditions et prix</a><a href="#/connexion">Mon compte</a></div>
+ </div>
+ <p class="apercu">Aperçu du produit Valou : annonces, agences et professionnels fictifs. Les montants « vrai coût » sont calculés avec le moteur Valou ; ils ne constituent pas une offre.</p>
+</div></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+import { fraisNotaireAchat, mensualite } from "../demo/js/moteur.js";
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const f0 = new Intl.NumberFormat("fr-BE", { maximumFractionDigits: 0 });
+const eur = (v, a = 1) => f0.format(Math.round(v / a) * a) + " €";
+const toast = t => { const e = $("#toast"); e.textContent = t; e.classList.add("on"); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove("on"), 2400); };
+const store = (k, d) => { try { return JSON.parse(localStorage.getItem("valou_apercu_" + k)) ?? d; } catch (e) { return d; } };
+const save = (k, v) => { try { localStorage.setItem("valou_apercu_" + k, JSON.stringify(v)); } catch (e) {} };
+
+/* ---------- agences (fictives) ---------- */
+const AGENCES = {
+ clemeuse: { n: "Clémeuse Immobilier", v: "Liège", c: "#0F6E8C", i: "CM", tel: "04 000 11 20" },
+ brique: { n: "Brique & Ardoise", v: "Seraing", c: "#8C3B2E", i: "BA", tel: "04 000 11 21" },
+ coteaux: { n: "Agence Les Coteaux", v: "Chaudfontaine", c: "#3E6B3A", i: "LC", tel: "04 000 11 22" },
+ toitvert: { n: "Toit Vert Immo", v: "Herstal", c: "#2E7D5B", i: "TV", tel: "04 000 11 23" },
+ hesbaye: { n: "Hesbaye Logis", v: "Waremme", c: "#9A6B12", i: "HL", tel: "04 000 11 24" },
+ vallee: { n: "Vallée Immo Conseil", v: "Esneux", c: "#5B4B8A", i: "VI", tel: "04 000 11 25" },
+};
+/* ---------- annonces (fictives) ---------- */
+const ETATS = { rafraichir: { t: "À rafraîchir", k: 1 }, renover: { t: "À rénover", k: 2 }, lourde: { t: "Rénovation lourde", k: 3 }, bon: { t: "Bon état", k: 0 } };
+const A = [
+ { id: 1, t: "Maison mitoyenne 3 chambres avec jardin", ty: "mitoyenne", co: "Liège", cp: "4020", q: "Outremeuse", p: 219000, m2: 135, ch: 3, sdb: 1, te: 180, peb: "E", an: 1932, e: "renover", ag: "clemeuse", boost: true, hue: 0 },
+ { id: 2, t: "Fermette en pierre à restaurer", ty: "fermette", co: "Esneux", cp: "4130", q: "Hameau de Fontin", p: 289000, m2: 168, ch: 4, sdb: 1, te: 1850, peb: "F", an: 1890, e: "lourde", ag: "vallee", boost: true, hue: 1 },
+ { id: 3, t: "Bel-étage lumineux avec garage", ty: "beletage", co: "Seraing", cp: "4100", q: "Boncelles", p: 249000, m2: 142, ch: 3, sdb: 1, te: 320, peb: "D", an: 1974, e: "rafraichir", ag: "brique", hue: 2 },
+ { id: 4, t: "Villa 4 façades sur grand terrain", ty: "villa", co: "Chaudfontaine", cp: "4050", q: "Beaufays", p: 395000, m2: 196, ch: 4, sdb: 2, te: 1240, peb: "D", an: 1981, e: "renover", ag: "coteaux", hue: 3 },
+ { id: 5, t: "Maison de ville en brique à moderniser", ty: "mitoyenne", co: "Herstal", cp: "4040", q: "Centre", p: 175000, m2: 118, ch: 3, sdb: 1, te: 95, peb: "F", an: 1925, e: "renover", ag: "toitvert", hue: 4 },
+ { id: 6, t: "Appartement 2 chambres avec terrasse", ty: "appart", co: "Liège", cp: "4000", q: "Guillemins", p: 199000, m2: 92, ch: 2, sdb: 1, te: 0, peb: "C", an: 1968, e: "rafraichir", ag: "clemeuse", hue: 5 },
+ { id: 7, t: "Maison semi-mitoyenne proche écoles", ty: "semi", co: "Waremme", cp: "4300", q: "Quartier gare", p: 239000, m2: 150, ch: 3, sdb: 1, te: 410, peb: "E", an: 1958, e: "renover", ag: "hesbaye", hue: 6 },
+ { id: 8, t: "Maison de caractère en pierre", ty: "pierre", co: "Esneux", cp: "4130", q: "Tilff", p: 335000, m2: 175, ch: 4, sdb: 2, te: 640, peb: "E", an: 1910, e: "rafraichir", ag: "vallee", hue: 7 },
+ { id: 9, t: "Maison ouvrière à rénover entièrement", ty: "mitoyenne", co: "Seraing", cp: "4100", q: "Jemeppe", p: 139000, m2: 104, ch: 2, sdb: 1, te: 70, peb: "G", an: 1905, e: "lourde", ag: "brique", hue: 8 },
+ { id: 10, t: "Villa des années 70 avec piscine", ty: "villa", co: "Chaudfontaine", cp: "4053", q: "Embourg", p: 459000, m2: 220, ch: 5, sdb: 2, te: 1600, peb: "E", an: 1976, e: "renover", ag: "coteaux", hue: 9 },
+ { id: 11, t: "Maison 3 façades rénovée en partie", ty: "semi", co: "Herstal", cp: "4040", q: "Vottem", p: 265000, m2: 148, ch: 3, sdb: 1, te: 520, peb: "C", an: 1964, e: "bon", ag: "toitvert", hue: 10 },
+ { id: 12, t: "Fermette hesbignonne avec dépendances", ty: "fermette", co: "Waremme", cp: "4300", q: "Bettincourt", p: 349000, m2: 210, ch: 4, sdb: 1, te: 3200, peb: "F", an: 1880, e: "lourde", ag: "hesbaye", hue: 11 },
+];
+const DESC = {
+ mitoyenne: "Maison de rangée typique, belle hauteur sous plafond, cave saine. Jardin orienté sud-ouest. Proche commerces, écoles et transports.",
+ fermette: "Ensemble en moellons sous ardoises, beaux volumes, poutres d'origine. Grande grange, jardin et prairie. Calme absolu.",
+ beletage: "Bel-étage avec garage et atelier au rez, séjour lumineux à l'étage, cuisine séparée. Quartier résidentiel recherché.",
+ villa: "Villa 4 façades sur terrain arboré, séjour avec feu ouvert, grand garage. Toiture et menuiseries d'origine.",
+ appart: "Appartement traversant au 3e étage avec ascenseur, terrasse plein sud, cave et emplacement vélo. Faibles charges.",
+ semi: "Maison 3 façades avec garage et jardin clos, combles aménageables. Rue calme, à deux pas des écoles.",
+ pierre: "Maison de caractère en pierre du pays, parquets anciens, cheminées, jardin en terrasses avec vue sur la vallée.",
+};
+const PEBC = { A: "#1C8C3E", B: "#53A33A", C: "#A2C02D", D: "#F2C511", E: "#F0951E", F: "#E5531F", G: "#C9231E" };
+/* ---------- travaux estimés (grille Valou, main-d'œuvre + matériaux, hors TVA) ---------- */
+function travaux(a) {
+ const s = a.m2, L = [], add = (n, lo, hi) => L.push({ n, lo, hi });
+ const e = ETATS[a.e].k, apt = a.ty === "appart";
+ if (e >= 1) { add("Peinture des murs et plafonds", s * 2.6 * 19, s * 2.6 * 26); add("Sols (parquet, carrelage)", s * .45 * 55, s * .45 * 95); }
+ if (e >= 2) { add("Électricité complète", s * 60, s * 90); add("Salle de bain", 9000, 17000); add("Cuisine équipée", 7000, 15000);
+   if (!apt) { add("Châssis double vitrage", Math.round(s / 14) * 650, Math.round(s / 14) * 950); add("Isolation de la toiture", s * .7 * 30, s * .7 * 45); }
+   add("Chauffage (chaudière à condensation)", 3200, 6200); add("Plafonnage", s * 1.3 * 18, s * 1.3 * 24); }
+ if (e >= 3) { add("Toiture (couverture et sous-toiture)", s * .8 * 75, s * .8 * 120); add("Plomberie et évacuations", s * 40, s * 60); add("Démolitions et évacuation", 3000, 6000); if (a.ty !== "appart") add("Façade (rejointoiement, isolation)", s * .9 * 45, s * .9 * 90); }
+ if (e === 0) { add("Rafraîchissement et peinture", s * 1.5 * 19, s * 1.5 * 26); }
+ return L.map(x => ({ ...x, lo: Math.round(x.lo / 100) * 100, hi: Math.round(x.hi / 100) * 100 }));
+}
+function cout(a, unique = true) {
+ const T = travaux(a), lo = T.reduce((s, x) => s + x.lo, 0) * 1.06, hi = T.reduce((s, x) => s + x.hi, 0) * 1.06, mid = (lo + hi) / 2;
+ const droits = a.p * (unique ? 3 : 12.5) / 100, no = fraisNotaireAchat(a.p), notaire = no ? no.total : 0;
+ const total = a.p + droits + notaire + mid;
+ return { T, lo, hi, mid, droits, notaire, total, pct: (total - a.p) / a.p * 100 };
+}
+
+/* ---------- maisons dessinées (illustrations, pas de photos) ---------- */
+const PAL = [["#B5583F", "#7A2E22"], ["#9A8F7E", "#5F574B"], ["#C26A4A", "#8A3B2E"], ["#EDE6DA", "#BFB4A2"], ["#A64B36", "#6E2A1E"], ["#D9D4CC", "#A9A196"], ["#B9654A", "#83402D"], ["#A39784", "#6B6253"], ["#9C4C38", "#5F2A1F"], ["#F1ECE2", "#C8BFAE"], ["#BE7356", "#8A4630"], ["#ADA08A", "#736856"]];
+const ROOF = { tuile: "#8A3B2E", ardoise: "#3C4350", anthra: "#2D3038" };
+function house(a, v = 0) {
+ const [w1, w2] = PAL[a.hue % PAL.length], sky = v === 1 ? ["#F6D8B8", "#FCEBD8"] : v === 2 ? ["#BFD9EE", "#E7F1F9"] : ["#A9CBEA", "#E3EEF8"];
+ const g = `g${a.id}${v}`;
+ let b = "";
+ const win = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#F7F4EE"/><rect x="${x + 3}" y="${y + 3}" width="${w - 6}" height="${h - 6}" fill="#7FA3C4"/><path d="M${x + w / 2} ${y + 3} V${y + h - 3} M${x + 3} ${y + h * .42} H${x + w - 3}" stroke="#F7F4EE" stroke-width="2.5"/>`;
+ const door = (x, y, c = "#3B4A5E") => `<rect x="${x}" y="${y}" width="30" height="58" rx="2" fill="${c}"/><circle cx="${x + 24}" cy="${y + 31}" r="2" fill="#E2C497"/>`;
+ const tree = (x, s = 1) => `<rect x="${x - 3 * s}" y="${250 - 40 * s}" width="${6 * s}" height="${40 * s}" fill="#6B4B33"/><circle cx="${x}" cy="${250 - 58 * s}" r="${30 * s}" fill="#4F8A4A"/><circle cx="${x - 16 * s}" cy="${250 - 44 * s}" r="${20 * s}" fill="#5E9A55"/><circle cx="${x + 17 * s}" cy="${250 - 46 * s}" r="${22 * s}" fill="#477F43"/>`;
+ const bricks = `<pattern id="p${g}" width="22" height="10" patternUnits="userSpaceOnUse"><rect width="22" height="10" fill="${w1}"/><path d="M0 0H22M0 5H22M11 0V5M0 5V10M22 5V10" stroke="${w2}" stroke-width=".7" opacity=".45"/></pattern>`;
+ const stone = `<pattern id="p${g}" width="26" height="16" patternUnits="userSpaceOnUse"><rect width="26" height="16" fill="${w1}"/><path d="M0 8 Q6 6 13 8 T26 8 M8 0 V8 M19 8 V16" stroke="${w2}" stroke-width="1" fill="none" opacity=".5"/></pattern>`;
+ const fill = a.ty === "fermette" || a.ty === "pierre" ? stone : a.ty === "villa" || a.ty === "appart" ? "" : bricks;
+ const wall = fill ? `url(#p${g})` : w1;
+ if (a.ty === "mitoyenne") b = `<rect x="40" y="70" width="70" height="180" fill="#C9A08C"/><rect x="290" y="80" width="70" height="170" fill="#B88B76"/><path d="M28 72 L75 40 L122 72Z M280 82 L325 52 L372 82Z" fill="#7B3A2E"/>
+  <rect x="110" y="88" width="180" height="162" fill="${wall}"/><path d="M98 92 L200 40 L302 92Z" fill="${ROOF.tuile}"/><rect x="176" y="56" width="16" height="22" fill="#6E3326"/>
+  ${win(128, 110, 40, 46)}${win(232, 110, 40, 46)}${win(128, 180, 40, 46)}${door(222, 192)}<rect x="110" y="246" width="180" height="6" fill="#8E8A84"/>`;
+ else if (a.ty === "fermette") b = `<rect x="40" y="120" width="120" height="130" fill="${wall}"/><path d="M30 124 L100 76 L170 124Z" fill="${ROOF.ardoise}"/>
+  <rect x="160" y="100" width="190" height="150" fill="${wall}"/><path d="M148 104 L255 50 L362 104Z" fill="${ROOF.ardoise}"/><rect x="300" y="62" width="14" height="26" fill="#5F574B"/>
+  <path d="M60 250 V180 Q100 150 140 180 V250Z" fill="#6E5640"/><path d="M100 160 V250" stroke="#4E3B2B" stroke-width="2"/>${win(184, 126, 34, 40)}${win(296, 126, 34, 40)}${win(184, 186, 34, 40)}${door(244, 192, "#5C7A5A")}
+  <rect x="180" y="124" width="6" height="44" fill="#5C7A5A"/><rect x="216" y="124" width="6" height="44" fill="#5C7A5A"/>${tree(372, .9)}`;
+ else if (a.ty === "villa") b = `<rect x="60" y="130" width="230" height="120" fill="${w1}"/><rect x="290" y="168" width="80" height="82" fill="${w2}"/><path d="M44 134 L175 72 L306 134Z" fill="${ROOF.anthra}"/><path d="M284 170 L330 140 L376 170Z" fill="${ROOF.anthra}"/>
+  ${win(84, 158, 56, 50)}${win(160, 158, 56, 50)}${door(236, 192)}<rect x="300" y="196" width="60" height="54" fill="#C9CED6"/><path d="M300 206H360M300 216H360M300 226H360M300 236H360" stroke="#AEB4BE"/>${tree(28, .9)}`;
+ else if (a.ty === "appart") b = `<rect x="110" y="40" width="190" height="210" fill="${w1}"/><rect x="110" y="34" width="190" height="10" fill="${w2}"/>
+  ${[60, 108, 156].map(y => win(130, y, 40, 34) + win(186, y, 40, 34) + win(242, y, 40, 34) + `<rect x="126" y="${y + 36}" width="160" height="5" fill="${w2}"/>`).join("")}${door(190, 192, "#2F3E52")}${tree(60, .8)}${tree(350, .7)}`;
+ else if (a.ty === "beletage") b = `<rect x="90" y="80" width="220" height="170" fill="${wall}"/><rect x="84" y="74" width="232" height="10" fill="#8E8A84"/>
+  ${win(112, 104, 58, 52)}${win(184, 104, 58, 52)}${win(256, 108, 40, 46)}<rect x="112" y="186" width="100" height="64" fill="#C9CED6"/><path d="M112 198H212M112 210H212M112 222H212M112 234H212" stroke="#AEB4BE"/>${door(250, 192)}`;
+ else if (a.ty === "semi") b = `<rect x="40" y="96" width="60" height="154" fill="#B88B76"/><path d="M30 100 L70 72 L110 100Z" fill="#7B3A2E"/><rect x="100" y="104" width="200" height="146" fill="${wall}"/><path d="M88 108 L200 52 L312 108Z" fill="${ROOF.tuile}"/>
+  ${win(122, 130, 44, 44)}${win(232, 130, 44, 44)}${win(122, 192, 44, 44)}${door(234, 192)}<rect x="300" y="186" width="70" height="64" fill="${w2}"/><rect x="306" y="196" width="58" height="54" fill="#C9CED6"/>${tree(372, .6)}`;
+ else b = `<rect x="80" y="96" width="240" height="154" fill="${wall}"/><path d="M66 100 L200 44 L334 100Z" fill="${ROOF.ardoise}"/><rect x="260" y="56" width="14" height="28" fill="#5F574B"/>
+  ${win(104, 124, 40, 48)}${win(180, 124, 40, 48)}${win(256, 124, 40, 48)}${win(104, 190, 40, 48)}${door(186, 192, "#6B4B33")}${win(256, 190, 40, 48)}${tree(40, .8)}`;
+ return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(a.t)}"><defs><linearGradient id="s${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient>${fill}</defs>
+  <rect width="400" height="300" fill="url(#s${g})"/><circle cx="${v === 1 ? 330 : 70}" cy="54" r="22" fill="#FFF6D6" opacity=".85"/>
+  <path d="M0 230 Q100 205 200 226 T400 222 V300 H0Z" fill="#9CC48B"/>${b}<rect y="250" width="400" height="50" fill="#8DB97C"/><path d="M0 268 H400" stroke="#7DA86D" stroke-width="3" opacity=".5"/></svg>`;
+}
+function room(a, kind) {
+ const c = PAL[a.hue % PAL.length][0];
+ return kind === 1
+  ? `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><rect width="400" height="300" fill="#EFE8DD"/><rect y="200" width="400" height="100" fill="#B98F62"/><path d="M0 200 H400" stroke="#9C7650" stroke-width="3"/><rect x="40" y="60" width="120" height="110" fill="#A9CBEA" stroke="#F7F4EE" stroke-width="8"/><path d="M100 60 V170 M40 115 H160" stroke="#F7F4EE" stroke-width="5"/><rect x="200" y="150" width="150" height="60" rx="10" fill="${c}"/><rect x="190" y="140" width="20" height="70" rx="6" fill="${c}"/><rect x="340" y="140" width="20" height="70" rx="6" fill="${c}"/><circle cx="300" cy="70" r="20" fill="#FFF1DC"/><path d="M300 0 V50" stroke="#555" stroke-width="2"/></svg>`
+  : `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><rect width="400" height="300" fill="#F4F1EC"/><rect y="220" width="400" height="80" fill="#C9C2B6"/><rect x="30" y="150" width="340" height="70" fill="#FFFFFF" stroke="#D9D2C6"/><rect x="30" y="144" width="340" height="10" fill="#8E7A63"/><rect x="40" y="60" width="140" height="60" fill="#FFFFFF" stroke="#D9D2C6"/><rect x="220" y="60" width="140" height="60" fill="#FFFFFF" stroke="#D9D2C6"/><rect x="250" y="160" width="60" height="50" fill="#2F343C"/><circle cx="120" cy="120" r="0"/><rect x="80" y="126" width="60" height="18" rx="4" fill="${c}" opacity=".7"/></svg>`;
+}
+
+/* ---------- état ---------- */
+let saved = store("saved", [2, 5]), cmp = store("cmp", [1, 5, 9]), filt = "tout", uniq = true, apport = 40000, duree = 25, taux = 3.4;
+const isSaved = id => saved.includes(id);
+function toggleSave(id) { saved = isSaved(id) ? saved.filter(x => x !== id) : [...saved, id]; save("saved", saved); toast(isSaved(id) ? "Ajouté à mon projet" : "Retiré de mon projet"); render(); }
+function toggleCmp(id) { cmp = cmp.includes(id) ? cmp.filter(x => x !== id) : [...cmp, id].slice(-3); save("cmp", cmp); toast(cmp.includes(id) ? "Ajouté à la comparaison" : "Retiré de la comparaison"); render(); }
+
+/* ---------- vues ---------- */
+const peb = l => `<span class="peb" style="background:${PEBC[l]}" title="PEB ${l}">${l}</span>`;
+const agl = id => { const g = AGENCES[id]; return `<span class="agl" style="background:${g.c}">${g.i}</span>`; };
+function carte(a) {
+ const c = cout(a);
+ return `<a class="card ${a.boost ? "boost" : ""}" href="#/annonce/${a.id}">
+  <div class="ph">${house(a)}${a.boost ? `<span class="tag or">★ Mise en avant</span>` : `<span class="tag">${esc(ETATS[a.e].t)}</span>`}
+   <button class="save" data-save="${a.id}" aria-label="${isSaved(a.id) ? "Retirer de mon projet" : "Ajouter à mon projet"}">${isSaved(a.id) ? "♥" : "♡"}</button></div>
+  <div class="bd"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span class="prix">${eur(a.p)}</span>${peb(a.peb)}</div>
+   <div class="loc">${esc(a.t)}</div><div class="mu sm">${esc(a.co)} · ${esc(a.q)}</div>
+   <div class="facts"><span>🛏 ${a.ch} ch.</span><span>📐 ${a.m2} m²</span>${a.te ? `<span>🌳 ${f0.format(a.te)} m²</span>` : ""}<span>🗓 ${a.an}</span></div>
+   <div class="vrai"><span><small>Vrai coût Valou</small><br><b>${eur(c.total, 100)}</b></span><span class="pill or">+${Math.round(c.pct)} %</span></div>
+   <div class="ag">${agl(a.ag)} ${esc(AGENCES[a.ag].n)}</div></div></a>`;
+}
+function accueil() {
+ const L = A.filter(a => filt === "tout" || (filt === "renov" ? ETATS[a.e].k >= 2 : filt === "petit" ? a.p < 230000 : filt === "maison" ? a.ty !== "appart" : filt === "peb" ? "ABCD".includes(a.peb) : true));
+ L.sort((x, y) => (y.boost ? 1 : 0) - (x.boost ? 1 : 0));
+ return `<section class="hero"><div class="wrap">
+  <h1>Le <b>vrai prix</b> d'une maison,<br>travaux compris.</h1>
+  <p class="lead">Chaque annonce affiche ce qu'elle va vraiment vous coûter : prix, droits d'enregistrement, notaire et travaux, calculés poste par poste avec les prix des artisans de votre région.</p>
+  <form class="search" id="search"><label>Où ?<input value="Province de Liège" aria-label="Commune ou région"></label><label>Budget total max.<select aria-label="Budget"><option>300 000 €</option><option>400 000 €</option><option selected>Pas de limite</option></select></label><label>Chambres<select aria-label="Chambres"><option>Indifférent</option><option>2+</option><option>3+</option><option>4+</option></select></label><button class="btn" type="submit">Rechercher</button></form>
+  <div class="trust"><span>Travaux chiffrés poste par poste</span><span>Artisans de votre région</span><span>Aides et prêt travaux inclus</span></div>
+  <svg class="heroart" viewBox="0 0 400 300">${house(A[3]).replace(/^<svg[^>]*>|<\/svg>$/g, "")}</svg>
+ </div></section>
+ <section class="wrap"><div class="bar"><div class="chips">${[["tout", "Toutes"], ["maison", "Maisons"], ["renov", "À rénover"], ["petit", "Moins de 230 000 €"], ["peb", "PEB A à D"]].map(([k, t]) => `<button class="chip ${filt === k ? "on" : ""}" data-filt="${k}">${t}</button>`).join("")}</div></div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:12px"><h2 style="margin:0">${L.length} maisons dans la province de Liège</h2><a class="btn ghost sm" href="#/comparer">⚖️ Comparer (${cmp.length})</a></div>
+  <div class="grid">${L.map(carte).join("")}</div></section>
+ <section class="sec"><div class="wrap"><h2>Comment Valou calcule le vrai coût</h2><div class="pro-grid">
+  ${[["🏠", "Le prix et les frais", "Droits d'enregistrement wallons et frais de notaire calculés au barème, selon votre situation."], ["🧱", "Les travaux, poste par poste", "Pièce par pièce, avec les prix moyens des artisans et des négociants de votre zone."], ["👷", "Des artisans qui répondent", "Envoyez votre projet chiffré aux artisans de votre choix, métier par métier."], ["🏦", "Le dossier pour la banque", "Achat + travaux, aides et prêt rénovation : un dossier clair à présenter à votre banque."]].map(([i, t, d]) => `<div class="pro-card"><div class="ico">${i}</div><h3>${t}</h3><p class="mu" style="margin:0">${d}</p></div>`).join("")}
+ </div></div></section>`;
+}
+function fiche(id) {
+ const a = A.find(x => x.id === +id); if (!a) return accueil();
+ const c = cout(a, uniq), g = AGENCES[a.ag], emprunt = Math.max(0, c.total - apport), mens = mensualite(emprunt, taux, duree);
+ const parts = [["Prix", a.p, "#022250"], ["Droits d'enregistrement", c.droits, "#1F4A8A"], ["Notaire", c.notaire, "#A9B8D0"], ["Travaux (TVA 6 %)", c.mid, "#EC8224"]];
+ const maxT = Math.max(...c.T.map(x => x.hi));
+ return `<div class="wrap"><p class="crumb"><a href="#/">Acheter</a> › ${esc(a.co)} › ${esc(a.t)}</p>
+ <div class="fiche"><div>
+  <div class="gal"><div>${house(a)}</div><div>${room(a, 1)}</div><div>${house(a, 1)}</div></div>
+  <div class="box" style="margin-top:18px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
+   <div><h1 style="font-size:30px;margin-bottom:6px">${esc(a.t)}</h1><p class="mu" style="margin:0">${esc(a.q)}, ${esc(a.cp)} ${esc(a.co)} · ${a.boost ? `<span class="pill or">★ Mise en avant</span> ` : ""}<span class="pill nuit">${esc(ETATS[a.e].t)}</span></p></div>
+   <div class="r"><div class="prix" style="font-size:32px">${eur(a.p)}</div><small class="mu">prix affiché</small></div></div>
+   <div class="kv" style="margin-top:16px"><div><small>Surface habitable</small><b>${a.m2} m²</b></div><div><small>Chambres</small><b>${a.ch}</b></div><div><small>Salles de bain</small><b>${a.sdb}</b></div><div><small>Terrain</small><b>${a.te ? f0.format(a.te) + " m²" : "—"}</b></div><div><small>Construction</small><b>${a.an}</b></div><div><small>PEB</small><b>${peb(a.peb)}</b></div></div>
+   <p style="margin:16px 0 0">${esc(DESC[a.ty])}</p>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><button class="btn nuit" data-save="${a.id}">${isSaved(a.id) ? "♥ Dans mon projet" : "♡ Ajouter à mon projet"}</button><button class="btn ghost" data-cmp="${a.id}">${cmp.includes(a.id) ? "✓ En comparaison" : "⚖️ Comparer"}</button><a class="btn ghost" href="#/devis/${a.id}">👷 Demander des devis</a></div></div>
+  <div class="box"><h2>Les travaux, poste par poste</h2><p class="mu sm" style="margin-top:-6px">Estimation Valou d'après l'état du bien, la surface et les prix moyens des artisans de la région (main-d'œuvre + matériaux, hors TVA).</p>
+   <table class="trav">${c.T.map(x => `<tr><td>${esc(x.n)}</td><td class="r"><span class="bar2"><i style="width:${Math.round(x.hi / maxT * 100)}%"></i></span>${eur(x.lo, 100)} – ${eur(x.hi, 100)}</td></tr>`).join("")}
+   <tr><td><b>Total travaux, TVA 6 % comprise</b></td><td class="r"><b>${eur(c.lo, 100)} – ${eur(c.hi, 100)}</b></td></tr></table>
+   <p class="sm mu" style="margin-bottom:0">Primes Habitation wallonnes possibles pour l'isolation, les châssis et le chauffage : Valou vous indique les montants dans votre projet.</p></div>
+  <div class="box"><h2>Le quartier</h2><div class="kv"><div><small>École primaire</small><b>450 m</b></div><div><small>Gare / bus</small><b>600 m</b></div><div><small>Commerces</small><b>800 m</b></div><div><small>Autoroute</small><b>4 km</b></div></div></div>
+ </div>
+ <aside class="sticky">
+  <div class="box cout"><small class="mu" style="font-weight:800">VRAI COÛT VALOU</small><div style="margin:6px 0 2px"><span class="big">${eur(c.total, 100)}</span><span class="delta">+${Math.round(c.pct)} %</span></div><small class="mu">soit ${eur(c.total - a.p, 100)} de plus que le prix affiché</small>
+   <div class="stack">${parts.map(([, v, col]) => `<i style="width:${v / c.total * 100}%;background:${col}"></i>`).join("")}</div>
+   <table class="lines">${parts.map(([n, v, col]) => `<tr><td><span class="dot" style="background:${col}"></span>${n}</td><td class="r">${eur(v, 100)}</td></tr>`).join("")}<tr><td>Total</td><td class="r">${eur(c.total, 100)}</td></tr></table>
+   <div class="tgl" role="group" aria-label="Situation"><button data-uniq="1" class="${uniq ? "on" : ""}">Première habitation (3 %)</button><button data-uniq="0" class="${uniq ? "" : "on"}">Autre cas (12,5 %)</button></div></div>
+  <div class="box" data-total="${c.total}"><h3>Votre mensualité</h3><label class="sm mu">Apport : <b style="color:var(--nuit)" id="vap">${eur(apport)}</b><input class="range" type="range" min="0" max="150000" step="5000" value="${apport}" data-apport></label>
+   <label class="sm mu">Durée : <b style="color:var(--nuit)" id="vdu">${duree} ans</b><input class="range" type="range" min="10" max="30" step="1" value="${duree}" data-duree></label>
+   <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px"><span class="mu sm" id="vem">Emprunt ${eur(emprunt, 100)} à ${String(taux).replace(".", ",")} %</span><b style="font:900 26px Outfit"><span id="vme">${mens ? eur(mens) : "—"}</span><small class="mu" style="font:600 13px Manrope"> / mois</small></b></div>
+   <p class="sm mu" style="margin:8px 0 0">Simulation indicative, ne constitue pas une offre de crédit.</p></div>
+  <div class="box"><div class="agcard">${agl(a.ag).replace('class="agl"', 'class="agl"')}<div><b>${esc(g.n)}</b><div class="mu sm">${esc(g.v)} · Partenaire Valou</div></div></div>
+   <div style="display:grid;gap:8px;margin-top:14px"><button class="btn w" data-contact="${a.id}">Demander une visite</button><a class="btn ghost w" href="tel:${g.tel.replace(/\s/g, "")}">📞 ${esc(g.tel)}</a></div></div>
+ </aside></div></div>`;
+}
+function comparer() {
+ const L = cmp.map(id => A.find(a => a.id === id)).filter(Boolean);
+ if (!L.length) return `<div class="wrap sec"><h1>Comparer</h1><div class="empty">Ajoutez jusqu'à 3 maisons avec « ⚖️ Comparer ».</div></div>`;
+ const C = L.map(a => cout(a)), best = (f, low = true) => { const v = C.map(f), b = low ? Math.min(...v) : Math.max(...v); return i => v[i] === b; };
+ const row = (t, f, fmt, low) => { const isB = low == null ? () => false : best(f, low); return `<tr><th>${t}</th>${C.map((c, i) => `<td class="${isB(i) ? "best" : ""}">${fmt(c, L[i])}</td>`).join("")}</tr>`; };
+ return `<div class="wrap sec"><h1>Comparer ${L.length} maisons</h1><div class="tw"><table class="cmp"><tr><th></th>${L.map(a => `<td style="min-width:220px"><div style="border-radius:12px;overflow:hidden;aspect-ratio:4/3">${house(a)}</div><a href="#/annonce/${a.id}" style="font-weight:800;display:block;margin-top:8px">${esc(a.t)}</a><span class="mu sm">${esc(a.co)}</span><br><button class="btn ghost sm" style="margin-top:6px" data-cmp="${a.id}">Retirer</button></td>`).join("")}</tr>
+  ${row("Prix affiché", c => 0, (c, a) => eur(a.p))}
+  ${row("Vrai coût Valou", c => c.total, c => `<b>${eur(c.total, 100)}</b>`, true)}
+  ${row("Travaux estimés", c => c.mid, c => `${eur(c.lo, 100)} – ${eur(c.hi, 100)}`, true)}
+  ${row("Prix au m², tout compris", (c, i) => c.total / L[C.indexOf(c)].m2, (c, a) => eur(c.total / a.m2) + " / m²", true)}
+  ${row("Surface", c => 0, (c, a) => a.m2 + " m²")}${row("Chambres", c => 0, (c, a) => a.ch)}${row("PEB", c => 0, (c, a) => peb(a.peb))}
+  ${row("Mensualité (apport 40 000 €, 25 ans)", c => mensualite(Math.max(0, c.total - 40000), 3.4, 25), c => eur(mensualite(Math.max(0, c.total - 40000), 3.4, 25)) + " / mois", true)}
+ </table></div></div>`;
+}
+function mesBiens() {
+ const L = saved.map(id => A.find(a => a.id === id)).filter(Boolean);
+ return `<div class="wrap sec"><h1>Mon projet</h1><p class="mu">Les maisons que vous suivez, vos devis et votre dossier pour la banque.</p>
+ <div class="kpis"><div class="kpi"><small>Maisons suivies</small><b>${L.length}</b></div><div class="kpi"><small>Devis reçus</small><b>3</b><span class="up">2 nouveaux</span></div><div class="kpi"><small>Visites prévues</small><b>1</b><span class="mu sm">samedi 10 h</span></div><div class="kpi"><small>Dossier banque</small><b>80 %</b><span class="mu sm">2 pièces à ajouter</span></div></div>
+ <h2>Mes maisons</h2>${L.length ? `<div class="grid">${L.map(carte).join("")}</div>` : `<div class="empty">Ajoutez une maison avec ♡ pour la suivre ici.</div>`}
+ <div class="box" style="margin-top:22px"><h2>Devis reçus</h2><table class="tbl"><tr><th>Métier</th><th>Artisan</th><th>Maison</th><th class="r">Montant TVAC</th><th class="r">vs estimation</th><th></th></tr>
+  ${[["Chauffagiste", "Chauffage Ourthe Service", 2, 5900, -4], ["Électricien", "Élec Meuse Pro", 2, 11800, 3], ["Menuisier", "Châssis du Condroz", 5, 6400, -9]].map(([m, n, h, v, d]) => `<tr><td>${m}</td><td><b>${n}</b></td><td>${esc(A.find(a => a.id === h).co)}</td><td class="r">${eur(v)}</td><td class="r"><span class="pill ${d < 0 ? "" : "or"}">${d > 0 ? "+" : ""}${d} %</span></td><td class="r"><button class="btn sm" data-toast="Devis ajouté au dossier pour la banque">Utiliser</button></td></tr>`).join("")}</table></div></div>`;
+}
+function devis(id) {
+ const a = A.find(x => x.id === +id) || A[0];
+ const M = [["Électricien", "Élec Meuse Pro", "Herstal · 6 km"], ["Chauffagiste", "Chauffage Ourthe Service", "Tilff · 9 km"], ["Menuisier", "Châssis du Condroz", "Seraing · 7 km"], ["Peintre", "Couleurs & Finitions", "Liège · 3 km"], ["Plafonneur", "Plâtre Net", "Ans · 8 km"]];
+ return `<div class="wrap sec"><p class="crumb"><a href="#/annonce/${a.id}">← ${esc(a.t)}</a></p><h1>Demander des devis</h1><p class="mu">Valou envoie à chaque artisan les travaux de son métier, le budget estimé et les photos. Vos coordonnées ne sont transmises que si vous acceptez son devis.</p>
+ <div class="form prolist" style="max-width:720px">${M.map(([m, n, l], i) => `<label><input type="checkbox" ${i < 3 ? "checked" : ""}><span style="flex:1"><b>${m}</b> — ${n}<br><small class="mu">${l} · répond en 48 h en moyenne</small></span><span class="pill">Partenaire</span></label>`).join("")}
+ <button class="btn" data-toast="Projet envoyé à 3 artisans">📨 Envoyer mon projet</button></div></div>`;
+}
+function vendre() {
+ return `<div class="wrap sec"><h1>Je voudrais estimer pour vendre</h1><p class="mu" style="max-width:700px">Décrivez votre bien, puis choisissez vous-même les professionnels qui peuvent vous contacter. Personne d'autre ne reçoit vos coordonnées.</p>
+ <div class="fiche"><form class="box form" id="vform"><div class="two"><label>Type de bien<select><option>Maison</option><option>Appartement</option><option>Terrain</option></select></label><label>Commune<input placeholder="ex. Seraing" required></label></div>
+  <div class="two"><label>Surface habitable (m²)<input type="number" placeholder="ex. 140"></label><label>Chambres<input type="number" placeholder="ex. 3"></label></div>
+  <label>État<select><option>Bon état</option><option>À rafraîchir</option><option>À rénover</option></select></label>
+  <h3 style="margin-top:8px">Qui peut vous contacter ?</h3><div class="form prolist">${Object.entries(AGENCES).slice(0, 4).map(([k, g], i) => `<label><input type="checkbox" ${i < 2 ? "checked" : ""}>${agl(k)}<span style="flex:1"><b>${esc(g.n)}</b><br><small class="mu">Agence · ${esc(g.v)}</small></span></label>`).join("")}
+  <label><input type="checkbox"><span class="agl" style="background:#022250">IP</span><span style="flex:1"><b>Invest Pierre Wallonie</b><br><small class="mu">Investisseur professionnel · achat rapide</small></span></label></div>
+  <button class="btn" type="submit">Envoyer ma demande d'estimation</button></form>
+  <aside class="box"><h3>Pourquoi passer par Valou ?</h3><ul class="mu" style="padding-left:18px"><li>Vous choisissez qui vous contacte.</li><li>Les agences voient le vrai coût de votre bien, travaux compris : une estimation plus juste.</li><li>Gratuit pour les vendeurs.</li></ul></aside></div></div>`;
+}
+function renover() {
+ return `<div class="wrap sec"><h1>Je rénove ma maison</h1><p class="mu" style="max-width:720px">Encodez vos pièces et vos travaux : Valou calcule le budget, les aides et le prêt, puis envoie votre projet aux artisans de votre choix.</p>
+ <div class="pro-grid">${[["1", "Mes pièces", "Surfaces, état, ce que vous faites vous-même."], ["2", "Mon budget", "Matériel + main-d'œuvre, poste par poste, avec une fourchette."], ["3", "Mes aides", "Primes Habitation, prêt à taux zéro, TVA 6 %."], ["4", "Mes artisans", "Un projet chiffré envoyé à 3 artisans par métier."]].map(([n, t, d]) => `<div class="pro-card"><span class="pill or" style="align-self:flex-start">Étape ${n}</span><h3>${t}</h3><p class="mu" style="margin:0">${d}</p></div>`).join("")}</div>
+ <div style="margin-top:20px"><a class="btn" href="../demo/#/">Commencer mon projet</a></div></div>`;
+}
+function pros() {
+ return `<div class="wrap sec"><h1>Valou pour les professionnels</h1><p class="mu" style="max-width:720px">Des clients qui connaissent leur vrai budget : moins de visites inutiles, moins de devis refusés.</p>
+ <div class="pro-grid">${[["🏢", "Agences et agents", "Vos annonces avec le vrai coût, mises en avant par zone, et les vendeurs qui demandent une estimation.", "#/pro/agence"], ["🔨", "Artisans", "Des projets déjà chiffrés, avec les photos des pièces, dans votre zone.", "#/pro/artisan"], ["🧱", "Négociants", "Votre fiche sur les projets des maisons proches de votre négoce.", "#/pro/negociant"], ["🏦", "Banques et courtiers", "Des dossiers achat + travaux complets, prêts à analyser.", "#/tarifs"]].map(([i, t, d, h]) => `<div class="pro-card"><div class="ico">${i}</div><h3>${t}</h3><p class="mu" style="margin:0;flex:1">${d}</p><a class="btn ghost" href="${h}">Découvrir</a></div>`).join("")}</div></div>`;
+}
+const side = (on, items) => `<nav class="side">${items.map(([k, t]) => `<a class="${on === k ? "on" : ""}" href="#/pro/${k}">${t}</a>`).join("")}</nav>`;
+const SIDE = [["agence", "🏢 Agence"], ["artisan", "🔨 Artisan"], ["negociant", "🧱 Négociant"]];
+function proAgence() {
+ const g = AGENCES.clemeuse, mine = A.filter(a => a.ag === "clemeuse" || a.ag === "brique");
+ return `<div class="wrap sec"><div class="dash">${side("agence", SIDE)}<div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">${agl("clemeuse").replace('class="agl"', 'class="agl" style="width:48px;height:48px;border-radius:12px;font-size:16px;background:' + g.c + '"')}<div><h1 style="font-size:28px;margin:0">${esc(g.n)}</h1><span class="mu sm">Licence Valou Pro · 3 agents</span></div></div>
+  <div class="kpis"><div class="kpi"><small>Vues des annonces (30 j)</small><b>4 820</b><span class="up">▲ 18 %</span></div><div class="kpi"><small>Demandes de visite</small><b>37</b><span class="up">▲ 9</span></div><div class="kpi"><small>Vendeurs à estimer</small><b>6</b><span class="mu sm">2 nouveaux</span></div><div class="kpi"><small>Rapports « vrai coût »</small><b>52</b><span class="mu sm">envoyés aux acheteurs</span></div></div>
+  <div class="box"><h2>Mes annonces</h2><div class="tw"><table class="tbl"><tr><th>Bien</th><th>Prix</th><th>Vues</th><th>Visites</th><th>Mise en avant</th><th></th></tr>
+   ${mine.map((a, i) => `<tr><td><b>${esc(a.t)}</b><br><span class="mu sm">${esc(a.co)}</span></td><td>${eur(a.p)}</td><td>${[1240, 890, 610, 455][i] || 300}</td><td>${[14, 9, 6, 4][i] || 2}</td><td>${a.boost ? `<span class="pill or">★ Commune · 5 j restants</span>` : `<span class="mu sm">—</span>`}</td><td class="r"><button class="btn sm ${a.boost ? "ghost" : ""}" data-toast="${a.boost ? "Mise en avant prolongée de 7 jours" : "Mise en avant réservée : 19 € pour 7 jours"}">${a.boost ? "Prolonger" : "★ Mettre en avant"}</button></td></tr>`).join("")}</table></div></div>
+  <div class="fiche" style="grid-template-columns:1fr 1fr"><div class="box"><h3>Vues sur 14 jours</h3><div class="spark">${[22, 30, 28, 41, 38, 52, 47, 60, 58, 71, 66, 80, 76, 92].map(v => `<i style="height:${v}%"></i>`).join("")}</div></div>
+   <div class="box"><h3>Vendeurs qui demandent une estimation</h3><table class="tbl">${[["Maison, Ans", "140 m² · à rafraîchir", "aujourd'hui"], ["Appartement, Liège", "85 m² · bon état", "hier"], ["Fermette, Neupré", "190 m² · à rénover", "lundi"]].map(([t, d, w]) => `<tr><td><b>${t}</b><br><span class="mu sm">${d}</span></td><td class="mu sm">${w}</td><td class="r"><button class="btn sm" data-toast="Coordonnées du vendeur débloquées">Contacter</button></td></tr>`).join("")}</table></div></div>
+ </div></div></div>`;
+}
+function proArtisan() {
+ return `<div class="wrap sec"><div class="dash">${side("artisan", SIDE)}<div>
+  <h1 style="font-size:28px">Chauffage Ourthe Service</h1>
+  <div class="kpis"><div class="kpi"><small>Demandes reçues (30 j)</small><b>14</b></div><div class="kpi"><small>Devis envoyés</small><b>9</b></div><div class="kpi"><small>Devis acceptés</small><b>4</b><span class="up">44 %</span></div><div class="kpi"><small>Chiffre d'affaires Valou</small><b>23 600 €</b></div></div>
+  <div class="box"><h2>Nouvelles demandes</h2><table class="tbl"><tr><th>Projet</th><th>Travaux</th><th class="r">Budget estimé</th><th></th></tr>
+   ${[["Fermette, Esneux", "Chaudière à condensation + 8 radiateurs", 9800], ["Maison, Herstal", "Remplacement chaudière", 5200], ["Villa, Chaudfontaine", "Pompe à chaleur air-eau", 14500]].map(([p, t, b]) => `<tr><td><b>${p}</b><br><span class="mu sm">photos des pièces jointes</span></td><td>${t}</td><td class="r">${eur(b)}</td><td class="r"><button class="btn sm ghost" data-toast="Visite proposée au client">Proposer une visite</button> <button class="btn sm" data-toast="Devis envoyé">Envoyer un devis</button></td></tr>`).join("")}</table></div>
+ </div></div></div>`;
+}
+function proNeg() {
+ return `<div class="wrap sec"><div class="dash">${side("negociant", SIDE)}<div>
+  <h1 style="font-size:28px">Matériaux de la Vallée</h1>
+  <div class="kpis"><div class="kpi"><small>Projets proches (30 j)</small><b>126</b></div><div class="kpi"><small>Fiche consultée</small><b>311</b><span class="up">▲ 24 %</span></div><div class="kpi"><small>Itinéraires demandés</small><b>48</b></div><div class="kpi"><small>Appels</small><b>19</b></div></div>
+  <div class="box"><h2>Ce que cherchent les projets de votre zone</h2><table class="tbl">${[["Isolation", 38], ["Plâtre et cloisons", 31], ["Carrelage", 27], ["Peinture", 24], ["Toiture", 12]].map(([n, v]) => `<tr><td>${n}</td><td style="width:60%"><span class="bar2" style="display:block;height:10px;border-radius:9px;background:var(--fond);overflow:hidden"><i style="display:block;height:100%;width:${v * 2.4}%;background:var(--or)"></i></span></td><td class="r"><b>${v}</b> projets</td></tr>`).join("")}</table></div>
+ </div></div></div>`;
+}
+function tarifs() {
+ const P = [["Particuliers", "Gratuit", "toujours", ["Vrai coût de toutes les annonces", "Projet de rénovation complet", "Devis d'artisans", "Dossier pour la banque"], false],
+  ["Agences", "99 €", "/ mois par agence", ["Rapport « vrai coût » à votre logo", "Vendeurs qui demandent une estimation", "Statistiques des annonces", "89 € / mois avec engagement de 12 mois"], true],
+  ["Artisans", "39 €", "/ mois", ["Demandes chiffrées illimitées dans votre zone", "Photos des pièces", "Ou 12 € par demande acceptée"], false],
+  ["Négociants", "49 €", "/ mois", ["Fiche visible sur les projets de votre zone", "Matériaux, horaires, itinéraire", "Statistiques de visites"], false]];
+ const B = [["Couleur de fond", 9, 15], ["Tête de liste — commune", 19, 32], ["Tête de liste — région", 39, 65], ["Tête de liste — national", 79, 129]];
+ return `<div class="wrap sec"><h1>Tarifs</h1><p class="mu">Gratuit pour les particuliers. Les professionnels paient pour être vus et recevoir des clients qui connaissent leur budget.</p>
+ <div class="plans">${P.map(([t, p, u, L, hl]) => `<div class="plan ${hl ? "hl" : ""}">${hl ? `<span class="pill or" style="align-self:flex-start">Le plus choisi</span>` : ""}<h3>${t}</h3><div><span class="p">${p}</span> <span class="mu">${u}</span></div><ul>${L.map(x => `<li>${x}</li>`).join("")}</ul><a class="btn ${hl ? "" : "ghost"}" href="#/connexion" style="margin-top:auto">${p === "Gratuit" ? "Créer mon compte" : "Essayer"}</a></div>`).join("")}</div>
+ <div class="box" style="margin-top:22px"><h2>Mises en avant des annonces</h2><p class="mu sm">3 places par zone, jamais dans la commune voisine si la zone est complète.</p><div class="tw"><table class="tbl"><tr><th>Formule</th><th class="r">7 jours</th><th class="r">15 jours</th></tr>${B.map(([n, a, b]) => `<tr><td><b>${n}</b></td><td class="r">${a} €</td><td class="r">${b} €</td></tr>`).join("")}</table></div></div></div>`;
+}
+function connexion() {
+ return `<div class="wrap sec" style="max-width:480px"><div class="box"><img src="../demo/img/logo-valou.png" alt="Valou" style="height:30px"><h1 style="font-size:28px;margin-top:16px">Se connecter</h1>
+ <form class="form" id="lform"><label>Adresse e-mail<input type="email" placeholder="vous@exemple.be" autocomplete="email"></label><label>Mot de passe<input type="password" autocomplete="current-password"></label><button class="btn w" type="submit">Se connecter</button></form>
+ <p class="mu sm" style="text-align:center">Pas encore de compte ? <a href="#/tarifs"><b>Créer un compte gratuit</b></a></p></div></div>`;
+}
+
+/* ---------- routeur ---------- */
+function render() {
+ const h = location.hash.replace(/^#\/?/, ""), [r, x] = h.split("/");
+ const V = { "": accueil, annonce: () => fiche(x), comparer, "mes-biens": mesBiens, devis: () => devis(x), vendre, renover, pros, pro: () => x === "artisan" ? proArtisan() : x === "negociant" ? proNeg() : proAgence(), tarifs, connexion };
+ $("#app").innerHTML = (V[r] || accueil)();
+ document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.r === (r === "annonce" || r === "comparer" ? "" : r === "pro" ? "pros" : r)));
+ $("#nav").classList.remove("open");
+}
+let lastRoute = "";
+window.addEventListener("hashchange", () => { render(); const r = location.hash; if (r !== lastRoute) { scrollTo(0, 0); lastRoute = r; } });
+document.addEventListener("click", e => {
+ const t = e.target.closest("[data-save],[data-cmp],[data-filt],[data-uniq],[data-toast],[data-contact],#burger");
+ if (!t) return;
+ if (t.id === "burger") { $("#nav").classList.toggle("open"); return; }
+ if (t.dataset.save) { e.preventDefault(); toggleSave(+t.dataset.save); }
+ else if (t.dataset.cmp) { e.preventDefault(); toggleCmp(+t.dataset.cmp); }
+ else if (t.dataset.filt) { filt = t.dataset.filt; render(); }
+ else if (t.dataset.uniq) { uniq = t.dataset.uniq === "1"; render(); }
+ else if (t.dataset.contact) toast("Demande de visite envoyée à l'agence");
+ else if (t.dataset.toast) toast(t.dataset.toast);
+});
+document.addEventListener("input", e => {
+ const t = e.target; if (t.dataset.apport == null && t.dataset.duree == null) return;
+ if (t.dataset.apport != null) apport = +t.value; else duree = +t.value;
+ const total = +t.closest("[data-total]").dataset.total, emp = Math.max(0, total - apport), m = mensualite(emp, taux, duree);
+ $("#vap").textContent = eur(apport); $("#vdu").textContent = duree + " ans";
+ $("#vem").textContent = `Emprunt ${eur(emp, 100)} à ${String(taux).replace(".", ",")} %`; $("#vme").textContent = m ? eur(m) : "—";
+});
+document.addEventListener("submit", e => {
+ e.preventDefault();
+ if (e.target.id === "search") { document.querySelector(".grid")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
+ if (e.target.id === "vform") { e.target.outerHTML = `<div class="ok">✓ Demande envoyée. Les professionnels choisis vous contacteront sous 48 h.</div>`; }
+ if (e.target.id === "lform") { location.hash = "#/mes-biens"; toast("Bienvenue !"); }
+});
+render();
+</script>
+</body>
+</html>
