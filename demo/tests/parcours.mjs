@@ -310,7 +310,7 @@ try {
     await onglet("artisans");
     await page.locator('.choisir-art a:has-text("Devis reçus")').click(); // juste à côté de « Choisir les artisans par métier »
     await page.locator(".devis-recus").waitFor();
-    assert.match(await page.locator(".devis-recus").innerText(), /Devis reçus[\s\S]*Peintre et plafonneur[\s\S]*Pinceau Clair[\s\S]*Disponible en mars[\s\S]*3\s?000 €/);
+    assert.match(await page.locator(".devis-recus").innerText(), /Devis reçus[\s\S]*Peintre[\s\S]*Pinceau Clair[\s\S]*Disponible en mars[\s\S]*3\s?000 €/);
     assert.ok(await page.locator(".pastille").count() > 0, "pastille sur Contacter");
     await page.screenshot({ path: `${OUT}/${nom}-8b-devis-recus.png`, fullPage: nom === "ordi" });
     await page.locator('.devis-recus [data-action="devis-utiliser"]').click();

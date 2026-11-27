@@ -1,9 +1,9 @@
 /* Valou — écrans de présentation : Professionnels, Notre moteur, Feuille de route.
    Les écrans « Professionnels » sont des simulations : ils montrent ce que reçoit chaque professionnel,
    à partir des maisons encodées dans le prototype. */
-import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611270251";
-import { RACINE, img } from "./chemins.js?v=202611270251";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611270251";
+import { calculerBudget, coutTotal, mensualite, FIABILITE, prixLocaux, RAYONS, MIN_ARTISANS, unitePoste } from "./moteur.js?v=202611270256";
+import { RACINE, img } from "./chemins.js?v=202611270256";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611270256";
 
 /* ---------- métiers : quels postes reçoit chaque artisan ---------- */
 /* une partie du projet : un poste dans une pièce (ou pour toute la maison) */
@@ -13,7 +13,8 @@ export const METIERS = [
   { id: "general", t: "Entreprise générale", f: () => true },
   { id: "macon", t: "Maçon", f: k => /^i_(mb|mp|da|dem|dr)$/.test(k) },
   { id: "carreleur", t: "Carreleur", f: k => /^(sol|mur)_carrelage$/.test(k) },
-  { id: "peintre", t: "Peintre et plafonneur", f: k => /^(mur_peinture|mur_plafonnage|pl|i_cg)$/.test(k) },
+  { id: "peintre", t: "Peintre", f: k => /^(mur_peinture|pl_peinture|i_es_1)$/.test(k) },
+  { id: "plafonneur", t: "Plafonneur", f: k => /^(mur_plafonnage|pl_plafonnage|pl|i_cg)$/.test(k) },
   { id: "electricien", t: "Électricien", f: k => /^i_(re|co|mc)$/.test(k) },
   { id: "chauffagiste", t: "Chauffagiste et sanitaire", f: k => /^(i_(cha|pac|rad|chs|pl)|meu_sdb|wc_.+)$/.test(k) },
   { id: "menuisier", t: "Menuisier", f: k => /^(i_(ch|ca|bv|pe|pi|pg|vo)|sol_parquet|meu_cuisine)$/.test(k) },
@@ -22,84 +23,107 @@ export const METIERS = [
 
 /* ---------- chantiers types : l'artisan chiffre au forfait des chantiers définis par Valou, toujours les mêmes ;
    deux tailles du même travail donnent son fixe (déplacement, installation) et son prix par m² ---------- */
+/* distance fixe pour tous les chantiers types : tous les artisans chiffrent sur la même base, ce qui permet d'en déduire le déplacement */
+export const DISTANCE_CHANTIER = 5;
+/* consignes communes à tous les chantiers types (affichées en rouge) */
+export const CONSIGNES = [
+  `Chantier à <b>${DISTANCE_CHANTIER} km</b> de votre dépôt, déplacement compris.`,
+  "<b>Aucune fourniture comprise</b> : main-d'œuvre seule, le client achète les matériaux.",
+  "Prix <b>hors TVA</b>, comme sur un devis pour un particulier.",
+  "Maison habitée, accès facile, sans difficulté particulière.",
+  "Évacuation des déchets et container non compris, sauf si c'est indiqué.",
+];
+export const blocConsignes = () => `<div class="consignes"><b>⚠️ Consignes pour tous les chantiers</b><ul>${CONSIGNES.map(c => `<li>${c}</li>`).join("")}</ul></div>`;
 export const CHANTIERS_TYPES = {
   macon: [
     { id: "mac_mur", k: "i_mb", u: "m²", q: [10, 30], t: "Monter un mur intérieur en blocs béton de 14 cm",
-      d: "Hauteur 2,50 m, maison habitée, accès facile. Main-d'œuvre seule : matériaux fournis par le client. Enduit et évacuation non compris." },
+      d: "Hauteur 2,50 m, maison habitée, accès facile. Enduit et évacuation non compris." },
     { id: "mac_dem", k: "i_dem", u: "m²", q: [15, 40], t: "Démolir des cloisons intérieures non porteuses",
       d: "Cloisons en briques de 10 cm, avec évacuation des gravats vers le container. Container non compris." },
     { id: "mac_baie", k: "i_mp", u: "forfait", q: [1], t: "Ouvrir une baie de 2 m de large dans un mur porteur",
       d: "Mur en briques de 30 cm. Étançonnement, linteau acier ou béton et finitions brutes compris. Étude de stabilité non comprise." },
     { id: "mac_dalle", k: "i_da", u: "m²", q: [15, 40], t: "Couler une dalle béton armée de 12 cm",
-      d: "Sur sol déjà préparé et compacté, intérieur. Fourniture et pose comprises. Isolation et chape de finition non comprises." },
+      d: "Sur sol déjà préparé et compacté, intérieur. Isolation et chape de finition non comprises." },
     { id: "mac_drain", k: "i_dr", u: "m", q: [10, 30], t: "Poser un drainage périphérique",
-      d: "Tranchée de 1 m de profondeur, drain, gravier, membrane et remblai. Fourniture et pose comprises. Terrassement à la mini-pelle compris." },
+      d: "Tranchée de 1 m de profondeur, drain, gravier, membrane et remblai. Terrassement à la mini-pelle compris." },
   ],
   carreleur: [
     { id: "car_sol", k: "sol_carrelage", u: "m²", q: [15, 40], t: "Poser un carrelage de sol 60×60",
-      d: "Collé sur chape existante plane, joints compris, plinthes non comprises. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Collé sur chape existante plane, joints compris, plinthes non comprises." },
     { id: "car_mur", k: "mur_carrelage", u: "m²", q: [8, 20], t: "Poser une faïence murale 30×60 dans une salle de bain",
-      d: "Sur murs plans et secs, joints et profilés d'angle compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Sur murs plans et secs, joints et profilés d'angle compris." },
   ],
   peintre: [
-    { id: "pei_plaf", k: "mur_plafonnage", u: "m²", q: [30, 80], t: "Plafonner des murs",
-      d: "Enduit plâtre d'environ 1 cm sur maçonnerie, cornières d'angle comprises. Main-d'œuvre seule : matériaux fournis par le client." },
     { id: "pei_peint", k: "mur_peinture", u: "m²", q: [40, 120], t: "Peindre des murs intérieurs",
-      d: "Murs déjà plafonnés et secs : 1 couche de fond et 2 couches de finition, protections comprises. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Murs déjà plafonnés et secs : 1 couche de fond et 2 couches de finition, protections comprises." },
+    { id: "pei_plafp", k: "pl_peinture", u: "m²", q: [15, 40], t: "Peindre des plafonds",
+      d: "Plafonds déjà plafonnés et secs : 1 couche de fond et 2 couches de finition, protections comprises." },
+    { id: "pei_enduit", k: "mur_enduit", u: "m²", q: [30, 80], t: "Enduire des murs avant peinture",
+      d: "Enduit de lissage en 2 passes et ponçage, sur murs plafonnés ou plaques de plâtre, prêts à peindre." },
+    { id: "pei_esc", k: "i_es_1", u: "forfait", q: [1], t: "Décaper et peindre un escalier en bois",
+      d: "Escalier droit d'environ 14 marches avec contremarches et rampe : décapage, ponçage, 1 couche de fond et 2 couches de finition." },
+    { id: "pei_portes", k: "pei_portes", u: "pièce", q: [1, 6], t: "Peindre des portes intérieures",
+      d: "Porte et chambranle, 2 faces : ponçage, 1 couche de fond et 2 couches de finition." },
+  ],
+  plafonneur: [
+    { id: "pei_plaf", k: "mur_plafonnage", u: "m²", q: [30, 80], t: "Plafonner des murs",
+      d: "Enduit plâtre d'environ 1 cm sur maçonnerie, cornières d'angle comprises." },
+    { id: "pla_plaf", k: "pl_plafonnage", u: "m²", q: [10, 30], t: "Plafonner un plafond",
+      d: "Enduit plâtre sur plafond en béton ou hourdis, surface plane." },
     { id: "pei_pl", k: "pl", u: "m²", q: [15, 50], t: "Poser un plafond en plaques de plâtre",
-      d: "Sur ossature métallique, joints et enduit de finition compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Sur ossature métallique, joints et enduit de finition compris." },
     { id: "pei_cg", k: "i_cg", u: "m²", q: [10, 30], t: "Monter une cloison en plaques de plâtre (2 faces)",
-      d: "Ossature métallique, isolant acoustique, joints compris, hauteur 2,50 m. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Ossature métallique, isolant acoustique, joints compris, hauteur 2,50 m." },
   ],
   electricien: [
     { id: "ele_re", k: "i_re", u: "m²", q: [80, 150], t: "Refaire toute l'installation électrique d'une maison",
-      d: "Surface habitable indiquée, maison vidée. Fourniture comprise, prises et points lumineux standards, contrôle de conformité compris. Tableau non compris." },
+      d: "Surface habitable indiquée, maison vidée. Prises et points lumineux standards, contrôle de conformité compris. Tableau non compris." },
     { id: "ele_co", k: "i_co", u: "forfait", q: [1], t: "Remplacer le tableau électrique",
-      d: "Maison unifamiliale, 1 tableau avec différentiels et disjoncteurs. Fourniture et raccordement compris." },
+      d: "Maison unifamiliale, 1 tableau avec différentiels et disjoncteurs, raccordement compris." },
     { id: "ele_mc", k: "i_mc", u: "forfait", q: [1], t: "Mettre en conformité une installation existante",
       d: "Maison de 3 chambres : corrections nécessaires, schémas et contrôle par un organisme agréé compris." },
   ],
   chauffagiste: [
     { id: "cha_rad", k: "i_rad", u: "pièce", q: [1, 6], t: "Remplacer des radiateurs",
-      d: "Au même emplacement, purge et remise en eau comprises. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Au même emplacement, purge et remise en eau comprises." },
     { id: "cha_chaud", k: "i_cha", u: "forfait", q: [1], t: "Remplacer une chaudière gaz par une chaudière à condensation",
-      d: "24 kW, maison de 120 m², raccordements, évacuation des fumées et mise en service compris. Fourniture et pose comprises." },
+      d: "24 kW, maison de 120 m², raccordements, évacuation des fumées et mise en service compris." },
     { id: "cha_pac", k: "i_pac", u: "forfait", q: [1], t: "Installer une pompe à chaleur air-eau",
-      d: "8 kW à la place d'une chaudière, raccordée aux radiateurs existants, mise en service comprise. Fourniture et pose comprises." },
+      d: "8 kW à la place d'une chaudière, raccordée aux radiateurs existants, mise en service comprise." },
     { id: "cha_chs", k: "i_chs", u: "m²", q: [20, 60], t: "Poser un chauffage au sol à eau",
-      d: "Isolant, tubes et collecteur, raccordé à la production existante. Fourniture et pose comprises. Chape non comprise." },
+      d: "Isolant, tubes et collecteur, raccordé à la production existante. Chape non comprise." },
     { id: "cha_pl", k: "i_pl", u: "m²", q: [50, 120], t: "Refaire les arrivées d'eau et les évacuations",
-      d: "Surface habitable indiquée, cuisine, salle de bain et WC. Fourniture et pose comprises." },
+      d: "Surface habitable indiquée, cuisine, salle de bain et WC." },
     { id: "cha_sdb", k: "meu_sdb", u: "forfait", q: [1], t: "Équiper une salle de bain de 6 m²",
-      d: "Douche, meuble lavabo et robinetterie milieu de gamme, plomberie et pose. Fourniture et pose comprises. Carrelage non compris." },
+      d: "Pose d'une douche, d'un meuble lavabo et de la robinetterie, plomberie comprise. Carrelage non compris." },
     { id: "cha_wcsp", k: "wc_sp", u: "forfait", q: [1], t: "Poser un WC suspendu avec bâti",
-      d: "Raccordements compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Raccordements compris." },
     { id: "cha_wccl", k: "wc_cl", u: "forfait", q: [1], t: "Poser un WC classique sur pied",
-      d: "Remplacement à l'identique, raccordements compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Remplacement à l'identique, raccordements compris." },
     { id: "cha_ev", k: "wc_ev", u: "forfait", q: [1], t: "Poser un lave-mains",
-      d: "Raccordement eau froide et évacuation compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Raccordement eau froide et évacuation compris." },
     { id: "cha_mb", k: "wc_mb", u: "forfait", q: [1], t: "Poser un meuble lavabo",
-      d: "Fixation, raccordements et silicone compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Fixation, raccordements et silicone compris." },
     { id: "cha_rb", k: "wc_rb", u: "forfait", q: [1], t: "Remplacer une robinetterie (mitigeur)",
-      d: "Dépose de l'ancienne comprise. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Dépose de l'ancienne comprise." },
   ],
   menuisier: [
     { id: "men_ch", k: "i_ch", u: "pièce", q: [1, 8], t: "Remplacer des fenêtres PVC 120×140",
-      d: "Pose en rénovation sur dormant existant, finitions intérieures comprises. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Pose en rénovation sur dormant existant, finitions intérieures comprises." },
     { id: "men_ca", k: "i_ca", u: "pièce", q: [1, 8], t: "Placer des fenêtres aluminium 120×140",
-      d: "Double vitrage, dépose de l'ancienne fenêtre comprise. Fourniture et pose comprises." },
+      d: "Double vitrage, dépose de l'ancienne fenêtre comprise." },
     { id: "men_bv", k: "i_bv", u: "forfait", q: [1], t: "Placer une baie vitrée coulissante 240×215",
-      d: "Aluminium, double vitrage, dans une ouverture existante. Fourniture et pose comprises." },
+      d: "Aluminium, double vitrage, dans une ouverture existante." },
     { id: "men_pe", k: "i_pe", u: "forfait", q: [1], t: "Placer une porte d'entrée isolante",
-      d: "PVC ou aluminium, serrure 3 points, dépose de l'ancienne comprise. Fourniture et pose comprises." },
+      d: "PVC ou aluminium, serrure 3 points, dépose de l'ancienne comprise." },
     { id: "men_pi", k: "i_pi", u: "pièce", q: [1, 6], t: "Poser des portes intérieures",
-      d: "Blocs-portes standards, chambranles compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Blocs-portes standards, chambranles compris." },
     { id: "men_pg", k: "i_pg", u: "forfait", q: [1], t: "Placer une porte de garage sectionnelle motorisée",
-      d: "240×200, dépose de l'ancienne comprise. Fourniture et pose comprises." },
+      d: "240×200, dépose de l'ancienne comprise." },
     { id: "men_vo", k: "i_vo", u: "pièce", q: [1, 6], t: "Placer des volets roulants électriques",
-      d: "Pour fenêtres 120×140, raccordement électrique compris. Fourniture et pose comprises." },
+      d: "Pour fenêtres 120×140, raccordement électrique compris." },
     { id: "men_parq", k: "sol_parquet", u: "m²", q: [15, 40], t: "Poser un parquet contrecollé flottant",
-      d: "Sous-couche et plinthes comprises, sur sol plan. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Sous-couche et plinthes comprises, sur sol plan." },
     { id: "men_cui", k: "meu_cuisine", u: "forfait", q: [1], t: "Monter et poser une cuisine équipée de 4 m",
       d: "Meubles et électroménager fournis par le client, raccordements et plan de travail compris." },
   ],
@@ -107,35 +131,35 @@ export const CHANTIERS_TYPES = {
     { id: "cou_dp", k: "i_dp", u: "m²", q: [60, 120], t: "Déposer une ancienne couverture",
       d: "Tuiles et liteaux, évacuation vers le container. Container et échafaudage non compris." },
     { id: "cou_st", k: "i_st", u: "m²", q: [60, 120], t: "Poser une sous-toiture respirante",
-      d: "Avec contre-lattes et liteaux. Fourniture et pose comprises." },
+      d: "Avec contre-lattes et liteaux." },
     { id: "cou_tb", k: "i_cv_0", u: "m²", q: [60, 120], t: "Couvrir en tuiles béton",
-      d: "Toiture à 2 versants, pente courante, échafaudage compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Toiture à 2 versants, pente courante, échafaudage compris." },
     { id: "cou_tc", k: "i_cv_1", u: "m²", q: [60, 120], t: "Couvrir en tuiles terre cuite",
-      d: "Toiture à 2 versants, pente courante, échafaudage compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Toiture à 2 versants, pente courante, échafaudage compris." },
     { id: "cou_aa", k: "i_cv_2", u: "m²", q: [60, 120], t: "Couvrir en ardoises artificielles",
-      d: "Toiture à 2 versants, pente courante, échafaudage compris. Fourniture et pose comprises." },
+      d: "Toiture à 2 versants, pente courante, échafaudage compris." },
     { id: "cou_an", k: "i_cv_3", u: "m²", q: [60, 120], t: "Couvrir en ardoises naturelles",
-      d: "Toiture à 2 versants, pente courante, échafaudage compris. Fourniture et pose comprises." },
+      d: "Toiture à 2 versants, pente courante, échafaudage compris." },
     { id: "cou_epdm", k: "i_cv_4", u: "m²", q: [20, 60], t: "Poser une toiture plate EPDM",
-      d: "Sur support existant sain, relevés et rives compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Sur support existant sain, relevés et rives compris." },
     { id: "cou_comb", k: "i_to_0", u: "m²", q: [40, 90], t: "Isoler les combles perdus",
-      d: "Laine minérale de 22 cm posée au sol du grenier. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Laine minérale de 22 cm posée au sol du grenier." },
     { id: "cou_ramp", k: "i_to_1", u: "m²", q: [40, 90], t: "Isoler sous les rampants",
-      d: "Laine minérale de 22 cm et pare-vapeur, finition non comprise. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Laine minérale de 22 cm et pare-vapeur, finition non comprise." },
     { id: "cou_sark", k: "i_to_2", u: "m²", q: [60, 120], t: "Isoler par sarking",
-      d: "Panneaux isolants sur chevrons, au moment de refaire la couverture. Fourniture et pose comprises." },
+      d: "Panneaux isolants sur chevrons, au moment de refaire la couverture." },
     { id: "cou_cpt", k: "i_cp_0", u: "m²", q: [60, 120], t: "Traiter une charpente",
       d: "Brossage et traitement insecticide et fongicide par pulvérisation." },
     { id: "cou_cpr", k: "i_cp_1", u: "m²", q: [20, 60], t: "Remplacer une partie de charpente",
-      d: "Chevrons et liteaux, surface de toiture concernée. Fourniture et pose comprises." },
+      d: "Chevrons et liteaux, surface de toiture concernée." },
     { id: "cou_zi", k: "i_zi", u: "m", q: [10, 30], t: "Poser des gouttières en zinc",
-      d: "Demi-rondes, crochets et descentes compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Demi-rondes, crochets et descentes compris." },
     { id: "cou_no", k: "i_no", u: "m", q: [5, 15], t: "Refaire des noues et abergements",
-      d: "En zinc, autour d'une cheminée ou entre deux versants. Fourniture et pose comprises." },
+      d: "En zinc, autour d'une cheminée ou entre deux versants." },
     { id: "cou_vx0", k: "i_vx_0", u: "forfait", q: [1], t: "Remplacer une fenêtre de toit 78×98",
-      d: "Raccords d'étanchéité compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Raccords d'étanchéité compris." },
     { id: "cou_vx1", k: "i_vx_1", u: "forfait", q: [1], t: "Créer une nouvelle fenêtre de toit 78×98",
-      d: "Chevêtre, raccords d'étanchéité et finitions brutes compris. Main-d'œuvre seule : matériaux fournis par le client." },
+      d: "Chevêtre, raccords d'étanchéité et finitions brutes compris." },
   ],
 };
 /* prix d'un artisan à partir de ses réponses : 2 tailles → fixe + prix par unité ; 1 taille → forfait */
@@ -146,8 +170,9 @@ export function prixChantierType(c, v = []) {
   const [q1, q2] = c.q, unit = (b - a) / (q2 - q1);
   if (!(unit > 0)) return { err: "Le grand chantier doit coûter plus cher que le petit : vérifiez vos deux prix." };
   const fixe = a - q1 * unit;
-  if (fixe < 0) return { unit: Math.round(b / q2), fixe: 0, note: "Vos deux prix donnent un fixe négatif : Valou garde le prix par m² du grand chantier." };
-  return { unit: Math.round(unit), fixe: Math.round(fixe) };
+  const r2 = x => Math.round(x * 100) / 100; // au centime : 12,50 €/m² ne devient pas 13 €
+  if (fixe < 0) return { unit: r2(b / q2), fixe: 0, note: "Vos deux prix donnent un fixe négatif : Valou garde le prix par m² du grand chantier." };
+  return { unit: r2(unit), fixe: Math.round(fixe) };
 }
 
 const qte = (Q, u) => `${nombre(Q)} ${Q > 1 && (u === "pièce" || u === "escalier") ? u + "s" : u}`;
@@ -252,11 +277,12 @@ export function ecranPro(ctx, onglet, metier) {
           <button type="button" data-action="tarif-mode" data-mode="types" data-m="${M.id}" class="${mode === "types" ? "on" : ""}">Au forfait : je chiffre des chantiers types</button>
           <button type="button" data-action="tarif-mode" data-mode="m2" data-m="${M.id}" class="${mode === "m2" ? "on" : ""}">Au m² ou à la pièce</button></div></div>
         ${mode === "types" ? `<section class="carte chantiers-types"><h2>Vos prix sur des chantiers types</h2>
+          ${blocConsignes()}
           <p class="mu">Les mêmes chantiers pour tous les artisans de votre métier : chiffrez-les comme pour un client, au forfait, hors TVA. Valou en déduit votre prix ; pour un même travail en deux tailles, il calcule votre fixe (déplacement, installation) et votre prix au m², au mètre ou à la pièce. Laissez vide ce que vous ne faites pas.</p>
           ${CT.map(c => { const v = (T.ct || {})[c.id] || [], r = prixChantierType(c, v);
             return `<article class="ct-carte"><h3>${esc(c.t)}</h3><p class="mu petit-t">${esc(c.d)}</p>
               <div class="ct-q">${c.q.map((q, i) => `<label>${c.u === "forfait" ? "Votre forfait" : qte(q, c.u)}<span class="saisie"><input type="number" min="0" step="any" inputmode="decimal" data-ct="${c.id}" data-ct-i="${i}" value="${esc(v[i] ?? "")}" aria-label="Votre prix pour ${esc(c.t)}${c.u === "forfait" ? "" : `, ${q} ${c.u}`}"><i>€ HTVA</i></span></label>`).join("")}</div>
-              ${!r ? `<p class="mu petit-t">${c.q.length > 1 ? "Remplissez les deux tailles pour obtenir votre prix." : ""}</p>` : r.err ? `<p class="alerte-mini">⚠️ ${esc(r.err)}</p>` : `<p class="ct-res">${r.forfait != null ? `Votre forfait : <b>${euros(r.forfait)}</b>` : `Votre prix : <b>${euros(r.unit)} / ${esc(c.u)}</b> + <b>${euros(r.fixe)}</b> de mise en route par chantier`}</p>${r.note ? `<p class="mu petit-t">${esc(r.note)}</p>` : ""}`}
+              ${!r ? `<p class="mu petit-t">${c.q.length > 1 ? "Remplissez les deux tailles pour obtenir votre prix." : ""}</p>` : r.err ? `<p class="alerte-mini">⚠️ ${esc(r.err)}</p>` : `<p class="ct-res">${r.forfait != null ? `Votre forfait : <b>${euros(r.forfait)}</b>` : `Votre prix : <b>${Number.isInteger(r.unit) ? euros(r.unit) : euros2(r.unit)} / ${esc(c.u)}</b> + <b>${euros(r.fixe)}</b> de mise en route par chantier`}</p>${r.note ? `<p class="mu petit-t">${esc(r.note)}</p>` : ""}`}
               <label class="cb petit-t"><input type="checkbox" data-ct-non="${c.id}" ${((T.ctNon || {})[c.id]) ? "checked" : ""}> Je ne fais pas ce type de travail</label>
             </article>`; }).join("")}
           <label class="cb"><input type="checkbox" data-tarif-ok ${T.ok ? "checked" : ""}> J'accepte que mes tarifs servent uniquement au calcul de prix moyens anonymes, selon les règles ci-dessus.</label>
@@ -379,9 +405,14 @@ export const ARTISANS = {
     AR("Mosaïque Liégeoise", "Liège", 7, "Carreaux de ciment, mosaïques et pierre naturelle pour les maisons de caractère.", ["Carreaux de ciment", "Mosaïque", "Pierre naturelle", "Restauration"], "04 000 02 03", { tarifs: false }),
   ],
   peintre: [
-    AR("Pinceau Clair", "Liège", 7, "Peinture intérieure et plafonnage, finitions lisses et teintes sur mesure.", ["Peinture intérieure", "Plafonnage", "Enduits lissés", "Conseil couleurs"], "04 000 03 01"),
+    AR("Pinceau Clair", "Liège", 7, "Peinture intérieure, finitions lisses et teintes sur mesure.", ["Peinture intérieure", "Enduits lissés", "Escaliers", "Conseil couleurs"], "04 000 03 01"),
     AR("Teinte Juste", "Flémalle", 11, "Peinture et papier peint, protection complète des sols et des meubles.", ["Peinture", "Papier peint", "Boiseries", "Plafonds"], "04 000 03 02"),
-    AR("Atelier Blanc Mat", "Seraing", 3, "Plaques de plâtre, cloisons et peinture pour les rénovations rapides.", ["Plaques de plâtre", "Cloisons", "Faux plafonds", "Peinture"], "04 000 03 03", { tarifs: false }),
+    AR("Couleur Meuse", "Seraing", 3, "Rafraîchissement de maisons avant emménagement : murs, plafonds, portes.", ["Murs et plafonds", "Portes", "Décapage", "Peinture"], "04 000 03 03", { tarifs: false }),
+  ],
+  plafonneur: [
+    AR("Atelier Blanc Mat", "Seraing", 3, "Plaques de plâtre, cloisons et faux plafonds pour les rénovations rapides.", ["Plaques de plâtre", "Cloisons", "Faux plafonds"], "04 000 09 01"),
+    AR("Plâtre & Lisse", "Liège", 7, "Plafonnage traditionnel des murs et plafonds, finition prête à peindre.", ["Plafonnage", "Cornières", "Plafonds", "Enduits"], "04 000 09 02"),
+    AR("Gyps'Ans", "Ans", 14, "Petite équipe de plafonneurs pour maisons anciennes.", ["Maisons anciennes", "Plafonnage", "Cloisons"], "04 000 09 03", { tarifs: false }),
   ],
   electricien: [
     AR("Fil Rouge Électricité", "Grâce-Hollogne", 9, "Électricité complète, mise en conformité et contrôle par un organisme agréé.", ["Installation complète", "Mise en conformité", "Tableau électrique", "Domotique"], "04 000 04 01"),
@@ -427,7 +458,7 @@ export const RAYONS_NEG = [
   ["sanitaire", "🚿", "Sanitaire et plomberie", ["chauffagiste"]],
   ["chauffage", "🔥", "Chauffage", ["chauffagiste"]],
   ["electricite", "💡", "Électricité et éclairage", ["electricien"]],
-  ["peinture", "🎨", "Peinture et plâtre", ["peintre"]],
+  ["peinture", "🎨", "Peinture et plâtre", ["peintre", "plafonneur"]],
   ["cuisine", "🍳", "Cuisines", ["menuisier"]],
   ["exterieur", "🌳", "Extérieurs et aménagements", ["general"]],
   ["outillage", "🔧", "Outillage et petit matériel", []],
