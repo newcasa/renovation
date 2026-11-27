@@ -1,7 +1,7 @@
 /* Chargement des références : les mêmes fichiers que l'appli Valou (à la racine du site),
    puis les prix publiés depuis le tableau de bord des calculs (Supabase, lecture publique). */
-import { RACINE } from "./chemins.js?v=202611250558";
-import { indexer } from "./moteur.js?v=202611250558";
+import { RACINE, DEMO_DIR } from "./chemins.js?v=202611270251";
+import { indexer } from "./moteur.js?v=202611270251";
 
 const json = u => fetch(u, { cache: "no-cache" }).then(r => (r.ok ? r.json() : Promise.reject(new Error(u))));
 
@@ -34,7 +34,11 @@ export async function chargerReferences() {
     json(RACINE + "aides-renovation.json").catch(() => null),
     prixPublies(),
   ]);
+  /* prix d'artisans partenaires retenus comme référence pour la démo (fichier propre à ce dossier) */
+  const art = await json(DEMO_DIR + "references-artisans.json").catch(() => null);
+  if (art && Array.isArray(art.mos)) mo.postes = [...mo.postes.filter(m => !art.mos.some(a => a.id === m.id)), ...art.mos];
   const R = indexer({ ref, mo, hubo, pub });
+  if (art && art.postes) Object.entries(art.postes).forEach(([k, v]) => { const p = R.postes[k]; if (p) { Object.assign(p, v); if (v.mo) { delete p.moTemp; delete p.note; } } });
   R.aides = aides;
   R.sources = { mo: mo.source, moDate: mo.date, hubo: hubo.source, huboDate: hubo.date, pub: pub ? pub.maj : null };
   return R;

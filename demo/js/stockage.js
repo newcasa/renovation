@@ -1,5 +1,5 @@
 /* Maisons enregistrées sur l'appareil (démo : pas de compte nécessaire). */
-import { cle } from "./chemins.js?v=202611250558";
+import { cle } from "./chemins.js?v=202611270251";
 const CLE = cle("valou_demo_maisons");
 
 export function lireMaisons() {

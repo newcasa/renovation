@@ -1,13 +1,13 @@
 /* Valou — prototype de démonstration. Écrans : accueil, ajouter une maison, le vrai coût d'une maison, comparer, dossier pour la banque. */
-import { chargerReferences, configServeur } from "./donnees.js?v=202611250558";
-import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611250558";
-import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611250558";
-import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611250558";
-import { euros, euros2, nombre, esc } from "./format.js?v=202611250558";
-import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne, CHANTIERS_TYPES, prixChantierType } from "./vitrine.js?v=202611250558";
-import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611250558";
-import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611250558";
-import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611250558";
+import { chargerReferences, configServeur } from "./donnees.js?v=202611270251";
+import { VERSION, DEMO_DIR, cle, img } from "./chemins.js?v=202611270251";
+import { calculerBudget, coutTotal, mensualite, HYPOTHESES, FIABILITE, unitePoste, mursPiece, RATIO_MURS, travauxChauffage, CHAUFFAGE_ACTUEL, CHAUFFAGE_SOUHAITE, EMETTEURS, TYPES_PIECE, SOLS, MURS, PLAFONDS, WC, POSTES_PIECES, MARCHES_PAR_ESCALIER, CHASSIS, LABELS_PEB, COULEURS_PEB, OBLIGATION_PEB, concerneParObligation, travauxEnergie } from "./moteur.js?v=202611270251";
+import { lireMaisons, ecrireMaisons, nouvelId } from "./stockage.js?v=202611270251";
+import { euros, euros2, nombre, esc } from "./format.js?v=202611270251";
+import { ecranPro, ecranMoteur, ecranFeuille, ecranDemoPro, METIERS, ficheNegociant, ARTISANS_EXEMPLE, ARTISANS, RAYONS_NEG, cleLigne, CHANTIERS_TYPES, prixChantierType } from "./vitrine.js?v=202611270251";
+import { ecranQuestionnaire, PIECES_QUESTIONNAIRE, maisonDepuisQuestionnaire, RAPPELS_VISITE, GROS_TRAVAUX } from "./questionnaire.js?v=202611270251";
+import { ajouterPhoto, listerPhotos, renommerPhoto, supprimerPhoto, supprimerPhotosMaison, memeNom, pieceDePhoto } from "./photos.js?v=202611270251";
+import { TYPES_DOCS, ajouterDoc, listerDocs, supprimerDoc, supprimerDocsMaison } from "./documents.js?v=202611270251";
 
 let R = null;
 let maisons = lireMaisons();
